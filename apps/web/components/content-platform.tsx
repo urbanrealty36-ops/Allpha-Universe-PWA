@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
-type Content = { id:string; owner_type:string; owner_id:string; content_type:string; title:string|null; excerpt:string|null; visibility:string; status:string; language_code:string|null; metadata:Record<string,unknown>; published_at:string|null; created_at:string; updated_at:string };
+type Content = { id:string; owner_type:string; owner_id:string; content_type:string; title:string|null; body:string|null; excerpt:string|null; visibility:string; status:string; language_code:string|null; metadata:Record<string,unknown>; published_at:string|null; created_at:string; updated_at:string };
 const types = ["post","image","video","carousel","article","document","presentation","podcast","audio","tutorial","infographic","research","ai_capsule"];
 
 export default function ContentPlatform({ detailId }: { detailId?: string }) {
@@ -58,7 +58,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">{selected.content_type} · {selected.status}</p>
           <h1 className="mt-3 text-4xl font-semibold">{selected.title || "Untitled content"}</h1>
           {selected.excerpt && <p className="mt-4 text-slate-300">{selected.excerpt}</p>}
-          <div className="mt-8 whitespace-pre-wrap text-slate-200">{selected.metadata?.body ? String(selected.metadata.body) : "Content body is stored through the authoritative content API."}</div>
+          <div className="mt-8 whitespace-pre-wrap text-slate-200">{selected.body || "No body content."}</div>
           <p className="mt-8 text-xs text-slate-500">{selected.owner_type}:{selected.owner_id}</p>
         </article>
       ) : <State text="Content is not available." />}
