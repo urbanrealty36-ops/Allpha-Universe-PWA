@@ -6,7 +6,7 @@ Applied remote migrations:
 - `20261001185118_phase_04_core_data_foundation`
 - `20261001185146_phase_04_security_indexes_and_rls`
 - `20261001185154_phase_04_storage_realtime_foundation`
-- `202610011852xx_phase_04_authenticated_grants` (remote migration history records the exact generated version)
+- `20261001185227_phase_04_authenticated_grants`
 
 The authoritative database migration history is verified from Supabase. This manifest deliberately does not contain fake seed data or generated IDs.
 
