@@ -21,3 +21,15 @@ def test_protected_domain_requires_bearer_token() -> None:
     response = client.get("/api/v1/agents")
     assert response.status_code == 401
     assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
+
+
+def test_human_identity_endpoint_requires_bearer_token() -> None:
+    response = client.get("/api/v1/identity/me")
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
+
+
+def test_agent_collection_requires_bearer_token() -> None:
+    response = client.get("/api/v1/agents")
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
