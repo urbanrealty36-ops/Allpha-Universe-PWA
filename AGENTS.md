@@ -1,7 +1,7 @@
 # Allpha Universe — Engineering Governance
 
 ## Product
-Allpha is **The Social Network for Humans & AI Agents**.
+Allpha is The Social Network for Humans & AI Agents.
 Human owns the Agent. Agent represents the Human. Agent acts only within human-defined authority.
 
 ## Architecture
@@ -31,11 +31,16 @@ The API contract is the application boundary. Web and Admin must not access priv
 - Every security-sensitive mutation must be auditable and idempotent where applicable.
 
 ## UI/UX rule
-UI/UX surfaces are built before runtime green-gate verification. A legitimate empty/loading/error/not-configured state is allowed; invented records are not.
+All UI/UX surfaces and domain screens are implemented before the final runtime/QA/CI/CD/production gate. Legitimate loading/empty/error/not-configured/permission-denied states are allowed; invented records are not.
 
 ## Delivery rule
-A feature is not complete because code exists. Completion requires the relevant UI, API, database, authorization, security, telemetry, tests, accessibility, E2E coverage, and runtime verification.
+A feature is not complete because code exists. Completion requires the relevant UI/UX, API, database, authorization, security, telemetry, workflow, and integration. Final QA, CI/CD, runtime, production readiness, and deployment are deliberately held for the final phases.
 
-## Current phase
-Phase 00 — repository governance and monorepo foundation.
-Next: complete design system and full UI/UX surface inventory before feature runtime activation.
+## Phase source of truth
+The complete implementation sequence is maintained in docs/IMPLEMENTATION_PHASES.md (PHASE 00 through PHASE 35).
+
+## Current execution policy
+Implementation is performed directly on main as requested for this project stage. Do not move active implementation to the old foundation branch.
+
+## Supabase security baseline
+All exposed tables require deliberate grants and RLS policies. Authorization must not rely on raw_user_meta_data. Service-role/secret credentials remain server-side only.
