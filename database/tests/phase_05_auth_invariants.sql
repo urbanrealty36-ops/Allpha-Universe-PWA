@@ -17,8 +17,8 @@ select extensions.results_eq(
 );
 
 select extensions.results_eq(
-  $$select count(*)::bigint from public.permissions where key in ('profile.read_self','profile.write_self','organization.read','agent.read_self','agent.manage_self','admin.read','admin.manage')$$,
-  $$select 7::bigint$$,
+  $$select count(*)::bigint from public.permissions where key in ('profile.read_self','profile.write_self','organization.read','organization.manage','agent.read_self','agent.manage_self','admin.read','admin.manage')$$,
+  $select 8::bigint$,
   'canonical permissions are configured'
 );
 
