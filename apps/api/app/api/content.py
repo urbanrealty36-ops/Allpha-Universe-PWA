@@ -40,7 +40,7 @@ class MediaCreate(BaseModel):
     owner_type: OwnerType = "user"
     owner_id: UUID | None = None
     media_type: Literal["image","video","audio","document","presentation","file"]
-    storage_bucket: Literal["allpha-media","allpha-documents","allpha-agent-assets","allpha-world-assets"]
+    storage_bucket: Literal["allpha-media","allpha-documents"]
     storage_path: str
     original_filename: str | None = None
     mime_type: str | None = None
