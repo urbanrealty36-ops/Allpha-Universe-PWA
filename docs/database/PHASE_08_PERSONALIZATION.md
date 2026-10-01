@@ -146,6 +146,7 @@ No seed/demo/mock/scenario taxonomy or user data was inserted.
 - `20261002032000_phase_08_personalization_intelligence`
 - `20261002032100_phase_08_personalization_derived_intelligence`
 - `20261002032200_phase_08_fk_indexes`
+- `20261002032300_phase_08_passion_source_hardening`
 
 Supabase records these migrations with their project migration versions.
 
