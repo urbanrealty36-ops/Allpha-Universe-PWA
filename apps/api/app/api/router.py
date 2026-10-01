@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.core.auth import require_auth
 
 router = APIRouter(prefix="/api/v1")
 
@@ -15,7 +17,7 @@ def not_connected(domain: str) -> None:
 
 
 def domain_router(path: str, domain: str) -> APIRouter:
-    child = APIRouter(prefix=path, tags=[domain])
+    child = APIRouter(prefix=path, tags=[domain], dependencies=[Depends(require_auth)])
 
     @child.get("")
     async def list_resource() -> None:
@@ -25,7 +27,6 @@ def domain_router(path: str, domain: str) -> APIRouter:
 
 
 for _path, _domain in [
-    ("/auth", "Authentication"),
     ("/users", "Users"),
     ("/agents", "Agents"),
     ("/agents/memory", "Agent Memory"),
