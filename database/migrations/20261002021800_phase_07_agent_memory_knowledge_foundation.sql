@@ -92,8 +92,58 @@ drop policy if exists knowledge_access_owner_select on public.knowledge_access_e
 create policy knowledge_access_owner_select on public.knowledge_access_events for select to authenticated
 using(owner_user_id=(select auth.uid()));
 
--- The remaining functions are deliberately database-authoritative:
--- create_agent_memory, create_knowledge_item, retrieve_agent_memory,
--- retrieve_agent_knowledge, review_agent_memory, delete_agent_memory,
--- delete_knowledge_item, expire_agent_memory and expire_agent_knowledge.
--- Their canonical definitions are maintained in this migration chain.
+
+create or replace function public.create_agent_memory(p_agent_id uuid,p_memory_type text,p_content text,p_metadata jsonb default '{}'::jsonb,p_sensitivity text default null,p_source_type text default null,p_source_id uuid default null,p_expires_at timestamptz default null,p_consent_basis text default null)
+returns jsonb language plpgsql security invoker set search_path=''
+as $ declare v_id uuid; begin
+if (select auth.uid()) is null then raise exception using errcode='42501',message='Authentication required'; end if;
+if p_content is null or length(btrim(p_content))=0 then raise exception using errcode='22023',message='Memory content is required'; end if;
+if not exists(select 1 from public.agents a where a.id=p_agent_id and a.owner_user_id=(select auth.uid())) then raise exception using errcode='42501',message='Agent ownership denied'; end if;
+insert into public.agent_memory(agent_id,owner_user_id,memory_type,content,metadata,status,sensitivity,source_type,source_id,expires_at,consent_basis)
+values(p_agent_id,(select auth.uid()),btrim(p_memory_type),p_content,p_metadata,'active',p_sensitivity,p_source_type,p_source_id,p_expires_at,p_consent_basis) returning id into v_id;
+return jsonb_build_object('memory_id',v_id); end; $;
+
+create or replace function public.create_knowledge_item(p_agent_id uuid,p_title text,p_content text,p_source_uri text default null,p_provenance jsonb default '{}'::jsonb,p_visibility public.visibility_level default 'private',p_retention_policy jsonb default '{}'::jsonb)
+returns jsonb language plpgsql security invoker set search_path=''
+as $ declare v_id uuid; begin
+if (select auth.uid()) is null then raise exception using errcode='42501',message='Authentication required'; end if;
+if p_content is null or length(btrim(p_content))=0 then raise exception using errcode='22023',message='Knowledge content is required'; end if;
+if p_agent_id is not null and not exists(select 1 from public.agents a where a.id=p_agent_id and a.owner_user_id=(select auth.uid())) then raise exception using errcode='42501',message='Agent ownership denied'; end if;
+insert into public.knowledge_items(owner_user_id,agent_id,title,content,source_uri,provenance,visibility,retention_policy,status)
+values((select auth.uid()),p_agent_id,nullif(btrim(p_title),''),p_content,p_source_uri,p_provenance,p_visibility,p_retention_policy,'active') returning id into v_id;
+return jsonb_build_object('knowledge_item_id',v_id); end; $;
+
+create or replace function public.review_agent_memory(p_memory_id uuid)
+returns jsonb language plpgsql security invoker set search_path=''
+as $ begin
+update public.agent_memory set reviewed_at=timezone('utc',now()),last_accessed_at=timezone('utc',now()),updated_at=timezone('utc',now())
+where id=p_memory_id and owner_user_id=(select auth.uid()) and deleted_at is null;
+if not found then raise exception using errcode='42501',message='Memory not found or access denied'; end if;
+return jsonb_build_object('memory_id',p_memory_id,'status','reviewed'); end; $;
+
+create or replace function public.delete_agent_memory(p_memory_id uuid)
+returns jsonb language plpgsql security invoker set search_path=''
+as $ begin
+update public.agent_memory set status='deleted',deleted_at=timezone('utc',now()),updated_at=timezone('utc',now())
+where id=p_memory_id and owner_user_id=(select auth.uid()) and deleted_at is null;
+if not found then raise exception using errcode='42501',message='Memory not found or access denied'; end if;
+return jsonb_build_object('memory_id',p_memory_id,'status','deleted'); end; $;
+
+create or replace function public.delete_knowledge_item(p_knowledge_item_id uuid)
+returns jsonb language plpgsql security invoker set search_path=''
+as $ begin
+update public.knowledge_items set status='deleted',deleted_at=timezone('utc',now()),updated_at=timezone('utc',now())
+where id=p_knowledge_item_id and owner_user_id=(select auth.uid()) and status<>'deleted';
+if not found then raise exception using errcode='42501',message='Knowledge item not found or access denied'; end if;
+return jsonb_build_object('knowledge_item_id',p_knowledge_item_id,'status','deleted'); end; $;
+
+revoke execute on function public.create_agent_memory(uuid,text,text,jsonb,text,text,uuid,timestamptz,text) from public,anon;
+revoke execute on function public.create_knowledge_item(uuid,text,text,text,jsonb,public.visibility_level,jsonb) from public,anon;
+revoke execute on function public.review_agent_memory(uuid) from public,anon;
+revoke execute on function public.delete_agent_memory(uuid) from public,anon;
+revoke execute on function public.delete_knowledge_item(uuid) from public,anon;
+grant execute on function public.create_agent_memory(uuid,text,text,jsonb,text,text,uuid,timestamptz,text) to authenticated;
+grant execute on function public.create_knowledge_item(uuid,text,text,text,jsonb,public.visibility_level,jsonb) to authenticated;
+grant execute on function public.review_agent_memory(uuid) to authenticated;
+grant execute on function public.delete_agent_memory(uuid) to authenticated;
+grant execute on function public.delete_knowledge_item(uuid) to authenticated;
