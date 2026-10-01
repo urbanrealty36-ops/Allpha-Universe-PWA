@@ -224,28 +224,49 @@ Do not claim Green.
 
 Pending domains/gates include Social Graph, Content, Feed/Reels/Recommendation, Context Graph, AI Gateway/Model Router, Agent Runtime, Workflow/Mission, Universe, Simulation, Districts, Booth/Tenant, Theme/World Builder, Events, AI-to-AI Collaboration, Marketplace/Commerce, Billing/Entitlements, expanded Security/Governance, Super Admin activation, Analytics/Observability, full API integration, E2E, CI/CD, Runtime Verification, Production Readiness, Deployment and Final Green Gate.
 
+## Phase 09 — Social Graph & Relationship Engine — IMPLEMENTED
+
+Implemented:
+- PostgreSQL social_relationships, social_blocks, social_mentions, social_activity_events, social_notifications.
+- Follow and typed relationship lifecycle.
+- Human/Agent subject ownership enforcement.
+- Block/unblock with relationship revocation.
+- Mention, activity and recipient-scoped notification flows.
+- RLS, least-privilege grants and private security helpers.
+- Audit triggers for relationship/block/mention mutations.
+- FastAPI /api/v1/social/* endpoints.
+- User PWA surfaces /social-graph, /relationships, /following, /notifications, /blocked.
+- Database invariant test committed at database/tests/phase_09_social_graph_invariants.sql.
+- No social seed data was inserted; current social graph tables remain empty by design.
+
+Verification:
+- All five Phase 09 tables exist and have RLS enabled.
+- Public social mutation functions are SECURITY INVOKER and executable only by authenticated.
+- Private authorization/audit/notification helpers are SECURITY DEFINER with an empty search_path.
+- Authenticated two-party E2E has not been executed because no real Auth users/Agents should be fabricated. Therefore Phase 09 is implementation-complete foundation, not final runtime GREEN.
+
 ## Next logical phase
-PHASE 09 — Social Graph
+PHASE 10 — Content Platform
 
 Expected next domain:
-- follow
-- connections
-- relationships
-- mentions
-- blocks
-- social graph
-- relationship graph
-- activity events
-- notifications
+- content model
+- media/content ownership
+- posts
+- image/video/carousel
+- article/document/presentation
+- podcast/audio
+- AI Capsule foundation
+- content moderation contracts
+- content graph foundation
 
-Before Phase 09:
+Execution rules:
 1. Re-read AGENTS.md and Master PRD.
-2. Inspect current Phase 08 code and live Supabase migration state.
-3. Do not create mock social users or seed graph records.
-4. Implement database/API/security/UI according to the real-data rule.
-5. Keep frontend behind FastAPI.
-6. Add tests and advisor verification.
-7. Do not claim Green without authenticated E2E evidence.
+2. Inspect Phase 09 social graph contracts and live Supabase migration state.
+3. Keep content mutations behind FastAPI and Supabase RLS.
+4. Do not seed fake content, creators, media or recommendations.
+5. Connect social relationships to content only through authoritative APIs.
+6. Add database invariants, security checks and honest UI states.
+7. Do not claim final Green without authenticated E2E evidence.
 
 ## Critical continuation instruction
 Do not restart the project, create a second architecture/database, rename/reinvent domains without approval, replace Supabase with SQLite, fabricate users/Agents/content/signals, create mock recommendations, silently change the PRD, bypass Backend API, assume code exists without inspection, or claim a phase is GREEN without evidence.
