@@ -1,0 +1,23 @@
+-- Phase 07 database invariants. No seed/business data.
+select plan(20);
+select has_table('public','agent_memory','Agent memory table exists');
+select has_table('public','knowledge_items','Knowledge item table exists');
+select has_table('public','knowledge_chunks','Knowledge chunks table exists');
+select has_table('public','agent_memory_embeddings','Memory embeddings table exists');
+select has_table('public','agent_memory_access_events','Memory access audit table exists');
+select has_table('public','knowledge_access_events','Knowledge access audit table exists');
+select has_column('public','agent_memory','retention_policy','Memory retention policy exists');
+select has_column('public','agent_memory','consent_basis','Memory consent basis exists');
+select has_column('public','agent_memory','reviewed_at','Memory review timestamp exists');
+select has_column('public','knowledge_items','status','Knowledge lifecycle status exists');
+select has_column('public','knowledge_items','retention_policy','Knowledge retention policy exists');
+select has_column('public','knowledge_chunks','source_locator','Knowledge provenance locator exists');
+select has_index('public','agent_memory_embeddings_memory_id_idx','Memory embedding FK is indexed');
+select has_index('public','agent_memory_access_events_owner_idx','Memory access owner index exists');
+select has_index('public','knowledge_access_events_owner_idx','Knowledge access owner index exists');
+select has_index('public','knowledge_chunks_item_idx','Knowledge chunk FK/index exists');
+select policies_are('public','agent_memory',ARRAY['agent_memory_owner_all'],'Memory has owner RLS');
+select policies_are('public','knowledge_items',ARRAY['knowledge_items_owner_all'],'Knowledge items have owner RLS');
+select policies_are('public','knowledge_chunks',ARRAY['knowledge_chunks_owner_all'],'Knowledge chunks inherit owner RLS');
+select has_function('public','retrieve_agent_memory','Memory retrieval function exists');
+select * from finish();
