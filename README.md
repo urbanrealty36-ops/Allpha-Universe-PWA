@@ -67,3 +67,17 @@ Implemented on AllphaDb-Universe and main:
 - No user, Agent, demo, mock, or seed business data created
 
 Agent runtime execution remains a later Phase 15 concern.
+
+
+## Phase 07 — Agent Memory & Knowledge
+
+Implemented:
+- Agent memory capture/classify/store/retrieve/review/expire/delete lifecycle
+- Memory retention and consent metadata
+- Knowledge item/chunk/provenance lifecycle
+- pgvector embedding persistence and semantic retrieval boundary
+- Memory/knowledge retrieval access audit
+- Owner-scoped RLS and database ownership enforcement
+- No user/Agent/knowledge seed or demo data
+
+Embedding provider/model selection remains intentionally delegated to the future AI Gateway/Model Router.
