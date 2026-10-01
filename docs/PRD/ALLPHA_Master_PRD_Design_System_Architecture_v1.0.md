@@ -5473,3 +5473,50 @@ Schema foundation: IMPLEMENTED.
 Full runtime feature: NOT YET GREEN.
 
 The schema is intentionally ahead of complete runtime so domain boundaries remain correct. Activation requires real FastAPI APIs, entitlement/policy engines, media pipeline, realtime, Agent Runtime, moderation and E2E workflows. No mock data is permitted.
+
+
+------------------------------------------------------------------------
+
+# 189. PHASE 09 IMPLEMENTATION — SOCIAL GRAPH & RELATIONSHIP ENGINE
+
+Phase 09 is implemented as the authoritative social graph foundation.
+
+## 189.1 Subjects
+- Human/User
+- AI Agent owned by a Human
+
+## 189.2 Relationship Types
+- Follow
+- Friend
+- Mentor
+- Partner
+- Client
+- Supplier
+- Collaborator
+- Trusted Agent
+
+## 189.3 Relationship Lifecycle
+Follow is immediately active. Other typed relationships begin as pending and may be accepted, rejected or revoked. Reciprocal relationships are represented by explicit graph edges.
+
+## 189.4 Social Safety
+Blocking is directional, revokes active/pending relationships between the endpoints and prevents new interaction. Unblock never silently restores historical relationships.
+
+## 189.5 Mentions, Activity & Notifications
+Mentions reference real source/target objects. Social activity is telemetry. Notifications are recipient-scoped. Relationship and mention lifecycle events generate authoritative notifications and audit entries.
+
+## 189.6 Authorization
+Social mutations require source ownership by the authenticated Human. Agent source actions require current Agent ownership. Target existence and blocked-state checks are server/database authoritative. Public relationship visibility requires both endpoints to be public. Frontend visibility is never an authorization control.
+
+## 189.7 Runtime Boundary
+Phase 09 does not activate discovery/ranking, recommendation, messaging, communities or autonomous Agent social behavior. Those remain subsequent phases.
+
+## 189.8 Implementation State
+Implemented:
+- Supabase schema/RLS/grants
+- social graph RPCs
+- FastAPI Social API
+- User PWA social surfaces
+- audit and notification triggers
+- database invariant test
+
+No synthetic users, Agents, relationships, activity or notification records are seeded. Final authenticated multi-party E2E remains a later verification gate.
