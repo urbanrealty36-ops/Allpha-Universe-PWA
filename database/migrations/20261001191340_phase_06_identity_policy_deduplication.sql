@@ -1,0 +1,1 @@
+drop policy if exists agent_passports_owner_select on public.agent_passports;
