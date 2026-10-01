@@ -111,7 +111,13 @@ async def list_content(
     user = context["user"]
     filters: dict[str, str] = {"order":"published_at.desc.nullslast,created_at.desc","limit":str(limit)}
     if mine:
-        filters["or"] = f"(and(owner_type.eq.user,owner_id.eq.{user.user_id}),and(owner_type.eq.agent,owner_id.in.({','.join([str(x['id']) for x in await select(user,'agents',{'select':'id','owner_user_id':f'eq.{user.user_id}','status':'neq.archived'})])})))"
+        agents = await select(user, "agents", {"select": "id", "owner_user_id": f"eq.{user.user_id}", "status": "neq.archived"})
+        agent_ids = [str(x["id"]) for x in agents]
+        if agent_ids:
+            filters["or"] = f"(and(owner_type.eq.user,owner_id.eq.{user.user_id}),and(owner_type.eq.agent,owner_id.in.({','.join(agent_ids)})))"
+        else:
+            filters["owner_type"] = "eq.user"
+            filters["owner_id"] = f"eq.{user.user_id}"
     else:
         filters["status"] = "eq.published"
         filters["visibility"] = "eq.public"
@@ -122,7 +128,7 @@ async def list_content(
     return {"data": await select(user, "content_items", {"select":"id,owner_type,owner_id,content_type,title,excerpt,visibility,status,language_code,metadata,published_at,created_at,updated_at", **filters})}
 
 
-@router.get("/{content_id}")
+@router.get("/{content_id:uuid}")
 async def get_content(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     rows = await select(context["user"], "content_items", {"select":"*", "id":f"eq.{content_id}", "limit":"1"})
     if not rows:
@@ -148,7 +154,7 @@ async def update_content(content_id: UUID, payload: ContentUpdate, context: dict
         raise _error(exc) from exc
 
 
-@router.post("/{content_id}/submit-moderation", status_code=201)
+@router.post("/{content_id:uuid}/submit-moderation", status_code=201)
 async def submit_moderation(content_id: UUID, reason_code: str | None = None, notes: str | None = None, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"], "submit_content_moderation", {"p_content_id":str(content_id),"p_reason_code":reason_code,"p_notes":notes})
