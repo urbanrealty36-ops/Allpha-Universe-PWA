@@ -252,3 +252,50 @@ Do not restart the project, create a second architecture/database, rename/reinve
 
 Required operating mode:
 READ → UNDERSTAND → INSPECT → PLAN → VERIFY ARCHITECTURE → IMPLEMENT → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT
+
+
+## Cross-domain architecture amendment v1.1 — IMPLEMENTED FOUNDATION
+
+The Master PRD was upgraded from v1.0.0 to v1.1.0 with three additional product/domain requirements:
+
+1. Tiered Booth/Tenant from Free through Enterprise, District-compatible themes, real image/video/presentation/PPT-compatible assets and progressive 2D/2.5D/3D Booth display.
+2. Enterprise-only District isolation using backend ABAC with fail-closed authorization, entitlement, organization and explicit-grant inputs.
+3. Story/Live AI Character collaboration where an owner explicitly selects an owned Agent as co-host/character, with consent, policy, risk, character/costume/overlay assets, realtime conversation and audience interaction.
+
+Canonical documents:
+- docs/PRD/ALLPHA_Master_PRD_Design_System_Architecture_v1.0.md — now v1.1.0
+- docs/architecture/CROSS_DOMAIN_ENGINE_ARCHITECTURE_v1.1.md
+- docs/database/CROSS_DOMAIN_SCHEMA_CONTRACT_v1.1.md
+
+Supabase foundation migration:
+- 20261002040000_cross_domain_booth_district_live_foundation
+
+Foundation tables:
+- district_access_policies
+- district_access_grants
+- booths
+- booth_leases
+- booth_display_assets
+- booth_display_slots
+- live_sessions
+- live_agent_collaborations
+- live_character_assets
+- live_session_overlays
+- live_session_viewers
+
+Important: this is schema/architecture foundation, NOT full runtime Green. Do not fabricate Districts, Themes, Plans, Subscriptions, Catalogs, Live streams or Agent sessions. Full activation requires the dependent domain engines and real-data E2E.
+
+### Booth workflow
+Create Draft → Entitlement Check → District Eligibility → Theme Compatibility → Asset Upload/Validation → Catalog Binding → Moderation → Publish → Active → Suspend/Archive.
+
+### Enterprise District workflow
+Subject → authoritative attributes → Enterprise Entitlement → District ABAC Policy → optional organization allowlist/grant → Permit/Deny → Audit. UI hiding is not security.
+
+### AI Live workflow
+Human starts Story/Live → selects owned Agent → Ownership/Capability → Live Policy → Consent → Risk → Character/Voice/Costume → Activate → AI Gateway/Model Router → Agent Runtime → Character/Animation → Realtime Media → Audience → Stop/Pause → Audit.
+
+### Character rules
+Character is presentation layer, not identity. Costume/uniform/sticker/icon/animation/voice cannot change Agent ownership, Passport, permissions, reputation, policy or authority. Third-party fictional characters require authoritative rights/moderation metadata; no claim of license may be fabricated.
+
+### Next implementation sequencing
+The cross-domain schema is ahead of runtime by design. Continue the existing phase order; activate each dependency when its domain arrives. Do not jump directly to production claims.
