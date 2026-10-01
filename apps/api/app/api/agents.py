@@ -227,6 +227,94 @@ async def get_reputation(agent_id: UUID, context: dict = Depends(get_auth_contex
     return {"data": await select(user, "agent_reputation_events", {"select": "id,event_type,score_delta,source_type,source_id,metadata,occurred_at,created_at", "agent_id": f"eq.{agent_id}", "order": "occurred_at.desc"})}
 
 
+
+class SkillCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=160)
+    description: str | None = None
+    version: str = "1.0.0"
+    configuration: dict[str, Any] = Field(default_factory=dict)
+
+
+class CapabilityCreateRequest(BaseModel):
+    capability: str = Field(min_length=1, max_length=160)
+    constraints: dict[str, Any] = Field(default_factory=dict)
+
+
+class PermissionCreateRequest(BaseModel):
+    resource: str = Field(min_length=1, max_length=160)
+    action: str = Field(min_length=1, max_length=160)
+    effect: str = "allow"
+    scope: dict[str, Any] = Field(default_factory=dict)
+    valid_from: str | None = None
+    valid_until: str | None = None
+
+
+@router.get("/{agent_id}/identity")
+async def get_ai_identity(agent_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    rows = await select(user, "agent_identities", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    return rows[0] if rows else None
+
+
+@router.post("/{agent_id}/verification/request")
+async def request_verification(agent_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    identity = await update(user, "agent_identities", {"agent_id": f"eq.{agent_id}"}, {
+        "verification_status": "pending",
+        "verification_method": "owner_requested",
+    })
+    passport = await update(user, "agent_passports", {"agent_id": f"eq.{agent_id}"}, {
+        "verification_status": "pending",
+    })
+    return {"identity": identity[0] if identity else None, "passport": passport[0] if passport else None}
+
+
+@router.get("/{agent_id}/skills")
+async def list_skills(agent_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    return {"data": await select(user, "agent_skills", {"select": "*", "agent_id": f"eq.{agent_id}", "order": "created_at.desc"})}
+
+
+@router.post("/{agent_id}/skills", status_code=201)
+async def add_skill(agent_id: UUID, payload: SkillCreateRequest, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    return (await insert(user, "agent_skills", {"agent_id": str(agent_id), **payload.model_dump()}))[0]
+
+
+@router.get("/{agent_id}/capabilities")
+async def list_capabilities(agent_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    return {"data": await select(user, "agent_capabilities", {"select": "id,capability,enabled,constraints,created_at,updated_at", "agent_id": f"eq.{agent_id}", "order": "created_at.desc"})}
+
+
+@router.post("/{agent_id}/capabilities", status_code=201)
+async def add_capability(agent_id: UUID, payload: CapabilityCreateRequest, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    return (await insert(user, "agent_capabilities", {"agent_id": str(agent_id), "granted_by_user_id": str(user.user_id), **payload.model_dump()}))[0]
+
+
+@router.get("/{agent_id}/permissions")
+async def list_permissions(agent_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    return {"data": await select(user, "agent_permissions", {"select": "*", "agent_id": f"eq.{agent_id}", "order": "created_at.desc"})}
+
+
+@router.post("/{agent_id}/permissions", status_code=201)
+async def add_permission(agent_id: UUID, payload: PermissionCreateRequest, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    if payload.effect not in {"allow", "deny"}:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_PERMISSION_EFFECT", "message": "Permission effect must be allow or deny."})
+    return (await insert(user, "agent_permissions", {"agent_id": str(agent_id), **payload.model_dump()}))[0]
+
+
 @router.post("/{agent_id}/command", status_code=status.HTTP_501_NOT_IMPLEMENTED)
 async def command_agent(agent_id: UUID, payload: AgentCommandRequest, user: AuthenticatedUser = Depends(require_auth)) -> None:
     if not payload.command.strip():
