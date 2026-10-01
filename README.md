@@ -30,9 +30,20 @@ The complete delivery sequence is documented in docs/IMPLEMENTATION_PHASES.md, f
 - User UI/UX route surfaces: in progress
 - Super Admin UI/UX route surfaces: in progress
 - Local FastAPI domain contract registry: implemented
-- Supabase persistence: pending implementation phase
-- Auth/RLS: pending implementation phase
-- Workflow/Agent runtime: pending implementation phase
+- **PHASE 04 Supabase PostgreSQL data foundation: implemented**
+- Supabase PostgreSQL: connected to AllphaDb-Universe
+- 21 public foundation tables: implemented with RLS
+- Private Storage buckets: implemented
+- Core Realtime publication: implemented
+- Auth/complete authorization lifecycle: pending PHASE 05
+- Workflow/Agent runtime: pending later phases
 - QA/CI/CD/runtime/production/deployment: intentionally final-gate work
 
 No runtime Green status is claimed until all required gates pass.
+
+## Phase 04 documentation
+
+See:
+- docs/database/PHASE_04_DATA_FOUNDATION.md
+- database/migrations/PHASE_04_MIGRATION_MANIFEST.md
+- database/tests/phase_04_database_invariants.sql
