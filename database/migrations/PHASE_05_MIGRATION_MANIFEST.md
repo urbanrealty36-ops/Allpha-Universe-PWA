@@ -7,6 +7,6 @@ Applied to **AllphaDb-Universe**:
 - `20261001190316_phase_05_auth_delete_lifecycle_cleanup`
 - `20261001190331_phase_05_authorization_least_privilege`
 - `20261001190358_phase_05_authorization_fk_index`
-- `202610011905xx_phase_05_organization_membership_rls` (remote migration history records the exact generated version)
+- `20261001190541_phase_05_organization_membership_rls`
 
 No business/user seed records were created.
