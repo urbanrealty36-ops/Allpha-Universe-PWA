@@ -6,7 +6,7 @@ Applied to AllphaDb-Universe.
 - Human identity uses the existing Phase 05 users, profiles, and identities records.
 - AI identity is represented by agent_identities and linked 1:1 to agents.
 - Added agent_credentials, agent_budgets, and append-only agent_reputation_events.
-- Strengthened Passport ownership from read-only to owner-scoped CRUD.
+- Strengthened Passport ownership from read-only to owner-scoped CRUD; removed the superseded duplicate SELECT policy.
 - Added explicit autonomy-level validation: recommend, assist, conditional, autonomous.
 - Added transactional, RLS-scoped create_agent_identity(...) RPC. It creates only caller-owned identity records and related persona/passport/policy/budget records in one database transaction.
 - No user, Agent, credential, reputation, or demo seed records were inserted.
