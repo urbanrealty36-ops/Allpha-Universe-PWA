@@ -1,7 +1,7 @@
 -- Phase 05 Identity/AuthZ invariant tests.
 -- No user, organization, or other business records are inserted.
 
-select extensions.plan(10);
+select extensions.plan(9);
 
 select extensions.has_table('public', 'platform_roles', 'platform roles table exists');
 select extensions.has_table('public', 'permissions', 'permissions table exists');
