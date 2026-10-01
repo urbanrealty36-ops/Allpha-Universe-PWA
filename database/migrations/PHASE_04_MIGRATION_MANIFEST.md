@@ -7,6 +7,7 @@ Applied remote migrations:
 - `20261001185146_phase_04_security_indexes_and_rls`
 - `20261001185154_phase_04_storage_realtime_foundation`
 - `20261001185227_phase_04_authenticated_grants`
+- `20261001185353_phase_04_pgtap_test_foundation`
 
 The authoritative database migration history is verified from Supabase. This manifest deliberately does not contain fake seed data or generated IDs.
 
