@@ -1,6 +1,6 @@
 begin;
 
-select plan(26);
+select plan(36);
 
 select has_table('public', 'interest_nodes', 'interest ontology table exists');
 select has_table('public', 'interest_edges', 'interest edge graph exists');
@@ -23,36 +23,12 @@ select col_is_fk('public', 'passion_cluster_interests', 'interest_id', 'passion 
 select col_is_fk('public', 'goal_interest_links', 'goal_id', 'goal link references goal');
 select col_is_fk('public', 'goal_interest_links', 'interest_id', 'goal link references interest');
 
-select is(
-  (select relrowsecurity from pg_class where oid='public.interest_nodes'::regclass),
-  true,
-  'interest ontology RLS enabled'
-);
-select is(
-  (select relrowsecurity from pg_class where oid='public.personalization_signals'::regclass),
-  true,
-  'personalization signal RLS enabled'
-);
-select is(
-  (select relrowsecurity from pg_class where oid='public.subject_interest_affinities'::regclass),
-  true,
-  'interest affinity RLS enabled'
-);
-select is(
-  (select relrowsecurity from pg_class where oid='public.passion_clusters'::regclass),
-  true,
-  'passion cluster RLS enabled'
-);
-select is(
-  (select relrowsecurity from pg_class where oid='public.habit_patterns'::regclass),
-  true,
-  'habit pattern RLS enabled'
-);
-select is(
-  (select relrowsecurity from pg_class where oid='public.personalization_goals'::regclass),
-  true,
-  'goal graph RLS enabled'
-);
+select is((select relrowsecurity from pg_class where oid='public.interest_nodes'::regclass), true, 'interest ontology RLS enabled');
+select is((select relrowsecurity from pg_class where oid='public.personalization_signals'::regclass), true, 'personalization signal RLS enabled');
+select is((select relrowsecurity from pg_class where oid='public.subject_interest_affinities'::regclass), true, 'interest affinity RLS enabled');
+select is((select relrowsecurity from pg_class where oid='public.passion_clusters'::regclass), true, 'passion cluster RLS enabled');
+select is((select relrowsecurity from pg_class where oid='public.habit_patterns'::regclass), true, 'habit pattern RLS enabled');
+select is((select relrowsecurity from pg_class where oid='public.personalization_goals'::regclass), true, 'goal graph RLS enabled');
 
 select has_function('public', 'set_subject_interest', array['text','uuid','uuid','numeric','numeric'], 'set interest RPC exists');
 select has_function('public', 'remove_subject_interest', array['text','uuid','uuid'], 'remove interest RPC exists');
