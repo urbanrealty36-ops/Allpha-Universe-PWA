@@ -1,6 +1,7 @@
 # Allpha Universe — Full Implementation Phases
 
 ## Governing rules
+
 Implementation is performed directly on `main`. `AGENTS.md` is binding.
 
 - No hardcoded business data.
@@ -19,52 +20,52 @@ Implementation is performed directly on `main`. `AGENTS.md` is binding.
 ## Full delivery sequence
 
 ### PHASE 00 — Governance & Repository Foundation
-AGENTS.md, monorepo boundaries, three independently deployable apps, workspace, shared package boundaries, source-of-truth rules, engineering docs.
+AGENTS.md, monorepo boundaries, three independently deployable apps, workspace, source-of-truth rules and engineering docs.
 
 ### PHASE 01 — Design System & UI Foundation
-Primitive/semantic/component tokens, typography, spacing, radius, elevation, motion, responsive system, accessibility, light/dark/system, PWA shell, desktop spatial shell, navigation, command surfaces.
+Design tokens, typography, spacing, responsive system, accessibility, light/dark/system, PWA shell, navigation and command surfaces.
 
 ### PHASE 02 — Complete UI/UX Information Architecture
-Route/screen inventory, page states, loading/empty/error/permission states, modals/sheets/drawers, forms, tables, cards, feed/reels, profile/Agent/world/booth, admin control-plane, responsive and accessibility behavior.
+Route/screen inventory, page states, forms, tables, cards, feed/reels, profile/Agent/world/booth and admin control-plane surfaces.
 
 ### PHASE 03 — API Contract Layer
-OpenAPI, schemas, errors, pagination/filter/sort, idempotency, versioning, web/admin boundaries, shared TypeScript contracts.
+OpenAPI, schemas, errors, pagination/filter/sort, idempotency, versioning, web/admin boundaries and shared contracts.
 
 ### PHASE 04 — Supabase PostgreSQL Data Foundation — ✅ IMPLEMENTED
-Extensions, schemas, migrations, enums, UUIDs, timestamps, constraints, indexes, audit primitives, pgvector, private storage buckets, realtime publication, explicit grants, RLS and owner-scoped policies. Verified against AllphaDb-Universe; no business seed data inserted. Server-authoritative audit/security tables remain intentionally inaccessible to browser roles until their backend/security domain is activated.
+Extensions, migrations, enums, UUIDs, timestamps, constraints, indexes, audit primitives, pgvector, storage, realtime, grants and RLS. No business seed data.
 
 ### PHASE 05 — Identity, Authentication & Authorization — ✅ IMPLEMENTED
-Supabase Auth, sessions, user/profile provisioning, platform roles, permissions, role-permission mapping, organization membership authorization foundation, backend JWT/JWKS verification, active-account enforcement, API 401/403 contracts, RLS-aligned authorization, Web/Admin Supabase SSR auth, Admin backend authorization gate, sign-out and auth contract tests. No business/user seed data was created.
+Supabase Auth, sessions, user/profile provisioning, RBAC/permissions, organization authorization foundation, backend JWT/JWKS verification, Web/Admin SSR auth, API contracts and RLS alignment.
 
 ### PHASE 06 — Human & AI Identity Foundation — ✅ IMPLEMENTED
-Human identity/profile API, AI Identity, Agent creation lifecycle, profile/persona/Passport, verification request, capabilities, skills, permissions, policies/autonomy, budget, credentials and reputation read model. Ownership is enforced by backend authorization + Supabase RLS. Agent runtime execution remains deferred to Phase 15. No business/user seed data was created.
+Human identity/profile, AI Identity, Agent lifecycle, persona, Passport, verification, capabilities, skills, permissions, policies/autonomy, budget, credentials and reputation read model.
 
 ### PHASE 07 — Agent Memory & Knowledge — ✅ IMPLEMENTED
-Agent memory lifecycle, knowledge ingestion/chunking/provenance, embedding persistence, semantic retrieval boundary, retention/expiry, review/delete lifecycle, access audit, ownership and RLS are implemented on Supabase/PostgreSQL. Embedding model/dimension selection remains provider-agnostic for the later AI Gateway/Model Router.
+Memory lifecycle, knowledge/chunk/provenance, embedding persistence, semantic retrieval boundary, retention/expiry, review/delete, access audit and ownership/RLS.
 
-### PHASE 08 — Social Graph
-Follow, connections, relationships, mentions, blocks, social/relationship graphs, notifications, activity events.
+### PHASE 08 — Interest, Passion, Habit & Goal Graph / Personalization Intelligence — ✅ IMPLEMENTED
+Dynamic interest ontology, interest graph/edges, real behavior signals, subject affinity, derived passion clusters, recurring habit patterns, explicit goals, goal-interest links, personalization refresh engine, backend API, RLS and User PWA surfaces. No ontology, signal, affinity, passion, habit or goal seed data.
 
-### PHASE 09 — Content Platform
+### PHASE 09 — Social Graph
+Follow, connections, relationships, mentions, blocks, social/relationship graphs, notifications and activity events.
+
+### PHASE 10 — Content Platform
 Posts, media, carousels, articles, documents, presentations, podcasts/audio, tutorials, infographics, research, AI Capsules, topics, moderation and media contracts.
 
-### PHASE 10 — Feed, Reels & Discovery
+### PHASE 11 — Feed, Reels & Discovery
 Home, Following, For You, Reels, Explore, Live Now, Agent Feed, Knowledge Feed, World Stream, Local/Context Feed, interaction signals, ranking contracts, diversity/novelty, negative feedback and recommendation events.
-
-### PHASE 11 — Interest, Passion, Habit & Goal Intelligence
-Interest ontology/dynamic interests, interest graph, passion clusters, habit patterns, goals, context, affinity, learning loop and recommendation inputs.
 
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
 ### PHASE 13 — Messaging & Social Communication
-DMs, conversations, replies, Agent-human/Agent-Agent communication, delivery state, notifications, abuse controls, consent/privacy.
+DMs, conversations, replies, Agent-human/Agent-Agent communication, delivery state, notifications, abuse controls and consent/privacy.
 
 ### PHASE 14 — AI Gateway & Model Router
 Provider abstraction, model registry, routing, capability routing, context budgets, cost/latency, fallback/retry, safety and telemetry.
 
 ### PHASE 15 — Agent Runtime & Command System
-Command API, intent parsing, task command, tools, execution context, state machine, planner, policy, risk, approvals, execution, audit ledger, kill switch, spending/rate limits.
+Command API, intent parsing, task command, tools, execution context, state machine, planner, policy, risk, approvals, execution, audit ledger, kill switch and spending/rate limits.
 
 ### PHASE 16 — Workflow & Mission Engine
 Missions, steps, runs, state transitions, scheduling, retries, idempotency, human-in-loop, outputs, review, completion and recovery.
@@ -73,19 +74,19 @@ Missions, steps, runs, state transitions, scheduling, retries, idempotency, huma
 Universe, Galaxies, Worlds, portals, orbits, constellations, spatial discovery, Agent presence, world streams/events/objects and realtime presence.
 
 ### PHASE 18 — Agent Simulation & Spatial Runtime
-Movement states, presence, exploration, interaction, collaboration, shopping, negotiation, approval waiting, realtime events, spatial interaction and 2D/3D progressive enhancement.
+Movement states, presence, exploration, interaction, collaboration, shopping, negotiation, approval waiting, realtime events and progressive 2D/3D enhancement.
 
 ### PHASE 19 — Districts
 Districts, zones, buildings, roads, coworking, meeting rooms, events, marketplace/Agent/community zones, pricing, availability and realtime presence.
 
 ### PHASE 20 — Booth / Tenant Platform
-Personal/Creator/Agent/Business Booths, Store, Office, Studio, Community Space, Event Venue, Collaboration Space, members, catalogs, visitors, events, leases, availability, pricing, billing, AI host, reputation.
+Personal/Creator/Agent/Business Booths, Store, Office, Studio, Community Space, Event Venue, Collaboration Space, members, catalogs, visitors, events, leases, availability, pricing, billing, AI host and reputation.
 
 ### PHASE 21 — Theme & World Builder
 Templates, versions, assets, world templates, builder state, publishing lifecycle, moderation, performance validation, asset safety and immutable governance/security boundaries.
 
 ### PHASE 22 — Events & Experiences
-Webinars, AMA, live discussions, networking, conferences, hackathons, competitions, business matching, community events, festivals, launches, workshops, concerts, presence and registration/ticketing contracts.
+Webinars, AMA, live discussions, networking, conferences, hackathons, competitions, business matching, community events, festivals, launches, workshops, concerts and registration/ticketing contracts.
 
 ### PHASE 23 — AI-to-AI Collaboration
 Discover, evaluate, Agent DM, negotiate, human approval, collaboration agreement, execute, review, reputation and history.
@@ -100,25 +101,25 @@ Plans, subscriptions, features, entitlements, feature gates, usage, invoices, bi
 Zero Trust path, authentication, authorization, policy/risk/approval engines, audit ledger, moderation, anti-impersonation, anti-scam, prompt-injection defense, reputation protection, rate limits, data access, kill switch and secret handling.
 
 ### PHASE 27 — Super Admin Control Plane
-Overview, Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA, Configuration Versions. Lifecycle: Draft → Review → Approved → Published → Active → Deprecated → Archived.
+Overview, Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
 
 ### PHASE 28 — Analytics, Observability & Operational Intelligence
-Product/Agent/content/recommendation events, AI usage, cost, latency, errors, audit telemetry, business metrics, admin analytics, health signals, trace correlation and dashboards.
+Product/Agent/content/recommendation events, AI usage, cost, latency, errors, audit telemetry, business metrics, health signals, trace correlation and dashboards.
 
 ### PHASE 29 — API Integration & Local End-to-End Wiring
 Web→API, Admin→API, API→Supabase, AI Gateway, workflow engine, storage, realtime, auth propagation, authorization, errors, idempotency, local environment contracts and real data only.
 
 ### PHASE 30 — Full Feature Activation
-Every UI surface connected to its API contract, persistence, workflow, realtime, authorization, audit and analytics; remove non-functional stubs; verify legitimate empty/loading/error/permission states and prohibited-data audit.
+Every UI surface connected to its API contract, persistence, workflow, realtime, authorization, audit and analytics; remove non-functional stubs and verify prohibited-data audit.
 
 ### PHASE 31 — End-to-End QA & Security Verification
 Unit, integration, API contract, database/RLS, auth/authz, workflow, Agent command, approval, commerce idempotency, security, prompt injection, abuse/moderation, accessibility, visual regression, mobile/desktop and critical E2E.
 
 ### PHASE 32 — CI/CD
-Lint, typecheck, Python checks, tests, API contract validation, migration validation, RLS tests, build, artifact generation, dependency/security scanning, branch protection, environment separation and deployment pipelines.
+Lint, typecheck, Python checks, tests, API contract validation, migration validation, RLS tests, build, artifact generation, dependency/security scanning, environment separation and deployment pipelines.
 
 ### PHASE 33 — Runtime Verification
-Local Web :3000, Admin :3001, API :8000, Supabase, Auth, RLS, realtime, storage, AI Gateway, Model Router, workflows, Agent command, approvals, commerce, admin CRUD, audit, observability, real-data verification and performance smoke tests.
+Local Web :3000, Admin :3001, API :8000, Supabase, Auth, RLS, realtime, storage, AI Gateway, Model Router, workflows, Agent command, approvals, commerce, admin CRUD, audit, observability and real-data smoke tests.
 
 ### PHASE 34 — Staging / Production Readiness
 Staging/production environments, secrets, migrations, backups, recovery, rollback/compensating actions, rate limits, capacity, domains, SSL, monitoring, alerting, incidents, retention, privacy and compliance configuration.
@@ -126,5 +127,19 @@ Staging/production environments, secrets, migrations, backups, recovery, rollbac
 ### PHASE 35 — Production Deployment & Final Green Gate
 Production deployment, migration, smoke tests, critical E2E, security advisor, RLS verification, runtime/monitoring verification, rollback verification, architecture audit, prohibited-data audit, accessibility audit and final build/deployment verification.
 
+### PHASE 36 — Reserved Product Expansion
+Future owner-approved domain expansion after the current canonical delivery sequence.
+
+### PHASE 37 — Reserved Product Expansion
+Future owner-approved domain expansion after the current canonical delivery sequence.
+
+### PHASE 38 — Reserved Product Expansion
+Future owner-approved domain expansion after the current canonical delivery sequence.
+
+## Phase completion rule
+
+A phase is not GREEN merely because code exists. The feature definition requires the relevant PRD, DB, API, authorization, security, workflow/engine, UI/UX, telemetry, tests and integration. Final runtime, CI/CD, production readiness and deployment remain separate gates.
+
 ## Final Green Gate
+
 UI/UX, domains, API contracts, local apps, backend authority, Supabase, real data, auth, authorization, RLS, security, audit, realtime, workflow, AI Gateway/Model Router, Agent runtime, marketplace/billing, Super Admin, analytics/observability, E2E, accessibility, CI/CD, production readiness, deployment and runtime must all be verified. SQLite, fake/mock/dummy/scenario/placeholder business data and privileged frontend bypasses are prohibited.
