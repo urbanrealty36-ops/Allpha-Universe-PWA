@@ -104,6 +104,11 @@ async def _agent_bundle(user: AuthenticatedUser, agent_id: UUID, context: dict) 
     return {"agent": agent, "identity": identity[0] if identity else None, "persona": persona[0] if persona else None, "passport": passport[0] if passport else None, "policy": policies[0] if policies else None, "budget": budget[0] if budget else None}
 
 
+@router.get("")
+async def list_my_agents_root(context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    return await list_my_agents(context)
+
+
 @router.get("/me")
 async def list_my_agents(context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     user: AuthenticatedUser = context["user"]
