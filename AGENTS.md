@@ -29,6 +29,8 @@ The API contract is the application boundary. Web and Admin must not access priv
 - High-risk Agent actions require policy/risk evaluation and human approval where configured.
 - AI private chain-of-thought must never be exposed.
 - Every security-sensitive mutation must be auditable and idempotent where applicable.
+- Personalization must be derived only from real user/Agent observations or explicit user intent.
+- Sensitive attributes must not be inferred or presented as definitive facts.
 
 ## UI/UX rule
 All UI/UX surfaces and domain screens are implemented before the final runtime/QA/CI/CD/production gate. Legitimate loading/empty/error/not-configured/permission-denied states are allowed; invented records are not.
@@ -37,7 +39,7 @@ All UI/UX surfaces and domain screens are implemented before the final runtime/Q
 A feature is not complete because code exists. Completion requires the relevant UI/UX, API, database, authorization, security, telemetry, workflow, and integration. Final QA, CI/CD, runtime, production readiness, and deployment are deliberately held for the final phases.
 
 ## Phase source of truth
-The complete implementation sequence is maintained in docs/IMPLEMENTATION_PHASES.md (PHASE 00 through PHASE 35).
+The complete implementation sequence is maintained in docs/IMPLEMENTATION_PHASES.md (PHASE 00 through PHASE 38).
 
 ## Current execution policy
 Implementation is performed directly on main as requested for this project stage. Do not move active implementation to the old foundation branch.
