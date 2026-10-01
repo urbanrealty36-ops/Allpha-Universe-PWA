@@ -46,6 +46,21 @@ Memory lifecycle, knowledge/chunk/provenance, embedding persistence, semantic re
 ### PHASE 08 — Interest, Passion, Habit & Goal Graph / Personalization Intelligence — ✅ IMPLEMENTED
 Dynamic interest ontology, interest graph/edges, real behavior signals, subject affinity, derived passion clusters, recurring habit patterns, explicit goals, goal-interest links, personalization refresh engine, backend API, RLS and User PWA surfaces. No ontology, signal, affinity, passion, habit or goal seed data.
 
+### CROSS-DOMAIN ARCHITECTURE AMENDMENT v1.1 — SCHEMA FOUNDATION IMPLEMENTED
+The canonical Master PRD has been expanded for tiered Booth/Tenant, 3D Booth Display, Enterprise-only District ABAC/isolation, and Story/Live AI Character collaboration. Schema foundation is implemented in Supabase, while full runtime activation remains dependency-gated.
+
+Implemented schema foundation:
+- District access policies and grants
+- Booth/Tenant + lease foundation
+- Booth image/video/presentation/3D display assets and slots
+- Live sessions
+- Live Agent collaboration
+- Character/costume/uniform/sticker/icon/animation asset foundation
+- Live overlays
+- authenticated live viewer presence
+
+Full runtime remains gated by District/Theme/Entitlement/Media/Agent Runtime/AI Gateway/Realtime/Moderation/Commerce dependencies.
+
 ### PHASE 09 — Social Graph
 Follow, connections, relationships, mentions, blocks, social/relationship graphs, notifications and activity events.
 
