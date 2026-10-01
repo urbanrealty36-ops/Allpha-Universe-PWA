@@ -5,7 +5,7 @@
 ### Product, UX/UI, Design Tokens, Architecture, Engines, Security, Theme Universe, E2E, Revenue & Super Admin Control Plane
 
 **Document Status:** Master Technical & Product Baseline\
-**Version:** 1.0.0\
+**Version:** 1.1.0\
 **Product:** Allpha\
 **Product Type:** Global AI-Native Social Network / AI Living World\
 **Primary Platform:** Web App + PWA\
@@ -17,7 +17,7 @@
 enhanced\
 **Default Language:** Bahasa Indonesia\
 **Secondary Language:** English\
-**Status:** Canonical baseline for implementation
+**Status:** Canonical baseline for implementation; v1.1 cross-domain expansion appended
 
 ------------------------------------------------------------------------
 
@@ -5341,3 +5341,135 @@ If a future implementation conflicts with this document:
 
 This document is the canonical baseline until a newer approved version
 supersedes it.
+
+# 186. CROSS-DOMAIN PRODUCT EXPANSION — BOOTH, ENTERPRISE DISTRICTS & AI CHARACTER LIVE
+
+Version amendment: 1.1.0.
+
+This section extends the earlier Booth/Tenant, District, Theme, Story, Live and Agent collaboration definitions.
+
+## 186.1 Booth / Tenant
+
+A Booth is a spatial tenant inside a District, not merely a profile or catalog page. It supports progressive 2D, 2.5D, spatial and 3D presentation.
+
+Logical tiers: Free, Standard, Creator, Business, Prime, Event and Enterprise. Pricing, quotas, storage, analytics and monetization are authoritative from Entitlement + Billing + Super Admin configuration. Tier labels are never authorization by themselves.
+
+Exactly one ownership authority applies: Human user, Organization, or AI Agent acting under its Human owner. Agent ownership never bypasses Human ownership.
+
+A Booth can select only themes compatible with the District theme family and governance policy. Selection flow: Owner → Subscription/Entitlement → District Policy → Theme Compatibility → Moderation → Publish.
+
+Booth display assets may include image, video, presentation/PPT-compatible presentation assets, documents where conversion is supported, and 3D scene assets. The Booth Display Engine maps real uploaded assets to spatial slots such as hero wall, product screen, catalog panel, presentation screen and showcase wall.
+
+Lifecycle: Create Draft → Entitlement Check → District Eligibility → Theme Selection → Asset Upload → Asset Validation → Catalog Binding → Moderation → Publish → Active → Suspend/Archive.
+
+Lease state is separate from Booth identity. Lease flow: Lease Requested → Entitlement/Availability Check → Pricing → Approval if required → Billing → Active → Renewal/Expiry.
+
+## 186.2 Booth 3D / Spatial Display Engine
+
+The renderer progressively supports 2D → 2.5D → Spatial → 3D → future AR/VR. Basic Booth functionality remains available without 3D.
+
+The deterministic Booth Scene Schema can contain structure, signage, screens, product displays, catalog walls, presentation displays, video surfaces, interactive objects, Agent host position, visitor interaction points, lighting and animation.
+
+AI may configure scene intent but cannot directly mutate ownership, security, billing or authorization state.
+
+## 186.3 Enterprise District Isolation / ABAC
+
+Certain Districts may be designated enterprise_only. Intended environments can include private/high-trust areas for founders, investors, owners, directors, enterprise meetings, pitching and strategic networking. These are access-policy categories, not claims about any individual user's status.
+
+Enterprise isolation is policy-based ABAC, not a frontend route guard.
+
+Authorization inputs can include authenticated identity, subscription/entitlement tier, organization membership, organization verification, enterprise access grant, District policy, authoritative role/context records, approval state and account trust/security state.
+
+Policy path: Subject → Attributes → District Policy → ABAC Evaluation → Permit/Deny → Audit.
+
+Enterprise District access is fail-closed. Hiding a District in UI is not access control. Client-supplied enterprise flags are never proof of entitlement.
+
+Private Districts require deny-by-default authorization, explicit enterprise entitlement, optional organization allowlists, explicit grants where configured, audit for grant/revoke/entry/exit, no unauthorized presence leakage, no unauthorized feed/search indexing and no public realtime channels for private state.
+
+## 186.4 Story / Live / AI Live Character Collaboration
+
+A Human can start a Story or Live session and explicitly select Collaborate with AI Agent. The Agent may appear as virtual co-host, character, presenter, sales assistant, podcast guest, talk-show guest, moderator or product demonstrator.
+
+Flow: Human starts Live → Select Agent → Ownership Check → Capability Check → Live Policy → Consent → Risk Check → Character/Voice/Costume → Activate → Realtime Conversation → Audience Interaction → Stop → Audit.
+
+Owner pause/stop is authoritative. High-impact actions remain subject to Policy + Permission + Risk + Human Approval.
+
+## 186.5 AI Character Engine
+
+AI Character is a presentation layer for an Agent identity, not a second identity.
+
+Character assets: character model, costume, uniform, sticker, icon, prop, animation, voice and background.
+
+Asset governance: Upload → Ownership/License Metadata → Safety/Moderation → Compatibility → Publish → Runtime.
+
+Character appearance cannot change Agent ownership, Passport, permissions, reputation, policy or authority.
+
+The platform may support original Allpha characters, user-owned characters, properly licensed characters, cultural attire/traditional motifs, generic archetypes and user-created assets. Third-party characters must not be represented as licensed without authoritative rights metadata and moderation.
+
+## 186.6 Camera Overlay / AR-like Character Layer
+
+The media pipeline separates camera/video source, face/body tracking, character/overlay asset, transform, animation, audio/voice and live stream output.
+
+Client-side rendering/tracking may be used for performance, while authorization, asset entitlement and policy remain server authoritative.
+
+## 186.7 AI Live Conversation Engine
+
+Conversation path: Audience/Owner Input → Session Context → Permission Check → Safety/Moderation → AI Gateway/Model Router → Agent Runtime → Voice/Text Response → Character Animation → Live Output.
+
+Model providers remain abstracted. Private chain-of-thought is never exposed.
+
+Audience can watch, react, comment, ask questions, follow host/Agent, open authorized catalog/Booth objects and request collaboration, subject to moderation, privacy and rate limits.
+
+## 186.8 Live Commerce
+
+A Live session can attach authorized Booth/catalog objects. Flow: Live → Product/Service → Catalog → Booth → Entitlement → Checkout/Request → Approval/Risk → Commerce.
+
+An AI Agent can explain or demonstrate products but cannot independently create unauthorized commercial commitments.
+
+## 186.9 Unified Events
+
+Canonical events added: booth_created, booth_theme_selected, booth_asset_uploaded, booth_published, booth_lease_requested, booth_lease_activated, district_access_requested, district_access_granted, district_access_revoked, enterprise_district_entered, enterprise_district_exited, live_session_created, live_session_started, live_agent_collaboration_requested, live_agent_collaboration_approved, live_agent_collaboration_activated, live_agent_collaboration_paused, live_agent_collaboration_ended, live_character_selected, live_character_overlay_activated, live_character_overlay_removed, live_ai_message_generated, live_audience_interaction and live_catalog_opened.
+
+Events are telemetry/audit inputs, never authorization by themselves.
+
+## 186.10 Cross-domain architecture
+
+Human Identity
+→ Subscription / Entitlement
+→ District ABAC Policy + Theme Compatibility
+→ Booth / Tenant
+→ Booth Display / 3D Scene
+→ Catalog / Content / Media
+→ Story / Live Session
+→ AI Agent Collaboration
+→ Agent Runtime + AI Gateway
+→ Character / Voice / Animation
+→ Realtime Media Output
+→ Audience / Social Graph
+→ Marketplace / Commerce / Analytics.
+
+Security path remains: Identity → Authorization → Entitlement → Policy → Risk → Approval → Execute → Audit.
+
+## 186.11 Non-negotiable boundary
+
+Booth theme, 3D scene, character costume, camera overlay or AI Live presentation must never modify owner identity, Agent ownership, permissions, entitlement, billing state, reputation integrity, District ABAC, policy/risk rules, audit history or security controls.
+
+# 187. CROSS-DOMAIN SCHEMA AMENDMENT
+
+Schema foundation now includes:
+
+District access: district_access_policies, district_access_grants.
+
+Booth/Tenant: booths, booth_leases, booth_display_assets, booth_display_slots.
+
+Live/AI Character: live_sessions, live_agent_collaborations, live_character_assets, live_session_overlays, live_session_viewers.
+
+All are RLS-protected with deliberate grants. They intentionally do not fabricate District, Theme, Plan, Subscription, Catalog or Content records that are not yet implemented.
+
+# 188. CROSS-DOMAIN IMPLEMENTATION STATUS
+
+Schema foundation: IMPLEMENTED.
+
+Full runtime feature: NOT YET GREEN.
+
+The schema is intentionally ahead of complete runtime so domain boundaries remain correct. Activation requires real FastAPI APIs, entitlement/policy engines, media pipeline, realtime, Agent Runtime, moderation and E2E workflows. No mock data is permitted.
