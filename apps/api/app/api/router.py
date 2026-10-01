@@ -27,7 +27,6 @@ def domain_router(path: str, domain: str) -> APIRouter:
 
 
 for _path, _domain in [
-    ("/agents/knowledge", "Agent Knowledge"),
     ("/content", "Content"),
     ("/feed", "Feed"),
     ("/reels", "Reels"),
