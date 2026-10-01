@@ -46,3 +46,18 @@ Implementation is performed directly on main as requested for this project stage
 
 ## Supabase security baseline
 All exposed tables require deliberate grants and RLS policies. Authorization must not rely on raw_user_meta_data. Service-role/secret credentials remain server-side only.
+
+
+## Cross-domain feature governance
+The v1.1 Master PRD amendment adds Booth/Tenant tiers, District enterprise ABAC/isolation, 3D Booth display, and Story/Live AI Character collaboration.
+
+Implementation rules:
+- Booth tier is not authorization; Entitlement/Billing remains authoritative.
+- District enterprise access is backend ABAC and fail-closed; frontend visibility is not security.
+- Agent Live collaboration requires explicit owner consent and policy/risk evaluation.
+- Character/costume/overlay is presentation, never identity or authority.
+- Real media assets must use controlled Storage paths and moderation metadata.
+- PPT/presentation assets are media/display inputs; never fabricate catalog content.
+- Private District realtime channels require authorization-aware subscriptions.
+- Do not create fake Districts, Themes, Plans, Subscriptions, Booths, Live sessions, viewers, or Agent collaborations.
+- Schema foundation may exist before runtime activation, but must be documented as NOT GREEN until dependent engines and E2E are verified.
