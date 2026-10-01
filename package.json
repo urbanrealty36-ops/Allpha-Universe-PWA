@@ -1,0 +1,12 @@
+{
+  "name": "allpha-universe",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "scripts": {
+    "dev:web": "pnpm --filter @allpha/web dev",
+    "dev:admin": "pnpm --filter @allpha/admin dev",
+    "dev:api": "cd apps/api && python -m uvicorn app.main:app --reload --port 8000",
+    "build:web": "pnpm --filter @allpha/web build",
+    "build:admin": "pnpm --filter @allpha/admin build"
+  }
+}
