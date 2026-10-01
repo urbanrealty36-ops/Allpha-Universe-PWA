@@ -10,6 +10,7 @@ Project ref: `qltbacemtvnuzqkterly`
 | `20261002032000_phase_08_personalization_intelligence` | `20261001192855 / 20261002032000_phase_08_personalization_intelligence` |
 | `20261002032100_phase_08_personalization_derived_intelligence` | `20261001192926 / 20261002032100_phase_08_personalization_derived_intelligence` |
 | `20261002032200_phase_08_fk_indexes` | `20261002032200_phase_08_fk_indexes` |
+| `20261002032300_phase_08_passion_source_hardening` | `20261002032300_phase_08_passion_source_hardening` |
 
 ## Canonical responsibilities
 
@@ -21,6 +22,9 @@ Hardens affinity/signal first-observation accounting and adds the derived person
 
 ### 20261002032200
 Adds covering indexes for Phase 08 foreign keys identified by the Supabase performance advisor.
+
+### 20261002032300
+Binds derived passion clusters to their source ontology parent ID so Dynamic Interest Ontology name collisions cannot merge unrelated passion clusters.
 
 ## Important repository rule
 
