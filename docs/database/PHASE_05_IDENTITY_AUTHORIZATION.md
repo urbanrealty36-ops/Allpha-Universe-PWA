@@ -9,7 +9,7 @@ Phase 05 establishes real identity, authentication and authorization boundaries 
 ## Implemented database foundation
 
 - Platform roles: `user`, `platform_admin`, `super_admin`
-- Permission registry
+- Permission registry (8 canonical permissions)
 - Role → permission mapping
 - User → platform role assignment
 - Organization-member role assignment foundation
