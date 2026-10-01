@@ -1,5 +1,5 @@
 -- Phase 06 invariants. No business/user seed data.
-select plan(18);
+select plan(17);
 
 select has_table('public','agent_identities','AI identity table exists');
 select has_table('public','agent_credentials','Agent credentials table exists');
