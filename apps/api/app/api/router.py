@@ -27,15 +27,7 @@ def domain_router(path: str, domain: str) -> APIRouter:
 
 
 for _path, _domain in [
-    ("/users", "Users"),
-    ("/agents", "Agents"),
-    ("/agents/memory", "Agent Memory"),
     ("/agents/knowledge", "Agent Knowledge"),
-    ("/agents/skills", "Agent Skills"),
-    ("/agents/capabilities", "Agent Capabilities"),
-    ("/agents/passports", "Agent Passports"),
-    ("/agents/permissions", "Agent Permissions"),
-    ("/agents/policies", "Agent Policies"),
     ("/content", "Content"),
     ("/feed", "Feed"),
     ("/reels", "Reels"),
