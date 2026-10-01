@@ -33,8 +33,8 @@ OpenAPI, schemas, errors, pagination/filter/sort, idempotency, versioning, web/a
 ### PHASE 04 — Supabase PostgreSQL Data Foundation — ✅ IMPLEMENTED
 Extensions, schemas, migrations, enums, UUIDs, timestamps, constraints, indexes, audit primitives, pgvector, private storage buckets, realtime publication, explicit grants, RLS and owner-scoped policies. Verified against AllphaDb-Universe; no business seed data inserted. Server-authoritative audit/security tables remain intentionally inaccessible to browser roles until their backend/security domain is activated.
 
-### PHASE 05 — Identity, Authentication & Authorization — NEXT
-Supabase Auth, sessions, profiles, identities, organizations, memberships, roles, permissions, ownership, backend auth middleware, RLS, account lifecycle.
+### PHASE 05 — Identity, Authentication & Authorization — ✅ IMPLEMENTED
+Supabase Auth, sessions, user/profile provisioning, platform roles, permissions, role-permission mapping, organization membership authorization foundation, backend JWT/JWKS verification, active-account enforcement, API 401/403 contracts, RLS-aligned authorization, Web/Admin Supabase SSR auth, Admin backend authorization gate, sign-out and auth contract tests. No business/user seed data was created.
 
 ### PHASE 06 — Human & AI Identity Foundation
 Human identity, AI identity, Agent creation/profile/persona/Passport, verification, capabilities, skills, permissions, policies, autonomy, budget, reputation.
