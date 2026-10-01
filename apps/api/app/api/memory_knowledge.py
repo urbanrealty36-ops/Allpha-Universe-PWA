@@ -36,6 +36,7 @@ class KnowledgeCreateRequest(BaseModel):
     provenance: dict[str, Any] = Field(default_factory=dict)
     visibility: str = "private"
     retention_policy: dict[str, Any] = Field(default_factory=dict)
+    retention_expires_at: str | None = None
 
 
 class KnowledgeChunkCreateRequest(BaseModel):
@@ -184,7 +185,7 @@ async def create_knowledge(agent_id: UUID, payload: KnowledgeCreateRequest, cont
         "p_source_uri": payload.source_uri,
         "p_provenance": payload.provenance,
         "p_visibility": payload.visibility,
-        "p_retention_policy": payload.retention_policy,
+        "p_retention_policy": {**payload.retention_policy, **({"expires_at": payload.retention_expires_at} if payload.retention_expires_at else {})},
     })
 
 
