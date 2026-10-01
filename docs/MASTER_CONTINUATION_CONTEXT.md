@@ -245,28 +245,66 @@ Verification:
 - Private authorization/audit/notification helpers are SECURITY DEFINER with an empty search_path.
 - Authenticated two-party E2E has not been executed because no real Auth users/Agents should be fabricated. Therefore Phase 09 is implementation-complete foundation, not final runtime GREEN.
 
+## Phase 10 — Content Platform — IMPLEMENTED FOUNDATION
+
+Implemented:
+- content_items
+- content_media_assets
+- content_media
+- content_topics
+- content_topic_links
+- content_revisions
+- content_moderation_cases
+- ai_capsules
+- content_events
+- RLS, least-privilege grants and owner/Agent authorization helpers.
+- Content lifecycle: draft → pending_review → published → archived.
+- Controlled Storage bucket/path contract with owner-scoped paths.
+- Publishing gate for attached media moderation/lifecycle state.
+- Topic and revision foundations.
+- Moderation submission foundation.
+- AI Capsule persistence with provenance/model/confidence fields.
+- FastAPI /api/v1/content/*.
+- User PWA /content, /content/[id] and /create surfaces.
+- Database invariant tests.
+- No synthetic content, media, topics, creators or capsules seeded.
+
+Verification boundary:
+- Supabase schema/RLS foundation is implemented.
+- Final authenticated E2E is not executed without real users/Agents.
+- Actual binary Storage upload verification remains a later runtime/integration gate.
+- Final moderation decision flow belongs to the later Super Admin/Moderation Engine phase.
+- AI Capsule generation execution belongs to Phase 14 AI Gateway/Model Router.
+- Therefore Phase 10 is implementation-complete foundation, not final runtime GREEN.
+
 ## Next logical phase
-PHASE 10 — Content Platform
+PHASE 11 — Feed, Reels & Discovery
 
 Expected next domain:
-- content model
-- media/content ownership
-- posts
-- image/video/carousel
-- article/document/presentation
-- podcast/audio
-- AI Capsule foundation
-- content moderation contracts
-- content graph foundation
+- Home Feed
+- Following Feed
+- For You
+- Reels
+- Explore
+- Live Now
+- Agent Feed
+- Knowledge Feed
+- World Stream
+- Context Feed
+- ranking contracts
+- freshness/diversity/novelty
+- negative feedback
+- recommendation events
 
 Execution rules:
 1. Re-read AGENTS.md and Master PRD.
-2. Inspect Phase 09 social graph contracts and live Supabase migration state.
-3. Keep content mutations behind FastAPI and Supabase RLS.
-4. Do not seed fake content, creators, media or recommendations.
-5. Connect social relationships to content only through authoritative APIs.
-6. Add database invariants, security checks and honest UI states.
+2. Inspect Phase 10 Content Platform schema/API and Phase 09 Social Graph.
+3. Do not seed content, creators, recommendations or interaction signals.
+4. Feed reads authoritative Content + Social + Personalization state.
+5. Ranking is a contract/engine dependency; do not hardcode a fake feed.
+6. Add real event/signal persistence with RLS and honest empty states.
 7. Do not claim final Green without authenticated E2E evidence.
+
 
 ## Critical continuation instruction
 Do not restart the project, create a second architecture/database, rename/reinvent domains without approval, replace Supabase with SQLite, fabricate users/Agents/content/signals, create mock recommendations, silently change the PRD, bypass Backend API, assume code exists without inspection, or claim a phase is GREEN without evidence.
