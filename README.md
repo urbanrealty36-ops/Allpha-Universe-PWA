@@ -50,3 +50,20 @@ See:
 - database/migrations/PHASE_05_MIGRATION_MANIFEST.md
 - database/tests/phase_05_auth_invariants.sql
 - docs/API_LOCAL_CONTRACT.md
+
+
+## Phase 06 — Human & AI Identity Foundation
+
+Implemented on AllphaDb-Universe and main:
+- Human identity/profile API
+- AI Identity and Agent lifecycle
+- Persona, Passport and verification request
+- Skills, Capabilities and Permissions
+- Policy/autonomy and budget controls
+- Credentials lifecycle (owner-created credentials enter pending verification)
+- Reputation event read model
+- Owner-scoped Supabase RLS and authenticated API boundary
+- Transactional RLS-scoped Agent creation RPC
+- No user, Agent, demo, mock, or seed business data created
+
+Agent runtime execution remains a later Phase 15 concern.
