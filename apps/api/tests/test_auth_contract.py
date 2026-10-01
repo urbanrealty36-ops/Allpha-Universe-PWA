@@ -30,7 +30,7 @@ def test_human_identity_endpoint_requires_bearer_token() -> None:
 
 
 def test_agent_collection_requires_bearer_token() -> None:
-    response = client.get("/api/v1/agents")
+    response = client.get("/api/v1/agents/me")
     assert response.status_code == 401
     assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
 
@@ -43,5 +43,29 @@ def test_memory_endpoint_requires_bearer_token() -> None:
 
 def test_knowledge_endpoint_requires_bearer_token() -> None:
     response = client.get("/api/v1/agents/00000000-0000-0000-0000-000000000000/knowledge")
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
+
+
+def test_personalization_snapshot_requires_bearer_token() -> None:
+    response = client.get("/api/v1/personalization/me")
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
+
+
+def test_personalization_ontology_requires_bearer_token() -> None:
+    response = client.get("/api/v1/personalization/ontology/interests")
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
+
+
+def test_personalization_signal_requires_bearer_token() -> None:
+    response = client.post("/api/v1/personalization/signals", json={"signal_type": "view"})
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
+
+
+def test_personalization_goal_requires_bearer_token() -> None:
+    response = client.post("/api/v1/personalization/goals", json={"title": "real goal"})
     assert response.status_code == 401
     assert response.json()["detail"]["code"] == "AUTH_REQUIRED"
