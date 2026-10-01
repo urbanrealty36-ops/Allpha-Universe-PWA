@@ -1,5 +1,5 @@
 begin;
-select plan(32);
+select plan(43);
 select has_table('public','content_items','content items exists');
 select has_table('public','content_media_assets','media asset table exists');
 select has_table('public','content_media','content media links exist');
@@ -27,6 +27,19 @@ select has_function('public','attach_content_media',array['uuid','uuid','text','
 select has_function('public','submit_content_moderation',array['uuid','text','text'],'moderation RPC');
 select has_function('public','record_content_event',array['uuid','text','jsonb'],'content event RPC');
 select has_function('public','create_ai_capsule',array['uuid','text','jsonb','jsonb','text','text','jsonb','numeric'],'AI capsule RPC');
+
+select is((select prosecdef from pg_proc where oid='public.create_content(text,uuid,text,text,text,text,text,text,jsonb)'::regprocedure),true,'create content RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.update_content(uuid,text,text,text,text,text,jsonb)'::regprocedure),true,'update content RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.submit_content_moderation(uuid,text,text)'::regprocedure),true,'moderation RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.publish_content(uuid)'::regprocedure),true,'publish RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.archive_content(uuid)'::regprocedure),true,'archive RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.create_media_asset(text,uuid,text,text,text,text,text,bigint,text,integer,integer,bigint,jsonb)'::regprocedure),true,'media RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.attach_content_media(uuid,uuid,text,integer,text,text,jsonb)'::regprocedure),true,'attach media RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.create_content_topic(text,text,uuid,text)'::regprocedure),true,'topic RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.link_content_topic(uuid,uuid)'::regprocedure),true,'topic link RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.create_ai_capsule(uuid,text,jsonb,jsonb,text,text,jsonb,numeric)'::regprocedure),true,'AI capsule RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.record_content_event(uuid,text,jsonb)'::regprocedure),true,'content event RPC is security definer');
+
 select is((select count(*) from public.content_items),0::bigint,'no seeded content');
 select is((select count(*) from public.content_media_assets),0::bigint,'no seeded media');
 select is((select count(*) from public.content_topics),0::bigint,'no seeded topics');
