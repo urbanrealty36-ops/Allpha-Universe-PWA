@@ -31,19 +31,22 @@ The complete delivery sequence is documented in docs/IMPLEMENTATION_PHASES.md, f
 - Super Admin UI/UX route surfaces: in progress
 - Local FastAPI domain contract registry: implemented
 - **PHASE 04 Supabase PostgreSQL data foundation: implemented**
+- **PHASE 05 Identity, Authentication & Authorization: implemented**
 - Supabase PostgreSQL: connected to AllphaDb-Universe
-- 21 public foundation tables: implemented with RLS
-- Private Storage buckets: implemented
-- Core Realtime publication: implemented
-- Auth/complete authorization lifecycle: pending PHASE 05
+- Supabase Auth: integrated into Web/Admin and Backend API
+- JWT/JWKS verification: implemented in FastAPI
+- User/profile provisioning: implemented through Auth trigger
+- Platform RBAC/permissions: implemented
+- RLS-aligned authorization: implemented
 - Workflow/Agent runtime: pending later phases
 - QA/CI/CD/runtime/production/deployment: intentionally final-gate work
 
 No runtime Green status is claimed until all required gates pass.
 
-## Phase 04 documentation
+## Phase 05 documentation
 
 See:
-- docs/database/PHASE_04_DATA_FOUNDATION.md
-- database/migrations/PHASE_04_MIGRATION_MANIFEST.md
-- database/tests/phase_04_database_invariants.sql
+- docs/database/PHASE_05_IDENTITY_AUTHORIZATION.md
+- database/migrations/PHASE_05_MIGRATION_MANIFEST.md
+- database/tests/phase_05_auth_invariants.sql
+- docs/API_LOCAL_CONTRACT.md
