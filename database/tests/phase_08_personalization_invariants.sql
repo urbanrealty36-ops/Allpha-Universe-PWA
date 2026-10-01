@@ -1,6 +1,6 @@
 begin;
 
-select plan(36);
+select plan(37);
 
 select has_table('public', 'interest_nodes', 'interest ontology table exists');
 select has_table('public', 'interest_edges', 'interest edge graph exists');
@@ -13,6 +13,7 @@ select has_table('public', 'personalization_goals', 'goal graph table exists');
 select has_table('public', 'goal_interest_links', 'goal-interest link table exists');
 
 select col_is_pk('public', 'interest_nodes', 'id', 'interest node has primary key');
+select col_is_fk('public', 'passion_clusters', 'source_interest_id', 'passion source is foreign keyed to ontology');
 select col_is_unique('public', 'interest_nodes', 'canonical_key', 'interest canonical key is unique');
 select col_is_fk('public', 'interest_edges', 'source_interest_id', 'interest edge source is foreign keyed');
 select col_is_fk('public', 'interest_edges', 'target_interest_id', 'interest edge target is foreign keyed');
