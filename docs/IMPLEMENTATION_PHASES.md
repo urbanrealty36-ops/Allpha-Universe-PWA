@@ -61,8 +61,8 @@ Implemented schema foundation:
 
 Full runtime remains gated by District/Theme/Entitlement/Media/Agent Runtime/AI Gateway/Realtime/Moderation/Commerce dependencies.
 
-### PHASE 09 — Social Graph
-Follow, connections, relationships, mentions, blocks, social/relationship graphs, notifications and activity events.
+### PHASE 09 — Social Graph & Relationship Engine — IMPLEMENTED FOUNDATION
+Implemented authoritative social graph for Human ↔ Human, Human ↔ Agent and owned-Agent ↔ Human/Agent relationships. Includes follow, friend, mentor, partner, client, supplier, collaborator and trusted_agent lifecycles; blocking; mentions; social activity; recipient-scoped notifications; PostgreSQL RLS/grants; private authorization helpers; audit/notification triggers; FastAPI `/api/v1/social/*`; and real-data UI surfaces `/social-graph`, `/relationships`, `/following`, `/notifications`, `/blocked`. No synthetic identities or graph records are seeded. Authenticated two-party E2E remains a verification dependency before a final runtime GREEN claim.
 
 ### PHASE 10 — Content Platform
 Posts, media, carousels, articles, documents, presentations, podcasts/audio, tutorials, infographics, research, AI Capsules, topics, moderation and media contracts.
