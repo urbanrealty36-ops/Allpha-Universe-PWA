@@ -72,3 +72,18 @@ Implementation rules:
 - Public relationship visibility requires both graph endpoints to be public.
 - Social activity is telemetry, not authorization.
 - Discovery, recommendation and autonomous Agent social behavior are later dependencies.
+
+
+## Phase 10 Content Platform governance
+- Content ownership is authoritative and polymorphic: Human or currently owned Agent.
+- Agent-owned content never changes Agent authority or Human ownership.
+- All content/media/topic/moderation mutations use FastAPI + authenticated PostgreSQL RPCs.
+- Content visibility and published status are enforced by RLS; frontend hiding is not authorization.
+- Media must reference controlled existing Storage buckets and owner-scoped paths; never fabricate files or URLs.
+- Publishing must fail closed when attached media is not approved and active.
+- Moderation submission is not a moderation decision; final moderation authority remains server/admin governed.
+- Revisions preserve prior content state before updates.
+- AI Capsule records must include provenance; creating a record must never falsely imply that an LLM executed.
+- Content events are telemetry, not authorization or ownership.
+- Do not seed fake posts, media, topics, creators, AI Capsules, views, shares or recommendations.
+- Feed/ranking/recommendation behavior belongs to Phase 11 and must consume authoritative Content/Social/Personalization data.
