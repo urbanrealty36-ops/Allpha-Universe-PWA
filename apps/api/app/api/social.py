@@ -71,7 +71,7 @@ async def get_my_graph(
     context: dict = Depends(get_auth_context),
 ) -> dict[str, Any]:
     user = context["user"]
-    filters: dict[str, str] = {"or": f"(source_type.eq.user,source_id.eq.{user.user_id},target_type.eq.user,target_id.eq.{user.user_id})", "status": "in.(pending,active)"}
+    filters: dict[str, str] = {"or": f"(and(source_type.eq.user,source_id.eq.{user.user_id}),and(target_type.eq.user,target_id.eq.{user.user_id}))", "status": "in.(pending,active)"}
     if relationship_type:
         filters["relationship_type"] = f"eq.{relationship_type}"
     if direction == "outgoing":
