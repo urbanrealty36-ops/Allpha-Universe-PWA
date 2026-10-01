@@ -30,10 +30,10 @@ Route/screen inventory, page states, loading/empty/error/permission states, moda
 ### PHASE 03 — API Contract Layer
 OpenAPI, schemas, errors, pagination/filter/sort, idempotency, versioning, web/admin boundaries, shared TypeScript contracts.
 
-### PHASE 04 — Supabase PostgreSQL Data Foundation
-Extensions, schemas, migrations, enums, UUIDs, timestamps, constraints, indexes, audit primitives, pgvector, storage, realtime, grants, RLS, policy tests.
+### PHASE 04 — Supabase PostgreSQL Data Foundation — ✅ IMPLEMENTED
+Extensions, schemas, migrations, enums, UUIDs, timestamps, constraints, indexes, audit primitives, pgvector, private storage buckets, realtime publication, explicit grants, RLS and owner-scoped policies. Verified against AllphaDb-Universe; no business seed data inserted. Server-authoritative audit/security tables remain intentionally inaccessible to browser roles until their backend/security domain is activated.
 
-### PHASE 05 — Identity, Authentication & Authorization
+### PHASE 05 — Identity, Authentication & Authorization — NEXT
 Supabase Auth, sessions, profiles, identities, organizations, memberships, roles, permissions, ownership, backend auth middleware, RLS, account lifecycle.
 
 ### PHASE 06 — Human & AI Identity Foundation
