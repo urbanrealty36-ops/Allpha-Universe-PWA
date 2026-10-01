@@ -24,7 +24,7 @@ async def select(
     url = f"{settings.supabase_url.rstrip('/')}/rest/v1/{quote(table, safe='._-')}"
     headers = {
         "apikey": settings.supabase_publishable_key,
-        "Authorization": f"Bearer {user.claims.get('_raw_token', '')}",
+        "Authorization": f"Bearer {user.access_token}",
         "Accept": "application/json",
     }
 
