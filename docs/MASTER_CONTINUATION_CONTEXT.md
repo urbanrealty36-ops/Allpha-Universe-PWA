@@ -269,6 +269,7 @@ Canonical documents:
 
 Supabase foundation migration:
 - 20261002040000_cross_domain_booth_district_live_foundation
+- 20261002040100_cross_domain_fk_indexes
 
 Foundation tables:
 - district_access_policies
