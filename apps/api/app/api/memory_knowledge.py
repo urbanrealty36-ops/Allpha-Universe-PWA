@@ -117,7 +117,6 @@ async def upsert_memory_embedding(
         "embedding": payload.embedding,
         "model": payload.model,
         "dimensions": payload.dimensions,
-        "updated_at": "now()",
     })
     if not rows:
         rows = await insert(user, "agent_memory_embeddings", {
