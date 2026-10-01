@@ -9,6 +9,9 @@ Applied to AllphaDb-Universe.
 - Strengthened Passport ownership from read-only to owner-scoped CRUD; removed the superseded duplicate SELECT policy.
 - Added explicit autonomy-level validation: recommend, assist, conditional, autonomous.
 - Added transactional, RLS-scoped create_agent_identity(...) RPC. It creates only caller-owned identity records and related persona/passport/policy/budget records in one database transaction.
+- Added database audit triggers for identity/Agent security mutations.
+- Verification status is server-authoritative; owner requests can move status to pending but cannot self-verify.
+- Organization attachment is owner/member enforced inside the transactional creation function.
 - No user, Agent, credential, reputation, or demo seed records were inserted.
 
 ## Backend activation
