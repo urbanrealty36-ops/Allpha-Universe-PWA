@@ -1,38 +1,235 @@
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from app.api.dependencies import get_auth_context
 from app.core.auth import AuthenticatedUser, require_auth
+from app.core.supabase_rest import SupabaseRestError, insert, rpc, select, update
+
+
+router = APIRouter(prefix="/api/v1/agents", tags=["Agents"])
 
 
 class AgentCommandRequest(BaseModel):
     command: str
 
 
-router = APIRouter(prefix="/api/v1/agents", tags=["Agents"])
+class AgentCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=160)
+    handle: str | None = Field(default=None, min_length=3, max_length=64)
+    description: str | None = None
+    organization_id: UUID | None = None
+    visibility: str = "public"
+    persona: dict[str, Any] = Field(default_factory=dict)
+    tone: dict[str, Any] = Field(default_factory=dict)
+    interests: list[Any] = Field(default_factory=list)
+    goals: list[Any] = Field(default_factory=list)
+    boundaries: dict[str, Any] = Field(default_factory=dict)
+    autonomy_level: str = "recommend"
+    budget_currency: str = Field(default="USD", min_length=3, max_length=3)
+    max_spend_per_action: float | None = Field(default=None, ge=0)
+    daily_spend_limit: float | None = Field(default=None, ge=0)
+    monthly_spend_limit: float | None = Field(default=None, ge=0)
+    requires_approval_above: float | None = Field(default=None, ge=0)
+
+
+class AgentUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    handle: str | None = Field(default=None, min_length=3, max_length=64)
+    description: str | None = None
+    avatar_path: str | None = None
+    visibility: str | None = None
+    status: str | None = None
+
+
+class PersonaUpdateRequest(BaseModel):
+    persona: dict[str, Any] = Field(default_factory=dict)
+    tone: dict[str, Any] = Field(default_factory=dict)
+    interests: list[Any] = Field(default_factory=list)
+    goals: list[Any] = Field(default_factory=list)
+    boundaries: dict[str, Any] = Field(default_factory=dict)
+
+
+class PolicyUpdateRequest(BaseModel):
+    name: str | None = None
+    rules: dict[str, Any] = Field(default_factory=dict)
+    autonomy_level: str = "recommend"
+    spending_limit: float | None = Field(default=None, ge=0)
+    rate_limit: dict[str, Any] = Field(default_factory=dict)
+    enabled: bool = True
+
+
+class BudgetUpdateRequest(BaseModel):
+    currency: str = Field(min_length=3, max_length=3)
+    max_spend_per_action: float | None = Field(default=None, ge=0)
+    daily_spend_limit: float | None = Field(default=None, ge=0)
+    monthly_spend_limit: float | None = Field(default=None, ge=0)
+    requires_approval_above: float | None = Field(default=None, ge=0)
+    enabled: bool = True
+
+
+class CredentialCreateRequest(BaseModel):
+    credential_type: str = Field(min_length=1, max_length=120)
+    issuer: str = Field(min_length=1, max_length=240)
+    subject: str | None = None
+    issued_at: str | None = None
+    expires_at: str | None = None
+    claims: dict[str, Any] = Field(default_factory=dict)
+
+
+def _agent_filter(agent_id: UUID) -> dict[str, str]:
+    return {"id": f"eq.{agent_id}", "limit": "1"}
+
+
+async def _owned_agent(user: AuthenticatedUser, agent_id: UUID) -> dict[str, Any]:
+    rows = await select(user, "agents", {
+        "select": "id,owner_user_id,organization_id,name,handle,status,runtime_state,description,avatar_path,visibility,authority_policy_version,created_at,updated_at",
+        "id": f"eq.{agent_id}",
+        "limit": "1",
+    })
+    if not rows:
+        raise HTTPException(status_code=404, detail={"code": "AGENT_NOT_FOUND", "message": "Agent was not found or is not owned by the authenticated user."})
+    return rows[0]
+
+
+async def _agent_bundle(user: AuthenticatedUser, agent_id: UUID, context: dict) -> dict[str, Any]:
+    agent = await _owned_agent(user, agent_id)
+    identity = await select(user, "agent_identities", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    persona = await select(user, "agent_personas", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    passport = await select(user, "agent_passports", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    policies = await select(user, "agent_policies", {"select": "*", "agent_id": f"eq.{agent_id}", "order": "policy_version.desc", "limit": "1"})
+    budget = await select(user, "agent_budgets", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    return {"agent": agent, "identity": identity[0] if identity else None, "persona": persona[0] if persona else None, "passport": passport[0] if passport else None, "policy": policies[0] if policies else None, "budget": budget[0] if budget else None}
+
+
+@router.get("/me")
+async def list_my_agents(context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    return {"data": await select(user, "agents", {"select": "id,name,handle,status,runtime_state,description,avatar_path,visibility,created_at,updated_at", "owner_user_id": f"eq.{user.user_id}", "order": "created_at.desc"})}
+
+
+@router.post("", status_code=201)
+async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    try:
+        result = await rpc(user, "create_agent_identity", {
+            "p_name": payload.name, "p_handle": payload.handle, "p_description": payload.description,
+            "p_organization_id": str(payload.organization_id) if payload.organization_id else None,
+            "p_visibility": payload.visibility, "p_persona": payload.persona, "p_tone": payload.tone,
+            "p_interests": payload.interests, "p_goals": payload.goals, "p_boundaries": payload.boundaries,
+            "p_autonomy_level": payload.autonomy_level, "p_budget_currency": payload.budget_currency.upper(),
+            "p_max_spend_per_action": payload.max_spend_per_action, "p_daily_spend_limit": payload.daily_spend_limit,
+            "p_monthly_spend_limit": payload.monthly_spend_limit, "p_requires_approval_above": payload.requires_approval_above,
+        })
+    except SupabaseRestError as exc:
+        raise HTTPException(status_code=exc.status_code if 400 <= exc.status_code < 500 else 502, detail={"code": "AGENT_CREATE_FAILED", "message": exc.message}) from exc
+    return await _agent_bundle(user, UUID(result["agent_id"]), context)
+
+
+@router.get("/{agent_id}")
+async def get_agent(agent_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    return await _agent_bundle(context["user"], agent_id, context)
+
+
+@router.patch("/{agent_id}")
+async def update_agent(agent_id: UUID, payload: AgentUpdateRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    values = payload.model_dump(exclude_unset=True)
+    if not values:
+        raise HTTPException(status_code=422, detail={"code": "AGENT_UPDATE_EMPTY", "message": "At least one field is required."})
+    rows = await update(user, "agents", _agent_filter(agent_id), values)
+    if not rows:
+        raise HTTPException(status_code=404, detail={"code": "AGENT_NOT_FOUND", "message": "Agent was not found."})
+    return await _agent_bundle(user, agent_id, context)
+
+
+@router.get("/{agent_id}/persona")
+async def get_persona(agent_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    rows = await select(user, "agent_personas", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    return rows[0] if rows else None
+
+
+@router.put("/{agent_id}/persona")
+async def put_persona(agent_id: UUID, payload: PersonaUpdateRequest, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    values = payload.model_dump()
+    rows = await update(user, "agent_personas", {"agent_id": f"eq.{agent_id}"}, values)
+    if not rows:
+        rows = await insert(user, "agent_personas", {"agent_id": str(agent_id), **values})
+    return rows[0] if rows else None
+
+
+@router.get("/{agent_id}/passport")
+async def get_passport(agent_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    rows = await select(user, "agent_passports", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    return rows[0] if rows else None
+
+
+@router.get("/{agent_id}/policy")
+async def get_policy(agent_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    rows = await select(user, "agent_policies", {"select": "*", "agent_id": f"eq.{agent_id}", "order": "policy_version.desc", "limit": "1"})
+    return rows[0] if rows else None
+
+
+@router.put("/{agent_id}/policy")
+async def put_policy(agent_id: UUID, payload: PolicyUpdateRequest, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    current = await get_policy(agent_id, context)
+    values = payload.model_dump()
+    if current:
+        values["policy_version"] = int(current["policy_version"]) + 1
+        rows = await update(user, "agent_policies", {"id": f"eq.{current['id']}"}, values)
+    else:
+        values.update({"agent_id": str(agent_id), "policy_version": 1})
+        rows = await insert(user, "agent_policies", values)
+    return rows[0] if rows else None
+
+
+@router.get("/{agent_id}/budget")
+async def get_budget(agent_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    rows = await select(user, "agent_budgets", {"select": "*", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    return rows[0] if rows else None
+
+
+@router.put("/{agent_id}/budget")
+async def put_budget(agent_id: UUID, payload: BudgetUpdateRequest, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    values = payload.model_dump(); values["currency"] = values["currency"].upper()
+    rows = await update(user, "agent_budgets", {"agent_id": f"eq.{agent_id}"}, values)
+    if not rows:
+        rows = await insert(user, "agent_budgets", {"agent_id": str(agent_id), **values})
+    return rows[0] if rows else None
+
+
+@router.get("/{agent_id}/credentials")
+async def list_credentials(agent_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    return {"data": await select(user, "agent_credentials", {"select": "id,credential_type,issuer,subject,status,issued_at,expires_at,claims,created_at,updated_at", "agent_id": f"eq.{agent_id}", "order": "created_at.desc"})}
+
+
+@router.post("/{agent_id}/credentials", status_code=201)
+async def create_credential(agent_id: UUID, payload: CredentialCreateRequest, context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    values = payload.model_dump(); values.update({"agent_id": str(agent_id), "status": "pending"})
+    return (await insert(user, "agent_credentials", values))[0]
+
+
+@router.get("/{agent_id}/reputation")
+async def get_reputation(agent_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]; await _owned_agent(user, agent_id)
+    return {"data": await select(user, "agent_reputation_events", {"select": "id,event_type,score_delta,source_type,source_id,metadata,occurred_at,created_at", "agent_id": f"eq.{agent_id}", "order": "occurred_at.desc"})}
 
 
 @router.post("/{agent_id}/command", status_code=status.HTTP_501_NOT_IMPLEMENTED)
-async def command_agent(
-    agent_id: UUID,
-    payload: AgentCommandRequest,
-    user: AuthenticatedUser = Depends(require_auth),
-) -> None:
+async def command_agent(agent_id: UUID, payload: AgentCommandRequest, user: AuthenticatedUser = Depends(require_auth)) -> None:
     if not payload.command.strip():
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
-                "code": "AGENT_COMMAND_EMPTY",
-                "message": "Agent command must not be empty.",
-            },
-        )
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail={
-            "code": "AGENT_RUNTIME_NOT_ACTIVATED",
-            "agent_id": str(agent_id),
-            "owner_user_id": str(user.user_id),
-            "message": "Agent runtime, policy, risk and workflow execution are not activated yet.",
-        },
-    )
+        raise HTTPException(status_code=422, detail={"code": "AGENT_COMMAND_EMPTY", "message": "Agent command must not be empty."})
+    await _owned_agent(user, agent_id)
+    raise HTTPException(status_code=501, detail={"code": "AGENT_RUNTIME_NOT_ACTIVATED", "agent_id": str(agent_id), "message": "Agent runtime is not activated until Phase 15."})
