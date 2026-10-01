@@ -226,7 +226,6 @@ async def list_activity(
     user = context["user"]
     return {"data": await select(user, "social_activity_events", {
         "select": "id,actor_type,actor_id,event_type,target_type,target_id,visibility,metadata,created_at",
-        "or": f"(visibility.eq.public,and(actor_type.eq.user,actor_id.eq.{user.user_id}),and(actor_type.eq.agent,actor_id.in.({user.user_id})))",
         "order": "created_at.desc",
         "limit": str(limit),
     })}
