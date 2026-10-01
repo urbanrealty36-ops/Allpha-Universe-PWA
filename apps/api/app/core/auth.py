@@ -20,6 +20,7 @@ class AuthenticatedUser:
     role: str
     session_id: UUID | None
     claims: dict
+    access_token: str
 
 
 def _unauthorized(code: str, message: str) -> HTTPException:
@@ -65,6 +66,7 @@ def verify_access_token(token: str) -> AuthenticatedUser:
             role=role,
             session_id=session_id,
             claims=dict(claims),
+            access_token=token,
         )
     except HTTPException:
         raise
