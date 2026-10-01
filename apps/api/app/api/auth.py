@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_auth_context
-from app.core.supabase_rest import select, SupabaseRestError
+from app.core.supabase_rest import SupabaseRestError, select
 
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
@@ -11,15 +11,6 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 async def get_current_identity(context: dict = Depends(get_auth_context)) -> dict:
     user = context["user"]
     try:
-        users = await select(
-            user,
-            "users",
-            {
-                "select": "id,status,display_name,username,locale,timezone,created_at,updated_at",
-                "id": f"eq.{user.user_id}",
-                "limit": "1",
-            },
-        )
         profiles = await select(
             user,
             "profiles",
@@ -30,10 +21,16 @@ async def get_current_identity(context: dict = Depends(get_auth_context)) -> dic
             },
         )
     except SupabaseRestError as exc:
-        raise RuntimeError("Authoritative identity data could not be read.") from exc
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "code": "AUTH_IDENTITY_DATA_UNAVAILABLE",
+                "message": "Authoritative identity data is temporarily unavailable.",
+            },
+        ) from exc
 
     return {
-        "user": users[0] if users else None,
+        "user": context["user_record"],
         "profile": profiles[0] if profiles else None,
         "roles": context["roles"],
         "permissions": context["permissions"],
