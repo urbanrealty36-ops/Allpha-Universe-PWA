@@ -244,6 +244,22 @@ async def retrieve_knowledge(agent_id: UUID, payload: RetrievalRequest, context:
     return {"data": result}
 
 
+@router.delete("/{agent_id}/knowledge/{knowledge_id}")
+async def delete_knowledge(agent_id: UUID, knowledge_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user = context["user"]
+    await _owned_agent(user, agent_id)
+    item = await select(user, "knowledge_items", {
+        "select": "id",
+        "id": f"eq.{knowledge_id}",
+        "agent_id": f"eq.{agent_id}",
+        "owner_user_id": f"eq.{user.user_id}",
+        "limit": "1",
+    })
+    if not item:
+        raise HTTPException(status_code=404, detail={"code": "KNOWLEDGE_NOT_FOUND", "message": "Knowledge item was not found."})
+    return await rpc(user, "delete_knowledge_item", {"p_knowledge_item_id": str(knowledge_id)})
+
+
 @router.post("/{agent_id}/knowledge/expire")
 async def expire_knowledge(agent_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
     user = context["user"]
