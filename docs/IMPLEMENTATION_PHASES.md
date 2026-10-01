@@ -39,8 +39,8 @@ Supabase Auth, sessions, user/profile provisioning, platform roles, permissions,
 ### PHASE 06 — Human & AI Identity Foundation — ✅ IMPLEMENTED
 Human identity/profile API, AI Identity, Agent creation lifecycle, profile/persona/Passport, verification request, capabilities, skills, permissions, policies/autonomy, budget, credentials and reputation read model. Ownership is enforced by backend authorization + Supabase RLS. Agent runtime execution remains deferred to Phase 15. No business/user seed data was created.
 
-### PHASE 07 — Agent Memory & Knowledge
-Memory lifecycle, classification, permission-aware storage, retrieval, embeddings, expiration/deletion, knowledge, provenance and privacy boundaries.
+### PHASE 07 — Agent Memory & Knowledge — ✅ IMPLEMENTED
+Agent memory lifecycle, knowledge ingestion/chunking/provenance, embedding persistence, semantic retrieval boundary, retention/expiry, review/delete lifecycle, access audit, ownership and RLS are implemented on Supabase/PostgreSQL. Embedding model/dimension selection remains provider-agnostic for the later AI Gateway/Model Router.
 
 ### PHASE 08 — Social Graph
 Follow, connections, relationships, mentions, blocks, social/relationship graphs, notifications, activity events.
