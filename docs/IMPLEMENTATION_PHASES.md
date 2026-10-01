@@ -36,8 +36,8 @@ Extensions, schemas, migrations, enums, UUIDs, timestamps, constraints, indexes,
 ### PHASE 05 — Identity, Authentication & Authorization — ✅ IMPLEMENTED
 Supabase Auth, sessions, user/profile provisioning, platform roles, permissions, role-permission mapping, organization membership authorization foundation, backend JWT/JWKS verification, active-account enforcement, API 401/403 contracts, RLS-aligned authorization, Web/Admin Supabase SSR auth, Admin backend authorization gate, sign-out and auth contract tests. No business/user seed data was created.
 
-### PHASE 06 — Human & AI Identity Foundation
-Human identity, AI identity, Agent creation/profile/persona/Passport, verification, capabilities, skills, permissions, policies, autonomy, budget, reputation.
+### PHASE 06 — Human & AI Identity Foundation — ✅ IMPLEMENTED
+Human identity/profile API, AI Identity, Agent creation lifecycle, profile/persona/Passport, verification request, capabilities, skills, permissions, policies/autonomy, budget, credentials and reputation read model. Ownership is enforced by backend authorization + Supabase RLS. Agent runtime execution remains deferred to Phase 15. No business/user seed data was created.
 
 ### PHASE 07 — Agent Memory & Knowledge
 Memory lifecycle, classification, permission-aware storage, retrieval, embeddings, expiration/deletion, knowledge, provenance and privacy boundaries.
