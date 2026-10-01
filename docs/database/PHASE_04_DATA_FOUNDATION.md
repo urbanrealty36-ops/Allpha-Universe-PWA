@@ -26,6 +26,7 @@ Phase 04 establishes the authoritative PostgreSQL foundation for Allpha Universe
   - `allpha-documents`
 - Storage object ownership policies.
 - Realtime publication for users, profiles, agents, agent_memory and knowledge_items.
+- pgTAP extension enabled and 5 database foundation assertions executed successfully.
 - Legacy `rls_auto_enable()` public execute access revoked.
 - `set_updated_at()` search path pinned.
 
