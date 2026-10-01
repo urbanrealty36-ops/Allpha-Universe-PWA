@@ -130,7 +130,7 @@ async def list_content(
 
 @router.get("/{content_id:uuid}")
 async def get_content(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
-    rows = await select(context["user"], "content_items", {"select":"*", "id":f"eq.{content_id}", "limit":"1"})
+    rows = await select(context["user"], "content_items", {"select":"*", "id":f"eq.{content_id:uuid}", "limit":"1"})
     if not rows:
         raise HTTPException(status_code=404, detail={"code":"CONTENT_NOT_FOUND","message":"Content is not available."})
     return {"data": rows[0]}
@@ -146,7 +146,7 @@ async def create_content(payload: ContentCreate, context: dict = Depends(get_aut
         raise _error(exc) from exc
 
 
-@router.patch("/{content_id}")
+@router.patch("/{content_id:uuid}")
 async def update_content(content_id: UUID, payload: ContentUpdate, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"], "update_content", {"p_content_id":str(content_id),"p_title":payload.title,"p_body":payload.body,"p_excerpt":payload.excerpt,"p_visibility":payload.visibility,"p_language_code":payload.language_code,"p_metadata":payload.metadata})
@@ -162,7 +162,7 @@ async def submit_moderation(content_id: UUID, reason_code: str | None = None, no
         raise _error(exc) from exc
 
 
-@router.post("/{content_id}/publish")
+@router.post("/{content_id:uuid}/publish")
 async def publish(content_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"], "publish_content", {"p_content_id":str(content_id)})
@@ -170,7 +170,7 @@ async def publish(content_id: UUID, context: dict = Depends(get_auth_context)) -
         raise _error(exc) from exc
 
 
-@router.post("/{content_id}/archive")
+@router.post("/{content_id:uuid}/archive")
 async def archive(content_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"], "archive_content", {"p_content_id":str(content_id)})
@@ -178,9 +178,9 @@ async def archive(content_id: UUID, context: dict = Depends(get_auth_context)) -
         raise _error(exc) from exc
 
 
-@router.get("/{content_id}/media")
+@router.get("/{content_id:uuid}/media")
 async def list_media(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
-    return {"data": await select(context["user"], "content_media", {"select":"id,content_id,media_asset_id,slot_type,position,caption,alt_text,metadata,created_at","content_id":f"eq.{content_id}","order":"slot_type.asc,position.asc"})}
+    return {"data": await select(context["user"], "content_media", {"select":"id,content_id,media_asset_id,slot_type,position,caption,alt_text,metadata,created_at","content_id":f"eq.{content_id:uuid}","order":"slot_type.asc,position.asc"})}
 
 
 @router.post("/media", status_code=201)
@@ -193,7 +193,7 @@ async def create_media(payload: MediaCreate, context: dict = Depends(get_auth_co
         raise _error(exc) from exc
 
 
-@router.post("/{content_id}/media", status_code=201)
+@router.post("/{content_id:uuid}/media", status_code=201)
 async def attach_media(content_id: UUID, payload: MediaAttach, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"],"attach_content_media",{"p_content_id":str(content_id),"p_media_asset_id":str(payload.media_asset_id),"p_slot_type":payload.slot_type,"p_position":payload.position,"p_caption":payload.caption,"p_alt_text":payload.alt_text,"p_metadata":payload.metadata})
@@ -214,7 +214,7 @@ async def create_topic(payload: TopicCreate, context: dict = Depends(get_auth_co
         raise _error(exc) from exc
 
 
-@router.post("/{content_id}/topics/{topic_id}", status_code=201)
+@router.post("/{content_id:uuid}/topics/{topic_id}", status_code=201)
 async def link_topic(content_id: UUID, topic_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"],"link_content_topic",{"p_content_id":str(content_id),"p_topic_id":str(topic_id)})
@@ -222,7 +222,7 @@ async def link_topic(content_id: UUID, topic_id: UUID, context: dict = Depends(g
         raise _error(exc) from exc
 
 
-@router.post("/{content_id}/events", status_code=201)
+@router.post("/{content_id:uuid}/events", status_code=201)
 async def event(content_id: UUID, payload: EventCreate, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"],"record_content_event",{"p_content_id":str(content_id),"p_event_type":payload.event_type,"p_metadata":payload.metadata})
@@ -230,7 +230,7 @@ async def event(content_id: UUID, payload: EventCreate, context: dict = Depends(
         raise _error(exc) from exc
 
 
-@router.post("/{content_id}/ai-capsule", status_code=201)
+@router.post("/{content_id:uuid}/ai-capsule", status_code=201)
 async def create_capsule(content_id: UUID, payload: CapsuleCreate, context: dict = Depends(get_auth_context)) -> Any:
     try:
         return await rpc(context["user"],"create_ai_capsule",{"p_content_id":str(content_id),"p_summary":payload.summary,"p_key_points":payload.key_points,"p_source_metadata":payload.source_metadata,"p_generated_by":payload.generated_by,"p_model_reference":payload.model_reference,"p_provenance":payload.provenance,"p_confidence":payload.confidence})
