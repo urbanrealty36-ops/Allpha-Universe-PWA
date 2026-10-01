@@ -17,7 +17,7 @@ Do not infer missing state from memory or guess.
 - Account: urbanrealty36-ops
 - Active branch: main
 - Implementation policy: direct implementation on main
-- Latest verified commit when this context was created: 19b29bca1ff99a3d1da16c10aee90b197cfbad63
+- Baseline commit before the continuation artifact was created: 19b29bca1ff99a3d1da16c10aee90b197cfbad63
 - Latest commit message: docs(phase-08): add Supabase migration manifest
 
 ## Product identity
@@ -193,6 +193,7 @@ Phase 08 applied migrations:
 - 20261002032000_phase_08_personalization_intelligence
 - 20261002032100_phase_08_personalization_derived_intelligence
 - 20261002032200_phase_08_fk_indexes
+- 20261002032300_phase_08_passion_source_hardening
 
 Last verified Phase 08 counts:
 - interest_nodes = 0
