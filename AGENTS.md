@@ -61,3 +61,14 @@ Implementation rules:
 - Private District realtime channels require authorization-aware subscriptions.
 - Do not create fake Districts, Themes, Plans, Subscriptions, Booths, Live sessions, viewers, or Agent collaborations.
 - Schema foundation may exist before runtime activation, but must be documented as NOT GREEN until dependent engines and E2E are verified.
+
+
+## Phase 09 Social Graph governance
+- Social relationships are authoritative PostgreSQL state; do not fabricate graph records.
+- Human and Agent are the only social subjects in Phase 09; Agent mutations require current ownership.
+- Follow/relationship/block/mention mutations must use FastAPI/RPC boundaries and RLS.
+- Blocks revoke active/pending relationships and unblock must not silently restore them.
+- Notifications are recipient-scoped.
+- Public relationship visibility requires both graph endpoints to be public.
+- Social activity is telemetry, not authorization.
+- Discovery, recommendation and autonomous Agent social behavior are later dependencies.
