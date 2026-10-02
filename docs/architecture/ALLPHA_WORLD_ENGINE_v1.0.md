@@ -184,3 +184,17 @@ Phase 16 Workflow/Mission and Phase 15 Agent Runtime remain canonical. Spatial e
 - Added browser Realtime adapter for `agent_spatial_states`; no second realtime/spatial engine.
 - Spatial context explicitly carries `spatial_context_grants_permission=false`; authority remains in existing Agent Policy/RLS/Risk/Approval boundaries.
 - Spatial context is a deterministic input to the existing Agent Context layer; it does not invoke an LLM per movement/update.
+
+
+## Latest Runtime Activation — Spatial Context → Memory/RAG/Knowledge/Learning
+
+- `apps/api/app/core/agent_context.py` now composes Spatial State → District → Zone → active Booth context and existing learning signals.
+- `apps/api/app/core/agent_context_retrieval.py` adds bounded hybrid retrieval: canonical vector RPCs when an embedding is supplied plus deterministic lexical retrieval for text queries.
+- `POST /api/v1/agent-context/{agent_id}/retrieve` exposes the retrieval adapter through FastAPI.
+- Existing `retrieve_agent_memory` and `retrieve_agent_knowledge` remain the vector retrieval authority; no second RAG engine was created.
+- Interest Affinity, Passion Cluster and Habit Pattern are read as existing learning signals; no synthetic learning data is generated.
+- Retrieval and spatial context never grant authority. Existing Agent Policy/RLS/Risk/Approval/Runtime boundaries remain authoritative.
+- No LLM call is made by this adapter. AI Gateway remains the only model boundary.
+- Live verification passed for the required tables/RPCs; current business-record counts remain zero, so no fake runtime data was created.
+
+Status remains IMPLEMENTED FOUNDATION / NOT GREEN.
