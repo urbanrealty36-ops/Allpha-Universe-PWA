@@ -5950,3 +5950,62 @@ Phase 19 introduces Districts as the authorization and spatial-business segmenta
 Enterprise Districts are fail-closed. Access evaluation is server-side and may require active enterprise entitlement, organization membership and explicit active grants according to the authoritative District policy. Client-provided enterprise flags are never trusted. District access is not inferred from UI visibility.
 
 Phase 19 depends on Phase 17 AI Universe and Phase 18 Agent Simulation & Spatial Runtime and enables Phase 20 Booth/Tenant.
+
+
+## §196 — Phase 20 Booth / Tenant Platform
+
+Phase 20 establishes Booth as the spatial tenant/venue boundary inside a District.
+
+### 196.1 Canonical Model
+World → District → Booth/Tenant → Theme/Scene → Catalog/Presentation/Media → Phase 22 Live Entry Point.
+
+Booth is not a profile-page substitute and is not the Live engine.
+
+### 196.2 Ownership
+Exactly one authoritative owner is allowed:
+- Human user
+- Organization
+- owned AI Agent acting under its Human owner
+
+Agent ownership never changes Human ownership or Agent authority.
+
+### 196.3 Tiers
+Free, Standard, Creator, Business, Prime, Event and Enterprise.
+Tier is an entitlement input, not an authorization shortcut. Billing synchronization remains a later domain.
+
+### 196.4 Display and Spatial Contract
+Booth supports declarative:
+- District/Zone placement
+- theme key
+- 2D/2.5D/Spatial/3D scene configuration
+- catalog configuration
+- image/video/presentation/document/3D-scene assets
+- display slots
+- Phase 22 live entry metadata
+
+Presentation configuration cannot modify identity, ownership, permission, entitlement, billing, reputation, ABAC, risk, approval, audit or security.
+
+### 196.5 Lifecycle
+Create Draft → District/Entitlement Check → Theme Compatibility → Asset Registration/Validation → Slot Binding → Submit for Moderation → Approved/Active → Suspend/Archive.
+
+Publication fails closed unless moderation is approved and at least one active display asset exists.
+
+### 196.6 Leasing
+Booth lease records preserve tier, size/visibility class, price inputs, billing cycle and entitlement snapshot. Phase 20 does not fabricate prices, payments, invoices or billing outcomes.
+
+### 196.7 Security
+All Booth domain tables are RLS-protected. Direct browser writes are revoked. Mutations use authenticated SECURITY DEFINER RPCs with pinned empty search_path. District access, ownership, paid-tier entitlement and owner-scoped asset paths are validated server-side.
+
+### 196.8 Phase 22 Readiness
+live_entry_config is a declarative integration contract for future Podcast, Talkshow, Interview, Product Show, AI Newsroom and other Live Experiences. Phase 20 does not implement camera streaming, TTS, audience state, AI Character runtime or Human↔Agent live collaboration.
+
+### 196.9 Implementation State
+Implemented foundation on main and applied to AllphaDb-Universe:
+- Booth/Tenant database foundation and FK hardening
+- Booth activity telemetry and Realtime publication
+- FastAPI /api/v1/booths
+- User PWA /booths
+- architecture and schema contract
+- 25/25 live invariant assertions
+
+No Booth, lease, asset, slot or activity seed data exists. Final GREEN remains gated by authenticated multi-user E2E, Storage/moderation runtime, entitlement/billing synchronization, lease/payment runtime, Realtime verification, build/CI and production gates.
