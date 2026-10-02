@@ -1,9 +1,12 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.dependencies import get_auth_context
-from app.core.storage import SupabaseStorageError, create_signed_download_url\nfrom app.core.supabase_rest import SupabaseRestError, select
+from app.core.storage import SupabaseStorageError, create_signed_download_url
+from app.core.supabase_rest import SupabaseRestError, select
 
-router=APIRouter(prefix="/api/v1/themes/world-runtime",tags=["Allpha World Engine"])\n\nWORLD_ASSET_BUCKET="allpha-world-assets"
+router=APIRouter(prefix="/api/v1/themes/world-runtime",tags=["Allpha World Engine"])
+
+WORLD_ASSET_BUCKET="allpha-world-assets"
 
 def err(e:SupabaseRestError,code:str)->HTTPException:
     return HTTPException(status_code=e.status_code if e.status_code in {400,401,403,404,409,422} else 500,detail={"code":code,"message":e.message})
