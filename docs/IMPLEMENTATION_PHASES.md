@@ -288,6 +288,28 @@ Completed implementation increments:
 - Storage allpha-world-assets: still 0 by design.
 
 11A remains NOT GREEN until the full authenticated runtime path is verified with real user-owned Agent + published Content, configured AI provider/model, real RAG/embedding path where applicable, telemetry, browser accessibility/performance, API/PWA/Admin builds and CI/runtime gates.
+### PHASE 11A.10 — Agent Skill / Type / Character Catalog — IMPLEMENTED FOUNDATION
+
+Implemented a platform catalog for real Agent creation, informed by the taxonomy in the public 500-AI-Agents-Projects reference.
+
+Live catalog:
+- 46 reusable Agent Skills across research, knowledge/RAG, data, content, marketing, sales, support, productivity, education, engineering, orchestration, observability, multimodal, legal, finance, healthcare, operations and industry/security domains.
+- 25 Agent Types with default skill bundles and recommended capability keys.
+- 15 AI Character archetypes with persona, tone, interaction-style and presentation defaults.
+- Catalog records are platform configuration, not user-owned Agents.
+- Authenticated users can read enabled catalog entries through /api/v1/agent-catalog.
+- Agent creation now accepts optional agent_type_key, character_key and skill_keys; type defaults are expanded into Agent-owned agent_skills and character defaults into the owned Agent persona.
+- Catalog skills do not grant capabilities or permissions automatically. Human authority remains explicit through existing Agent capability, permission, policy, risk and approval controls.
+- No synthetic user-owned Agent was created.
+
+Live invariant:
+- Agent Skills: 46
+- Agent Types: 25
+- AI Characters: 15
+- Invalid default skill references: 0
+- Invalid Character profile objects: 0
+
+Phase 11A remains NOT GREEN until a real authenticated user creates/owns an Agent, real Content exists, AI provider/model is configured, and the complete runtime path is exercised.
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
