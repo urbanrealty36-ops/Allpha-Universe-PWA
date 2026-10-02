@@ -141,3 +141,39 @@ To close the runtime gate, an authenticated real user must create one real Agent
 
 ### Security hardening verification
 The Agent Factory SECURITY DEFINER RPC was rechecked after the activation work. Anonymous EXECUTE is now false and authenticated EXECUTE is true for the canonical create_agent_identity signature. The Supabase security advisor baseline still contains the broader existing SECURITY DEFINER warnings, but the new anonymous exposure introduced by the factory RPC has been closed.
+
+
+## Phase 11A.14 — Real Runtime Activation & Completion
+
+### Implemented foundation
+- OpenAI provider configuration: PASS — canonical `ai_providers` row enabled and credential reference is environment-only.
+- Initial model configuration: PASS — enabled `gpt-6-luna` model with `ai.generate` capability.
+- Global routing policy: PASS — `allpha-default-openai` enabled and scoped to the configured model.
+- Runtime diagnostic API: PASS — authenticated `GET /api/v1/runtime/activation`; secret values are never returned.
+- Runtime Activation Center: PASS — authenticated `/runtime` PWA surface with real Agent selection and optional Gateway smoke test.
+- Database invariant: PASS — `phase_11a14_runtime_activation_invariants.sql` committed.
+
+### Live verification after 11A.14 configuration
+- Enabled AI providers: 1
+- Enabled AI models: 1
+- Agents: 0
+- Published Content: 0
+- Feed interactions: 0
+- AI Gateway requests: 0
+- AI Gateway attempts: 0
+- Agent commands: 0
+- Agent Skills: 111
+- Agent Types: 71
+- AI Characters: 34
+
+### Remaining hard blockers
+1. Real authenticated Agent creation has not occurred.
+2. Real published Content has not occurred.
+3. FastAPI deployment environment binding for `OPENAI_API_KEY` is not verifiable from the available deployment connector; PostgreSQL contains only the environment variable name.
+4. Real AI Gateway generation has not been observed.
+5. Real Agent Runtime command execution has not been observed.
+6. Real Discovery/feed telemetry has not been observed.
+7. RAG embedding generation remains unconfigured; no embeddings are fabricated.
+8. Browser accessibility/performance, API/PWA/Admin build and GitHub Actions runtime have not been verified.
+
+Status: **IMPLEMENTED FOUNDATION / NOT GREEN**.
