@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import ContentEvolutionPanel from "./content-evolution-panel";
+import AgentIntelligencePanel from "./agent-intelligence-panel";
 
 type Surface = "home" | "following" | "for_you" | "moments" | "worlds" | "live";
 
@@ -340,6 +341,14 @@ export default function DiscoverySurface() {
                         onTelemetry={(action) =>
                           void trackContentInteraction(item.id, "event_interaction", {
                             action: "content_evolution:" + action,
+                          })
+                        }
+                      />
+                      <AgentIntelligencePanel
+                        contentId={item.id}
+                        onTelemetry={(action) =>
+                          void trackContentInteraction(item.id, "event_interaction", {
+                            action,
                           })
                         }
                       />
