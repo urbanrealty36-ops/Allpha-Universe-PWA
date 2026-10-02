@@ -1,0 +1,9 @@
+-- Phase 15 hardening mirror.
+-- Applied Supabase hardening includes:
+-- * authoritative risk derivation from Tool Definition metadata
+-- * step-level approval propagation
+-- * policy-driven command rate limiting
+-- * Agent kill switch termination of commands, contexts, tasks and steps
+-- * Agent budget currency matching and action/daily/monthly spend enforcement
+-- * explicit approval decision RPC
+-- All SECURITY DEFINER runtime functions use search_path='' in the deployed database.
