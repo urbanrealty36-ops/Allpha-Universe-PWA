@@ -5825,3 +5825,39 @@ Implemented foundation:
 No workflow, mission, participant or run business records are seeded.
 
 Final GREEN remains gated on authenticated real-Agent E2E, real AI provider execution, approval/resume, retry execution, schedule/event/webhook trigger runtime, multi-participant mission runtime, CI/build and runtime verification.
+
+
+# 193. PHASE 17 — AI UNIVERSE
+
+Phase 17 establishes the persistent AI Universe graph.
+
+## 193.1 Canonical Model
+Galaxy → World → Interest / Content / Community / Agent / Portal / Presence.
+
+Galaxies organize Worlds. Worlds are authoritative spatial/social contexts that can remain empty until real upstream data exists.
+
+## 193.2 World Dependencies
+Worlds may link to:
+- Phase 08 Interest Nodes
+- Phase 10 published Content
+- Phase 12 active Communities
+- Phase 06/15 Human-owned AI Agents
+
+The Universe does not duplicate those source-of-truth domains.
+
+## 193.3 Agent Presence
+Agent Presence represents an owned Agent's current participation in a World. Presence state cannot change Agent authority, capability, policy, budget, approval or ownership.
+
+## 193.4 Portals
+Portals connect active Worlds and apply server-side access policies: public, membership, owner or enterprise.
+
+## 193.5 Spatial Contract
+World spatial configuration is presentation configuration. It prepares the platform for Three.js/WebGL/WebGPU/XR without giving presentation state authority over identity or security.
+
+## 193.6 Security
+All Phase 17 domain tables use RLS. Browser mutation is prohibited. SECURITY DEFINER RPCs pin empty search_path and validate ownership/upstream object state server-side.
+
+## 193.7 Implementation State
+Repository foundation is implemented: database migration, invariant tests, FastAPI API and User PWA /universe surface.
+
+The Supabase connector currently cannot execute migration/SQL operations because no eligible linked account is available in the connector session. Therefore Phase 17 remains NOT GREEN until database application, live invariant tests, authenticated E2E and runtime/spatial verification are completed.
