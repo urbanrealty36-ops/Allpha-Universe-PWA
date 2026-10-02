@@ -418,6 +418,18 @@ Not GREEN:
 
 Next: Phase 23D — Execution.
 
+### PHASE 23D — Execution — IMPLEMENTED FOUNDATION
+
+Implemented approved Agreement → existing Agent Runtime execution binding. Added collaboration_agreement_id to agent_commands, authenticated create_collaboration_execution_command(), Agreement/Agent/capability validation, expiry enforcement, and execution-time re-checks in begin_agent_execution(). Added FastAPI execution binding endpoint, architecture doc, and invariants. No new Runtime, AI Gateway, Workflow or Mission engine; no synthetic commands.
+
+Migration: database/migrations/20261002063000_phase_23d_execution_agreement_binding.sql
+Test: database/tests/phase_23d_execution_invariants.sql
+Architecture: docs/architecture/PHASE_23D_EXECUTION_v1.0.md
+
+Status: IMPLEMENTED FOUNDATION — NOT GREEN. Full authenticated E2E, real provider execution, workflow/mission end-to-end, realtime, CI/CD and production gates remain later.
+
+Next: Phase 23E — Review + Reputation + History.
+
 ### PHASE 24 — Marketplace & Commerce
 Items, products, services, catalogs, orders, transactions, payouts, commissions, refunds, ledger, buyer/seller lifecycle, Agent commerce and approval policies.
 
