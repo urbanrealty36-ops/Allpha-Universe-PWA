@@ -1,3 +1,66 @@
+# MASTER CONTINUATION UPDATE — 2026-10-02 — WORLD ENGINE + 23D RECONCILIATION
+
+> This update is authoritative for continuation only after reconciling the latest Master PRD, implementation phases, repository and live Supabase.
+
+## Current verified state
+
+- Phase 23A — IMPLEMENTED FOUNDATION
+- Phase 23B — IMPLEMENTED FOUNDATION
+- Phase 23C — IMPLEMENTED FOUNDATION
+- Phase 23D — IMPLEMENTED FOUNDATION; live objects reconciled into migration history as `20261002125158 / 20261002063000_phase_23d_execution_agreement_binding_reconciliation`
+- Phase 23E — remaining increment
+- Phase 23 overall — IMPLEMENTED FOUNDATION / NOT GREEN
+- Phase 21 Theme/World catalog — 25 platform Themes + 25 World Templates
+- Phase 22 Live catalog — 25 platform Live Experience Templates
+- World Engine — IMPLEMENTED FOUNDATION / NOT GREEN
+
+## World Engine implementation
+
+Canonical pipeline:
+Theme Catalog → Theme Version → World Template → World Template Version → validated Scene Schema → Renderer → Spatial Runtime → District → Booth → Navigation → Phase 23 → Phase 22 → Character.
+
+Implemented:
+- deterministic scene schema validator/normalizer
+- shared React Three Fiber / Three.js `AllphaWorldRenderer`
+- real platform catalog preview at `/world`
+- read-only FastAPI runtime catalog aggregation
+- authorized District/Zone/Booth composition endpoint
+- deterministic navigation graph utilities
+- low-power renderer mode
+- catalog invariant SQL tests
+- no fake Storage/business/District/Booth/Agent records
+
+Live verified:
+- 25 platform Themes
+- 25 platform World Templates
+- 25 platform Live Experience Templates
+- 0 platform Theme assets
+- 0 Districts
+- 0 Booths
+- 0 Agent spatial states
+- catalog invariants passed
+
+Important reconciliation:
+The current platform catalog is the repository/Supabase-provisioned 25-record catalog. Its names/keys are not silently replaced by the illustrative 25-name list in the newer continuation artifact. Runtime binding uses authoritative IDs and `catalog_order`.
+
+## Immediate continuation
+
+1. Real asset manifest/storage lifecycle without fabricated URLs.
+2. District scene composition + Zone/Booth anchors.
+3. Phase 18 spatial state/realtime adapter.
+4. Phase 23 collaboration encounter → request → agreement → execution context.
+5. Phase 22 Live entry → character presentation.
+6. Mobile/performance/accessibility verification.
+7. Engine/API tests and authenticated E2E.
+8. Continue updating this context after each verified increment.
+
+## Hard constraints remain unchanged
+
+READ → UNDERSTAND → INSPECT → RECONCILE → PLAN → IMPLEMENT → MIGRATE → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT.
+
+Unlimited creativity, bounded authority. Presentation can never grant ownership, capability, permission, entitlement, approval, risk clearance, billing authority or audit authority.
+
+---
 # MASTER CONTINUATION UPDATE — 2026-10-02
 
 > This section supersedes any older continuation state in this file. Canonical planning must reconcile the latest Master PRD, docs/IMPLEMENTATION_PHASES.md, source code, migrations and live AllphaDb-Universe before implementation.
