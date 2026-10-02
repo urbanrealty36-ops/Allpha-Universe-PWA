@@ -190,7 +190,7 @@ create policy mission_runs_select on public.mission_runs for select to authentic
 revoke all on public.workflows,public.workflow_versions,public.workflow_steps,public.workflow_runs,public.workflow_run_steps,public.workflow_events,public.missions,public.mission_participants,public.mission_runs from anon,authenticated;
 grant select on public.workflows,public.workflow_versions,public.workflow_steps,public.workflow_runs,public.workflow_run_steps,public.workflow_events,public.missions,public.mission_participants,public.mission_runs to authenticated;
 
-after alter table public.workflow_events add constraint workflow_events_mission_run_fk foreign key (mission_run_id) references public.mission_runs(id) on delete cascade;
+alter table public.workflow_events add constraint workflow_events_mission_run_fk foreign key (mission_run_id) references public.mission_runs(id) on delete cascade;
 
 create or replace function public.create_workflow(p_owner_type text,p_owner_id uuid,p_name text,p_slug text,p_description text,p_trigger_type text,p_metadata jsonb)
 returns public.workflows language plpgsql security definer set search_path='' as $$
