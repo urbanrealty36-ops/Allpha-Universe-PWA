@@ -109,7 +109,7 @@ begin
       'format','allpha.live_experience_template.v1',
       'presentation_only',true,
       'stage',jsonb_build_object('layout',r->>'layout','aspect_ratio','16:9','safe_area','broadcast_safe','camera_mode','multi_source'),
-      'roles',r->'roles',
+      'roles',(select coalesce(jsonb_agg(jsonb_build_object('slot',x,'kind','human_or_owned_agent','suggested_participation',case when x like 'ai_%' or x like 'agent_%' then 'co_host' else 'host' end)),'[]'::jsonb) from jsonb_array_elements_text(r->'roles') x),
       'human_owner',jsonb_build_object('control_surface','persistent','pause_stop','visible'),
       'ai_collaboration',jsonb_build_object('enabled',true,'suggested_role_slots',
         (select coalesce(jsonb_agg(x), '[]'::jsonb) from jsonb_array_elements_text(r->'roles') x where x like 'ai_%' or x like 'agent_%'),
