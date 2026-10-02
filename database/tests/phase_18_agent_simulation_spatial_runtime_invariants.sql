@@ -1,5 +1,5 @@
 -- Phase 18 Agent Simulation & Spatial Runtime invariants
-select plan(40);
+select plan(44);
 
 select ok(to_regclass('public.agent_spatial_states') is not null,'spatial states exists');
 select ok(to_regclass('public.spatial_interactions') is not null,'spatial interactions exists');
