@@ -1,0 +1,12 @@
+create or replace function public.request_live_agent_collaboration(p_live_session_id uuid,p_agent_id uuid,p_mode text,p_required_capability text,p_authority_policy jsonb default '{}'::jsonb,p_interaction_policy jsonb default '{}'::jsonb) returns public.live_agent_collaborations language sql security definer set search_path to '' as $$ select private.request_live_agent_collaboration(p_live_session_id,p_agent_id,p_mode,p_required_capability,p_authority_policy,p_interaction_policy); $$;
+create or replace function public.set_live_agent_consent(p_collaboration_id uuid,p_approved boolean) returns public.live_agent_collaborations language sql security definer set search_path to '' as $$ select private.set_live_agent_consent(p_collaboration_id,p_approved); $$;
+create or replace function public.activate_live_agent_collaboration(p_collaboration_id uuid) returns public.live_agent_collaborations language sql security definer set search_path to '' as $$ select private.activate_live_agent_collaboration(p_collaboration_id); $$;
+create or replace function public.transition_live_agent_collaboration(p_collaboration_id uuid,p_target text) returns public.live_agent_collaborations language sql security definer set search_path to '' as $$ select private.transition_live_agent_collaboration(p_collaboration_id,p_target); $$;
+revoke all on function public.request_live_agent_collaboration(uuid,uuid,text,text,jsonb,jsonb) from public,anon,authenticated;
+revoke all on function public.set_live_agent_consent(uuid,boolean) from public,anon,authenticated;
+revoke all on function public.activate_live_agent_collaboration(uuid) from public,anon,authenticated;
+revoke all on function public.transition_live_agent_collaboration(uuid,text) from public,anon,authenticated;
+grant execute on function public.request_live_agent_collaboration(uuid,uuid,text,text,jsonb,jsonb) to authenticated;
+grant execute on function public.set_live_agent_consent(uuid,boolean) to authenticated;
+grant execute on function public.activate_live_agent_collaboration(uuid) to authenticated;
+grant execute on function public.transition_live_agent_collaboration(uuid,text) to authenticated;
