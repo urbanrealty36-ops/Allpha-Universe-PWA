@@ -39,6 +39,16 @@ class LiveSessionUpdate(BaseModel):
     scheduled_at: datetime | None = None
     metadata: dict[str, Any] | None = None
 
+def _future_schedule(value: datetime | None) -> str | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        raise HTTPException(status_code=422, detail={"code": "LIVE_SCHEDULE_TIMEZONE_REQUIRED"})
+    normalized = value.astimezone(timezone.utc)
+    if normalized <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=422, detail={"code": "LIVE_SCHEDULE_TIME_MUST_BE_FUTURE"})
+    return normalized.isoformat()
+
 
 @router.get("/templates")
 async def live_templates(
@@ -99,8 +109,7 @@ async def create_live_session(
     payload: LiveSessionCreate,
     context: dict = Depends(get_auth_context),
 ):
-    if payload.scheduled_at is not None and payload.scheduled_at <= datetime.now(timezone.utc):
-        raise HTTPException(status_code=422, detail={"code": "LIVE_SCHEDULE_TIME_MUST_BE_FUTURE"})
+    scheduled_at = _future_schedule(payload.scheduled_at)
 
     values = {
         "host_user_id": str(context["user"].user_id),
@@ -110,7 +119,7 @@ async def create_live_session(
         "title": payload.title.strip(),
         "status": "draft",
         "visibility": payload.visibility,
-        "scheduled_at": payload.scheduled_at.isoformat() if payload.scheduled_at else None,
+        "scheduled_at": scheduled_at,
         "district_id": str(payload.district_id) if payload.district_id else None,
         "booth_id": str(payload.booth_id) if payload.booth_id else None,
         "metadata": payload.metadata,
@@ -157,9 +166,7 @@ async def update_live_session(
     if "title" in values and values["title"] is not None:
         values["title"] = values["title"].strip()
     if "scheduled_at" in values and values["scheduled_at"] is not None:
-        if values["scheduled_at"] <= datetime.now(timezone.utc):
-            raise HTTPException(status_code=422, detail={"code": "LIVE_SCHEDULE_TIME_MUST_BE_FUTURE"})
-        values["scheduled_at"] = values["scheduled_at"].isoformat()
+        values["scheduled_at"] = _future_schedule(values["scheduled_at"])
     try:
         rows = await update(context["user"], "live_sessions", {"id": f"eq.{session_id}", "host_user_id": f"eq.{context['user'].user_id}"}, values)
     except SupabaseRestError as exc:
