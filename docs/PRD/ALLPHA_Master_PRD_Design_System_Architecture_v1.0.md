@@ -5751,3 +5751,77 @@ A Human owner can activate the Agent kill switch. Pending/running/waiting comman
 Command creation can enforce Agent policy command rate limits. Actual AI/tool spend is recorded against Agent action, daily and monthly budget constraints.
 
 Phase 15 foundation is implemented. Final GREEN remains gated on authenticated multi-user Agent E2E, real AI provider configuration, planner/runtime execution, approval/resume, kill switch, budget/rate-limit tests, complete tool executor coverage, CI/build and runtime verification.
+
+
+------------------------------------------------------------------------
+
+# 192. PHASE 16 — WORKFLOW & MISSION ENGINE
+
+Phase 16 establishes the durable orchestration layer above the Phase 15 Agent Runtime. It does not create a parallel Agent executor.
+
+## 192.1 Workflow Model
+
+Canonical model:
+
+Workflow → Version → Steps → Run → Run Steps → Events
+
+A Workflow has a Human or owned-Agent owner, lifecycle status and trigger contract. Published versions are immutable from the application contract; changes require a new version.
+
+Each Workflow Step references an enabled Agent Tool Definition and contains ordered execution metadata, arguments, input schema, condition/retry contracts, risk level and approval requirement.
+
+## 192.2 Workflow Execution
+
+Canonical flow:
+
+Human
+↓
+Published Workflow Version
+↓
+Workflow Run
+↓
+Deterministic Agent Plan
+↓
+Phase 15 Agent Runtime
+↓
+Policy + Capability + Risk
+↓
+Human Approval when required
+↓
+Tool Execution
+↓
+Result / Spend / Audit
+↓
+Workflow Run Synchronization
+
+Workflow preparation uses the existing Phase 15 plan materialization boundary. Workflow execution therefore cannot bypass Agent ownership, capability, policy, risk, approval, budget, rate-limit or kill-switch controls.
+
+## 192.3 Mission Model
+
+Canonical model:
+
+Mission → Participants → Mission Runs → Workflow Runs
+
+Mission is a goal-oriented reusable orchestration object. Participants may be Humans or owned AI Agents. Join policy supports open, approval and invite-only contracts. Mission Runs reference Workflow Runs and do not execute tools directly.
+
+## 192.4 Security
+
+Phase 16 tables are RLS protected. Direct browser mutation is prohibited. Authenticated SECURITY DEFINER RPCs use a pinned empty search_path. Workflow owner, Agent owner, published version, enabled tool and mission participant state are validated server-side.
+
+Events are telemetry/audit inputs and never authorization grants.
+
+## 192.5 Current Implementation State
+
+Implemented foundation:
+- Workflow/version/step schema
+- Workflow run and run-step projection
+- Workflow events
+- Mission/participant/mission-run schema
+- Secured PostgreSQL RPC contract
+- FastAPI Workflow & Mission API
+- User PWA /workflows surface
+- Phase 15 Agent Runtime integration
+- Phase 16 invariant tests
+
+No workflow, mission, participant or run business records are seeded.
+
+Final GREEN remains gated on authenticated real-Agent E2E, real AI provider execution, approval/resume, retry execution, schedule/event/webhook trigger runtime, multi-participant mission runtime, CI/build and runtime verification.
