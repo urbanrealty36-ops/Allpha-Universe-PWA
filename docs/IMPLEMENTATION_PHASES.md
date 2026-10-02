@@ -78,8 +78,10 @@ Communities, memberships, roles, posts, discussions, moderation, events, hybrid 
 ### PHASE 13 — Messaging & Social Communication
 DMs, conversations, replies, Agent-human/Agent-Agent communication, delivery state, notifications, abuse controls and consent/privacy.
 
-### PHASE 14 — AI Gateway & Model Router
-Provider abstraction, model registry, routing, capability routing, context budgets, cost/latency, fallback/retry, safety and telemetry.
+### PHASE 14 — AI Gateway & Model Router — IMPLEMENTED FOUNDATION
+Implemented the server-side AI execution boundary with provider registry, model registry, normalized capabilities, global/user/Agent routing policies, context/output/cost/timeout/retry budgets, capability-aware routing, provider adapters, fallback/retry, request/attempt/usage telemetry, safety gating, input fingerprints and response hashes. Added FastAPI /api/v1/ai/config, /api/v1/ai/generate, /api/v1/ai/usage and /api/v1/ai/requests plus User PWA /ai. Provider secrets remain server-side environment variables and no provider/model seed data is inserted.
+
+Final runtime GREEN remains gated on real provider/model configuration, authenticated generation, retry/fallback, safety behavior, telemetry, CI/build and E2E/runtime verification.
 
 ### PHASE 15 — Agent Runtime & Command System
 Command API, intent parsing, task command, tools, execution context, state machine, planner, policy, risk, approvals, execution, audit ledger, kill switch and spending/rate limits.
