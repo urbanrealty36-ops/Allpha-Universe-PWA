@@ -11,6 +11,16 @@ Theme Catalog → Published Theme Version → World Template Version → validat
 
 ## Implemented in this increment
 
+### Asset Manifest & Spatial Foundation
+- Reuses existing `theme_assets`, `booth_display_assets` and `booth_display_slots`; no parallel asset registry was created.
+- Uses existing Supabase Storage bucket `allpha-world-assets` as the authoritative World asset bucket.
+- `GET /api/v1/themes/world-runtime/themes/{theme_id}/asset-manifest` exposes storage paths and lifecycle/safety metadata only; it never fabricates public or signed URLs.
+- District composition now returns authoritative District/Zone/Booth records plus presentation-only spatial projections and Booth asset/slot manifests.
+- Booth position resolution order is explicit: `scene_config.position` → `display_config.position` → Zone `spatial_config.booth_anchor`.
+- Asset and spatial records remain empty when no real business records exist; no synthetic District/Zone/Booth/asset data is seeded.
+
+
+
 ### Deterministic Scene Contract
 `apps/web/lib/world-engine/scene-schema.ts`
 - explicit schema version
@@ -81,7 +91,7 @@ Theme Catalog → Published Theme Version → World Template Version → validat
 The Supabase security advisor still reports existing global findings, including many SECURITY DEFINER functions callable by authenticated, RLS tables without policies and existing duplicate policies. These are not newly introduced by the World Engine increment and are not being reclassified as GREEN.
 
 ## Known remaining gaps
-1. Real Storage asset manifest lifecycle; no fabricated Storage URLs.
+1. Storage upload/signing lifecycle is still delegated to the existing asset RPC/storage authorization path; this increment exposes only the authoritative read manifest.
 2. Real District/Zone/Booth spatial composition when authoritative business records exist.
 3. Phase 18 realtime spatial projection and bounded position persistence.
 4. Phase 23 collaboration encounter/request/execution UI wiring.
