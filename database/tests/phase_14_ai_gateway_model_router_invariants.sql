@@ -1,5 +1,5 @@
 begin;
-select plan(34);
+select plan(33);
 select has_table('public','ai_providers','ai_providers exists');
 select has_table('public','ai_models','ai_models exists');
 select has_table('public','ai_model_capabilities','ai_model_capabilities exists');
