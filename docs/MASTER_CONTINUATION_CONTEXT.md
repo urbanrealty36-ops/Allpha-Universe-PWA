@@ -1,9 +1,9 @@
 # ALLPHA UNIVERSE — MASTER CONTINUATION CONTEXT
 
 
-## PHASE 21 — Theme & World Builder — IMPLEMENTED FOUNDATION
+## PHASE 21 — Theme & World Builder — IMPLEMENTED FOUNDATION + RUNTIME LIFECYCLE HARDENING
 
-Implemented on main and applied to AllphaDb-Universe.
+Implemented on `main` and applied to AllphaDb-Universe.
 
 Database:
 - `themes`
@@ -13,34 +13,49 @@ Database:
 - `world_template_versions`
 - `world_builder_states`
 
-Migration:
-- repository: `database/migrations/20261002033500_phase_21_theme_world_builder.sql`
-- live: `phase_21_theme_world_builder` / version `20261002033548`
+Migrations:
+- `20261002033500_phase_21_theme_world_builder`
+- `20261002040000_phase_21_theme_world_builder_runtime_hardening`
+- `20261002040100_phase_21_theme_world_builder_admin_read`
+- live migration versions are verified in AllphaDb-Universe.
 
 API:
 - `apps/api/app/api/themes.py`
 - `apps/api/app/api/world_builder.py`
+- Theme version validate/submit/publish contracts
+- World Template validate/submit/publish contracts
+- Platform moderation endpoints guarded by authoritative `admin.manage` permission
 
-PWA:
+PWA/Admin:
 - `/theme-builder`
 - `/world-builder`
+- `/themes` Super Admin moderation surface
+- UI uses Allpha design-token CSS variables and authoritative API state only.
 
-Verification:
-- six Phase 21 tables exist with RLS enabled/forced
-- eleven mutation/validation RPCs exist and are SECURITY DEFINER with pinned empty search_path
-- all Phase 21 business tables are empty by design
-- invariant suite committed in `database/tests/phase_21_theme_world_builder_invariants.sql`
+Security:
+- Theme tokens recursively reject protected authority namespaces while allowing only `theme.*`.
+- World/Builder schemas recursively reject arbitrary `code`/`script` and protected authority namespaces.
+- Theme/Template publication remains gated by validation + performance + moderation.
+- Platform moderation read is RLS-gated by `private.has_platform_permission('admin.manage')`.
+- No frontend privileged DB access and no fabricated Storage/business records.
 
-Not GREEN:
-- authenticated multi-user E2E
-- moderation decision runtime
-- real Storage/safety/performance/accessibility validation
-- publication runtime
-- API/PWA build
-- CI/runtime/production gates
+Lifecycle:
+- Theme: Draft → Version Draft → Validation → Review → Moderation → Published/Archived.
+- World Template: Draft → Version Draft → Validation → Review → Moderation → Published/Archived.
+- Builder State: Draft → Validated → Submitted; it does not become an alternate World authority.
 
-Next: PHASE 22 — Events & Experiences / Live Stories & Streaming.
+Data:
+- Phase 21 business tables remain empty by design unless real users create records.
+- No fake Theme, Template, Asset, World Builder, Storage or moderation records are seeded.
 
+Verification status:
+- Migration application verified live.
+- Remaining final gates: authenticated multi-user E2E, real Storage asset lifecycle, actual renderer performance/accessibility validation, publication E2E, API/PWA/Admin build, CI, realtime/runtime verification where applicable, and production Green gates.
+
+Phase 21 is **implemented foundation with lifecycle hardening**, not final GREEN.
+
+Next implementation target:
+**PHASE 22 — Events & Experiences / Live Stories & Streaming**, only after Phase 21 verification gates are explicitly reviewed.
 ## Purpose
 This file is the cross-conversation continuation baseline for AI Agent Code working on Allpha Universe.
 
