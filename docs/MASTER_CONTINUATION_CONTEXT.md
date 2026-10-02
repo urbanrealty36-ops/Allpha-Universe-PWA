@@ -794,3 +794,77 @@ Not GREEN:
 - CI/runtime/production Green gates
 
 Next implementation target: PHASE 21 — Theme & World Builder.
+
+
+## PHASE 21.x — Built-in Platform Theme Catalog — IMPLEMENTED
+
+Implemented on `main` and applied to AllphaDb-Universe.
+
+### Architecture
+
+Phase 21 now has two explicit source lanes:
+- `platform`: Allpha developer-provided built-in catalog
+- `creator`: user/organization creator marketplace content
+
+The creator lifecycle remains Draft → Version Draft → Validation → Review → Moderation → Published. Platform catalog records do not require or fabricate a user/organization and are delivered as product configuration.
+
+### Database
+
+Migration:
+- `20261002040400_phase_21_builtin_platform_theme_catalog`
+
+Registry extensions:
+- `themes.source`
+- `themes.catalog_key`
+- `themes.catalog_order`
+- `world_templates.source`
+- `world_templates.catalog_key`
+- `world_templates.catalog_order`
+
+Platform catalog:
+- 25 Themes
+- 25 World Templates
+- 25 Theme v1 records
+- 25 World Template v1 records
+- all published
+- all validation/performance/moderation gates passed/approved
+- no creator user, organization or fake system user attached
+- no Storage asset records fabricated
+
+### 25 built-in worlds
+
+Heroic Nexus, Nusantara Raya, Neo Jakarta 2099, Celestial Samurai, Skyforge Empire, Emerald Rainforest, Aurora Kingdom, Desert Starfall, Oceanic Atlantis, Lunar Frontier, Mars Frontier, Neon Tokyo, Pharaoh Eternal, Viking Fjord, Kingdom of Aether, Coral Metropolis, Savanna Spirit, Floating Garden, Dragon Dominion, Quantum City, Crystal AI City, Galactic Frontier, Chronos Realm, Mystic Academy, Dream Carnival.
+
+Each catalog pair contains a declarative 3D World schema with original hero/companion/NPC presentation definitions, zones, spawn points, portals, interaction points, camera and animation configuration, performance budget and accessibility constraints.
+
+### API/PWA
+
+FastAPI:
+- `GET /api/v1/themes?source=platform&status=published`
+- `GET /api/v1/themes/world-templates?source=platform`
+
+World Builder now presents the platform collection and automatically resolves published Theme/World Template versions instead of requiring manual version UUID entry.
+
+### Security
+
+Platform ownership is excluded from creator owner helpers, so creator mutation RPCs cannot mutate built-in platform records.
+
+Scene schemas remain declarative and are checked against the existing Phase 21 safety contract. Theme tokens remain restricted to `theme.*`.
+
+### Verification
+
+Live Supabase:
+- 25 platform Themes
+- 25 platform World Templates
+- 25 approved/published Theme v1
+- 25 approved/published World Template v1
+- 0 platform creator ownership fields
+- 0 unsafe platform theme schemas
+- 0 unsafe platform template schemas
+- Phase 21.x invariant SQL executed without exception
+
+### Boundary
+
+Phase 21.x does not implement Phase 22 live camera/streaming/TTS/realtime audience/AI Character execution. It supplies the initial visual/spatial catalog consumed by later runtime phases.
+
+Phase 21 remains **not final GREEN** because authenticated E2E, actual renderer performance/accessibility, real Storage asset lifecycle, API/PWA build/CI and production gates remain pending.
