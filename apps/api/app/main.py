@@ -7,6 +7,7 @@ from app.api.agent_runtime import router as agent_runtime_router
 from app.api.workflows import router as workflows_router
 from app.api.universe import router as universe_router
 from app.api.spatial_runtime import router as spatial_runtime_router
+from app.api.districts import router as districts_router
 from app.api.auth import router as auth_router
 from app.api.content import router as content_router
 from app.api.communities import router as communities_router
@@ -51,3 +52,4 @@ app.include_router(agent_runtime_router)
 app.include_router(workflows_router)
 app.include_router(universe_router)
 app.include_router(spatial_runtime_router)
+app.include_router(districts_router)
