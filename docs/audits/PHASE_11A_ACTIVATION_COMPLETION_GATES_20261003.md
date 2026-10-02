@@ -137,3 +137,7 @@ Agent creation hardening: `/api/v1/agents` now fails closed with 422 when an exp
 Therefore the requested path is now **CODE-PATH ACTIVATED / RUNTIME E2E PENDING**, not GREEN.
 
 To close the runtime gate, an authenticated real user must create one real Agent through Agent Factory and execute a real command. The FastAPI deployment must also have the server-side OpenAI credential bound to the environment variable referenced by the configured provider. No API key is stored in Supabase or the browser.
+
+
+### Security hardening verification
+The Agent Factory SECURITY DEFINER RPC was rechecked after the activation work. Anonymous EXECUTE is now false and authenticated EXECUTE is true for the canonical create_agent_identity signature. The Supabase security advisor baseline still contains the broader existing SECURITY DEFINER warnings, but the new anonymous exposure introduced by the factory RPC has been closed.
