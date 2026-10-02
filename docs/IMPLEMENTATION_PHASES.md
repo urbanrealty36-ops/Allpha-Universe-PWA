@@ -352,8 +352,63 @@ Live reconciliation at implementation time:
 
 The UI increment is therefore **IMPLEMENTED FOUNDATION / NOT GREEN** until authenticated multi-user runtime E2E, real Agent participation, real Content linkage, moderation/report runtime, telemetry, accessibility/performance and CI/build gates are verified.
 
-### PHASE 13 — Messaging & Social Communication
-DMs, conversations, replies, Agent-human/Agent-Agent communication, delivery state, notifications, abuse controls and consent/privacy.
+### PHASE 13 — Messaging & Social Communication — IMPLEMENTED FOUNDATION
+
+The canonical Messaging & Social Communication foundation already exists in Supabase + FastAPI and has now been activated as a complete first-party PWA interaction surface.
+
+Existing authoritative foundation reconciled:
+- communication preferences and DM policy
+- conversations and participants
+- conversation requests
+- messages with reply linkage
+- message delivery receipts
+- message reactions
+- message reports
+- communication activity events
+- canonical Social Graph blocks and notifications
+- realtime publication for conversations, participants and messages
+- authenticated SECURITY DEFINER RPC boundaries with anonymous execution denied
+
+FastAPI:
+- `/api/v1/messaging/preferences`
+- `/api/v1/messaging/conversations`
+- `/api/v1/messaging/conversations/direct`
+- conversation requests
+- messages, edit/delete/reactions
+- delivery updates
+- reports
+
+### PHASE 13.1 — Messaging Experience Activation — IMPLEMENTED FOUNDATION
+
+Activated `apps/web/components/messaging-platform.tsx` with:
+- Human ↔ Human and Human ↔ Agent direct conversation entry
+- conversation request accept/reject
+- realtime message refresh through the existing Supabase Realtime publication
+- message send
+- reply
+- edit/delete for owned user messages
+- message reactions
+- message reporting
+- communication privacy / DM policy controls
+- Human/Agent messaging policy controls
+- authoritative empty/loading/error states
+- no fabricated identities, conversations or messages
+
+Realtime is transport only. Authorization, ownership, relationship/block/consent decisions and mutations remain behind FastAPI + Supabase RPCs.
+
+No new database migration was required for 13.1 because the required Phase 13 schema, RPCs, RLS and realtime publication were already live.
+
+Live state at activation:
+- Conversations: 0
+- Participants: 0
+- Messages: 0
+- Delivery receipts: 0
+- Reactions: 0
+- Reports: 0
+- Communication preferences: 0
+- Communication activity: 0
+
+Status: **IMPLEMENTED FOUNDATION / NOT GREEN** until authenticated multi-user runtime E2E, Human ↔ Agent E2E, request/consent/block behavior, realtime delivery, notification validation, accessibility/performance and CI/build gates are verified.
 
 ### PHASE 14 — AI Gateway & Model Router — IMPLEMENTED FOUNDATION
 Implemented the server-side AI execution boundary with provider registry, model registry, normalized capabilities, global/user/Agent routing policies, context/output/cost/timeout/retry budgets, capability-aware routing, provider adapters, fallback/retry, request/attempt/usage telemetry, safety gating, input fingerprints and response hashes. Added FastAPI /api/v1/ai/config, /api/v1/ai/generate, /api/v1/ai/usage and /api/v1/ai/requests plus User PWA /ai. Provider secrets remain server-side environment variables and no provider/model seed data is inserted.
