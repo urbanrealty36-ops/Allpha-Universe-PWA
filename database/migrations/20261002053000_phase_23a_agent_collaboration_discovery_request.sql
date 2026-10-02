@@ -26,6 +26,8 @@ create index if not exists agent_collab_requests_target_idx
 on public.agent_collaboration_requests(target_agent_id, created_at desc);
 create index if not exists agent_collab_requests_status_idx
 on public.agent_collaboration_requests(status, created_at desc);
+create index if not exists agent_collab_requests_requester_owner_idx on public.agent_collaboration_requests(requester_owner_user_id);
+create index if not exists agent_collab_requests_target_owner_idx on public.agent_collaboration_requests(target_owner_user_id);
 create unique index if not exists agent_collab_requests_pending_unique
 on public.agent_collaboration_requests(requester_agent_id, target_agent_id)
 where status='pending';
