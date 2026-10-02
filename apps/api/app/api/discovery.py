@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 
 from app.api.dependencies import get_auth_context
 from app.core.supabase_rest import SupabaseRestError, rpc, select
+from app.services.content_gravity import apply_content_gravity
 
 router = APIRouter(prefix="/api/v1/discovery", tags=["Allpha Universe Discovery"])
 
@@ -14,6 +15,14 @@ def _error(exc: SupabaseRestError) -> dict[str, Any]:
     return {"code": "DISCOVERY_SOURCE_FAILED", "message": exc.message, "status_code": exc.status_code}
 
 
+def _feed_items(value: Any) -> list[dict[str, Any]]:
+    if isinstance(value, dict) and isinstance(value.get("data"), list):
+        return [item for item in value["data"] if isinstance(item, dict)]
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, dict)]
+    return []
+
+
 @router.get("/home")
 async def discovery_home(
     surface: Surface = Query(default="home"),
@@ -21,7 +30,7 @@ async def discovery_home(
     query: str | None = Query(default=None, max_length=160),
     context: dict = Depends(get_auth_context),
 ) -> dict[str, Any]:
-    """Compose existing Feed, Universe and Live engines without creating a second engine."""
+    """Compose Feed, Content Gravity, Universe and Live without creating duplicate engines."""
     user = context["user"]
     feed_surface = {
         "home": "home",
@@ -46,18 +55,28 @@ async def discovery_home(
         },
         "sources": {
             "feed_engine": "existing:get_feed",
+            "content_gravity": "existing:feed+personalization+content_topics+world_context",
             "universe_engine": "existing:universe_worlds",
             "live_engine": "existing:live_sessions",
         },
     }
 
     try:
-        result["content"] = await rpc(user, "get_feed", {
+        feed_result = await rpc(user, "get_feed", {
             "p_surface": feed_surface,
             "p_limit": limit,
             "p_offset": 0,
             "p_query": query,
         })
+        items = _feed_items(feed_result)
+        gravity_items = await apply_content_gravity(user, items, surface=surface)
+        if isinstance(feed_result, dict):
+            result["content"] = {
+                **feed_result,
+                "data": gravity_items,
+            }
+        else:
+            result["content"] = gravity_items
     except SupabaseRestError as exc:
         result["content_error"] = _error(exc)
 
