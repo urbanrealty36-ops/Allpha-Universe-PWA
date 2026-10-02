@@ -37,6 +37,7 @@ alter table public.agent_collaboration_requests force row level security;
 revoke all on table public.agent_collaboration_requests from anon, authenticated;
 grant select on table public.agent_collaboration_requests to authenticated;
 
+drop policy if exists agent_collab_requests_participant_select on public.agent_collaboration_requests;
 create policy agent_collab_requests_participant_select
 on public.agent_collaboration_requests
 for select to authenticated
