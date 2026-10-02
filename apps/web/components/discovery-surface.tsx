@@ -89,6 +89,43 @@ export default function DiscoverySurface() {
 
   const content = useMemo(() => (data ? arrayData(data.content) : []), [data]);
 
+  async function trackContentInteraction(
+    contentId: string,
+    eventType: "event_interaction" | "search_after_view",
+    metadata: Record<string, unknown>,
+  ) {
+    try {
+      await apiFetch("/api/v1/feed/interactions", {
+        method: "POST",
+        body: JSON.stringify({
+          content_id: contentId,
+          surface,
+          event_type: eventType,
+          metadata: {
+            ...metadata,
+            discovery_surface: surface,
+            discovery_query: query.trim() || null,
+          },
+        }),
+      });
+    } catch {
+      // Telemetry is best-effort; navigation and discovery must remain available.
+    }
+  }
+
+  async function openContent(
+    event: React.MouseEvent<HTMLAnchorElement>,
+    contentId: string,
+    action: "open" | "ask_content",
+  ) {
+    event.preventDefault();
+    const href = event.currentTarget.href;
+    await trackContentInteraction(contentId, "event_interaction", {
+      action,
+    });
+    window.location.assign(href);
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-8 sm:py-8">
@@ -235,10 +272,18 @@ export default function DiscoverySurface() {
                         ))}
                       </div>
                       <div className="mt-5 flex gap-2">
-                        <a href={"/content/" + item.id} className="rounded-xl bg-white px-3 py-2 text-xs font-medium text-slate-950">
+                        <a
+                          href={"/content/" + item.id}
+                          onClick={(event) => void openContent(event, item.id, "open")}
+                          className="rounded-xl bg-white px-3 py-2 text-xs font-medium text-slate-950"
+                        >
                           Open
                         </a>
-                        <a href={"/content/" + item.id} className="rounded-xl border border-white/10 px-3 py-2 text-xs text-slate-400">
+                        <a
+                          href={"/content/" + item.id}
+                          onClick={(event) => void openContent(event, item.id, "ask_content")}
+                          className="rounded-xl border border-white/10 px-3 py-2 text-xs text-slate-400"
+                        >
                           Ask the Content
                         </a>
                       </div>
