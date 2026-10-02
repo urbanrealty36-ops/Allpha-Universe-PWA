@@ -229,7 +229,8 @@ create or replace function public.publish_workflow_version(p_workflow_version_id
 returns public.workflow_versions language plpgsql security definer set search_path='' as $$
 declare v public.workflow_versions; w public.workflows; invalid_count int;
 begin
- select v0.*,w0.* into v,w from public.workflow_versions v0 join public.workflows w0 on w0.id=v0.workflow_id where v0.id=p_workflow_version_id;
+ select * into v from public.workflow_versions where id=p_workflow_version_id;
+ select * into w from public.workflows where id=v.workflow_id;
  if not found or not private.workflow_subject_owned(w.owner_type,w.owner_id) then raise exception 'WORKFLOW_OWNER_DENIED'; end if;
  if v.status='published' then return v; end if;
  if not exists(select 1 from public.workflow_steps where workflow_version_id=p_workflow_version_id and enabled=true) then raise exception 'WORKFLOW_NO_STEPS'; end if;
@@ -246,7 +247,8 @@ returns public.workflow_runs language plpgsql security definer set search_path='
 declare r public.workflow_runs; v public.workflow_versions; w public.workflows;
 begin
  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
- select v0.*,w0.* into v,w from public.workflow_versions v0 join public.workflows w0 on w0.id=v0.workflow_id where v0.id=p_workflow_version_id;
+ select * into v from public.workflow_versions where id=p_workflow_version_id;
+ select * into w from public.workflows where id=v.workflow_id;
  if not found or v.status<>'published' or w.status<>'active' then raise exception 'WORKFLOW_VERSION_NOT_PUBLISHED'; end if;
  if not private.workflow_subject_owned(w.owner_type,w.owner_id) then raise exception 'WORKFLOW_OWNER_DENIED'; end if;
  if not exists(select 1 from public.agents a where a.id=p_agent_id and a.owner_user_id=auth.uid() and a.status not in ('archived','deleted')) then raise exception 'AGENT_OWNERSHIP_DENIED'; end if;
