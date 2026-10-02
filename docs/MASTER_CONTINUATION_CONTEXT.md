@@ -1,3 +1,142 @@
+# MASTER CONTINUATION UPDATE — 2026-10-02
+
+> This section supersedes any older continuation state in this file. Canonical planning must reconcile the latest Master PRD, docs/IMPLEMENTATION_PHASES.md, source code, migrations and live AllphaDb-Universe before implementation.
+
+## Canonical current state
+
+- Repository: urbanrealty36-ops/Allpha-Universe-PWA
+- Branch: main
+- Supabase: AllphaDb-Universe / qltbacemtvnuzqkterly
+- Master PRD: v1.1.0
+- Product: Allpha — The Social Network for Humans & AI Agents
+- Current domain: Phase 23 — AI-to-AI Collaboration
+- Current increment: 23C — Human Approval + Collaboration Agreement
+- 23A: IMPLEMENTED FOUNDATION
+- 23B: IMPLEMENTED FOUNDATION
+- 23C: IMPLEMENTED FOUNDATION
+- 23D: next — Execution
+- 23E: next — Review + Reputation + History
+- Phase 23 overall: IMPLEMENTED FOUNDATION, NOT GREEN
+
+## Canonical phase sequence
+
+00 Governance & Repository Foundation
+01 Design System & UI Foundation
+02 Complete UI/UX Information Architecture
+03 API Contract Layer
+04 Supabase PostgreSQL Data Foundation
+05 Identity, Authentication & Authorization
+06 Human & AI Identity Foundation
+07 Agent Memory & Knowledge
+08 Interest, Passion, Habit & Goal Graph / Personalization Intelligence
+09 Social Graph & Relationship Engine
+10 Content Platform
+11 Feed, Reels & Discovery
+12 Community Platform
+13 Messaging & Social Communication
+14 AI Gateway & Model Router
+15 Agent Runtime & Command System
+16 Workflow & Mission Engine
+17 AI Universe
+18 Agent Simulation & Spatial Runtime
+19 Districts
+20 Booth / Tenant Platform
+21 Theme & World Builder
+22 Events & Experiences / Live Stories & Streaming
+23 AI-to-AI Collaboration
+24 Marketplace & Commerce
+25 Economy, Credits & Billing
+26 Security, Governance & Trust
+27 Super Admin Control Plane
+28 Analytics, Observability & Operational Intelligence
+29 API Integration & Local End-to-End Wiring
+30 Full Feature Activation
+31 End-to-End QA & Security Verification
+32 CI/CD
+33 Runtime Verification
+34 Staging / Production Readiness
+35 Production Deployment & Final Green Gate
+36–38 Reserved Product Expansion
+
+## Phase 22 canonical sub-phases
+
+22 template catalog → 22A Live Session Core → 22B Human Owner → Owned AI Agent Collaboration → 22C Live Agent Runtime / AI Gateway Activation → 22D Realtime Live Conversation / Audience Runtime.
+
+Phase 22 remains FOUNDATION, not GREEN.
+
+## Phase 23 canonical dependency map
+
+Human Owner
+→ Owned Agent
+→ public discovery / eligibility
+→ existing Social Graph + Blocks
+→ existing Messaging consent / Agent DM
+→ collaboration request
+→ negotiation
+→ Human approval where required
+→ declarative collaboration agreement
+→ existing Agent Runtime / AI Gateway
+→ existing Workflow / Mission
+→ review + authoritative reputation event + history
+
+No parallel engine is permitted for Messaging, Approval, Risk, Agent Runtime, AI Gateway, Workflow/Mission or Reputation.
+
+### 23A — Discovery + Eligibility + Collaboration Request
+Implemented foundation. Uses existing Agent ownership/state/visibility, Social Blocks, Agent messaging consent and authenticated RPC/API/PWA boundaries.
+
+### 23B — Agent DM + Negotiation
+Implemented foundation. Reuses existing create_direct_conversation() and send_message(); adds collaboration negotiation state/events and the messaging-pending → open/declined bridge.
+
+### 23C — Human Approval + Collaboration Agreement
+Implemented foundation.
+
+Implemented:
+- declarative collaboration agreement and durable agreement events
+- one-to-one binding to accepted collaboration request and negotiation
+- reuse of existing approval_requests and risk_assessments
+- one Human approval request per distinct Agent owner
+- policy-version and enabled-capability snapshots for evidence/history
+- risk decision approval_required with execution_recheck_required=true
+- agreement lifecycle pending_approval → approved/rejected/expired/cancelled
+- authenticated RPC-only mutations, participant-scoped RLS SELECT
+- FastAPI agreement endpoints and PWA approval/proposal surface
+- no capability/policy/permission grant and no executable code/script
+- no synthetic business data
+
+Migrations:
+- 20261002062253 live: phase_23c_human_approval_collaboration_agreement
+- 20261002062516 live: phase_23c_human_approval_collaboration_agreement_fk_indexes
+- repository source migrations:
+  - database/migrations/20261002062000_phase_23c_human_approval_collaboration_agreement.sql
+  - database/migrations/20261002062330_phase_23c_human_approval_collaboration_agreement_fk_indexes.sql
+
+### 23D — Execution
+Must translate only an approved agreement into the existing Agent Runtime / AI Gateway / Workflow/Mission primitives. Re-check current ownership, active Agent state, capability, policy, kill switch, risk and approval at execution time. Agreement snapshots never become authority.
+
+### 23E — Review + Reputation + History
+Must persist review outcomes and authoritative reputation events. Reputation remains evaluation/history, never an authorization shortcut.
+
+## Global hard constraints
+
+- READ → UNDERSTAND → INSPECT → RECONCILE REPO + SUPABASE → PLAN → IMPLEMENT → MIGRATE → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT
+- Do not guess phase or architecture.
+- Do not repeat implemented phases.
+- No fake/mock/dummy/scenario/placeholder business data.
+- No SQLite.
+- No frontend bypass of FastAPI for privileged operations.
+- No service-role/secret in browser.
+- Theme/World presentation configuration never grants authority.
+- AI Agent authority remains separate from presentation.
+- Agreement data is declarative only; no arbitrary executable code/script.
+- Final authenticated E2E, CI/CD, runtime, staging/production and Final Green remain separate gates in Phases 31–35.
+- Domain implementation may continue incrementally before final authenticated E2E/Green.
+
+## Final Green rule
+
+A phase is not GREEN merely because code exists. Relevant PRD, DB, API, authorization, security, workflow/engine, UI/UX, telemetry, tests and integration must be implemented and verified. Final runtime, CI/CD, production readiness and deployment remain separate gates.
+
+---
+
 # ALLPHA UNIVERSE — MASTER CONTINUATION CONTEXT
 
 
