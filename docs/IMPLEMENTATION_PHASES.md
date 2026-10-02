@@ -129,6 +129,50 @@ Remaining 11A.5 gates:
 - accessibility/performance and CI/build verification
 - production Green
 
+### PHASE 11A.6 — Content Evolution — IMPLEMENTED FOUNDATION
+
+Implemented the canonical Content Evolution orchestration described by Master PRD Addendum v1.1.1:
+
+**Original → AI Summary → Discussion → Related Content → Live Experience → World**
+
+The implementation is a composition layer over existing authoritative domains; it does not create a second Content, Recommendation, Community, Live or World engine.
+
+Implementation:
+- `apps/api/app/services/content_evolution.py` composes authenticated Content, reviewed AI Capsule, published Community posts, topic-linked published Content, explicitly linked public scheduled/live sessions, and Universe World placement.
+- `apps/api/app/api/content_evolution.py` exposes `GET /api/v1/discovery/content/{content_id}/evolution`.
+- The route requires authenticated access and only starts from published Content visible through the existing Supabase RLS boundary.
+- AI Summary uses only existing reviewed `ai_capsules`; no AI execution is implied or fabricated.
+- Related Content uses existing Content Topic links and published public Content; it does not replace Feed/Recommendation ranking.
+- Live Experience is available only when Content carries an explicit `metadata.live_session_id` relation to an authoritative public scheduled/live session.
+- World transition uses existing `universe_world_content` placement.
+- User PWA Discovery now exposes a Content Evolution panel and records transition telemetry through the existing Feed interaction API.
+
+No migration, table, seed, fake Content, fake Community, fake Live session, fake World or duplicate engine was introduced.
+
+Live reconciliation at implementation time:
+- Content Items: 0
+- Content Revisions: 0
+- AI Capsules: 0
+- Content Events: 0
+- Content Topic Links: 0
+- Universe World Content: 0
+- Community Posts: 0
+- Live Sessions: 0
+
+Therefore the feature is **IMPLEMENTED FOUNDATION / NOT GREEN**. Empty evolution paths are legitimate until real upstream Content is created and published.
+
+Remaining 11A.6 gates:
+- authenticated runtime E2E with real published Content
+- reviewed AI Capsule runtime validation
+- real Community discussion linkage
+- real topic-linked related Content validation
+- real explicit Content → Live Experience linkage validation
+- real Content → World transition validation
+- telemetry validation
+- accessibility/performance
+- API/PWA build and CI
+- runtime/production Green gates
+
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
