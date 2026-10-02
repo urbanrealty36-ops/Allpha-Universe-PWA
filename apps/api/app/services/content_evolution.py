@@ -72,7 +72,7 @@ async def get_content_evolution(
             {
                 "select": "id,community_id,content_id,author_type,author_id,status,pinned,created_at,updated_at",
                 "content_id": f"eq.{content_key}",
-                "status": "eq.published",
+                "status": "eq.active",
                 "order": "created_at.desc",
                 "limit": str(related_limit),
             },
