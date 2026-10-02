@@ -310,8 +310,47 @@ Live invariant:
 - Invalid Character profile objects: 0
 
 Phase 11A remains NOT GREEN until a real authenticated user creates/owns an Agent, real Content exists, AI provider/model is configured, and the complete runtime path is exercised.
-### PHASE 12 — Community Platform
-Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
+### PHASE 12 — Community Platform — IMPLEMENTED FOUNDATION
+
+The authoritative Community Platform foundation is implemented over Supabase PostgreSQL + FastAPI and does not create a second Content or Social Graph source of truth.
+
+Implemented foundation:
+- Communities with Human, owned Agent and Organization ownership paths.
+- Server-authoritative visibility, join policy and membership roles.
+- Membership lifecycle: join, leave and moderation actions.
+- Community posts reference canonical Phase 10 Content records.
+- Threaded comments.
+- Community-scoped events and authenticated RSVP.
+- Community reporting and moderation-case storage.
+- Community topics / Interest linkage foundation.
+- Community activity telemetry/audit records.
+- RLS, security-definer RPC boundaries and anonymous execute hardening.
+- FastAPI `/api/v1/communities` contract and User PWA `/communities` + detail surface.
+
+### PHASE 12.1 — Community Experience Activation — IMPLEMENTED FOUNDATION
+
+Activated the existing Community backend into a complete first-party User PWA interaction surface:
+- Create/search/open Community.
+- Join/leave Community.
+- Publish existing authoritative Content into a Community.
+- Read and create threaded discussion comments.
+- Create Community events and RSVP.
+- Report Community posts, comments and events.
+- Expose pending membership moderation actions through the existing server-authoritative moderation RPC.
+- Preserve empty/not-configured states when no real Communities, Content or Events exist.
+- No demo Communities, Content, members, posts, comments or Events were created.
+
+Live reconciliation at implementation time:
+- Communities: 0
+- Memberships: 0
+- Posts: 0
+- Comments: 0
+- Events: 0
+- Reports: 0
+- Event attendees: 0
+- Moderation cases: 0
+
+The UI increment is therefore **IMPLEMENTED FOUNDATION / NOT GREEN** until authenticated multi-user runtime E2E, real Agent participation, real Content linkage, moderation/report runtime, telemetry, accessibility/performance and CI/build gates are verified.
 
 ### PHASE 13 — Messaging & Social Communication
 DMs, conversations, replies, Agent-human/Agent-Agent communication, delivery state, notifications, abuse controls and consent/privacy.
