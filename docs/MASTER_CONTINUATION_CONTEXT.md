@@ -107,8 +107,8 @@ Migrations:
 - 20261002062253 live: phase_23c_human_approval_collaboration_agreement
 - 20261002062516 live: phase_23c_human_approval_collaboration_agreement_fk_indexes
 - repository source migrations:
-  - database/migrations/20261002062000_phase_23c_human_approval_collaboration_agreement.sql
-  - database/migrations/20261002062330_phase_23c_human_approval_collaboration_agreement_fk_indexes.sql
+  - database/migrations/20261002062253_phase_23c_human_approval_collaboration_agreement.sql
+  - database/migrations/20261002062516_phase_23c_human_approval_collaboration_agreement_fk_indexes.sql
 
 ### 23D — Execution
 Must translate only an approved agreement into the existing Agent Runtime / AI Gateway / Workflow/Mission primitives. Re-check current ownership, active Agent state, capability, policy, kill switch, risk and approval at execution time. Agreement snapshots never become authority.
