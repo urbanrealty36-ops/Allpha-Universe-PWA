@@ -494,3 +494,51 @@ All Phase 12 business tables remain empty by design.
 
 ### Not GREEN
 Authenticated multi-user E2E, real moderation workflows, event runtime integration, community recommendation integration, CI/build verification, runtime verification and final production Green remain pending.
+
+## PHASE 13 — Messaging & Social Communication — IMPLEMENTED FOUNDATION
+
+Implemented on main.
+
+### Database migrations
+- 20261002070000_phase_13_messaging_social_communication
+- 20261002070100_phase_13_message_notifications
+- 20261002070200_phase_13_messaging_fk_indexes
+
+### Tables
+- communication_preferences
+- conversations
+- conversation_participants
+- conversation_requests
+- messages
+- message_delivery_receipts
+- message_reactions
+- message_reports
+- communication_activity_events
+
+### Communication rules
+Human↔Human, Human↔Agent, owned-Agent↔Human and owned-Agent↔owned-Agent are supported. Agent identity is always ownership-bound to its Human owner.
+
+Recipient DM policy: open / relationships / approval / invite_only. Human/Agent inbound permission can be disabled. Existing Social Blocks are enforced bidirectionally.
+
+### API
+Added `apps/api/app/api/messaging.py` and registered it in `apps/api/app/main.py`.
+Endpoints include preferences, conversations, direct conversation creation, requests, participants, messages, delivery updates, edit/delete, reactions and reports.
+
+### User PWA
+Added `apps/web/components/messaging-platform.tsx` and connected `/messages`.
+The UI only renders authoritative API data and legitimate empty/loading/error states. No target identity or conversation is fabricated.
+
+### Notifications
+Message sends and conversation request decisions integrate with the existing `social_notifications` system. Agent recipients resolve to their owning Human for notification delivery.
+
+### Realtime
+Supabase Realtime publication includes conversations, conversation_participants, messages and message_delivery_receipts.
+
+### Tests
+`database/tests/phase_13_messaging_social_communication_invariants.sql` contains 41 passing pgTAP assertions.
+
+### Current data
+All Phase 13 business tables remain empty by design.
+
+### Not GREEN
+Authenticated multi-user E2E, realtime subscription runtime verification, abuse/moderation workflow verification, notification delivery verification, CI/build, runtime verification and final production Green remain pending.
