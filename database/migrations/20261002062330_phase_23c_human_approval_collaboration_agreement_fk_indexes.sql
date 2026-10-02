@@ -1,7 +1,0 @@
--- Phase 23C hardening — FK indexes for agreement tables.
-create index if not exists agent_collab_agreements_requester_agent_idx on public.agent_collaboration_agreements(requester_agent_id);
-create index if not exists agent_collab_agreements_target_agent_idx on public.agent_collaboration_agreements(target_agent_id);
-create index if not exists agent_collab_agreements_created_by_idx on public.agent_collaboration_agreements(created_by_user_id);
-create index if not exists agent_collab_agreement_events_actor_agent_idx on public.agent_collaboration_agreement_events(actor_agent_id);
-create index if not exists agent_collab_agreement_events_approval_request_idx on public.agent_collaboration_agreement_events(approval_request_id);
-create index if not exists agent_collab_agreement_events_risk_assessment_idx on public.agent_collaboration_agreement_events(risk_assessment_id);
