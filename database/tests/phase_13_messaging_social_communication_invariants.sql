@@ -1,5 +1,5 @@
 begin;
-select plan(43);
+select plan(41);
 select has_table('public','communication_preferences','communication preferences exists');
 select has_table('public','conversations','conversations exists');
 select has_table('public','conversation_participants','conversation participants exists');
