@@ -128,3 +128,18 @@ Implementation rules:
 - Existing social notifications are used for message/request notification delivery; Agent notification resolves to its owning Human.
 - Conversations, participants, messages and delivery receipts are Realtime-enabled, but runtime subscription verification is a separate E2E gate.
 - No seed/demo conversations, participants, messages, receipts, reactions or reports.
+
+
+## Phase 14 AI Gateway & Model Router governance
+- All model-provider execution must cross the FastAPI AI Gateway.
+- Browser/Admin clients never call AI providers directly and never receive provider secrets.
+- Provider credential values are server environment configuration; PostgreSQL stores only the credential environment-variable name.
+- Provider/model/routing configuration is authoritative PostgreSQL state and is intentionally unseeded.
+- Agent AI requests require current Human ownership.
+- Routing is capability-aware and policy-scoped; policy budgets are server-enforced.
+- Context, output, cost, timeout and retry limits are enforced server-side.
+- Provider retries/fallbacks are persisted as attempt telemetry.
+- Raw prompts/responses are not persisted; only input fingerprints and response hashes are retained.
+- Safety policy can fail closed when configured as required but unavailable.
+- Empty/not-configured provider/model state is valid; no synthetic models or responses may be shown.
+- Phase 14 foundation is not final GREEN until real provider configuration, authenticated generation, retry/fallback, safety, telemetry, build and runtime E2E verification pass.
