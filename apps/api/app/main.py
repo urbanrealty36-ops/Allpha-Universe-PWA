@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.agents import router as agents_router
 from app.api.ai_gateway import router as ai_gateway_router
 from app.api.agent_runtime import router as agent_runtime_router
+from app.api.workflows import router as workflows_router
 from app.api.auth import router as auth_router
 from app.api.content import router as content_router
 from app.api.communities import router as communities_router
@@ -45,3 +46,4 @@ app.include_router(domain_router)
 app.include_router(agents_router)
 app.include_router(ai_gateway_router)
 app.include_router(agent_runtime_router)
+app.include_router(workflows_router)
