@@ -586,3 +586,13 @@ Workflow preparation converts a published workflow version into a deterministic 
 
 ### Not GREEN
 Authenticated real-Agent E2E, real AI provider execution, approval/resume, retry execution, schedule/event/webhook triggers, multi-participant mission runtime, CI/build, runtime verification and final Green remain pending.
+
+### Phase 16 hardening follow-up
+Additional migrations applied:
+- 20261002100100_phase_16_mission_access_hardening
+- 20261002100200_phase_16_mission_agent_participant_hardening
+- 20261002100300_phase_16_workflow_visibility_hardening
+
+Mission lifecycle now includes publish/open and participant approve/reject contracts. Shared mission workflow runs use an internal SECURITY DEFINER helper rather than exposing a generic cross-owner workflow-run path. Workflow definitions/versions/steps are owner-visible only; Missions are the sharing surface. Owned-Agent mission participants are supported for run initiation.
+
+Latest live invariant verification remains 35 assertions passed; Phase 16 business data remains empty.
