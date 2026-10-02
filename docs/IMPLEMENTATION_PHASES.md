@@ -210,6 +210,48 @@ Remaining 11A.7 gates:
 - API/PWA build and CI
 - runtime/production Green gates
 
+### PHASE 11A.8 — Optional Agent Companion — IMPLEMENTED FOUNDATION
+
+Implemented the optional Agent Companion surface on Discovery Content.
+
+Canonical architecture:
+**Content → Optional Companion → existing Agent Intelligence (11A.7) → AI Gateway**
+with any action remaining outside Companion and delegated to the existing Agent Runtime boundary.
+
+Implementation:
+- `apps/web/components/agent-companion.tsx` provides an opt-in, contextual companion attached to Content.
+- Companion loads only real Owned Agents through the existing `GET /api/v1/agents/me` boundary.
+- Companion reuses the existing `POST /api/v1/discovery/content/{content_id}/agent-intelligence` endpoint; no second conversational/Agent Intelligence engine was created.
+- Companion provides contextual prompts, free-form questions, Agent selection and a compact insight response.
+- Companion exposes RAG/evidence metadata returned by the existing Agent Intelligence layer.
+- Companion is explicitly optional and remains closed until the user opens it.
+- Companion records interaction telemetry through the existing Feed interaction endpoint.
+- Companion does not create Agents, Content, Memory, Knowledge or synthetic responses.
+- Companion does not execute Agent actions. Action authority remains Agent Runtime → Policy/Permission → Risk → Approval → Execution.
+
+No database migration, table, RPC, provider, duplicate Agent engine or duplicate RAG engine was introduced.
+
+Live runtime condition:
+- Agents: 0
+- Content Items: 0
+- AI Capsules: 0
+- Agent Memory: 0
+- Knowledge: 0
+
+Therefore 11A.8 is **IMPLEMENTED FOUNDATION / NOT GREEN**.
+
+Remaining 11A.8 gates:
+- authenticated runtime E2E with a real Owned Agent + published Content
+- configured AI provider/model runtime validation
+- real reviewed AI Capsule / Memory / Knowledge evidence validation
+- real query-embedding provider path for RAG
+- Companion latency/error/empty-state validation
+- action-request boundary E2E through Agent Runtime, Policy, Risk and Approval
+- telemetry validation
+- accessibility/performance
+- API/PWA build and CI
+- runtime/production Green
+
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
