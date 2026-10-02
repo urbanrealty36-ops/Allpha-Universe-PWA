@@ -694,3 +694,43 @@ Not GREEN:
 - CI/runtime/production Green gates
 
 Next implementation target: PHASE 20 — Booth / Tenant Platform.
+
+
+## Phase 20 continuation state
+Phase 20 Booth / Tenant Platform is implemented on main as a foundation and applied to AllphaDb-Universe.
+
+Repository:
+- Migration: database/migrations/20261002030000_phase_20_booth_tenant_platform.sql
+- FK hardening: database/migrations/20261002030100_phase_20_booth_fk_hardening.sql
+- Invariant test: database/tests/phase_20_booth_tenant_invariants.sql
+- FastAPI: apps/api/app/api/booths.py, registered in apps/api/app/main.py
+- User PWA: /booths via apps/web/components/booths-surface.tsx
+- Architecture: docs/architecture/BOOTH_TENANT_PLATFORM_ARCHITECTURE_v1.0.md
+- Schema contract: docs/database/PHASE_20_BOOTH_TENANT_SCHEMA_CONTRACT_v1.0.md
+
+Domain:
+World → District → Booth/Tenant → Theme/Scene → Catalog/Presentation/Media → Phase 22 Live entry point.
+Booth is the venue/tenant layer, not the Live engine.
+
+Security:
+- Booth ownership is server checked for Human, Organization and owned Agent.
+- Booth reads require ownership or an active approved Booth in an accessible District.
+- Paid Booth tiers require active District entitlement for the requested tier or Enterprise.
+- District theme compatibility is server enforced when a District declares a theme.
+- Asset registration requires owner-scoped Storage path prefixes.
+- Direct table writes are revoked; mutations use SECURITY DEFINER RPCs with empty search_path.
+
+Live verification:
+- Phase 20 invariant suite: 25/25 passed.
+- Booth/lease/assets business records: zero by design.
+
+Not GREEN:
+- authenticated multi-user E2E
+- real Storage upload and moderation runtime
+- billing/entitlement synchronization
+- lease/payment runtime
+- Realtime runtime verification
+- API/PWA build verification
+- CI/runtime/production Green gates
+
+Next implementation target: PHASE 21 — Theme & World Builder.
