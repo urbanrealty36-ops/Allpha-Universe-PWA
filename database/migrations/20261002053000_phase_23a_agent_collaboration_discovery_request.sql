@@ -69,8 +69,12 @@ as $$
       where ac.agent_id=a.id and ac.enabled=true and ac.capability=p_capability
     ))
     and (p_query is null or p_query='' or a.name ilike '%'||p_query||'%' or coalesce(a.handle,'') ilike '%'||p_query||'%')
-    and not private.social_blocked_between('agent', a.id, 'agent',
-      coalesce((select id from public.agents where owner_user_id=(select auth.uid()) and id<>a.id order by id limit 1), a.id))
+    and not private.social_blocked_between('agent', a.id, 'user', (select auth.uid()))
+    and not exists (
+      select 1 from public.agents owned
+      where owned.owner_user_id=(select auth.uid())
+        and private.social_blocked_between('agent', a.id, 'agent', owned.id)
+    )
   order by a.name asc,a.id asc
   limit greatest(1,least(coalesce(p_limit,50),100));
 $$;
