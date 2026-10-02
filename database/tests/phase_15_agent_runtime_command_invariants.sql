@@ -34,9 +34,9 @@ select results_eq($$select count(*)::bigint from public.agent_tool_runs$$,$$valu
 select results_eq($$select count(*)::bigint from public.agent_runtime_events$$,$$values (0::bigint)$$,'no runtime event seed data');
 select results_eq($$select count(*)::bigint from public.agent_spend_events$$,$$values (0::bigint)$$,'no spend seed data');
 select results_eq($$select count(*)::bigint from public.agent_tool_definitions where tool_key='ai.generate'$$,$$values (1::bigint)$$,'canonical AI Gateway tool registered');
-select has_check('public','agent_commands','status','command status constrained');
-select has_check('public','agent_commands','risk_decision','command risk decision constrained');
-select has_check('public','agent_task_steps','status','step status constrained');
-select has_check('public','agent_spend_events','amount','spend amount constrained');
+select ok(exists(select 1 from pg_constraint where conrelid='public.agent_commands'::regclass and conname='agent_commands_status_check'),'command status constrained');
+select ok(exists(select 1 from pg_constraint where conrelid='public.agent_commands'::regclass and conname='agent_commands_risk_decision_check'),'command risk decision constrained');
+select ok(exists(select 1 from pg_constraint where conrelid='public.agent_task_steps'::regclass and conname='agent_task_steps_status_check'),'step status constrained');
+select ok(exists(select 1 from pg_constraint where conrelid='public.agent_spend_events'::regclass and conname='agent_spend_events_amount_check'),'spend amount constrained');
 select * from finish();
 rollback;
