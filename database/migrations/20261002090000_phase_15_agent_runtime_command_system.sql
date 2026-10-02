@@ -1,0 +1,25 @@
+-- Allpha Universe Phase 15 — Agent Runtime & Command System
+-- Canonical repository migration mirror. No synthetic Agent/command/task records are seeded.
+-- The canonical built-in platform tool ai.generate delegates to Phase 14 AI Gateway.
+
+-- Runtime tables: agent_commands, agent_execution_contexts, agent_tasks, agent_task_steps,
+-- agent_tool_definitions, agent_tool_runs, agent_kill_switches, agent_runtime_events, agent_spend_events.
+-- All are RLS-protected and runtime mutations are exposed through authenticated SECURITY DEFINER RPCs.
+-- See applied Supabase migration history for the complete deployed SQL sequence:
+-- phase_15_agent_runtime_command_foundation
+-- phase_15_agent_runtime_command_rpcs
+-- phase_15_agent_runtime_execution_risk_approval_spend
+-- phase_15_agent_runtime_risk_derivation_hardening
+-- phase_15_agent_runtime_rate_killswitch_hardening
+--
+-- Important security invariants:
+-- 1. Agent ownership is always checked against auth.uid().
+-- 2. Agent must be active and kill switch must be disabled.
+-- 3. Planner output cannot invent tools or capabilities.
+-- 4. Materialization validates tool availability and Agent capability.
+-- 5. Command risk is derived from authoritative tool risk.
+-- 6. Approval is server-side through approval_requests.
+-- 7. Runtime spend is checked against agent_budgets.
+-- 8. Runtime command creation observes Agent policy rate limits.
+-- 9. Direct runtime table mutation is not a supported application path.
+-- 10. SECURITY DEFINER RPCs are pinned to search_path='' in the deployed database.
