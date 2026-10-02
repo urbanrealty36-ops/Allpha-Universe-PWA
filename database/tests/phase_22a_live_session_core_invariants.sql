@@ -11,6 +11,7 @@ begin
   if not exists (select 1 from pg_policies where schemaname='public' and tablename='live_sessions' and policyname='live_sessions_insert_owner' and cmd='INSERT') then raise exception 'LIVE_SESSION_INSERT_POLICY_MISSING'; end if;
   if not exists (select 1 from pg_policies where schemaname='public' and tablename='live_sessions' and policyname='live_sessions_update_owner' and cmd='UPDATE') then raise exception 'LIVE_SESSION_UPDATE_POLICY_MISSING'; end if;
   if not exists (select 1 from pg_trigger where tgrelid='public.live_sessions'::regclass and tgname='live_sessions_validate_core' and not tgisinternal) then raise exception 'LIVE_SESSION_CORE_TRIGGER_MISSING'; end if;
+  if not exists (select 1 from pg_proc where pronamespace='private'::regnamespace and proname='validate_live_session_template' and prosrc like '%LIVE_SCHEDULED_TIME_NOT_REACHED%') then raise exception 'LIVE_SESSION_TIME_GATE_MISSING'; end if;
   if not exists (select 1 from pg_trigger where tgrelid='public.live_sessions'::regclass and tgname='live_sessions_updated_at' and not tgisinternal) then raise exception 'LIVE_SESSION_UPDATED_AT_TRIGGER_MISSING'; end if;
   select count(*) into c from public.live_sessions;
   if c <> 0 then raise exception 'LIVE_SESSION_TEST_EXPECTS_ZERO_SESSIONS'; end if;
