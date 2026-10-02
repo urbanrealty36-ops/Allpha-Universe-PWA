@@ -60,6 +60,9 @@ class MissionJoin(BaseModel):
     subject_type: Literal["user", "agent"] = "user"
     subject_id: UUID | None = None
 
+class MissionDecision(BaseModel):
+    decision: Literal["approve", "reject"]
+
 class MissionRunCreate(BaseModel):
     participant_id: UUID
     agent_id: UUID
@@ -170,11 +173,21 @@ async def create_mission(payload: MissionCreate, context: dict = Depends(get_aut
     try:return await rpc(context["user"],"create_mission",{"p_owner_type":payload.owner_type,"p_owner_id":str(owner_id),"p_workflow_id":str(payload.workflow_id),"p_name":payload.name,"p_description":payload.description,"p_visibility":payload.visibility,"p_join_policy":payload.join_policy,"p_max_participants":payload.max_participants,"p_metadata":payload.metadata})
     except SupabaseRestError as exc:raise _error(exc,"MISSION_CREATE_FAILED") from exc
 
+@router.post("/missions/{mission_id}/publish")
+async def publish_mission(mission_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    try: return await rpc(context["user"],"publish_mission",{"p_mission_id":str(mission_id)})
+    except SupabaseRestError as exc: raise _error(exc,"MISSION_PUBLISH_FAILED") from exc
+
 @router.post("/missions/{mission_id}/join", status_code=201)
 async def join_mission(mission_id: UUID,payload: MissionJoin,context:dict=Depends(get_auth_context)) -> Any:
     subject_type,subject_id=_subject(context["user"],payload.subject_type,payload.subject_id)
     try:return await rpc(context["user"],"join_mission",{"p_mission_id":str(mission_id),"p_subject_type":subject_type,"p_subject_id":str(subject_id)})
     except SupabaseRestError as exc:raise _error(exc,"MISSION_JOIN_FAILED") from exc
+
+@router.post("/missions/participants/{participant_id}/decision")
+async def decide_participant(participant_id: UUID, payload: MissionDecision, context: dict = Depends(get_auth_context)) -> Any:
+    try: return await rpc(context["user"],"decide_mission_participant",{"p_participant_id":str(participant_id),"p_decision":payload.decision})
+    except SupabaseRestError as exc: raise _error(exc,"MISSION_PARTICIPANT_DECISION_FAILED") from exc
 
 @router.get("/missions/{mission_id}/participants")
 async def mission_participants(mission_id:UUID,context:dict=Depends(get_auth_context))->dict[str,Any]:
