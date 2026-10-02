@@ -68,6 +68,7 @@ async def district_composition(district_id:str,context:dict=Depends(get_auth_con
         district=districts[0]
         zones=await select(context["user"],"district_zones",{"select":"*","district_id":f"eq.{district_id}","order":"created_at.asc"})
         booths=await select(context["user"],"booths",{"select":"*","district_id":f"eq.{district_id}","order":"updated_at.desc"})
+        spatial_states=await select(context["user"],"agent_spatial_states",{"select":"id,world_id,agent_id,movement_state,position,rotation,zone_key,target_position,speed,updated_at","world_id":f"eq.{district.get("world_id")}","order":"updated_at.desc","limit":"500"})
         booth_ids=[b.get("id") for b in booths if b.get("id")]
         assets=[]
         slots=[]
@@ -77,11 +78,19 @@ async def district_composition(district_id:str,context:dict=Depends(get_auth_con
             slots=await select(context["user"],"booth_display_slots",{"select":"*","booth_id":f"in.({joined})","order":"slot_key.asc"})
         zone_by_id={z.get("id"):z for z in zones}
         booth_projection=[]
+        def anchor_from(value: Any):
+            if not isinstance(value, dict): return None
+            try:
+                return {"x": float(value["x"]), "y": float(value["y"]), "z": float(value["z"])}
+            except (KeyError,TypeError,ValueError):
+                return None
         for b in booths:
             scene=b.get("scene_config") or {}
             zone=zone_by_id.get(b.get("district_zone_id")) or {}
             zone_spatial=zone.get("spatial_config") or {}
-            position=scene.get("position") or (b.get("display_config") or {}).get("position") or zone_spatial.get("booth_anchor")
+            raw_anchor=scene.get("position") or (b.get("display_config") or {}).get("position") or zone_spatial.get("booth_anchor")
+            position=anchor_from(raw_anchor)
+            anchor_source=("scene_config.position" if anchor_from(scene.get("position")) else "display_config.position" if anchor_from((b.get("display_config") or {}).get("position")) else "zone.spatial_config.booth_anchor" if anchor_from(zone_spatial.get("booth_anchor")) else None)
             booth_assets=[]
             for a in assets:
                 if a.get("booth_id") != b.get("id") or a.get("asset_type") != "3d_scene" or a.get("status") != "active":
@@ -91,7 +100,7 @@ async def district_composition(district_id:str,context:dict=Depends(get_auth_con
                 except SupabaseStorageError:
                     signed_url=None
                 booth_assets.append({**a,"signed_url":signed_url})
-            booth_projection.append({**b,"spatial_projection":{"position":position,"zone_id":b.get("district_zone_id"),"presentation_only":True},"asset_manifest":booth_assets,"display_slots":[s for s in slots if s.get("booth_id")==b.get("id")]})
-        return {"data":{"district":district,"spatial_projection":{"spatial_config":district.get("spatial_config") or {},"presentation_only":True},"zones":zones,"booths":booth_projection}}
+            booth_projection.append({**b,"spatial_projection":{"position":position,"spatial_anchor":position,"anchor_source":anchor_source,"zone_id":b.get("district_zone_id"),"presentation_only":True},"asset_manifest":booth_assets,"display_slots":[s for s in slots if s.get("booth_id")==b.get("id")]})
+        return {"data":{"district":district,"spatial_projection":{"spatial_config":district.get("spatial_config") or {},"presentation_only":True},"zones":zones,"booths":booth_projection,"spatial_presence":[s for s in spatial_states if s.get("zone_key") in {z.get("zone_key") for z in zones}]}}
     except SupabaseRestError as e:
         raise err(e,"WORLD_RUNTIME_DISTRICT_LOAD_FAILED")
