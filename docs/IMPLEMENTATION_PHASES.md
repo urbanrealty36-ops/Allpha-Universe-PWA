@@ -183,3 +183,29 @@ Final authenticated multi-user E2E, moderation decision runtime, event integrati
 Implemented authoritative messaging foundation for Human↔Human, Human↔Agent and owned-Agent↔Agent communication. Includes communication preferences/consent, direct conversations, participant lifecycle, conversation requests, messages, replies, edit/delete, delivery/read receipts, reactions, abuse reports, activity telemetry, integration with Social Blocks/Relationships and existing notifications, PostgreSQL RLS/grants, Supabase Realtime publication, FastAPI `/api/v1/messaging/*`, User PWA `/messages`, and 41 pgTAP invariants. No synthetic conversations, participants, messages, receipts, reactions or reports were seeded.
 
 Final authenticated multi-user E2E, realtime subscription verification, abuse/moderation runtime, notification delivery runtime, CI/build and final Green remain separate gates.
+
+
+## PHASE 19 — Districts — IMPLEMENTED FOUNDATION
+
+Implemented on main. Depends on Phase 17 AI Universe and Phase 18 Agent Simulation & Spatial Runtime.
+
+### Database
+Migration: 20261002020000_phase_19_districts.sql
+Tables: districts, district_memberships, district_entitlements, district_zones, district_access_requests, district_activity_events.
+Existing district_access_policies and district_access_grants are now FK-bound to districts.
+
+### Authorization
+District access is server-side and fail-closed. Enterprise access requires active enterprise entitlement; organization context is enforced and allowlisted enterprise access requires an explicit active grant. Client flags are never trusted.
+
+### API/PWA
+FastAPI: apps/api/app/api/districts.py, prefix /api/v1/districts.
+PWA: /districts via apps/web/components/districts-surface.tsx.
+
+### Verification
+Live invariant suite: 26/26 passed. No synthetic District, membership, entitlement, access request, zone or activity records exist.
+
+### Not GREEN
+Authenticated multi-user E2E, enterprise ABAC runtime E2E, organization/grant combinations, realtime runtime verification, API/PWA build, CI and production Green gates remain pending.
+
+### Next
+PHASE 20 — Booth / Tenant Platform.
