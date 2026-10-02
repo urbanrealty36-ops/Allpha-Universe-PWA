@@ -488,6 +488,43 @@ Phase 15 remains **IMPLEMENTED FOUNDATION / NOT GREEN** because no real user-own
 ### PHASE 16 — Workflow & Mission Engine — IMPLEMENTED FOUNDATION
 Workflow/version/step definitions, workflow runs, mission/participant/mission-run orchestration, API/PWA surfaces, RLS and secured RPCs. Workflow execution delegates to the Phase 15 Agent Runtime; no second executor is created. Final authenticated E2E, real AI runtime, approvals, retry/trigger runtime, CI/build and final Green remain separate gates.
 
+### PHASE 16 — Workflow & Mission Engine v3 — IMPLEMENTED FOUNDATION
+
+Reconciled against the existing Phase 16 schema/RPC/API foundation and hardened in place. No second workflow executor or mission executor was introduced.
+
+Canonical orchestration boundary:
+**Workflow Definition → Version → Steps → Run → Mission → Agent Runtime → Tool / AI Gateway**
+
+Implemented/verified:
+- Workflow, version and step lifecycle.
+- Declarative step tool binding, arguments, conditions, retry policy and risk/approval metadata.
+- Published workflow version gating.
+- Workflow Run creation and authoritative preparation.
+- Workflow preparation delegates command creation and plan materialization to Phase 15 Agent Runtime.
+- Agent ownership is revalidated at run creation.
+- Workflow Run synchronization from Agent Command state.
+- Mission lifecycle, participant join/decision and published-workflow binding.
+- Mission Run delegates shared workflow execution to the canonical Workflow Engine.
+- Mission Run synchronization from Workflow Run state.
+- Owner-authoritative workflow cancellation.
+- Mission cancellation delegates to Workflow cancellation and therefore Agent Runtime command cancellation.
+- Anonymous execution/mutation RPC access remains denied.
+- Added authoritative cancellation API endpoints for Workflow Runs and Mission Runs.
+- Added 41 live Phase 16 invariants covering RLS, RPC existence/access, runtime delegation, cancellation authority and absence of synthetic business data.
+
+Live reconciliation:
+- Workflows: 0
+- Workflow Versions: 0
+- Workflow Steps: 0
+- Workflow Runs: 0
+- Workflow Run Steps: 0
+- Workflow Events: 0
+- Missions: 0
+- Mission Participants: 0
+- Mission Runs: 0
+
+Phase 16 remains **IMPLEMENTED FOUNDATION / NOT GREEN** because no real authenticated Workflow/Mission has been executed against a real owned Agent. Runtime AI Gateway/provider execution, conditional/retry behavior, multi-participant Mission E2E, approval propagation, failure/recovery, API/PWA/Admin build/CI and production runtime remain final gates.
+
 ### PHASE 17 — AI Universe — IMPLEMENTED FOUNDATION / VERIFIED DATABASE
 Implemented Galaxy → World → Interest / Content / Community / Agent / Portal / Presence with RLS, ownership RPCs, FastAPI /api/v1/universe and User PWA /universe. Migration 20261002110000_phase_17_ai_universe is applied to AllphaDb-Universe and the 32 Phase 17 invariant assertions pass live. No business seed data exists.
 
