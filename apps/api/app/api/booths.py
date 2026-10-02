@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
-from app.core.supabase_rest import SupabaseRestError, rpc, select
+from app.core.storage import SupabaseStorageError, create_signed_download_url, create_signed_upload_url\nfrom app.core.supabase_rest import SupabaseRestError, rpc, select
 
 router=APIRouter(prefix="/api/v1/booths",tags=["Booth / Tenant"])
 
@@ -92,6 +92,98 @@ async def assets(booth_id:UUID,context:dict=Depends(get_auth_context)):
 async def add_asset(booth_id:UUID,p:AssetCreate,context:dict=Depends(get_auth_context)):
     try:return await rpc(context["user"],"add_booth_asset",{"p_booth_id":str(booth_id),"p_asset_type":p.asset_type,"p_storage_path":p.storage_path,"p_mime_type":p.mime_type,"p_metadata":p.metadata,"p_sort_order":p.sort_order})
     except SupabaseRestError as e:raise err(e,"BOOTH_ASSET_CREATE_FAILED")
+
+
+@router.post("/{booth_id}/assets/3d/upload-url", status_code=201)
+async def prepare_3d_upload(booth_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        asset = await rpc(
+            context["user"],
+            "prepare_booth_3d_asset",
+            {
+                "p_booth_id": str(booth_id),
+                "p_mime_type": "model/gltf-binary",
+                "p_metadata": {"format": "glb", "lifecycle": "pending_upload"},
+            },
+        )
+        upload = await create_signed_upload_url(
+            context["user"], asset["storage_bucket"], asset["storage_path"]
+        )
+        return {"data": {"asset": asset, "upload": upload}}
+    except SupabaseRestError as e:
+        raise err(e, "BOOTH_3D_UPLOAD_PREPARE_FAILED")
+    except SupabaseStorageError as e:
+        raise HTTPException(
+            status_code=e.status_code if e.status_code in {400, 401, 403, 404, 409, 422} else 502,
+            detail={"code": "BOOTH_3D_UPLOAD_SIGN_FAILED", "message": e.message},
+        )
+
+
+@router.post("/{booth_id}/assets/{asset_id}/3d/finalize")
+async def finalize_3d_upload(
+    booth_id: UUID,
+    asset_id: UUID,
+    checksum_sha256: str | None = None,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        asset = await rpc(
+            context["user"],
+            "finalize_booth_3d_asset",
+            {"p_asset_id": str(asset_id), "p_checksum_sha256": checksum_sha256},
+        )
+        if str(asset.get("booth_id")) != str(booth_id):
+            raise HTTPException(409, detail={"code": "BOOTH_ASSET_SCOPE_MISMATCH"})
+        return {"data": asset}
+    except SupabaseRestError as e:
+        raise err(e, "BOOTH_3D_UPLOAD_FINALIZE_FAILED")
+
+
+@router.get("/{booth_id}/assets/3d")
+async def active_3d_assets(booth_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        rows = await select(
+            context["user"],
+            "booth_display_assets",
+            {
+                "select": "*",
+                "booth_id": f"eq.{booth_id}",
+                "asset_type": "eq.3d_scene",
+                "status": "eq.active",
+                "order": "sort_order.asc",
+            },
+        )
+        data = []
+        for asset in rows:
+            signed_url = await create_signed_download_url(
+                context["user"], asset["storage_bucket"], asset["storage_path"], 900
+            )
+            data.append({**asset, "signed_url": signed_url})
+        return {"data": data}
+    except SupabaseRestError as e:
+        raise err(e, "BOOTH_3D_ASSET_LOAD_FAILED")
+    except SupabaseStorageError as e:
+        raise HTTPException(
+            status_code=e.status_code if e.status_code in {400, 401, 403, 404, 409, 422} else 502,
+            detail={"code": "BOOTH_3D_ASSET_SIGN_FAILED", "message": e.message},
+        )
+
+
+@router.delete("/{booth_id}/assets/{asset_id}/3d")
+async def archive_3d_asset(
+    booth_id: UUID, asset_id: UUID, context: dict = Depends(get_auth_context)
+):
+    try:
+        asset = await rpc(
+            context["user"],
+            "archive_booth_display_asset",
+            {"p_asset_id": str(asset_id)},
+        )
+        if str(asset.get("booth_id")) != str(booth_id):
+            raise HTTPException(409, detail={"code": "BOOTH_ASSET_SCOPE_MISMATCH"})
+        return {"data": asset}
+    except SupabaseRestError as e:
+        raise err(e, "BOOTH_3D_ASSET_ARCHIVE_FAILED")
 
 @router.get("/{booth_id}/slots")
 async def slots(booth_id:UUID,context:dict=Depends(get_auth_context)):
