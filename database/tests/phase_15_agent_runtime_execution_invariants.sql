@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(24);
 
 select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_commands' and rowsecurity),'agent_commands RLS enabled');
 select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_execution_contexts' and rowsecurity),'execution contexts RLS enabled');
