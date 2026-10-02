@@ -99,3 +99,14 @@ The external 500-AI-Agents-Projects repository is used as a broad taxonomy/refer
 No user-owned Agent or other synthetic business data was created during this expansion.
 
 Agent creation hardening: `/api/v1/agents` now fails closed with 422 when an explicitly supplied Agent Type, AI Character or Skill is not present/enabled in the platform catalog. Catalog selections are validated before `create_agent_identity` is invoked; catalog configuration does not grant capabilities or permissions.
+
+
+## Phase 11A.12 — Agent Factory evidence
+
+**Implemented foundation:** authenticated My Agents surface, Agent Factory wizard, Agent detail surface, canonical Agent creation RPC factory configuration, fail-closed catalog/context validation.
+
+**Factory selections:** 71 Agent Types, 111 Skills, 34 Characters; Universe Context covers Universe/World/District/Zone/Booth/Live/Feed/Content/Personal/Private; experience modes cover social/networking/communication/commerce/education/news/live/event/presentation/collaboration/personal/private/creator.
+
+**Security boundary:** factory metadata is stored under existing agent_identities.metadata.factory_config; it does not grant authority. Policy, Risk, Approval and Agent Runtime remain authoritative. Legacy create_agent_identity overload removed after introducing the factory-aware signature.
+
+**Still pending:** real authenticated Agent creation, real Content/World/District/Booth/Live data, AI Gateway provider/model runtime, RAG/embedding, telemetry, browser accessibility/performance, API/PWA/Admin CI and production Green.
