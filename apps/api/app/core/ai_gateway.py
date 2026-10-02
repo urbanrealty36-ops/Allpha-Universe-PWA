@@ -87,8 +87,9 @@ def _candidate_models(models: list[dict[str, Any]], policy: dict[str, Any] | Non
     if policy:
         allowed = [str(value) for value in policy.get("allowed_model_ids") or []]
         fallback = [str(value) for value in policy.get("fallback_model_ids") or []]
-        primary = [model for model in enabled if str(model["id"]) in allowed and compatible(model)]
-        secondary = [model for model in enabled if str(model["id"]) in fallback and compatible(model)]
+        by_id = {str(model["id"]): model for model in enabled}
+        primary = [by_id[model_id] for model_id in allowed if model_id in by_id and compatible(by_id[model_id])]
+        secondary = [by_id[model_id] for model_id in fallback if model_id in by_id and compatible(by_id[model_id])]
         if primary or secondary:
             return primary + [model for model in secondary if model not in primary]
     return [model for model in enabled if compatible(model)]
@@ -232,6 +233,7 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
     models = await select(user, "ai_models", {
         "select": "id,provider_id,model_key,model_identifier,display_name,enabled,context_window_tokens,max_output_tokens,input_cost_per_1m,output_cost_per_1m,capabilities,ai_providers(id,provider_key,adapter,base_url,credential_env_var,enabled,metadata)",
         "enabled": "eq.true",
+        "order": "model_key.asc",
     })
     policies = await select(user, "ai_routing_policies", {
         "select": "id,policy_key,scope_type,scope_id,priority,enabled,required_capabilities,allowed_model_ids,fallback_model_ids,max_context_tokens,max_output_tokens,max_cost_usd,timeout_ms,max_retries,safety_policy,metadata",
@@ -255,7 +257,7 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
         raise AIGatewayError("AI_NO_COMPATIBLE_MODEL", "No configured AI model can satisfy this request.", 503)
 
     estimated_input = _estimate_tokens(messages)
-    max_context = int((policy or {}).get("max_context_tokens") or candidates[0]["context_window_tokens"])
+    max_context = min(int((policy or {}).get("max_context_tokens") or candidates[0]["context_window_tokens"]), int(candidates[0]["context_window_tokens"]))
     if estimated_input >= max_context:
         await _update_request(user, request_id, {
             "p_status": "denied", "p_safety_status": "denied",
@@ -299,7 +301,9 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
     for index, model in enumerate(candidates[: max_retries + 1], start=1):
         provider = model.get("ai_providers") or {}
         try:
-            text, input_tokens, output_tokens, latency = await _provider_call(provider, model, messages, max_output, timeout_ms)
+            model_output_limit = int(model.get("max_output_tokens") or max_output)
+            request_output_limit = min(max_output, model_output_limit)
+            text, input_tokens, output_tokens, latency = await _provider_call(provider, model, messages, request_output_limit, timeout_ms)
             total = (input_tokens or 0) + (output_tokens or 0) if input_tokens is not None or output_tokens is not None else None
             cost = _estimate_cost(model, input_tokens, output_tokens)
             if policy and policy.get("max_cost_usd") is not None and cost is not None and cost > float(policy["max_cost_usd"]):
