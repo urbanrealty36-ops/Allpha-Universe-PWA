@@ -46,6 +46,24 @@ async def create_theme(p:ThemeCreate,context:dict=Depends(get_auth_context)):
     try:return await rpc(context["user"],"create_theme",{"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_category":p.category,"p_compatibility":p.compatibility,"p_allowed_components":p.allowed_components,"p_performance_budget":p.performance_budget,"p_accessibility_constraints":p.accessibility_constraints})
     except SupabaseRestError as e:raise err(e,"THEME_CREATE_FAILED")
 
+@router.get("/world-templates")
+async def templates(limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context)):
+    return {"data":await select(context["user"],"world_templates",{"select":"*","order":"updated_at.desc","limit":str(limit)})
+
+@router.post("/world-templates",status_code=201)
+async def create_template(p:WorldTemplateCreate,context:dict=Depends(get_auth_context)):
+    try:return await rpc(context["user"],"create_world_template",{"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_category":p.category,"p_compatibility":p.compatibility})
+    except SupabaseRestError as e:raise err(e,"WORLD_TEMPLATE_CREATE_FAILED")
+
+@router.get("/world-templates/{template_id}/versions")
+async def template_versions(template_id:UUID,context:dict=Depends(get_auth_context)):
+    return {"data":await select(context["user"],"world_template_versions",{"select":"*","world_template_id":f"eq.{template_id}","order":"version.desc"})}
+
+@router.post("/world-templates/{template_id}/versions",status_code=201)
+async def create_template_version(template_id:UUID,p:WorldTemplateVersionCreate,context:dict=Depends(get_auth_context)):
+    try:return await rpc(context["user"],"create_world_template_version",{"p_world_template_id":str(template_id),"p_theme_id":str(p.theme_id) if p.theme_id else None,"p_theme_version_id":str(p.theme_version_id) if p.theme_version_id else None,"p_world_schema":p.world_schema,"p_builder_schema":p.builder_schema})
+    except SupabaseRestError as e:raise err(e,"WORLD_TEMPLATE_VERSION_CREATE_FAILED")
+
 @router.get("/{theme_id}")
 async def get_theme(theme_id:UUID,context:dict=Depends(get_auth_context)):
     rows=await select(context["user"],"themes",{"select":"*","id":f"eq.{theme_id}","limit":"1"})
@@ -85,16 +103,3 @@ async def publish(theme_id:UUID,context:dict=Depends(get_auth_context)):
     try:return await rpc(context["user"],"publish_theme",{"p_theme_id":str(theme_id)})
     except SupabaseRestError as e:raise err(e,"THEME_PUBLISH_FAILED")
 
-@router.get("/world-templates")
-async def templates(limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context)):
-    return {"data":await select(context["user"],"world_templates",{"select":"*","order":"updated_at.desc","limit":str(limit)})
-
-@router.post("/world-templates",status_code=201)
-async def create_template(p:WorldTemplateCreate,context:dict=Depends(get_auth_context)):
-    try:return await rpc(context["user"],"create_world_template",{"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_category":p.category,"p_compatibility":p.compatibility})
-    except SupabaseRestError as e:raise err(e,"WORLD_TEMPLATE_CREATE_FAILED")
-
-@router.post("/world-templates/{template_id}/versions",status_code=201)
-async def create_template_version(template_id:UUID,p:WorldTemplateVersionCreate,context:dict=Depends(get_auth_context)):
-    try:return await rpc(context["user"],"create_world_template_version",{"p_world_template_id":str(template_id),"p_theme_id":str(p.theme_id) if p.theme_id else None,"p_theme_version_id":str(p.theme_version_id) if p.theme_version_id else None,"p_world_schema":p.world_schema,"p_builder_schema":p.builder_schema})
-    except SupabaseRestError as e:raise err(e,"WORLD_TEMPLATE_VERSION_CREATE_FAILED")
