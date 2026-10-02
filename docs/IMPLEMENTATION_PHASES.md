@@ -933,3 +933,46 @@ Runtime blockers still required before GREEN:
 - OpenAI provider/model configuration is still not enabled in Supabase and the FastAPI deployment must have the server-side OpenAI key bound to the configured credential environment variable.
 - Real Agent Memory/Knowledge embedding path remains optional for the first non-RAG activation and required for full RAG verification.
 - GitHub CI/build/runtime E2E must pass before production GREEN.
+
+
+### PHASE 11A.14 — Real Runtime Activation & Completion — IMPLEMENTED FOUNDATION
+
+Implemented the first runtime-activation layer for the completed 11A Discovery + Agent surface.
+
+Runtime activation path:
+**Authenticated User → Agent Factory → Agent Passport/Policy/Budget → Agent Catalog → Universe Context → Content/Discovery → AI Gateway → Agent Runtime → Telemetry**
+
+Implemented:
+- Activated the first real OpenAI provider configuration in PostgreSQL using the canonical AI Gateway boundary.
+- Provider configuration stores only the credential environment variable name OPENAI_API_KEY; no secret value is stored in Supabase or source control.
+- Configured the initial gpt-6-luna model for ai.generate/text execution and an Allpha global routing policy.
+- Added GET /api/v1/runtime/activation to report runtime readiness using real database state and server-side credential presence without exposing secrets.
+- Added authenticated PWA /runtime Activation Center with real Agent selection and an optional Gateway smoke test.
+- Gateway smoke test delegates to the existing /api/v1/ai/generate boundary and therefore remains server-side; it does not create synthetic Agent, Content or telemetry records.
+- Added database/tests/phase_11a14_runtime_activation_invariants.sql covering provider, model, routing-policy and secret-reference invariants.
+- Existing Agent Runtime, Discovery, Agent Intelligence, Companion, Content and Feed engines remain canonical; no duplicate runtime/AI/recommendation/RAG engine was introduced.
+
+Live state at implementation time:
+- Agents: 0
+- Published Content: 0
+- Feed interactions: 0
+- AI Gateway requests: 0
+- AI Gateway attempts: 0
+- Agent commands: 0
+- Enabled AI providers: 1
+- Enabled AI models: 1
+- Agent Skills: 111
+- Agent Types: 71
+- AI Characters: 34
+
+Current runtime blockers:
+- A real authenticated user-owned Agent has not yet been created.
+- Published real Content has not yet been created.
+- The FastAPI deployment environment has not been verified to contain OPENAI_API_KEY; PostgreSQL only references the variable name.
+- No real AI Gateway request/attempt has yet been observed.
+- No real Agent Runtime command has yet been observed.
+- Discovery telemetry has not yet been observed.
+- Browser accessibility/performance and API/PWA/Admin build/CI execution remain pending.
+- RAG embedding generation remains unconfigured; no embeddings are fabricated.
+
+Therefore Phase 11A.14 is **IMPLEMENTED FOUNDATION / NOT GREEN**. It becomes runtime GREEN only after the authenticated user creates real Agent + Content, the server-side OpenAI credential is bound, the Gateway smoke test succeeds, Agent Runtime command execution succeeds, Discovery telemetry is observed, and build/CI/browser/security gates pass.
