@@ -171,6 +171,11 @@ async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_
         "experience_mode": payload.experience_mode,
         "universe_context": factory_context,
     }
+    character = character_rows[0] if character_rows else None
+    effective_persona = dict(character.get("persona_defaults") or {}) if character else {}
+    effective_persona.update(payload.persona)
+    effective_tone = dict(character.get("tone_defaults") or {}) if character else {}
+    effective_tone.update(payload.tone)
 
     selected_skills = list(dict.fromkeys(payload.skill_keys))
     if type_rows:
@@ -199,7 +204,7 @@ async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_
         result = await rpc(user, "create_agent_identity", {
             "p_name": payload.name, "p_handle": payload.handle, "p_description": payload.description,
             "p_organization_id": str(payload.organization_id) if payload.organization_id else None,
-            "p_visibility": payload.visibility, "p_persona": payload.persona, "p_tone": payload.tone,
+            "p_visibility": payload.visibility, "p_persona": effective_persona, "p_tone": effective_tone,
             "p_interests": payload.interests, "p_goals": payload.goals, "p_boundaries": payload.boundaries,
             "p_autonomy_level": payload.autonomy_level, "p_budget_currency": payload.budget_currency.upper(),
             "p_max_spend_per_action": payload.max_spend_per_action, "p_daily_spend_limit": payload.daily_spend_limit,
@@ -221,19 +226,6 @@ async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_
                 "source": "platform_catalog",
             },
         })
-
-    if character_rows:
-        character = character_rows[0]
-        current_persona = await select(user, "agent_personas", {"select": "persona,tone", "agent_id": f"eq.{agent_id}", "limit": "1"})
-        persona = dict(character.get("persona_defaults") or {})
-        persona.update(payload.persona)
-        tone = dict(character.get("tone_defaults") or {})
-        tone.update(payload.tone)
-        values = {"persona": persona, "tone": tone}
-        if current_persona:
-            await update(user, "agent_personas", {"agent_id": f"eq.{agent_id}"}, values)
-        else:
-            await insert(user, "agent_personas", {"agent_id": str(agent_id), **values})
 
     return await _agent_bundle(user, agent_id, context)
 
