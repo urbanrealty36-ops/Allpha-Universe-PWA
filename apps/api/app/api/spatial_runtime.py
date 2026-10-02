@@ -52,6 +52,26 @@ class Tick(BaseModel):
 def err(e:SupabaseRestError,code:str)->HTTPException:
     return HTTPException(status_code=e.status_code if e.status_code in {400,401,403,404,409,422} else 500,detail={"code":code,"message":e.message})
 
+@router.get("/worlds/{world_id}/agents/{agent_id}/context")
+async def spatial_agent_context(world_id:UUID,agent_id:UUID,context:dict=Depends(get_auth_context)):
+    """Authoritative spatial context adapter; presentation never grants authority."""
+    try:
+        state=await select(context["user"],"agent_spatial_states",{"select":"*","world_id":f"eq.{world_id}","agent_id":f"eq.{agent_id}","limit":"1"})
+        if not state:
+            raise HTTPException(404,detail={"code":"SPATIAL_STATE_NOT_FOUND"})
+        s=state[0]
+        zones=await select(context["user"],"district_zones",{"select":"id,district_id,zone_key,name,zone_type,spatial_config","zone_key":f"eq.{s.get('zone_key')}","limit":"1"}) if s.get("zone_key") else []
+        district=None
+        booths=[]
+        if zones:
+            district_rows=await select(context["user"],"districts",{"select":"id,world_id,name,theme_key,spatial_config","id":f"eq.{zones[0].get('district_id')}","world_id":f"eq.{world_id}","limit":"1"})
+            district=district_rows[0] if district_rows else None
+            if district:
+                booths=await select(context["user"],"booths",{"select":"id,name,theme_key,district_zone_id,scene_config,display_config","district_id":f"eq.{district['id']}","district_zone_id":f"eq.{zones[0]['id']}","limit":"50"})
+        return {"data":{"spatial_state":s,"zone":zones[0] if zones else None,"district":district,"booths":booths,"authority":{"source":"existing_agent_policy_and_domain_rls","spatial_context_grants_permission":False}}}
+    except SupabaseRestError as e:
+        raise err(e,"SPATIAL_CONTEXT_BUILD_FAILED")
+
 @router.get("/worlds/{world_id}/states")
 async def states(world_id:UUID,limit:int=Query(200,ge=1,le=500),context:dict=Depends(get_auth_context)):
     return {"data":await select(context["user"],"agent_spatial_states",{"select":"*","world_id":f"eq.{world_id}","order":"updated_at.desc","limit":str(limit)})}
