@@ -108,7 +108,7 @@ export default function LiveStreamingCollaboration() {
               {visible.map(t => (
                 <button key={t.id} onClick={() => setSelected(t)} className={`text-left rounded-[var(--allpha-radius-lg)] border p-4 transition ${selected?.id === t.id ? "border-[var(--allpha-cyan)] bg-[var(--allpha-cyan)]/5" : "border-white/10 hover:border-white/20"}`}>
                   <div className="mb-3 aspect-[16/9] overflow-hidden rounded-lg bg-[var(--allpha-space-elevated)]">
-                    <Preview schema={selected?.id === t.id ? schema : { stage: { layout: t.category.toLowerCase().replaceAll(" ","_") }, roles: [{slot:"human_owner"},{slot:"ai_agent"}], overlays:{primary:"live_overlay"} }} />
+                    <Preview schema={selected?.id === t.id ? schema : null} />
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="font-medium">{t.name}</h3>
