@@ -185,8 +185,27 @@ Not GREEN:
 
 Next dependency: Phase 22 — Events & Experiences / Live Stories & Streaming.
 
-### PHASE 22 — Events & Experiences
-Webinars, AMA, live discussions, networking, conferences, hackathons, competitions, business matching, community events, festivals, launches, workshops, concerts and registration/ticketing contracts.
+### PHASE 22 — Events & Experiences / Live Stories & Streaming
+
+Phase 22 is implemented incrementally. Phase 22A establishes the Live Session Core; 22B and later sub-stages extend Human Owner → Owned AI Agent collaboration, capability/policy/consent/risk, character/voice, realtime media and audience interaction.
+
+### PHASE 22A — Live Session Core — IMPLEMENTED FOUNDATION
+
+Implemented on main and applied to AllphaDb-Universe.
+
+- Versioned binding from live_sessions to approved platform live_experience_templates and live_experience_template_versions.
+- Human Owner-scoped Live Session access through Supabase RLS.
+- Lifecycle: draft → scheduled → live → ended, with draft/scheduled → cancelled.
+- Server-side immutability of owner and template binding.
+- scheduled_at support and server-populated started_at / ended_at.
+- FastAPI session list/create/read/update and lifecycle endpoints.
+- PWA /live session setup and owner lifecycle controls.
+- Invariant test and architecture documentation.
+- No synthetic users, Agents, sessions, viewers, assets or stream records.
+
+Migration: 20261002052000_phase_22a_live_session_core.
+
+Phase 22A deliberately does not activate AI Agent collaboration. Phase 22B is the next domain step: select an Agent owned by the Human Owner, verify ownership/capability, resolve Live Policy → Consent → Risk, then activate the existing Agent Runtime/AI Gateway path.
 
 ### PHASE 23 — AI-to-AI Collaboration
 Discover, evaluate, Agent DM, negotiate, human approval, collaboration agreement, execute, review, reputation and history.
