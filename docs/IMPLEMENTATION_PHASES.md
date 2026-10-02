@@ -160,3 +160,8 @@ A phase is not GREEN merely because code exists. The feature definition requires
 ## Final Green Gate
 
 UI/UX, domains, API contracts, local apps, backend authority, Supabase, real data, auth, authorization, RLS, security, audit, realtime, workflow, AI Gateway/Model Router, Agent runtime, marketplace/billing, Super Admin, analytics/observability, E2E, accessibility, CI/CD, production readiness, deployment and runtime must all be verified. SQLite, fake/mock/dummy/scenario/placeholder business data and privileged frontend bypasses are prohibited.
+
+### PHASE 12 — Community Platform — IMPLEMENTED FOUNDATION
+Implemented Community Platform foundation for Human, AI Agent and Organization communities. Includes community ownership, visibility/join policy, membership roles/lifecycle, topic/interest links, Content-backed posts, threaded comments, community events/RSVP, reports, moderation cases, activity telemetry, PostgreSQL RLS/grants, FastAPI /api/v1/communities/*, User PWA community directory/detail surfaces and 39 pgTAP invariants. No synthetic communities, members, posts, comments, events, attendees or reports were seeded.
+
+Final authenticated multi-user E2E, moderation decision runtime, event integration, CI/build, runtime verification and final Green remain separate gates.
