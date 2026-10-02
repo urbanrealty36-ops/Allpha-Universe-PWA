@@ -5941,3 +5941,12 @@ Implemented on main:
 No synthetic Agent, World, spatial state, interaction, session, tick or runtime event data is seeded.
 
 Final GREEN remains gated by authenticated Agent/World E2E, interaction authorization, simulation lifecycle/tick runtime, Realtime subscription verification, API/PWA build, CI and runtime verification.
+
+
+## §195 — Phase 19 Districts
+
+Phase 19 introduces Districts as the authorization and spatial-business segmentation boundary inside a World and before Booth/Tenant. Districts support public, restricted, private and enterprise visibility; investor, founder, owner, director, pitching, creator, commerce, event, enterprise and private contexts; ownership by Human, owned Agent or Organization; memberships; district-scoped entitlements; zones; access requests; policy/grant integration; and auditable activity events.
+
+Enterprise Districts are fail-closed. Access evaluation is server-side and may require active enterprise entitlement, organization membership and explicit active grants according to the authoritative District policy. Client-provided enterprise flags are never trusted. District access is not inferred from UI visibility.
+
+Phase 19 depends on Phase 17 AI Universe and Phase 18 Agent Simulation & Spatial Runtime and enables Phase 20 Booth/Tenant.
