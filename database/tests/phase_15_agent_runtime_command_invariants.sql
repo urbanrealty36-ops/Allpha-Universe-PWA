@@ -1,5 +1,5 @@
 begin;
-select plan(39);
+select plan(48);
 select has_table('public','agent_commands','agent_commands exists');
 select has_table('public','agent_execution_contexts','execution contexts exists');
 select has_table('public','agent_tasks','agent tasks exists');
@@ -39,5 +39,15 @@ select ok(exists(select 1 from pg_constraint where conrelid='public.agent_comman
 select ok(exists(select 1 from pg_constraint where conrelid='public.agent_commands'::regclass and conname='agent_commands_risk_decision_check'),'command risk decision constrained');
 select ok(exists(select 1 from pg_constraint where conrelid='public.agent_task_steps'::regclass and conname='agent_task_steps_status_check'),'step status constrained');
 select ok(exists(select 1 from pg_constraint where conrelid='public.agent_spend_events'::regclass and conname='agent_spend_events_amount_check'),'spend amount constrained');
+select ok((select prosecdef from pg_proc where oid='public.create_agent_command(uuid,text,text[],text)'::regprocedure),'create command is SECURITY DEFINER');
+select ok((select prosecdef from pg_proc where oid='public.materialize_agent_plan(uuid,jsonb)'::regprocedure),'plan materializer is SECURITY DEFINER');
+select ok((select prosecdef from pg_proc where oid='public.begin_agent_execution(uuid)'::regprocedure),'execution start is SECURITY DEFINER');
+select ok((select prosecdef from pg_proc where oid='public.decide_agent_approval(uuid,text,text)'::regprocedure),'approval decision is SECURITY DEFINER');
+select ok((select prosecdef from pg_proc where oid='public.set_agent_kill_switch(uuid,boolean,text)'::regprocedure),'kill switch is SECURITY DEFINER');
+select ok((select proconfig @> array['search_path='] from pg_proc where oid='public.create_agent_command(uuid,text,text[],text)'::regprocedure),'create command search_path pinned');
+select ok((select proconfig @> array['search_path='] from pg_proc where oid='public.begin_agent_execution(uuid)'::regprocedure),'execution search_path pinned');
+select ok((select proconfig @> array['search_path='] from pg_proc where oid='public.set_agent_kill_switch(uuid,boolean,text)'::regprocedure),'kill switch search_path pinned');
+select ok((select proconfig @> array['search_path='] from pg_proc where oid='public.record_agent_spend(uuid,uuid,uuid,numeric,text,jsonb)'::regprocedure),'spend search_path pinned');
+
 select * from finish();
 rollback;
