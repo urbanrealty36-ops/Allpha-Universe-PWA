@@ -42,3 +42,17 @@ async def runtime_catalog(context:dict=Depends(get_auth_context)):
             "live_templates": [x for x in live if x.get("catalog_order")==theme.get("catalog_order")],
         })
     return {"data":result}
+
+@router.get("/districts/{district_id}/composition")
+async def district_composition(district_id:str,context:dict=Depends(get_auth_context)):
+    """Read-only spatial composition; existing RLS remains authoritative."""
+    try:
+        districts=await select(context["user"],"districts",{"select":"*","id":f"eq.{district_id}","limit":"1"})
+        if not districts:
+            raise HTTPException(404,detail={"code":"DISTRICT_NOT_FOUND"})
+        district=districts[0]
+        zones=await select(context["user"],"district_zones",{"select":"*","district_id":f"eq.{district_id}","order":"created_at.asc"})
+        booths=await select(context["user"],"booths",{"select":"*","district_id":f"eq.{district_id}","order":"updated_at.desc"})
+        return {"data":{"district":district,"zones":zones,"booths":booths}}
+    except SupabaseRestError as e:
+        raise err(e,"WORLD_RUNTIME_DISTRICT_LOAD_FAILED")
