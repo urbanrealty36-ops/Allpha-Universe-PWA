@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.api.dependencies import get_auth_context
-from app.core.agent_runtime import AgentRuntimeError, create_command, execute_command, plan_command
+from app.core.agent_runtime import AgentRuntimeError, cancel_command, create_command, execute_command, plan_command
 from app.core.auth import AuthenticatedUser
 from app.core.supabase_rest import rpc, select
 
@@ -77,6 +77,15 @@ async def plan_runtime_command(command_id: UUID, context: dict = Depends(get_aut
 async def execute_runtime_command(command_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     try:
         return {"data": await execute_command(context["user"], command_id)}
+    except AgentRuntimeError as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/commands/{command_id}/cancel")
+async def cancel_runtime_command(command_id: UUID, payload: dict[str, str | None] | None = None, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    try:
+        reason = (payload or {}).get("reason")
+        return {"data": await cancel_command(context["user"], command_id, reason)}
     except AgentRuntimeError as exc:
         raise _error(exc) from exc
 
