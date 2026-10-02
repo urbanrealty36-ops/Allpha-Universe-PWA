@@ -185,6 +185,8 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
         "p_metadata": metadata or {},
     })
     request_id = str(request["id"])
+    if request.get("idempotency_reused"):
+        raise AIGatewayError("AI_IDEMPOTENCY_REPLAY_UNAVAILABLE", "An idempotency key has already been used. A new provider call was not started.", 409)
 
     providers = await select(user, "ai_providers", {"select": "id,provider_key,display_name,adapter,base_url,credential_env_var,enabled,metadata", "enabled": "eq.true"})
     models = await select(user, "ai_models", {"select": "id,provider_id,model_key,model_identifier,display_name,enabled,context_window_tokens,max_output_tokens,input_cost_per_1m,output_cost_per_1m,capabilities,ai_providers(id,provider_key,adapter,base_url,credential_env_var,enabled,metadata)", "enabled": "eq.true"})
