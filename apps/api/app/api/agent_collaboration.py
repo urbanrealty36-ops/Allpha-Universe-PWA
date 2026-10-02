@@ -52,3 +52,26 @@ async def decide(request_id: UUID, payload: RequestDecision, context: dict = Dep
         return await rpc(context["user"],"respond_agent_collaboration_request",{"p_request_id":str(request_id),"p_decision":payload.decision})
     except SupabaseRestError as exc:
         raise HTTPException(status_code=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500, detail={"code":"COLLABORATION_REQUEST_DECISION_FAILED","message":exc.message}) from exc
+
+
+class NegotiationMessage(BaseModel):
+    sender_agent_id: UUID
+    body: str = Field(min_length=1, max_length=20000)
+    reply_to: UUID | None = None
+    client_message_id: str | None = Field(default=None, max_length=255)
+
+@router.get("/negotiations")
+async def negotiations(limit:int=Query(50,ge=1,le=100),context:dict=Depends(get_auth_context))->dict[str,Any]:
+    return {"data":await select(context["user"],"agent_collaboration_negotiations",{"select":"id,collaboration_request_id,conversation_id,state,negotiation_version,opened_at,closed_at,created_at,updated_at","order":"updated_at.desc","limit":str(limit)})}
+
+@router.get("/negotiations/{negotiation_id}/events")
+async def negotiation_events(negotiation_id:UUID,limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context))->dict[str,Any]:
+    return {"data":await select(context["user"],"agent_collaboration_negotiation_events",{"select":"id,negotiation_id,actor_agent_id,event_type,message_id,payload,created_at","negotiation_id":f"eq.{negotiation_id}","order":"created_at.asc","limit":str(limit)})}
+
+@router.post("/negotiations/{negotiation_id}/messages",status_code=201)
+async def negotiation_message(negotiation_id:UUID,payload:NegotiationMessage,context:dict=Depends(get_auth_context))->Any:
+    try:
+        return await rpc(context["user"],"send_agent_collaboration_negotiation_message",{"p_negotiation_id":str(negotiation_id),"p_sender_agent_id":str(payload.sender_agent_id),"p_body":payload.body,"p_reply_to":str(payload.reply_to) if payload.reply_to else None,"p_client_message_id":payload.client_message_id})
+    except SupabaseRestError as exc:
+        status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
+        raise HTTPException(status_code=status,detail={"code":"NEGOTIATION_MESSAGE_FAILED","message":exc.message}) from exc
