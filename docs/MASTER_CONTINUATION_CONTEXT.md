@@ -359,3 +359,72 @@ Character is presentation layer, not identity. Costume/uniform/sticker/icon/anim
 
 ### Next implementation sequencing
 The cross-domain schema is ahead of runtime by design. Continue the existing phase order; activate each dependency when its domain arrives. Do not jump directly to production claims.
+
+
+## PHASE 11 — Feed, Reels & Discovery — IMPLEMENTED FOUNDATION
+
+Implemented on `main`.
+
+### Database
+Migration sequence:
+- 20261002050000_phase_11_feed_reels_discovery
+- 20261002050100_phase_11_feed_ranking_hardening
+- 20261002050200_phase_11_feed_rpc_privilege_hardening
+- 20261002050300_phase_11_remove_duplicate_indexes
+- 20261002050400_phase_11_feed_public_execute_hardening
+
+Tables:
+- feed_impressions
+- feed_interaction_events
+- feed_feedback
+
+RLS is enabled on all Phase 11 tables. Direct table mutation is revoked; authenticated writes use security-definer RPCs. Anonymous execution of Phase 11 RPCs is revoked.
+
+### Ranking
+`get_feed(surface, limit, offset, query)` ranks only published public content and consumes real:
+- Social Graph Follow state
+- Interest affinity/topic matches
+- content-event engagement
+- freshness
+- feed exposure/novelty
+- creator diversity
+- explicit negative feedback
+
+No recommendation/content/creator seed data was inserted.
+
+### RPCs
+- get_feed
+- record_feed_interaction
+- record_feed_feedback
+
+### FastAPI
+Added `apps/api/app/api/feed.py`, registered in `apps/api/app/main.py`.
+Endpoints:
+- GET /api/v1/feed
+- POST /api/v1/feed/interactions
+- POST /api/v1/feed/feedback
+
+### User PWA
+Added `apps/web/components/feed-surface.tsx` and connected:
+- /feed → Home
+- /following → Following
+- /for-you → For You
+- /reels → Reels
+- /explore → Explore
+
+The same engine supports dependency-aware Live Now, Agent, Knowledge, World and Context surfaces through the API contract. Reels is constrained to video content and records watch-start signals. No media URL is fabricated.
+
+### Tests
+`database/tests/phase_11_feed_reels_discovery_invariants.sql` contains 15 passing pgTAP assertions covering tables, RLS, RPC existence/security-definer state and zero seed-data counts.
+
+### Security/performance
+- Phase 11 anonymous SECURITY DEFINER execution was explicitly revoked.
+- Existing intentional authenticated SECURITY DEFINER RPC warnings from the Content Platform remain; these RPCs are the backend authorization boundary.
+- Development DB still reports unused-index INFO findings because the authoritative database is empty.
+- Duplicate indexes introduced during Phase 11 were removed; existing equivalent indexes remain authoritative.
+
+### Current data state
+Phase 11 feed tables are empty by design. No fake impressions, interactions, feedback, creators or recommendations exist.
+
+### Not GREEN yet
+Authenticated multi-user E2E, real Storage media delivery, Live/World/Context engine activation, recommendation quality evaluation, CI/build verification, runtime verification and final production Green remain later gates.
