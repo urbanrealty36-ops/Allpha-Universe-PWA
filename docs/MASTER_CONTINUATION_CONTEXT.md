@@ -546,3 +546,7 @@ Authenticated multi-user E2E, realtime subscription runtime verification, abuse/
 
 ## Phase 14 continuation state
 Phase 14 AI Gateway & Model Router is implemented as a foundation on main. Supabase contains provider/model/policy registries, request/attempt/usage ledgers and secured RPC boundaries. FastAPI exposes the gateway and the User PWA exposes /ai with authoritative empty/not-configured states. No provider/model/request/usage seed data exists. Next dependency is Phase 15 Agent Runtime; final Phase 14 GREEN remains gated by real provider configuration and authenticated runtime/E2E verification.
+
+
+## Phase 15 continuation state
+Phase 15 Agent Runtime & Command System is implemented as a foundation on main. The runtime now owns command state, planning, tool materialization, risk/approval, execution, spend/rate-limit controls, kill switch and audit events. The canonical built-in ai.generate tool delegates exclusively to Phase 14 AI Gateway. No synthetic runtime records are seeded. Final GREEN requires authenticated E2E with real Agent ownership and AI provider configuration.
