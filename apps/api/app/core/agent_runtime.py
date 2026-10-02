@@ -49,7 +49,7 @@ async def create_command(user: AuthenticatedUser, agent_id: UUID, command_text: 
 
 
 async def plan_command(user: AuthenticatedUser, command_id: UUID) -> dict[str, Any]:
-    rows = await select(user, "agent_commands", {"select": "id,agent_id,command_text,requested_capabilities,autonomy_level,policy_version,status", "id": f"eq.{command_id}", "limit": "1"})
+    rows = await select(user, "agent_commands", {"select": "id,agent_id,command_text,requested_capabilities,autonomy_level,policy_version,status,command_source,live_session_id,live_collaboration_id", "id": f"eq.{command_id}", "limit": "1"})
     if not rows:
         raise AgentRuntimeError("COMMAND_NOT_FOUND", "Command was not found.", 404)
     command = rows[0]
@@ -60,7 +60,7 @@ async def plan_command(user: AuthenticatedUser, command_id: UUID) -> dict[str, A
     policy = await select(user, "agent_policies", {"select": "name,policy_version,rules,autonomy_level,enabled", "agent_id": f"eq.{command['agent_id']}", "enabled": "eq.true", "order": "policy_version.desc", "limit": "1"})
     capabilities = await select(user, "agent_capabilities", {"select": "capability,constraints", "agent_id": f"eq.{command['agent_id']}", "enabled": "eq.true"})
     tools = await select(user, "agent_tool_definitions", {"select": "tool_key,name,description,capability,risk_level,input_schema", "enabled": "eq.true", "order": "tool_key.asc"})
-    planner_input = {"agent": agent[0] if agent else None, "policy": policy[0] if policy else None, "capabilities": capabilities, "available_tools": tools, "command": command["command_text"], "requested_capabilities": command["requested_capabilities"]}
+    planner_input = {"agent": agent[0] if agent else None, "policy": policy[0] if policy else None, "capabilities": capabilities, "available_tools": tools, "command": command["command_text"], "requested_capabilities": command["requested_capabilities"], "runtime_context": {"source": command.get("command_source"), "live_session_id": command.get("live_session_id"), "live_collaboration_id": command.get("live_collaboration_id")}}
     system = (
         "You are the Allpha Agent Runtime planner. Produce ONLY valid JSON, never markdown. "
         "Do not invent tools or capabilities. Use only available_tools. Do not expose private chain-of-thought. "
@@ -93,10 +93,15 @@ async def resume_after_approval(user: AuthenticatedUser, command_id: UUID) -> di
 
 
 async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str, Any]:
-    rows = await select(user, "agent_commands", {"select": "id,agent_id,status,risk_level", "id": f"eq.{command_id}", "limit": "1"})
+    rows = await select(user, "agent_commands", {"select": "id,agent_id,status,risk_level,command_source,live_session_id,live_collaboration_id", "id": f"eq.{command_id}", "limit": "1"})
     if not rows:
         raise AgentRuntimeError("COMMAND_NOT_FOUND", "Command was not found.", 404)
     command = rows[0]
+    if command.get("command_source") == "live":
+        live_rows = await select(user, "live_agent_collaborations", {"select": "id,status,consent_status,risk_decision,live_session_id", "id": f"eq.{command.get('live_collaboration_id')}", "owner_user_id": f"eq.{user.user_id}", "limit": "1"})
+        live = live_rows[0] if live_rows else None
+        if not live or live["status"] != "active" or live["consent_status"] != "approved" or live["risk_decision"] != "allow" or str(live["live_session_id"]) != str(command.get("live_session_id")):
+            raise AgentRuntimeError("LIVE_COLLAB_NOT_ACTIVE", "Live collaboration is no longer active.", 409)
     if command["status"] == "ready":
         state = await begin_execution(user, command_id)
         if state.get("status") != "running":
@@ -123,7 +128,7 @@ async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str
             if not isinstance(messages, list) or not messages:
                 raise AgentRuntimeError("AGENT_TOOL_ARGUMENTS_INVALID", "ai.generate requires messages.", 422)
             valid_messages = [m for m in messages if isinstance(m, dict) and m.get("role") and m.get("content")]
-            result = await generate(user, [GatewayMessage(role=str(m["role"]), content=str(m["content"])) for m in valid_messages], agent_id=str(command["agent_id"]), capabilities=["ai.generate"], metadata={"purpose": "agent_command", "command_id": str(command_id), "step_id": str(step["id"])})
+            result = await generate(user, [GatewayMessage(role=str(m["role"]), content=str(m["content"])) for m in valid_messages], agent_id=str(command["agent_id"]), capabilities=["ai.generate"], metadata={"purpose": "agent_command", "command_id": str(command_id), "step_id": str(step["id"]), "command_source": command.get("command_source"), "live_session_id": command.get("live_session_id"), "live_collaboration_id": command.get("live_collaboration_id")})
             latency = int((time.monotonic() - started) * 1000)
             if result.estimated_cost_usd and result.estimated_cost_usd > 0:
                 try:
