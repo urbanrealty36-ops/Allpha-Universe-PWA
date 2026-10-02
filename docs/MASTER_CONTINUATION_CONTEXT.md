@@ -1184,3 +1184,39 @@ Still not complete:
 
 Next integration target:
 Phase 18 Spatial Runtime adapter using existing agent_spatial_states + Realtime, with bounded position persistence and spatial context feeding the existing Agent Context/RAG path. No new spatial authorization engine.
+
+
+## 2026-10-02 — Phase 18 Spatial Runtime Adapter
+
+Status: IMPLEMENTED FOUNDATION / NOT GREEN.
+
+Implemented:
+- Existing agent_spatial_states remains authoritative spatial persistence.
+- Supabase Realtime publication for agent_spatial_states verified live.
+- Existing update_agent_spatial_state remains the only spatial mutation boundary and now enforces bounded speed, XYZ position shape and 100ms persistence floor.
+- Existing universe_agent_presence projection remains reused; no second presence engine.
+- Added spatial context adapter endpoint: GET /api/v1/spatial-runtime/worlds/{world_id}/agents/{agent_id}/context.
+- Added browser Realtime adapter at apps/web/lib/world-engine/spatial-realtime.ts.
+- Spatial context composes Agent spatial state with authoritative District → Zone → Booth records and explicitly does not grant permission.
+- No per-frame LLM invocation; spatial updates are deterministic and feed the existing Agent Context / Memory / Knowledge path.
+
+Live catalog verification:
+- 25 platform Themes
+- 25 platform World Templates
+- 25 platform Live Experience Templates
+- 0 Districts
+- 0 Zones
+- 0 Booths
+- 0 live Character assets
+- 0 Sticker-specific tables
+- 0 spatial states
+- 0 universe agent presences
+- 0 agent memory rows
+- 0 knowledge rows
+
+Product availability interpretation:
+- Theme/World/Live template catalog foundation exists and is exposed through the World PWA catalog.
+- District/Zone/Booth/Tenant infrastructure exists at API/DB foundation level, but no real tenant records exist yet.
+- Character asset storage/schema foundation exists, but no real character assets/runtime catalog is provisioned.
+- Sticker-specific registry was not found in the live schema; do not claim Sticker catalog is implemented.
+- 25 World Templates are platform catalog records and should be treated as the initial 3D/presentation template layer, not as 25 uploaded 3D asset packs.
