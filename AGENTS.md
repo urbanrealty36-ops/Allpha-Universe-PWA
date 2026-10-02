@@ -87,3 +87,16 @@ Implementation rules:
 - Content events are telemetry, not authorization or ownership.
 - Do not seed fake posts, media, topics, creators, AI Capsules, views, shares or recommendations.
 - Feed/ranking/recommendation behavior belongs to Phase 11 and must consume authoritative Content/Social/Personalization data.
+
+
+## Phase 11 Feed, Reels & Discovery governance
+- Feed surfaces consume only published authoritative Content Platform data.
+- Ranking inputs come from real Social Graph, Personalization, content-event telemetry, freshness, exposure and explicit feedback; no seeded recommendations.
+- Following requires an authoritative active Follow relationship.
+- For You/Home/Explore/Context may use real interest affinity only where content topics can be authoritatively matched to real Interest Nodes.
+- Reels is constrained to published video content; watch/skip/replay signals are persisted through the Feed API.
+- Negative feedback is server-enforced: not interested, mute creator, hide topic and report suppress matching candidates.
+- Server-generated feed impressions are telemetry, not authorization.
+- Feed tables are RLS-protected; mutation writes cross FastAPI and authenticated security-definer RPCs. Anonymous execute is revoked.
+- Live Now, World Stream and Context are dependency-aware surfaces; do not fabricate live sessions, world events or contextual signals.
+- Do not fabricate media URLs. Reels/media delivery remains subject to the authorized Storage/runtime integration.
