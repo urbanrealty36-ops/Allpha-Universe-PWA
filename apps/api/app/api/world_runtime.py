@@ -21,8 +21,8 @@ async def runtime_catalog(context:dict=Depends(get_auth_context)):
     for item in templates:
         versions=item.get("world_template_versions") or []
         published=sorted([v for v in versions if v.get("status")=="published"],key=lambda v:v.get("version",0),reverse=True)
-        if item.get("theme_id"):
-            template_by_theme[item["theme_id"]]=published[0] if published else None
+        if published and published[0].get("theme_id"):
+            template_by_theme[published[0]["theme_id"]]=published[0]
     result=[]
     for theme in themes:
         versions=theme.get("theme_versions") or []
