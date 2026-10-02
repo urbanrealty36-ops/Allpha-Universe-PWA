@@ -260,7 +260,7 @@ end $$;
 
 create or replace function public.prepare_workflow_run(p_workflow_run_id uuid)
 returns jsonb language plpgsql security definer set search_path='' as $$
-declare r public.workflow_runs; w public.workflows; v public.workflow_versions; c public.agent_commands; plan jsonb; caps text[]; key text; step_count int;
+declare r public.workflow_runs; w public.workflows; v public.workflow_versions; c public.agent_commands; plan jsonb; caps text[]; step_count int;
 begin
  select * into r from public.workflow_runs where id=p_workflow_run_id;
  if not found or r.initiated_by_user_id<>auth.uid() then raise exception 'WORKFLOW_RUN_ACCESS_DENIED'; end if;
@@ -268,7 +268,8 @@ begin
  select * into w from public.workflows where id=r.workflow_id; select * into v from public.workflow_versions where id=r.workflow_version_id;
  select count(*) into step_count from public.workflow_steps where workflow_version_id=v.id and enabled=true; if step_count=0 then raise exception 'WORKFLOW_NO_STEPS'; end if;
  select array_agg(distinct t.capability order by t.capability) into caps from public.workflow_steps s join public.agent_tool_definitions t on t.tool_key=s.tool_key where s.workflow_version_id=v.id and s.enabled=true;
- select jsonb_build_object('risk_level',case when exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and risk_level='critical') then 'critical' when exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and risk_level='high') then 'high' when exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and risk_level='medium') then 'medium' else 'low' end,'requires_approval',exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and (requires_approval or risk_level in ('high','critical'))),'tasks',jsonb_build_array(jsonb_build_object('task_key','workflow_'||r.id::text,'title',w.name,'description',coalesce(w.description,'Workflow execution'),'input',r.input,'steps',jsonb_agg(jsonb_build_object('step_key',s.step_key,'tool_key',s.tool_key,'arguments',s.arguments) order by s.sequence_no))) into plan from public.workflow_steps s where s.workflow_version_id=v.id and s.enabled=true;
+ with step_data as (select coalesce(jsonb_agg(jsonb_build_object('step_key',s.step_key,'tool_key',s.tool_key,'arguments',s.arguments) order by s.sequence_no),'[]'::jsonb) as steps from public.workflow_steps s where s.workflow_version_id=v.id and s.enabled=true)
+select jsonb_build_object('risk_level',case when exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and risk_level='critical') then 'critical' when exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and risk_level='high') then 'high' when exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and risk_level='medium') then 'medium' else 'low' end,'requires_approval',exists(select 1 from public.workflow_steps where workflow_version_id=v.id and enabled=true and (requires_approval or risk_level in ('high','critical'))),'tasks',jsonb_build_array(jsonb_build_object('task_key','workflow_'||r.id::text,'title',w.name,'description',coalesce(w.description,'Workflow execution'),'input',r.input,'steps',step_data.steps))) into plan from step_data;
  c := public.create_agent_command(r.agent_id,'Workflow: '||w.name,coalesce(caps,array[]::text[]),'workflow-run:'||r.id::text);
  perform public.materialize_agent_plan(c.id,plan);
  update public.workflow_runs set command_id=c.id,status='ready' where id=r.id returning * into r;
