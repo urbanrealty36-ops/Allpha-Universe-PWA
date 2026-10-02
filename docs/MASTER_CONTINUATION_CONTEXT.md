@@ -616,5 +616,42 @@ Worlds do not duplicate upstream source-of-truth data. Agent Presence is a proje
 ### Security
 Nine tables are RLS-protected in the migration. Direct browser mutation is revoked. Mutation RPCs are SECURITY DEFINER with pinned empty search_path and server-side ownership checks.
 
-### Verification blocker
-The current Supabase connector session exposes the Allpha Universe project for discovery, but its migration/SQL operations reject the available link as not an eligible linked account. Consequently the Phase 17 migration has been committed to GitHub but could not be applied or live-tested in this turn. Do not mark Phase 17 GREEN until the connector is re-authorized and migration + pgTAP + authenticated E2E are executed.
+### Live verification
+The Supabase binding is now correctly using AllphaDb-Universe (project qltbacemtvnuzqkterly). Migration 20261002110000_phase_17_ai_universe is applied. The live Phase 17 invariant suite passes 32/32. Nine Phase 17 tables are RLS-enabled and remain empty of business data.
+
+### Phase 18 continuation state
+Phase 18 Agent Simulation & Spatial Runtime is implemented on main as a foundation.
+
+Repository:
+- Migration: database/migrations/20261002120000_phase_18_agent_simulation_spatial_runtime.sql
+- Invariant test: database/tests/phase_18_agent_simulation_spatial_runtime_invariants.sql
+- FastAPI: apps/api/app/api/spatial_runtime.py
+- User PWA: /agent-simulation via apps/web/components/agent-simulation-surface.tsx
+- Architecture: docs/architecture/AGENT_SIMULATION_SPATIAL_RUNTIME_v1.0.md
+- Schema contract: docs/database/PHASE_18_AGENT_SIMULATION_SPATIAL_RUNTIME_SCHEMA_CONTRACT_v1.0.md
+
+Database:
+- agent_spatial_states
+- spatial_interactions
+- simulation_sessions
+- simulation_ticks
+- spatial_runtime_events
+All are RLS-enabled. Direct authenticated/anonymous writes are revoked. Mutation RPCs are SECURITY DEFINER with pinned empty search_path.
+Realtime publication includes spatial states, interactions, simulation sessions and runtime events.
+No synthetic Agent, World, spatial state, interaction, simulation session, tick or runtime event records are seeded.
+
+Live verification:
+- Phase 18 invariant suite: 44/44 passed
+- Phase 18 business tables: zero records by design
+
+Runtime boundary:
+Spatial Runtime does not become an autonomous Agent executor. Agent authority remains Phase 15 Agent Runtime + Phase 14 AI Gateway. Spatial state updates synchronize Phase 17 Agent Presence.
+
+Not GREEN:
+- authenticated Agent/World E2E
+- interaction authorization E2E
+- simulation lifecycle runtime E2E
+- monotonic tick runtime E2E
+- Realtime subscription runtime verification
+- API/PWA build verification
+- CI/runtime/production Green gates
