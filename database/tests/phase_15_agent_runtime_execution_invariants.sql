@@ -1,0 +1,30 @@
+begin;
+select plan(22);
+
+select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_commands' and rowsecurity),'agent_commands RLS enabled');
+select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_execution_contexts' and rowsecurity),'execution contexts RLS enabled');
+select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_task_steps' and rowsecurity),'task steps RLS enabled');
+select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_tool_runs' and rowsecurity),'tool runs RLS enabled');
+select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_runtime_events' and rowsecurity),'runtime events RLS enabled');
+select ok(exists(select 1 from pg_tables where schemaname='public' and tablename='agent_spend_events' and rowsecurity),'spend events RLS enabled');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='create_agent_command' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'create command RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='begin_agent_execution' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'begin execution RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='materialize_agent_plan' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'plan materialization RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='record_agent_tool_result' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'tool result RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='record_agent_spend' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'spend RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='decide_agent_approval' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'approval decision RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='resume_agent_after_approval' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'approval resume RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='set_agent_kill_switch' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'kill switch RPC authenticated-only');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='cancel_agent_command' and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'cancel command RPC authenticated-only');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='agent_commands' and cmd='SELECT'),'agent command owner read policy');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='agent_task_steps' and cmd='SELECT'),'task step owner read policy');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='agent_runtime_events' and cmd='SELECT'),'runtime event owner read policy');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='agent_tool_runs' and cmd='SELECT'),'tool run owner read policy');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='agent_spend_events' and cmd='SELECT'),'spend owner read policy');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='resume_agent_after_approval' and pg_get_functiondef(p.oid) like '%AGENT_KILL_SWITCH_ENABLED%'),'approval resume rechecks kill switch');
+select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='resume_agent_after_approval' and pg_get_functiondef(p.oid) like '%AGENT_CAPABILITY_REVOKED%'),'approval resume rechecks capabilities');
+select results_eq($$select count(*)::bigint from public.agent_commands$$,$$values (0::bigint)$$,'no synthetic agent commands');
+select results_eq($$select count(*)::bigint from public.agent_runtime_events$$,$$values (0::bigint)$$,'no synthetic runtime events');
+
+select * from finish();
+rollback;
