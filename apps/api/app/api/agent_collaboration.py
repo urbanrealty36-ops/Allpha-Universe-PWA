@@ -75,3 +75,85 @@ async def negotiation_message(negotiation_id:UUID,payload:NegotiationMessage,con
     except SupabaseRestError as exc:
         status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
         raise HTTPException(status_code=status,detail={"code":"NEGOTIATION_MESSAGE_FAILED","message":exc.message}) from exc
+
+
+class AgreementCreate(BaseModel):
+    negotiation_id: UUID
+    purpose: str = Field(min_length=1, max_length=5000)
+    requested_capabilities: list[str] = Field(default_factory=list, max_length=32)
+    agreed_scope: dict[str, Any] = Field(default_factory=dict)
+    constraints: dict[str, Any] = Field(default_factory=dict)
+    terms: dict[str, Any] = Field(default_factory=dict)
+    expires_at: str | None = None
+
+
+class AgreementApprovalDecision(BaseModel):
+    decision: str = Field(pattern="^(approved|rejected)$")
+    reason: str | None = Field(default=None, max_length=2000)
+
+
+class AgreementCancel(BaseModel):
+    reason: str | None = Field(default=None, max_length=2000)
+
+
+@router.get("/agreements")
+async def agreements(limit:int=Query(50,ge=1,le=100),context:dict=Depends(get_auth_context))->dict[str,Any]:
+    return {"data":await select(context["user"],"agent_collaboration_agreements",{
+        "select":"id,collaboration_request_id,negotiation_id,requester_agent_id,target_agent_id,requester_owner_user_id,target_owner_user_id,version,state,purpose,requested_capabilities,agreed_scope,constraints,terms,requester_policy_version,target_policy_version,risk_level,expires_at,created_by_user_id,created_at,updated_at,approved_at,rejected_at,closed_at",
+        "order":"updated_at.desc","limit":str(limit)
+    })}
+
+
+@router.get("/agreements/{agreement_id}")
+async def agreement(agreement_id:UUID,context:dict=Depends(get_auth_context))->dict[str,Any]:
+    rows=await select(context["user"],"agent_collaboration_agreements",{"select":"*","id":f"eq.{agreement_id}","limit":"1"})
+    if not rows:
+        raise HTTPException(status_code=404,detail={"code":"AGREEMENT_NOT_FOUND","message":"Agreement was not found."})
+    return {"data":rows[0]}
+
+
+@router.get("/agreements/{agreement_id}/events")
+async def agreement_events(agreement_id:UUID,limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context))->dict[str,Any]:
+    return {"data":await select(context["user"],"agent_collaboration_agreement_events",{
+        "select":"id,agreement_id,actor_user_id,actor_agent_id,event_type,approval_request_id,risk_assessment_id,payload,created_at",
+        "agreement_id":f"eq.{agreement_id}","order":"created_at.asc","limit":str(limit)
+    })}
+
+
+@router.post("/agreements",status_code=201)
+async def create_agreement(payload:AgreementCreate,context:dict=Depends(get_auth_context))->Any:
+    try:
+        return await rpc(context["user"],"create_agent_collaboration_agreement",{
+            "p_negotiation_id":str(payload.negotiation_id),
+            "p_purpose":payload.purpose,
+            "p_requested_capabilities":payload.requested_capabilities,
+            "p_agreed_scope":payload.agreed_scope,
+            "p_constraints":payload.constraints,
+            "p_terms":payload.terms,
+            "p_expires_at":payload.expires_at,
+        })
+    except SupabaseRestError as exc:
+        status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
+        raise HTTPException(status_code=status,detail={"code":"AGREEMENT_CREATE_FAILED","message":exc.message}) from exc
+
+
+@router.post("/agreements/{agreement_id}/approval")
+async def decide_agreement_approval(agreement_id:UUID,payload:AgreementApprovalDecision,context:dict=Depends(get_auth_context))->Any:
+    try:
+        return await rpc(context["user"],"decide_agent_collaboration_agreement_approval",{
+            "p_agreement_id":str(agreement_id),"p_decision":payload.decision,"p_reason":payload.reason
+        })
+    except SupabaseRestError as exc:
+        status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
+        raise HTTPException(status_code=status,detail={"code":"AGREEMENT_APPROVAL_FAILED","message":exc.message}) from exc
+
+
+@router.post("/agreements/{agreement_id}/cancel")
+async def cancel_agreement(agreement_id:UUID,payload:AgreementCancel,context:dict=Depends(get_auth_context))->Any:
+    try:
+        return await rpc(context["user"],"cancel_agent_collaboration_agreement",{
+            "p_agreement_id":str(agreement_id),"p_reason":payload.reason
+        })
+    except SupabaseRestError as exc:
+        status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
+        raise HTTPException(status_code=status,detail={"code":"AGREEMENT_CANCEL_FAILED","message":exc.message}) from exc
