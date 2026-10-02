@@ -596,3 +596,25 @@ Additional migrations applied:
 Mission lifecycle now includes publish/open and participant approve/reject contracts. Shared mission workflow runs use an internal SECURITY DEFINER helper rather than exposing a generic cross-owner workflow-run path. Workflow definitions/versions/steps are owner-visible only; Missions are the sharing surface. Owned-Agent mission participants are supported for run initiation.
 
 Latest live invariant verification remains 35 assertions passed; Phase 16 business data remains empty.
+
+
+## Phase 17 continuation state
+Phase 17 AI Universe is implemented in repository code as a foundation.
+
+### Repository
+- Database migration: database/migrations/20261002110000_phase_17_ai_universe.sql
+- Invariant test: database/tests/phase_17_ai_universe_invariants.sql
+- FastAPI: apps/api/app/api/universe.py, registered in apps/api/app/main.py
+- User PWA: /universe via apps/web/components/universe-surface.tsx
+- Architecture: docs/architecture/AI_UNIVERSE_ARCHITECTURE_v1.0.md
+- Schema contract: docs/database/PHASE_17_AI_UNIVERSE_SCHEMA_CONTRACT_v1.0.md
+
+### Domain
+Galaxy → World → Interest / Content / Community / Agent / Portal / Presence.
+Worlds do not duplicate upstream source-of-truth data. Agent Presence is a projection and cannot alter Agent authority.
+
+### Security
+Nine tables are RLS-protected in the migration. Direct browser mutation is revoked. Mutation RPCs are SECURITY DEFINER with pinned empty search_path and server-side ownership checks.
+
+### Verification blocker
+The current Supabase connector session exposes the Allpha Universe project for discovery, but its migration/SQL operations reject the available link as not an eligible linked account. Consequently the Phase 17 migration has been committed to GitHub but could not be applied or live-tested in this turn. Do not mark Phase 17 GREEN until the connector is re-authorized and migration + pgTAP + authenticated E2E are executed.
