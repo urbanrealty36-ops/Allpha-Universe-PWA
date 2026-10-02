@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.dependencies import get_auth_context
 from app.core.supabase_rest import SupabaseRestError, select
 
-router=APIRouter(prefix="/api/v1/themes/world-runtime",tags=["Allpha World Engine"])
+router=APIRouter(prefix="/api/v1/themes/world-runtime",tags=["Allpha World Engine"])\n\nWORLD_ASSET_BUCKET="allpha-world-assets"
 
 def err(e:SupabaseRestError,code:str)->HTTPException:
     return HTTPException(status_code=e.status_code if e.status_code in {400,401,403,404,409,422} else 500,detail={"code":code,"message":e.message})
@@ -43,6 +43,18 @@ async def runtime_catalog(context:dict=Depends(get_auth_context)):
         })
     return {"data":result}
 
+@router.get("/themes/{theme_id}/asset-manifest")
+async def theme_asset_manifest(theme_id:str,context:dict=Depends(get_auth_context)):
+    """Read-only asset manifest. Storage paths are authoritative; URLs are never fabricated."""
+    try:
+        themes=await select(context["user"],"themes",{"select":"id,name,source,status","id":f"eq.{theme_id}","limit":"1"})
+        if not themes:
+            raise HTTPException(404,detail={"code":"THEME_NOT_FOUND"})
+        assets=await select(context["user"],"theme_assets",{"select":"id,theme_id,theme_version_id,asset_type,storage_path,mime_type,metadata,sort_order,status,moderation_status,safety_status,performance_status","theme_id":f"eq.{theme_id}","order":"sort_order.asc"})
+        return {"data":{"theme":themes[0],"storage_bucket":WORLD_ASSET_BUCKET,"assets":assets}}
+    except SupabaseRestError as e:
+        raise err(e,"WORLD_RUNTIME_THEME_ASSET_MANIFEST_FAILED")
+
 @router.get("/districts/{district_id}/composition")
 async def district_composition(district_id:str,context:dict=Depends(get_auth_context)):
     """Read-only spatial composition; existing RLS remains authoritative."""
@@ -53,6 +65,21 @@ async def district_composition(district_id:str,context:dict=Depends(get_auth_con
         district=districts[0]
         zones=await select(context["user"],"district_zones",{"select":"*","district_id":f"eq.{district_id}","order":"created_at.asc"})
         booths=await select(context["user"],"booths",{"select":"*","district_id":f"eq.{district_id}","order":"updated_at.desc"})
-        return {"data":{"district":district,"zones":zones,"booths":booths}}
+        booth_ids=[b.get("id") for b in booths if b.get("id")]
+        assets=[]
+        slots=[]
+        if booth_ids:
+            joined=",".join(str(x) for x in booth_ids)
+            assets=await select(context["user"],"booth_display_assets",{"select":"*","booth_id":f"in.({joined})","order":"sort_order.asc"})
+            slots=await select(context["user"],"booth_display_slots",{"select":"*","booth_id":f"in.({joined})","order":"slot_key.asc"})
+        zone_by_id={z.get("id"):z for z in zones}
+        booth_projection=[]
+        for b in booths:
+            scene=b.get("scene_config") or {}
+            zone=zone_by_id.get(b.get("district_zone_id")) or {}
+            zone_spatial=zone.get("spatial_config") or {}
+            position=scene.get("position") or (b.get("display_config") or {}).get("position") or zone_spatial.get("booth_anchor")
+            booth_projection.append({**b,"spatial_projection":{"position":position,"zone_id":b.get("district_zone_id"),"presentation_only":True},"asset_manifest":[a for a in assets if a.get("booth_id")==b.get("id")],"display_slots":[s for s in slots if s.get("booth_id")==b.get("id")]})
+        return {"data":{"district":district,"spatial_projection":{"spatial_config":district.get("spatial_config") or {},"presentation_only":True},"zones":zones,"booths":booth_projection}}
     except SupabaseRestError as e:
         raise err(e,"WORLD_RUNTIME_DISTRICT_LOAD_FAILED")
