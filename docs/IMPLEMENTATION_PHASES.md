@@ -380,6 +380,43 @@ Not GREEN:
 
 Next: Phase 23C — Human Approval + Collaboration Agreement.
 
+### PHASE 23C — Human Approval + Collaboration Agreement — IMPLEMENTED FOUNDATION
+
+Implemented on main and applied to AllphaDb-Universe.
+
+- Added declarative agent collaboration agreements linked one-to-one with the accepted collaboration request and negotiation.
+- Reuses existing Approval Request and Risk Assessment boundaries; no second approval/risk engine.
+- One Human approval request per distinct Agent owner; same Human owning both Agents requires one approval.
+- Agreement captures purpose, requested capabilities, declarative scope/constraints/terms, policy-version snapshots, enabled-capability snapshots, risk level and expiry.
+- Agreement never grants capability, permission or Agent Policy authority.
+- Risk assessment uses existing risk_assessments with action agent.collaboration.commit and execution_recheck_required=true.
+- Agreement mutations are authenticated RPC-only; browser has SELECT-only access under participant-scoped RLS.
+- Added agreement lifecycle: pending_approval → approved/rejected/expired/cancelled.
+- Added durable agreement events for creation, approval request, approval, rejection, expiry and cancellation.
+- Negotiation transitions to agreed when an agreement is created.
+- FastAPI /api/v1/agent-collaboration/agreements endpoints added for list/read/events/create/approve/reject/cancel.
+- PWA collaboration surface now exposes agreement proposal and Human approval controls.
+- No synthetic users, Agents, agreements, approvals, risk records or business data were seeded.
+
+Migration:
+- database/migrations/20261002062000_phase_23c_human_approval_collaboration_agreement.sql
+
+Tests:
+- database/tests/phase_23c_human_approval_collaboration_agreement_invariants.sql
+
+Architecture:
+- docs/architecture/PHASE_23C_HUMAN_APPROVAL_COLLABORATION_AGREEMENT_v1.0.md
+
+Not GREEN:
+- authenticated multi-user E2E
+- real Agent Runtime/provider execution
+- execution binding to Workflow/Mission
+- realtime/runtime verification
+- build/CI
+- production gates
+
+Next: Phase 23D — Execution.
+
 ### PHASE 24 — Marketplace & Commerce
 Items, products, services, catalogs, orders, transactions, payouts, commissions, refunds, ledger, buyer/seller lifecycle, Agent commerce and approval policies.
 
