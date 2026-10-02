@@ -1,3 +1,5 @@
-import SocialGraphDashboard from "../../components/social-graph-dashboard";
+import FeedSurface from "../../components/feed-surface";
 
-export default function Page() { return <SocialGraphDashboard initialTab="graph" />; }
+export default function Page() {
+  return <FeedSurface surface="following" />;
+}
