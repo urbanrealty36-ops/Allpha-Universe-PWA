@@ -46,3 +46,23 @@ export function useAgentSpatialStateRealtime(
     return subscribeToAgentSpatialState(worldId,agentId,onState);
   },[worldId,agentId,onState]);
 }
+
+
+export function subscribeToWorldSpatialStates(
+  worldId:string,
+  onState:(state:SpatialStateRow)=>void,
+  onRemove?:(state:Pick<SpatialStateRow,"id"|"agent_id">)=>void,
+):()=>void {
+  const supabase=createSupabaseBrowserClient();
+  let channel:RealtimeChannel|undefined;
+  let cancelled=false;
+  void (async()=>{
+    channel=supabase.channel(`spatial:world:${worldId}`)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"agent_spatial_states",filter:`world_id=eq.${worldId}`},payload=>onState(payload.new as SpatialStateRow))
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"agent_spatial_states",filter:`world_id=eq.${worldId}`},payload=>onState(payload.new as SpatialStateRow))
+      .on("postgres_changes",{event:"DELETE",schema:"public",table:"agent_spatial_states",filter:`world_id=eq.${worldId}`},payload=>{const old=payload.old as SpatialStateRow;onRemove?.({id:old.id,agent_id:old.agent_id});})
+      .subscribe();
+    if(cancelled && channel) await supabase.removeChannel(channel);
+  })();
+  return ()=>{cancelled=true;if(channel) void supabase.removeChannel(channel);};
+}
