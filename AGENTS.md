@@ -159,3 +159,16 @@ Implementation rules:
 - Spend events are server-recorded and checked against Agent action/daily/monthly budgets.
 - Phase 15 currently has a canonical built-in ai.generate tool backed by Phase 14 AI Gateway. No synthetic Agent/user/task records are seeded.
 - New tool executors must be server-side and must not provide arbitrary network, shell, database, secret or privileged access.
+
+
+## Phase 18 — Agent Simulation & Spatial Runtime governance
+- Spatial Runtime is a projection/execution boundary for spatial state; it never grants Agent authority.
+- Actual Agent actions remain governed by Phase 15 Agent Runtime, Agent Policy, capabilities, risk, approval, budget and kill switch.
+- Agent spatial state requires an active Phase 17 World and current Human ownership of the Agent.
+- Agent entry/update/exit synchronizes Phase 17 Agent Presence; Presence cannot modify Agent authority.
+- Human/Agent spatial interactions require both subjects to be active in the World and the initiator must be the authenticated Human or an Agent currently owned by that Human.
+- World simulation control is restricted to the authoritative World owner and only one live session may exist per World.
+- Simulation ticks are monotonic and must be produced by a real runtime caller; the platform must not fabricate ticks.
+- Realtime tables are telemetry/projection surfaces, never authorization bypasses.
+- No synthetic Agents, Worlds, spatial states, interactions, sessions, ticks or runtime events may be seeded.
+- Phase 18 is not final GREEN until authenticated E2E, Realtime runtime verification, build/CI and spatial simulation runtime verification pass.
