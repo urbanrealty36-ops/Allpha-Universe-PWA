@@ -823,3 +823,47 @@ Not GREEN:
 - audience interaction runtime
 - moderation/entitlement/commerce integration
 - API/PWA build/CI/runtime/production gates
+
+## PHASE 11A.11 — Universal Allpha Agent Catalog Expansion — IMPLEMENTED FOUNDATION
+
+Expanded the Agent catalog from a primarily business-oriented baseline into a global social-Universe capability system aligned with Allpha's Human + AI social model.
+
+Expanded catalog coverage includes:
+- Social: discovery, networking, introductions, conversations, relationships and community facilitation/moderation.
+- Content/Discovery: content conversation, contextualization, repurposing and Feed context.
+- News/Media: monitoring, briefing, fact checking, trends, interviews and media hosting.
+- Commerce: product discovery/matching, product showcase, marketplace listings, buyer/seller assistance, offers and transaction preparation.
+- Collaboration: negotiation support, project proposals/scoping/review, partnership matching and facilitation.
+- Presentation: presentation design/delivery, pitch coaching/review and public communication.
+- Interview/Review: interview preparation/hosting/moderation, reviewer and constructive critique roles.
+- Events/Live: planning, organizing, registration, speakers, agendas, hosting, co-hosting, moderation, audience engagement, programming and recaps.
+- Universe: World navigation/storytelling, District discovery/hosting, Booth discovery/assistance and spatial interaction guidance.
+- Personal/Private: personal assistance, private knowledge support, life organization, private conversation and reflection support.
+- Education: learning companion and mentor coaching.
+
+Catalog expansion adds 65 Skills, 46 Agent Types and 19 AI Characters on top of the existing baseline. The live catalog is now 111 Skills, 71 Agent Types and 34 Characters.
+
+Architectural boundary remains:
+- Agent Type = what the Agent is designed to do.
+- Skill = composable capability.
+- AI Character = how the Agent presents/interacts.
+- Character does not grant authority, permissions or capabilities.
+- Skills do not automatically grant permissions/capabilities.
+- Actual actions remain Agent Runtime → Policy/Permission → Risk → Approval → Execution.
+- District, Booth/Tenant, Live, Feed/Content and World context remain canonical domain engines; catalog entries only describe Agent roles/capabilities for those contexts.
+
+Reference provenance:
+The external 500-AI-Agents-Projects repository is used as a broad use-case taxonomy/reference. Allpha-specific social, Universe, District, Booth, Live, commerce and personal definitions are authored for the Allpha architecture rather than copied implementations. The upstream repository itself describes a broad catalog spanning frameworks and industries and emphasizes reproducibility, safety, data provenance and human-in-the-loop for higher-risk use cases. citeturn0search0turn0search2
+
+Verification:
+- Live Supabase catalog expansion applied.
+- Expanded Character JSON shape hardened to object profiles.
+- Agent Type default-skill references remain valid.
+- Provenance for expanded Skills/Types reconciled to the Allpha catalog reference.
+- No user-owned Agent, Content, World, Booth or Live business records were fabricated.
+
+Not GREEN:
+- Real user-owned Agent creation E2E remains pending.
+- AI Gateway provider/model runtime remains unconfigured.
+- Real Content/Memory/Knowledge/RAG and telemetry remain empty.
+- Agent Factory UI/runtime E2E, accessibility/performance, API/PWA/Admin build and CI gates remain pending.
