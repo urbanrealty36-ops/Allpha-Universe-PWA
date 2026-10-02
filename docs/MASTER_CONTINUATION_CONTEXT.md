@@ -1147,3 +1147,40 @@ Live AllphaDb-Universe:
 This implementation activates the Phase 22 template/presentation catalog only. It does not claim full camera transport, TTS, realtime AI conversation, Character rendering, stream-provider integration, audience runtime or full Live Session activation. Those remain dependent on the existing Live foundation and Agent Runtime/AI Gateway/Realtime/moderation gates.
 
 Phase 22 remains not final GREEN.
+
+## 2026-10-02 — World Engine Asset & Spatial Foundation Increment
+
+Status: IMPLEMENTED FOUNDATION / NOT GREEN.
+
+Implemented:
+- Reused canonical theme_assets, booth_display_assets, and booth_display_slots; no parallel asset registry.
+- Verified live Supabase Storage bucket allpha-world-assets exists and is private.
+- Added read-only FastAPI asset manifest: GET /api/v1/themes/world-runtime/themes/{theme_id}/asset-manifest.
+- Asset manifest exposes authoritative storage paths and moderation/safety/performance metadata; no fabricated URL and no frontend service-role access.
+- Extended District composition API with Zone/Booth spatial projection plus Booth asset and display-slot manifests.
+- Booth position resolution: scene_config.position → display_config.position → Zone spatial_config.booth_anchor.
+- PWA World Preview now consumes the authoritative spatial projection.
+- Added database invariants for asset paths and spatial JSON contracts.
+
+Live verification:
+- theme_assets = 0
+- booth_display_assets = 0
+- booth_display_slots = 0
+- districts = 0
+- district_zones = 0
+- booths = 0
+- asset/spatial invariants passed.
+- No synthetic records created.
+
+Still not complete:
+- actual authenticated asset upload/signing lifecycle
+- real District/Zone/Booth records
+- Phase 18 realtime spatial runtime
+- full RAG/vector/rerank runtime
+- Phase 23 cross-Agent execution E2E
+- Phase 22 Live/Character runtime
+- device performance/accessibility
+- authenticated E2E and final Green gates.
+
+Next integration target:
+Phase 18 Spatial Runtime adapter using existing agent_spatial_states + Realtime, with bounded position persistence and spatial context feeding the existing Agent Context/RAG path. No new spatial authorization engine.
