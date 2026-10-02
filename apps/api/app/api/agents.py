@@ -121,6 +121,48 @@ async def list_my_agents(context: dict = Depends(get_auth_context)) -> dict[str,
 @router.post("", status_code=201)
 async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     user: AuthenticatedUser = context["user"]
+
+    type_rows = await select(user, "agent_type_catalog", {
+        "select": "type_key,default_skill_keys",
+        "type_key": f"eq.{payload.agent_type_key}",
+        "enabled": "eq.true",
+        "limit": "1",
+    }) if payload.agent_type_key else []
+    if payload.agent_type_key and not type_rows:
+        raise HTTPException(status_code=422, detail={"code": "AGENT_TYPE_INVALID", "message": "The selected Agent Type is not available."})
+
+    character_rows = await select(user, "agent_character_catalog", {
+        "select": "character_key,persona_defaults,tone_defaults",
+        "character_key": f"eq.{payload.character_key}",
+        "enabled": "eq.true",
+        "limit": "1",
+    }) if payload.character_key else []
+    if payload.character_key and not character_rows:
+        raise HTTPException(status_code=422, detail={"code": "AGENT_CHARACTER_INVALID", "message": "The selected AI Character is not available."})
+
+    selected_skills = list(dict.fromkeys(payload.skill_keys))
+    if type_rows:
+        selected_skills = list(dict.fromkeys(selected_skills + list(type_rows[0].get("default_skill_keys") or [])))
+
+    skill_rows = []
+    if selected_skills:
+        skill_rows = await select(user, "agent_skill_catalog", {
+            "select": "skill_key,name,description",
+            "skill_key": f"in.({','.join(selected_skills)})",
+            "enabled": "eq.true",
+        })
+        available_skill_keys = {skill["skill_key"] for skill in skill_rows}
+        missing_skill_keys = [key for key in selected_skills if key not in available_skill_keys]
+        if missing_skill_keys:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "code": "AGENT_SKILL_INVALID",
+                    "message": "One or more selected Agent Skills are not available.",
+                    "skill_keys": missing_skill_keys,
+                },
+            )
+
     try:
         result = await rpc(user, "create_agent_identity", {
             "p_name": payload.name, "p_handle": payload.handle, "p_description": payload.description,
@@ -134,53 +176,31 @@ async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_
     except SupabaseRestError as exc:
         raise HTTPException(status_code=exc.status_code if 400 <= exc.status_code < 500 else 502, detail={"code": "AGENT_CREATE_FAILED", "message": exc.message}) from exc
     agent_id = UUID(result["agent_id"])
-    if payload.agent_type_key or payload.character_key or payload.skill_keys:
-        type_rows = await select(user, "agent_type_catalog", {
-            "select": "type_key,default_skill_keys",
-            "type_key": f"eq.{payload.agent_type_key}" if payload.agent_type_key else "is.null",
-            "enabled": "eq.true",
-            "limit": "1",
-        }) if payload.agent_type_key else []
-        character_rows = await select(user, "agent_character_catalog", {
-            "select": "character_key,persona_defaults,tone_defaults",
-            "character_key": f"eq.{payload.character_key}" if payload.character_key else "is.null",
-            "enabled": "eq.true",
-            "limit": "1",
-        }) if payload.character_key else []
 
-        selected_skills = list(dict.fromkeys(payload.skill_keys))
-        if type_rows:
-            selected_skills = list(dict.fromkeys(selected_skills + list(type_rows[0].get("default_skill_keys") or [])))
-        if selected_skills:
-            skill_rows = await select(user, "agent_skill_catalog", {
-                "select": "skill_key,name,description",
-                "skill_key": f"in.({','.join(selected_skills)})",
-                "enabled": "eq.true",
-            })
-            for skill in skill_rows:
-                await insert(user, "agent_skills", {
-                    "agent_id": str(agent_id),
-                    "name": skill["name"],
-                    "description": skill.get("description"),
-                    "version": "1.0.0",
-                    "configuration": {
-                        "catalog_key": skill["skill_key"],
-                        "source": "platform_catalog",
-                    },
-                })
+    for skill in skill_rows:
+        await insert(user, "agent_skills", {
+            "agent_id": str(agent_id),
+            "name": skill["name"],
+            "description": skill.get("description"),
+            "version": "1.0.0",
+            "configuration": {
+                "catalog_key": skill["skill_key"],
+                "source": "platform_catalog",
+            },
+        })
 
-        if character_rows:
-            character = character_rows[0]
-            current_persona = await select(user, "agent_personas", {"select": "persona,tone", "agent_id": f"eq.{agent_id}", "limit": "1"})
-            persona = dict(character.get("persona_defaults") or {})
-            persona.update(payload.persona)
-            tone = dict(character.get("tone_defaults") or {})
-            tone.update(payload.tone)
-            values = {"persona": persona, "tone": tone}
-            if current_persona:
-                await update(user, "agent_personas", {"agent_id": f"eq.{agent_id}"}, values)
-            else:
-                await insert(user, "agent_personas", {"agent_id": str(agent_id), **values})
+    if character_rows:
+        character = character_rows[0]
+        current_persona = await select(user, "agent_personas", {"select": "persona,tone", "agent_id": f"eq.{agent_id}", "limit": "1"})
+        persona = dict(character.get("persona_defaults") or {})
+        persona.update(payload.persona)
+        tone = dict(character.get("tone_defaults") or {})
+        tone.update(payload.tone)
+        values = {"persona": persona, "tone": tone}
+        if current_persona:
+            await update(user, "agent_personas", {"agent_id": f"eq.{agent_id}"}, values)
+        else:
+            await insert(user, "agent_personas", {"agent_id": str(agent_id), **values})
 
     return await _agent_bundle(user, agent_id, context)
 
