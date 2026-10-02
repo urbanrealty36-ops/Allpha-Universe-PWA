@@ -1,0 +1,3 @@
+-- Phase 14 final database hardening.
+-- Added AI gateway FK indexes, RLS auth.uid init-plan hardening,
+-- and pinned search_path='' on the four SECURITY DEFINER gateway RPCs.
