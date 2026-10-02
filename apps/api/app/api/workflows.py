@@ -136,6 +136,13 @@ async def prepare_run(run_id: UUID, context: dict = Depends(get_auth_context)) -
     try: return await rpc(context["user"],"prepare_workflow_run",{"p_workflow_run_id":str(run_id)})
     except SupabaseRestError as exc: raise _error(exc,"WORKFLOW_RUN_PREPARE_FAILED") from exc
 
+@router.post("/runs/{run_id}/cancel")
+async def cancel_run(run_id: UUID, payload: dict[str, str | None] | None = None, context: dict = Depends(get_auth_context)) -> Any:
+    try:
+        return {"data": await rpc(context["user"], "cancel_workflow_run", {"p_workflow_run_id": str(run_id), "p_reason": (payload or {}).get("reason")})}
+    except SupabaseRestError as exc:
+        raise _error(exc, "WORKFLOW_RUN_CANCEL_FAILED") from exc
+
 @router.post("/runs/{run_id}/execute")
 async def execute_run(run_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
     user=context["user"]
@@ -197,6 +204,13 @@ async def mission_participants(mission_id:UUID,context:dict=Depends(get_auth_con
 async def start_mission(mission_id:UUID,payload:MissionRunCreate,context:dict=Depends(get_auth_context))->Any:
     try:return await rpc(context["user"],"start_mission_run",{"p_mission_id":str(mission_id),"p_participant_id":str(payload.participant_id),"p_agent_id":str(payload.agent_id),"p_input":payload.input})
     except SupabaseRestError as exc:raise _error(exc,"MISSION_RUN_START_FAILED") from exc
+
+@router.post("/missions/runs/{mission_run_id}/cancel")
+async def cancel_mission_run(mission_run_id: UUID, payload: dict[str, str | None] | None = None, context: dict = Depends(get_auth_context)) -> Any:
+    try:
+        return {"data": await rpc(context["user"], "cancel_mission_run", {"p_mission_run_id": str(mission_run_id), "p_reason": (payload or {}).get("reason")})}
+    except SupabaseRestError as exc:
+        raise _error(exc, "MISSION_RUN_CANCEL_FAILED") from exc
 
 @router.post("/missions/runs/{mission_run_id}/execute")
 async def execute_mission(mission_run_id:UUID,context:dict=Depends(get_auth_context))->Any:
