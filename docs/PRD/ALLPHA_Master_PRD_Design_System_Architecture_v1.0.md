@@ -5581,3 +5581,68 @@ Implemented:
 No users, Agents, content, media, topics, moderation cases or AI Capsules were seeded.
 
 Final authenticated E2E, actual binary Storage upload verification, final moderation decision flow and AI Gateway execution remain separate runtime dependencies.
+
+
+------------------------------------------------------------------------
+
+# 191. PHASE 11 — FEED, REELS & DISCOVERY IMPLEMENTATION AMENDMENT
+
+Phase 11 establishes Feed, Reels and Discovery as an authoritative application domain over the Phase 09 Social Graph, Phase 08 Personalization Intelligence and Phase 10 Content Platform.
+
+## 191.1 Surfaces
+
+- Home Feed
+- Following Feed
+- For You
+- Reels
+- Explore
+- Live Now
+- Agent Feed
+- Knowledge Feed
+- World Stream
+- Context Feed
+
+## 191.2 Ranking contract
+
+Candidate generation is restricted to authoritative published Content. Ranking may consume:
+
+- Social Graph relationship state
+- Interest affinity and authoritative topic/interest matches
+- Content engagement telemetry
+- Freshness
+- Feed exposure and novelty
+- Creator diversity
+- Explicit negative feedback
+
+The Phase 11 implementation uses a deterministic server-side ranking contract. A later Recommendation/Evaluation Engine may replace or augment the scoring implementation without changing the API/UI boundary.
+
+## 191.3 Reels
+
+Reels is an immersive feed surface constrained to published video content. Watch start/progress/complete, replay, pause and skip are first-class interaction signals. No media URL may be fabricated; authorized Storage/media delivery remains a runtime dependency.
+
+## 191.4 Negative feedback
+
+Supported recommendation controls:
+
+- Not interested
+- Mute creator
+- Hide topic
+- Report
+
+These controls are persisted as user-scoped authoritative state and server-side candidate suppression.
+
+## 191.5 Telemetry
+
+Feed impressions are server-generated. Interaction events capture real user behavior. Telemetry informs recommendation but never grants authority or access.
+
+## 191.6 Security boundary
+
+Feed reads and mutations cross FastAPI and authenticated PostgreSQL RPC boundaries. Feed telemetry/feedback tables use RLS. Anonymous RPC execution is revoked. Frontend filtering is not an authorization mechanism.
+
+## 191.7 Data integrity
+
+Phase 11 does not seed creators, posts, recommendations, impressions, interactions, trends or feedback. Empty feed results are a legitimate product state while upstream Content/Social/Personalization data is absent.
+
+## 191.8 Dependency boundaries
+
+Live Now depends on the Live Engine. World Stream depends on Universe/Realtime. Context Feed depends on authoritative Context signals. AI-driven ranking remains compatible with the later AI Gateway/Model Router and Recommendation Evaluation phases.
