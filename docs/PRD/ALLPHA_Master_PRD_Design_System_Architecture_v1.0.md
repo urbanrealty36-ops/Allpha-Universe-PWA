@@ -5858,6 +5858,86 @@ World spatial configuration is presentation configuration. It prepares the platf
 All Phase 17 domain tables use RLS. Browser mutation is prohibited. SECURITY DEFINER RPCs pin empty search_path and validate ownership/upstream object state server-side.
 
 ## 193.7 Implementation State
-Repository foundation is implemented: database migration, invariant tests, FastAPI API and User PWA /universe surface.
+Repository and live database foundation are implemented. Migration 20261002014924_phase_17_ai_universe is applied to AllphaDb-Universe and the Phase 17 invariant suite passes 32/32 live. FastAPI /api/v1/universe and User PWA /universe are implemented. No business seed data exists.
 
-The Supabase connector currently cannot execute migration/SQL operations because no eligible linked account is available in the connector session. Therefore Phase 17 remains NOT GREEN until database application, live invariant tests, authenticated E2E and runtime/spatial verification are completed.
+Phase 17 remains not final GREEN until authenticated Galaxy/World E2E, Agent ownership/presence E2E, portal/visibility E2E, realtime/spatial runtime verification and CI/build verification pass.
+
+# 194. PHASE 18 — AGENT SIMULATION & SPATIAL RUNTIME
+
+Phase 18 establishes the authoritative spatial simulation boundary above the Phase 17 Universe graph.
+
+## 194.1 Canonical Runtime
+
+Human authority
+↓
+Phase 15 Agent Runtime / Policy / Capability / Risk / Approval / Budget / Kill Switch
+↓
+Phase 17 World + Agent Membership
+↓
+Phase 18 Spatial Runtime
+↓
+Spatial State / Movement / Presence / Interaction / Simulation
+↓
+Realtime Projection
+
+Phase 18 never grants Agent authority and never becomes a parallel autonomous Agent executor.
+
+## 194.2 Spatial State
+
+Each World/Agent pair may have an authoritative spatial state containing:
+- 3D-compatible position
+- rotation
+- zone
+- target position
+- speed
+- movement state
+- metadata
+
+Movement states:
+idle, moving, exploring, interacting, collaborating, shopping, negotiating, awaiting_approval, sleeping.
+
+## 194.3 Spatial Interactions
+
+Human and Agent subjects may interact inside a World using:
+- proximity
+- conversation
+- collaboration
+- shopping
+- negotiation
+- handoff
+- custom
+
+Both subjects must be authoritative World participants and Agent subjects remain ownership-bound to the Human owner.
+
+## 194.4 World Simulation
+
+A World can have one active simulation session. Lifecycle:
+starting → running → paused → stopped / failed.
+
+Simulation ticks are monotonic. A tick is accepted only when it equals the session's current tick plus one. The platform never fabricates tick records.
+
+## 194.5 Runtime Events and Realtime
+
+Spatial runtime events capture Agent entry/exit, movement/state changes, interactions and simulation lifecycle/ticks.
+
+Realtime publication covers spatial states, interactions, simulation sessions and runtime events. Realtime is a projection/transport layer and never bypasses RLS or API authorization.
+
+## 194.6 Security
+
+Phase 18 has five RLS-protected tables. Direct browser writes are revoked. Mutation RPCs are authenticated SECURITY DEFINER with pinned empty search_path. World ownership, Agent ownership and World membership are checked server-side.
+
+## 194.7 Implementation State
+
+Implemented on main:
+- Phase 18 migration and spatial-owner hardening migration
+- 5 database tables
+- 10 mutation RPCs
+- Realtime publication
+- FastAPI /api/v1/spatial-runtime
+- User PWA /agent-simulation
+- architecture and schema contract
+- 44 live invariant assertions
+
+No synthetic Agent, World, spatial state, interaction, session, tick or runtime event data is seeded.
+
+Final GREEN remains gated by authenticated Agent/World E2E, interaction authorization, simulation lifecycle/tick runtime, Realtime subscription verification, API/PWA build, CI and runtime verification.
