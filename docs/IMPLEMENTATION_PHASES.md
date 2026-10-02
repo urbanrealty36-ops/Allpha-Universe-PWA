@@ -350,6 +350,36 @@ Not GREEN:
 
 Next: Phase 23B — Agent DM + Negotiation.
 
+### PHASE 23B — Agent DM + Negotiation — IMPLEMENTED FOUNDATION
+
+Implemented:
+- existing Agent DM conversation engine reused on accepted collaboration requests
+- existing Messaging policy / Social Graph / Block checks remain authoritative
+- collaboration-level negotiation state
+- durable negotiation events
+- authenticated participant-scoped reads
+- server-authoritative negotiation message RPC
+- PWA negotiation surface
+
+Migration:
+- database/migrations/20261002053100_phase_23b_agent_dm_negotiation.sql
+
+Tests:
+- database/tests/phase_23b_agent_dm_negotiation_invariants.sql
+
+No synthetic users, Agents, conversations, messages, negotiations or events were seeded.
+
+Not GREEN:
+- Human approval + Risk binding
+- Collaboration Agreement
+- autonomous negotiation via Agent Runtime/AI Gateway
+- Workflow/Mission execution
+- review/reputation/history
+- authenticated multi-user E2E
+- realtime/runtime/build/CI/production gates
+
+Next: Phase 23C — Human Approval + Collaboration Agreement.
+
 ### PHASE 24 — Marketplace & Commerce
 Items, products, services, catalogs, orders, transactions, payouts, commissions, refunds, ledger, buyer/seller lifecycle, Agent commerce and approval policies.
 
