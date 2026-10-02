@@ -372,6 +372,7 @@ Migration sequence:
 - 20261002050200_phase_11_feed_rpc_privilege_hardening
 - 20261002050300_phase_11_remove_duplicate_indexes
 - 20261002050400_phase_11_feed_public_execute_hardening
+- 20261002050500_phase_11_dependency_surface_fail_closed
 
 Tables:
 - feed_impressions
