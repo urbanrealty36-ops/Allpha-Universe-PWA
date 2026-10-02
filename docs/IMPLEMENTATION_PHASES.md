@@ -399,8 +399,8 @@ Implemented on main and applied to AllphaDb-Universe.
 - No synthetic users, Agents, agreements, approvals, risk records or business data were seeded.
 
 Migration:
-- database/migrations/20261002062000_phase_23c_human_approval_collaboration_agreement.sql
-- database/migrations/20261002062330_phase_23c_human_approval_collaboration_agreement_fk_indexes.sql
+- database/migrations/20261002062253_phase_23c_human_approval_collaboration_agreement.sql
+- database/migrations/20261002062516_phase_23c_human_approval_collaboration_agreement_fk_indexes.sql
 
 Tests:
 - database/tests/phase_23c_human_approval_collaboration_agreement_invariants.sql
