@@ -102,3 +102,65 @@ The Supabase security advisor still reports existing global findings, including 
 
 ## Status
 World Engine foundation is implemented incrementally. It is not GREEN and does not replace final Phases 29–35 runtime/QA/production gates.
+
+## AI Context / Memory / RAG integration
+
+The World Engine is not an isolated renderer. Agent intelligence is composed through existing canonical engines:
+
+Spatial Runtime → Spatial Context → existing Agent Memory / Knowledge retrieval → Context Budget → AI Gateway / Model Router → Agent Runtime → Workflow / Mission → Policy / Risk / Approval → execution
+
+Existing Supabase foundations verified live:
+- agent_memory
+- agent_memory_embeddings
+- knowledge_items
+- knowledge_chunks
+- retrieve_agent_memory(...)
+- retrieve_agent_knowledge(...)
+- ai_gateway_requests
+- ai_gateway_attempts
+- agent_execution_contexts
+- workflows / workflow_versions / workflow_runs
+- missions / mission_runs
+- agent_spatial_states
+
+New integration layer:
+- apps/api/app/core/agent_context.py
+- apps/api/app/api/agent_context.py
+- GET /api/v1/agent-context/{agent_id}
+
+This is a bounded context assembler, not a second Memory, RAG, Agent Runtime or Orchestration engine. It reads authorized state through existing RLS and keeps deterministic context first.
+
+### Spatial Context RAG
+
+When a valid World/District context exists, the context envelope can contain:
+- current spatial state
+- bounded Agent memory
+- bounded Knowledge
+- approved collaboration agreements
+- Live collaboration state
+
+Vector retrieval remains the existing retrieve_agent_memory / retrieve_agent_knowledge path. Vector similarity never grants authorization.
+
+### LLM usage policy
+
+The integration follows the source architecture:
+1. deterministic logic
+2. SQL / cache / search / vector retrieval
+3. small model where sufficient
+4. large model only when required
+
+The context assembler itself performs no unnecessary LLM call.
+
+The AI Gateway remains the only model boundary and retains usage telemetry, model routing, budget, retry/fallback, idempotency and safety responsibilities.
+
+### Learning
+
+The source Master PRD defines the learning loop as:
+
+Content → Interaction → Behavior Signal → Content Understanding → Interest Affinity → Passion Cluster → Habit Pattern → Goal/Context Signal → Recommendation → New Interaction.
+
+Spatial context can become one contextual signal, but it must not be treated as a standalone learning fact. Learning must use multiple signals and retain provenance.
+
+### Orchestration
+
+Phase 16 Workflow/Mission and Phase 15 Agent Runtime remain canonical. Spatial encounter, collaboration, Live and Character flows feed context into these engines; they do not create alternative orchestration/execution paths.
