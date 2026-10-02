@@ -60,6 +60,7 @@ export default function UniverseThemeNavigator() {
   const [mode, setMode] = useState<Mode>("2d");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [assetCount, setAssetCount] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +84,22 @@ export default function UniverseThemeNavigator() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadManifest() {
+      if (!selected?.id) return;
+      setAssetCount(null);
+      try {
+        const result = await apiFetch<{ data?: { assets?: unknown[] } }>(`/api/v1/themes/world-runtime/themes/${selected.id}/asset-manifest`);
+        if (!cancelled) setAssetCount(Array.isArray(result.data?.assets) ? result.data.assets.length : 0);
+      } catch {
+        if (!cancelled) setAssetCount(null);
+      }
+    }
+    void loadManifest();
+    return () => { cancelled = true; };
+  }, [selected?.id]);
 
   const selectedIndex = selected?.catalog_order ?? 1;
   const progress = themes.length ? `${themes.length} platform themes` : "No published platform themes";
@@ -174,6 +191,7 @@ export default function UniverseThemeNavigator() {
                   <Stat label="Characters" value={String(selected.world_schema?.characters?.length ?? 0)} />
                   <Stat label="Interactions" value={String(selected.world_schema?.interaction_points?.length ?? 0)} />
                   <Stat label="Renderer" value={selected.world_schema?.renderer ?? "—"} />
+                  <Stat label="Binary assets" value={assetCount === null ? "—" : String(assetCount)} />
                 </div>
                 <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Runtime contract</p>
