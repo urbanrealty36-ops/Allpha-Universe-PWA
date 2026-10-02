@@ -97,6 +97,38 @@ Remaining 11A.4 gates:
 - CI/build verification
 - production Green
 
+### PHASE 11A.5 — Ask the Content — IMPLEMENTED FOUNDATION
+
+Implemented the canonical Ask the Content orchestration boundary over existing Content, permission/RLS, Agent Memory, Agent Knowledge, pgvector retrieval RPCs, AI Gateway and Agent Runtime.
+
+Flow:
+- Authenticated user requests an answer for a published Content item.
+- Content context is loaded through the authenticated Supabase REST boundary; unavailable/private Content is rejected by the existing permission boundary rather than copied around it.
+- Content topic and media metadata are included only when accessible to the authenticated user.
+- Optional Agent Memory/Knowledge retrieval uses the existing owner-scoped `retrieve_agent_memory` and `retrieve_agent_knowledge` RPCs.
+- Vector RAG requires a real query embedding. The system never fabricates an embedding; when one is absent, private vector retrieval reports `embedding_required` and the answer continues using authorized Content Context.
+- Generation delegates exclusively to the existing Phase 14 AI Gateway.
+- Action requests are represented as an explicit Agent Runtime handoff contract. Ask the Content never executes Agent actions directly.
+- UI Ask interaction is recorded through existing Feed interaction telemetry.
+
+Implementation:
+- `apps/api/app/services/ask_content.py`
+- `apps/api/app/api/ask_content.py`
+- `POST /api/v1/discovery/content/{content_id}/ask`
+- mounted through `apps/api/app/main.py`
+- PWA Ask panel in `apps/web/components/discovery-surface.tsx`
+
+No new database tables or duplicate AI/RAG/Agent engines were introduced.
+
+Remaining 11A.5 gates:
+- authenticated runtime E2E with real Content
+- real query-embedding provider path for vector RAG
+- real Agent Memory/Knowledge data validation
+- configured AI Gateway provider/model validation
+- Agent Runtime action handoff E2E
+- accessibility/performance and CI/build verification
+- production Green
+
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
