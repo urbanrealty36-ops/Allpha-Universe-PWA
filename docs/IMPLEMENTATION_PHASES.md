@@ -115,6 +115,40 @@ Personal/Creator/Agent/Business Booths, Store, Office, Studio, Community Space, 
 ### PHASE 21 — Theme & World Builder
 Templates, versions, assets, world templates, builder state, publishing lifecycle, moderation, performance validation, asset safety and immutable governance/security boundaries.
 
+### PHASE 21 — Theme & World Builder — IMPLEMENTED FOUNDATION
+Implemented on main and applied to AllphaDb-Universe.
+
+### Database
+Migration: `phase_21_theme_world_builder` (live migration version `20261002033548`).
+Tables: themes, theme_versions, theme_assets, world_templates, world_template_versions, world_builder_states.
+
+### API/UI
+FastAPI: `apps/api/app/api/themes.py`, `apps/api/app/api/world_builder.py`.
+PWA: `/theme-builder` and `/world-builder`.
+Generic 503 Theme/Builder stubs were removed from the fallback domain router.
+
+### Security / governance
+- RLS enabled and forced on all Phase 21 tables.
+- Mutation path is FastAPI → authenticated Supabase RPC.
+- Mutation RPCs are SECURITY DEFINER with pinned empty search_path and authenticated EXECUTE only.
+- Theme tokens are restricted to `theme.*` namespaces.
+- Protected authority namespaces cannot be supplied as Theme tokens.
+- Builder scene schema rejects top-level `code` and `script`.
+- No Storage objects, URLs, Themes, Templates or Builder States are fabricated.
+
+### Verification
+- Live migration present.
+- 6 Phase 21 tables present with RLS.
+- 11 Phase 21 mutation/validation RPCs present; all SECURITY DEFINER + empty search_path.
+- Business rows remain empty by design.
+- Phase 21 invariant SQL is committed at `database/tests/phase_21_theme_world_builder_invariants.sql`.
+
+### Not GREEN / remaining gates
+Authenticated multi-user E2E, moderation decision runtime, real Storage asset validation, performance/accessibility runtime validation, builder/template publication runtime, API/PWA build, CI, Realtime where applicable, and final production Green gates remain pending.
+
+### Next
+PHASE 22 — Events & Experiences / Live Stories & Streaming.
+
 ### PHASE 22 — Events & Experiences
 Webinars, AMA, live discussions, networking, conferences, hackathons, competitions, business matching, community events, festivals, launches, workshops, concerts and registration/ticketing contracts.
 
