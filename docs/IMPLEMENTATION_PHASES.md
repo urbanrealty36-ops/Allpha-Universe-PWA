@@ -897,3 +897,39 @@ Persistence/security:
 - No synthetic Agent or business records are created by the Factory.
 
 Runtime status remains FOUNDATION until an authenticated user actually creates a real Agent and the resulting Agent → Content/Universe/Live → AI Gateway → Agent Runtime paths are exercised. API/PWA/Admin CI and browser accessibility/performance gates also remain pending.
+
+
+### PHASE 11A.13 — Real Agent Activation E2E — IMPLEMENTED FOUNDATION
+
+Activated the previously disabled Agent Runtime command boundary.
+
+Canonical runtime path:
+**Authenticated User → Create real Agent → Agent Passport/Policy → Agent Catalog → Universe Context → Content/Feed → Agent Intelligence → OpenAI AI Gateway → Agent Runtime → Telemetry**
+
+Implementation:
+- POST /api/v1/agents remains the canonical authenticated Agent Factory creation boundary.
+- Factory configuration persists Type, Character, experience mode and Universe Context in Agent identity metadata.
+- Agent creation provisions the canonical Agent Passport, owner Policy and Budget through create_agent_identity.
+- Catalog Skills are validated against enabled platform catalog records; catalog metadata does not grant authority.
+- Content context in Agent Factory now requires a real published Content resource and loads it from /api/v1/content?status=published.
+- POST /api/v1/agents/{agent_id}/command is now activated and delegates to the existing Agent Runtime:
+  1. create_command
+  2. plan_command
+  3. execute_command
+- Agent Runtime remains the only action boundary; Policy/Risk/Approval checks remain server-side.
+- AI execution remains exclusively through the existing AI Gateway. The browser never calls OpenAI directly.
+- Agent Detail now exposes a real Agent Runtime Command Console for authenticated owner testing.
+- Runtime telemetry is preserved through authoritative agent_commands, agent_task_steps, ai_gateway_requests and ai_gateway_attempts; no second telemetry engine was introduced.
+
+Security/authority invariants:
+- Only the authenticated owner can load/use the Agent.
+- Invalid/empty commands fail closed.
+- AI provider credentials remain server environment configuration; they are never stored in browser code or Agent metadata.
+- No synthetic Agent, Content, World, Live session or telemetry event was created.
+
+Runtime blockers still required before GREEN:
+- A real authenticated browser session must create/use an actual owned Agent.
+- Live Content/Feed data is still empty in the current database, so Content → Discovery → Agent Intelligence cannot yet be runtime-proven.
+- OpenAI provider/model configuration is still not enabled in Supabase and the FastAPI deployment must have the server-side OpenAI key bound to the configured credential environment variable.
+- Real Agent Memory/Knowledge embedding path remains optional for the first non-RAG activation and required for full RAG verification.
+- GitHub CI/build/runtime E2E must pass before production GREEN.
