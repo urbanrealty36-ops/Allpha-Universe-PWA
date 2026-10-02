@@ -73,9 +73,11 @@ export default function AgentCollaborationSurface(){
   if(!agreementNegotiationId||!agreementPurpose.trim())return;
   try{
    setBusy(true);setError(null);
+   const negotiation=negotiations.find(n=>n.id===agreementNegotiationId);
+   const requestRow=negotiation?requests.find(r=>r.id===negotiation.collaboration_request_id):undefined;
    await apiFetch("/api/v1/agent-collaboration/agreements",{method:"POST",body:JSON.stringify({
     negotiation_id:agreementNegotiationId,purpose:agreementPurpose.trim(),
-    requested_capabilities:[],agreed_scope:parseObject(scopeText,"Scope"),
+    requested_capabilities:requestRow?.requested_capabilities||[],agreed_scope:parseObject(scopeText,"Scope"),
     constraints:parseObject(constraintsText,"Constraints"),terms:parseObject(termsText,"Terms")
    })});
    setAgreementPurpose("");setAgreementNegotiationId("");await load();
