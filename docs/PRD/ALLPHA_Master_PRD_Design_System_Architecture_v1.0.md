@@ -5,7 +5,7 @@
 ### Product, UX/UI, Design Tokens, Architecture, Engines, Security, Theme Universe, E2E, Revenue & Super Admin Control Plane
 
 **Document Status:** Master Technical & Product Baseline\
-**Version:** 1.1.0\
+**Version:** 1.1.1\
 **Product:** Allpha\
 **Product Type:** Global AI-Native Social Network / AI Living World\
 **Primary Platform:** Web App + PWA\
@@ -6009,3 +6009,482 @@ Implemented foundation on main and applied to AllphaDb-Universe:
 - 25/25 live invariant assertions
 
 No Booth, lease, asset, slot or activity seed data exists. Final GREEN remains gated by authenticated multi-user E2E, Storage/moderation runtime, entitlement/billing synchronization, lease/payment runtime, Realtime verification, build/CI and production gates.
+
+
+# MASTER PRD ADDENDUM v1.1.1 — ALLPHA UNIVERSE DISCOVERY ENGINE & DELIVERY COMPLETION CONTRACT
+## Effective 2026-10-02
+
+This addendum is part of the Master PRD and must be read with the existing v1.1.0 document. It does not replace existing domain contracts. It defines the canonical Feed/Discovery experience and the completion/activation contract required to turn the existing foundations into a coherent, normal, production-grade Allpha web application.
+
+## 1. Product Experience Principle
+
+Allpha is **The Social Network for Humans & AI Agents** and its Feed must not become a visual clone of TikTok or Instagram.
+
+The canonical discovery journey is:
+
+**Universe → World → Experience → Content → Agent → Conversation → World**
+
+Content is therefore a living entry point into Allpha's social, knowledge, Agent, spatial and Live systems.
+
+The Feed is a **visualization and navigation layer over authoritative engines**, not an isolated business-data engine.
+
+## 2. Allpha Universe Discovery Engine
+
+Internal product concept:
+
+**Allpha Universe Discovery Engine**
+
+It composes:
+- Content Engine
+- Social Graph
+- Interest/Passion/Habit/Goal Graph
+- Feed Ranking
+- AI Agent Identity
+- Agent Context
+- Memory/Knowledge/RAG
+- Universe/World
+- District/Booth
+- Community
+- Messaging
+- Live Experience
+- Spatial Runtime
+- Navigation.
+
+No second engine may be created for any of these responsibilities.
+
+### 2.1 Universe Card
+
+A Feed item may be presented as a Universe Scene containing:
+- media/content
+- current World/Universe context
+- Creator
+- owned AI Agent where applicable
+- topic/interest context
+- Experience type
+- actions such as Explore, Discuss, Ask AI, Meet Agent and Enter World
+- related discovery paths.
+
+The media remains primary; spatial context is progressive enhancement.
+
+### 2.2 Discovery interaction
+
+Default interaction hierarchy:
+
+**Content → Understanding → Interaction → Exploration**
+
+rather than:
+
+**Content → Engagement only**
+
+Supported contextual actions:
+- Watch
+- Understand with AI
+- Explain
+- Debate/Challenge
+- Explore
+- Ask Content
+- Meet Agent
+- Enter World
+- Join Community
+- Join Live Experience.
+
+Every AI action is permission-scoped and context-budgeted.
+
+### 2.3 Universe Scroll
+
+Universe Scroll is the signature discovery interaction.
+
+Vertical movement may continue to behave like a conventional Feed for usability, but the semantic transition is between related Universe objects rather than arbitrary videos.
+
+Discovery may also expose:
+- Spatial relationships
+- Orbital related content
+- Nearby Worlds
+- Related Agents
+- Topics/Interests
+- Experiences
+- Communities.
+
+3D/WebGL is progressive enhancement only.
+
+### 2.4 Content Gravity
+
+Every content object may expose a relevance graph using legitimate signals:
+- Interest
+- Passion
+- Habit
+- Goal/Context
+- Community
+- Creator
+- AI Agent
+- World
+- Related Content
+- actual interaction history.
+
+Content Gravity must be derived from authoritative ranking/context engines. It must not invent relationships or infer sensitive attributes.
+
+### 2.5 Ask the Content
+
+Ask the Content is an AI Gateway/Agent Runtime capability scoped to the current content and authorized context.
+
+Context may include:
+- Content
+- Creator
+- owned Agent
+- World/Experience
+- authorized Community context
+- user's legitimate non-sensitive personalization context.
+
+Pipeline:
+
+Query
+→ authorization
+→ retrieval/filter
+→ context budget
+→ AI Gateway/Model Router
+→ response
+→ telemetry.
+
+Do not call an LLM for deterministic navigation, ranking, animation, scrolling, simple filtering or other deterministic calculations.
+
+### 2.6 Content Evolution
+
+A content object may become an entry point into:
+
+Original
+→ AI Summary
+→ Discussion
+→ Community
+→ Related Content
+→ Live Experience
+→ World.
+
+Each transition must use the authoritative domain engine rather than a parallel implementation.
+
+### 2.7 Agent intelligence layer
+
+For content owned by a Human who also owns an Agent:
+- Human Creator and Agent identity remain distinct.
+- Agent availability is explicit.
+- Agent responses remain bounded by current Agent Policy, capability, consent, risk and approval.
+- Presentation of an Agent on a Content Card never grants authority.
+- Character/avatar/costume/visual state is presentation only.
+
+### 2.8 Optional Agent Companion
+
+An Agent Companion may assist discovery only when the user opts in.
+
+Requirements:
+- dismissible
+- non-intrusive
+- transparent
+- no sensitive inferred-attribute targeting
+- no authority escalation
+- no hidden autonomous action
+- uses existing Agent Context and AI Gateway
+- respects user/Agent budget and rate limits.
+
+### 2.9 Five canonical Feed surfaces
+
+All use the same underlying Feed/Discovery Engine:
+
+1. **Home / Universe** — personalized Universe discovery.
+2. **Following** — Human + Agent relationships followed by the user.
+3. **Moments** — short-form/immersive content.
+4. **Worlds** — discovery by Universe/World context.
+5. **Live** — Live Stories, Podcast, Talkshow, AI Experience and active experiences.
+
+## 3. Create / Experience Surface
+
+Create must not be limited to video upload.
+
+Canonical creation categories:
+- Moment
+- Story
+- Post
+- Video
+- Podcast
+- Presentation
+- World
+- Community
+- AI Experience
+- Live Experience.
+
+AI-assisted creation may orchestrate:
+Script → Scene → Character → Voice → Camera → Caption → Music → Thumbnail → Distribution,
+
+but only through existing Agent Runtime, Workflow/Mission, AI Gateway, policy/risk/approval and actual domain persistence.
+
+No arbitrary generated executable code may be stored in presentation/scene configuration.
+
+## 4. Hybrid 2D + Spatial UI Contract
+
+Allpha must not make every screen 3D.
+
+Modes:
+- **Normal Mode:** premium 2D UI + subtle spatial effects.
+- **Explore Mode:** 2.5D/spatial enhancement.
+- **Universe Mode:** 3D/WebGL where useful.
+- **World Mode:** 3D/Agent simulation where useful.
+
+The renderer is progressive enhancement. Core functionality must remain usable without WebGL.
+
+Visual direction:
+- light background default
+- deep-space accents
+- translucent hierarchy
+- restrained gradients
+- orbit lines
+- limited particles
+- soft depth
+- elegant typography
+- large cinematic media
+- spatial cards
+- intelligent motion.
+
+Avoid visual cloning of TikTok, Instagram, generic SaaS dashboards, excessive neon/cyberpunk or crypto/metaverse aesthetics.
+
+## 5. Navigation Contract
+
+Universe is a first-class navigation concept.
+
+The navigation system must provide coherent access to:
+- Feed/Discover
+- Universe/Worlds
+- Create
+- Agents
+- Messages
+- You/Profile.
+
+Navigation state is presentation/UI state and never authorization.
+
+## 6. Engine / Intelligence / Cost Contract
+
+Canonical intelligence chain:
+
+Human Intent
+→ Agent
+→ bounded Agent Context
+→ Memory/Knowledge/RAG
+→ Context Budget
+→ AI Gateway/Model Router
+→ Agent Runtime
+→ Workflow/Mission
+→ Policy/Risk/Approval
+→ Execution
+→ Review
+→ Telemetry/Learning.
+
+LLM efficiency:
+
+Deterministic Logic
+→ SQL/Cache/Search/Vector
+→ Small Model
+→ Large Model only when required.
+
+Memory:
+Working → Short-Term → Episodic → Semantic → Procedural → Long-Term Knowledge.
+
+RAG:
+Authorization Scope → Structured Filter → Lexical + Vector → Rerank → Deduplicate → Context Budget → Model.
+
+Learning:
+Content → Interaction → Behavior Signal → Content Understanding → Interest → Passion → Habit → Goal/Context → Recommendation → New Interaction.
+
+Spatial presence is context and never permission.
+
+## 7. Master Delivery Completion Contract
+
+Every domain is incomplete until the relevant implementation contains:
+
+PRD/domain contract
++ Design System/Design Tokens
++ UI/UX
++ API contract
++ FastAPI implementation
++ PostgreSQL/Supabase migration
++ RLS/authz
++ Storage lifecycle where required
++ Realtime where required
++ domain engine/workflow integration
++ Agent Runtime/AI Gateway integration where required
++ Memory/RAG/Knowledge integration where relevant
++ telemetry/observability
++ tests/invariants
++ real authenticated E2E
++ accessibility
++ responsive mobile/desktop behavior
++ build/CI
++ runtime verification
++ staging/production readiness
++ deployment evidence.
+
+A migration or UI surface alone is never a completed product feature.
+
+## 8. Phase Status Contract — Canonical Delivery Matrix
+
+### Implemented / implemented foundation
+- 00 Governance
+- 01 Design System/UI Foundation
+- 02 UI/UX Information Architecture
+- 03 API Contract Layer
+- 04 Supabase PostgreSQL Foundation
+- 05 Identity/Auth/Authz
+- 06 Human & AI Identity
+- 07 Memory & Knowledge
+- 08 Interest/Passion/Habit/Goal
+- 09 Social Graph
+- 10 Content
+- 11 Feed/Reels/Discovery
+- 12 Community
+- 13 Messaging
+- 14 AI Gateway/Model Router
+- 15 Agent Runtime
+- 16 Workflow/Mission
+- 17 AI Universe
+- 18 Spatial Runtime
+- 19 Districts
+- 20 Booth/Tenant
+- 21 Theme/World Builder
+- 22 Live Experiences
+- 23 AI-to-AI Collaboration through 23D.
+
+These are not all final-GREEN. Their remaining activation gates are defined in the Master Continuation Context.
+
+### Partial / activation required
+- Phase 01–03 final UI/API consistency
+- Phase 07–08 actual retrieval/learning activation
+- Phase 09–13 authenticated realtime/runtime integration
+- Phase 14–16 real AI/Agent/Workflow execution
+- Phase 17–22 real-world runtime and E2E
+- Phase 23E Review/Reputation/History
+- Phase 26 Security/Governance hardening
+- Phase 27 Admin Control Plane completion
+- Phase 28 Observability completion.
+
+### Not implemented as complete domains
+- Phase 24 Marketplace & Commerce
+- Phase 25 Economy, Credits & Billing
+- Phase 29 Full API Integration Gate
+- Phase 30 Full Feature Activation
+- Phase 31 Comprehensive E2E QA/Security
+- Phase 32 CI/CD final pipeline
+- Phase 33 Runtime Verification
+- Phase 34 Production Readiness
+- Phase 35 Production Deployment/Final Green.
+
+## 9. Completion Sub-Phases
+
+The following are activation/completion increments, not competing top-level architectures:
+
+01A Design System Completion
+02A UX State Completion
+03A API Contract Completion
+07A Memory/RAG Runtime Activation
+08A Learning/Recommendation Activation
+09A Social Runtime E2E
+10A Content Media Lifecycle
+11A Allpha Universe Discovery Engine
+12A Community Runtime Completion
+13A Messaging Runtime Completion
+14A AI Provider Activation
+15A Agent Execution Completion
+16A Workflow/Mission Runtime Completion
+17A Universe Runtime Completion
+18A Spatial Runtime Completion
+19A District Runtime Completion
+20A Real Booth/GLB Lifecycle Completion
+21A Theme/World Runtime Completion
+22E Live Media/Character Completion
+23E Collaboration Review/Reputation/History Completion
+24A Commerce Runtime Completion
+25A Economy/Billing Completion
+26A Zero Trust Hardening
+27A Admin Control Plane Completion
+28A Observability Completion
+29A Full Integration Wiring
+30A Product Activation Audit
+31A Comprehensive QA
+32A Delivery Pipeline Completion
+33A Runtime Completion
+34A Production Readiness Completion
+35A Final Green Certification.
+
+The detailed acceptance criteria for these completion increments are maintained in the Master Continuation Context.
+
+## 10. Immediate Real-Data E2E Contract
+
+Before scaling the requested 25× District/Zone/Booth structure, prove one complete real chain:
+
+Authenticated Human
+→ authorized existing World
+→ District
+→ Zone
+→ Booth
+→ actual user-provided GLB
+→ private Storage upload
+→ checksum/size/object verification
+→ asset activation
+→ Booth publish/activation
+→ Phase 18 Agent spatial state
+→ Supabase Realtime
+→ World Runtime composition
+→ Booth spatial anchor
+→ real GLB renderer
+→ Agent Context
+→ Memory/Knowledge/RAG.
+
+Only after one chain is proven should the same flow be repeated to additional real records.
+
+The system must never create fake Worlds, Agents, Districts, Zones, Booths, Storage objects or GLB URLs merely to make E2E appear successful.
+
+## 11. Final Green Principle
+
+The final Green Gate is not a documentation state.
+
+It requires evidence across:
+- UI/UX
+- design tokens
+- API contracts
+- Web/Admin/API builds
+- Supabase schema/RLS
+- Auth/Authz
+- Storage
+- Realtime
+- Memory/RAG/Knowledge
+- Learning
+- Feed/Discovery
+- Universe/Spatial
+- District/Booth/Theme
+- Live/Character
+- AI Gateway/Model Router
+- Agent Runtime
+- Workflow/Mission
+- Collaboration
+- Marketplace
+- Billing/Credits
+- Security/Governance
+- Super Admin
+- Analytics/Observability
+- E2E
+- Accessibility
+- CI/CD
+- Staging
+- Production
+- deployment and rollback evidence.
+
+No single passing invariant suite can replace this evidence.
+
+## 12. Canonical Handoff Rule
+
+When a conversation ends or reaches a context limit, the next conversation must start from:
+
+1. this Master PRD;
+2. docs/MASTER_CONTINUATION_CONTEXT.md;
+3. docs/IMPLEMENTATION_PHASES.md;
+4. AGENTS.md;
+5. current GitHub HEAD;
+6. live AllphaDb-Universe schema/migrations/RLS/Storage/Realtime;
+7. latest domain architecture/test records.
+
+Then reconcile before changing architecture or database behavior.
