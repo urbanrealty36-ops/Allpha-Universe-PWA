@@ -54,10 +54,11 @@ def err(e: SupabaseRestError, code: str) -> HTTPException:
     return HTTPException(status_code=e.status_code if e.status_code in {400,401,403,404,409,422} else 500, detail={"code":code,"message":e.message})
 
 @router.get("")
-async def themes(category:str|None=None,status:str|None=None,limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context)):
-    q={"select":"*","order":"updated_at.desc","limit":str(limit)}
+async def themes(category:str|None=None,status:str|None=None,source:Literal["creator","platform"]|None=None,limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context)):
+    q={"select":"*","order":"catalog_order.asc.nullslast,updated_at.desc","limit":str(limit)}
     if category: q["category"]=f"eq.{category}"
     if status: q["status"]=f"eq.{status}"
+    if source: q["source"]=f"eq.{source}"
     return {"data":await select(context["user"],"themes",q)}
 
 @router.post("",status_code=201)
@@ -67,8 +68,10 @@ async def create_theme(p:ThemeCreate,context:dict=Depends(get_auth_context)):
     except SupabaseRestError as e: raise err(e,"THEME_CREATE_FAILED")
 
 @router.get("/world-templates")
-async def templates(limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context)):
-    return {"data":await select(context["user"],"world_templates",{"select":"*","order":"updated_at.desc","limit":str(limit)})}
+async def templates(source:Literal["creator","platform"]|None=None,limit:int=Query(100,ge=1,le=200),context:dict=Depends(get_auth_context)):
+    q={"select":"*","order":"catalog_order.asc.nullslast,updated_at.desc","limit":str(limit)}
+    if source: q["source"]=f"eq.{source}"
+    return {"data":await select(context["user"],"world_templates",q)}
 
 @router.post("/world-templates",status_code=201)
 async def create_template(p:WorldTemplateCreate,context:dict=Depends(get_auth_context)):
