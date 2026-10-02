@@ -1,6 +1,6 @@
 begin;
 
-select plan(34);
+select plan(39);
 
 select has_table('public','communities','communities table exists');
 select has_table('public','community_memberships','membership table exists');
