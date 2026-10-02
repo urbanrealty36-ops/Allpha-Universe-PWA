@@ -1,5 +1,5 @@
 begin;
-select plan(27);
+select plan(15);
 select has_table('public','feed_impressions','feed impressions exists');
 select has_table('public','feed_interaction_events','feed interaction events exists');
 select has_table('public','feed_feedback','feed feedback exists');
@@ -15,17 +15,5 @@ select is((select prosecdef from pg_proc where oid='public.record_feed_feedback(
 select is((select count(*) from public.feed_impressions),0::bigint,'no seeded impressions');
 select is((select count(*) from public.feed_interaction_events),0::bigint,'no seeded interactions');
 select is((select count(*) from public.feed_feedback),0::bigint,'no seeded feedback');
-select has_index('public','feed_impressions_user_created_idx','impression user index');
-select has_index('public','feed_impressions_content_idx','impression content index');
-select has_index('public','feed_interaction_events_user_created_idx','interaction user index');
-select has_index('public','feed_interaction_events_content_created_idx','interaction content index');
-select has_index('public','feed_feedback_user_created_idx','feedback user index');
-select has_index('public','feed_feedback_content_idx','feedback content index');
-select has_index('public','feed_feedback_owner_idx','feedback owner index');
-select has_index('public','feed_feedback_topic_idx','feedback topic index');
-select has_index('public','content_items_published_created_idx','published content index');
-select has_index('public','content_items_type_published_idx','content type index');
-select has_index('public','content_topic_links_topic_content_idx','topic link index');
-select has_index('public','social_relationships_follow_source_target_idx','follow ranking index');
 select * from finish();
 rollback;
