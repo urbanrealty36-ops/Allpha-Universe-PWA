@@ -158,7 +158,7 @@ export default function DiscoverySurface() {
                   {data.worlds.map((world) => (
                     <a
                       key={world.id}
-                      href={"/world/" + world.id}
+                      href="/worlds"
                       className="min-w-[270px] snap-start rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-300/[0.12] via-white/[0.04] to-violet-400/[0.10] p-5 hover:border-white/20"
                     >
                       <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-300">{world.world_type}</p>
@@ -179,7 +179,7 @@ export default function DiscoverySurface() {
                   {data.live.map((live) => (
                     <a
                       key={live.id}
-                      href={"/live/" + live.id}
+                      href="/live"
                       className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 hover:border-white/20"
                     >
                       <div className="flex items-center justify-between gap-4">
