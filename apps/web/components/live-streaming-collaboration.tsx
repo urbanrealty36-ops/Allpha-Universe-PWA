@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
 type Template = {
   id: string; name: string; slug: string; category: string; description: string | null;
@@ -16,6 +17,15 @@ type Collaboration = {
   id: string; live_session_id: string; agent_id: string; mode: string; required_capability: string | null;
   capability_verified: boolean; policy_verified: boolean; consent_status: string; status: string; risk_decision: string;
   started_at: string | null; ended_at: string | null;
+};
+type LiveMessage = {
+  id: string; live_session_id: string; live_collaboration_id: string | null; viewer_id: string | null;
+  sender_type: "owner" | "agent" | "audience" | "system"; sender_user_id: string | null; sender_agent_id: string | null;
+  role: "user" | "assistant" | "system"; message_type: string; content: string; created_at: string;
+};
+type LiveInteraction = {
+  id: string; live_session_id: string; viewer_id: string; interaction_type: string; payload: Record<string, any>;
+  status: string; created_at: string;
 };
 type Session = {
   id: string; title: string; status: "draft" | "scheduled" | "live" | "ended" | "cancelled";
@@ -84,6 +94,14 @@ export default function LiveStreamingCollaboration() {
   const [collaborations, setCollaborations] = useState<Record<string, Collaboration[]>>({});
   const [runtimeCommand, setRuntimeCommand] = useState<Record<string, string>>({});
   const [runtimeCommands, setRuntimeCommands] = useState<Record<string, { id: string; status: string }[]>>({});
+  const [selectedLiveSessionId, setSelectedLiveSessionId] = useState("");
+  const [selectedConversationCollabId, setSelectedConversationCollabId] = useState("");
+  const [liveMessages, setLiveMessages] = useState<LiveMessage[]>([]);
+  const [liveInteractions, setLiveInteractions] = useState<LiveInteraction[]>([]);
+  const [conversationText, setConversationText] = useState("");
+  const [viewerId, setViewerId] = useState("");
+  const [audiencePresence, setAudiencePresence] = useState(0);
+  const [realtimeStatus, setRealtimeStatus] = useState("disconnected");
 
   async function loadCatalog() {
     setLoading(true); setError(null);
@@ -210,6 +228,111 @@ export default function LiveStreamingCollaboration() {
       setError(e instanceof Error ? e.message : "LIVE_SESSION_TRANSITION_FAILED");
     } finally { setSessionLoading(false); }
   }
+
+
+
+  async function loadLiveMessages(sessionId: string) {
+    const r = await apiFetch<{ data: LiveMessage[] }>(`/api/v1/live/sessions/${sessionId}/messages?limit=100`);
+    setLiveMessages(r.data ?? []);
+  }
+
+  async function sendConversation() {
+    const text = conversationText.trim();
+    if (!selectedLiveSessionId || !selectedConversationCollabId || !text) return;
+    setSessionLoading(true); setError(null);
+    try {
+      await apiFetch(`/api/v1/live/sessions/${selectedLiveSessionId}/conversation?collaboration_id=${selectedConversationCollabId}`, {
+        method: "POST",
+        body: JSON.stringify({ content: text }),
+      });
+      setConversationText("");
+      await loadLiveMessages(selectedLiveSessionId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_CONVERSATION_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  async function joinAudience(sessionId: string) {
+    setSessionLoading(true); setError(null);
+    try {
+      const r = await apiFetch<{ data: { id: string } }>(`/api/v1/live/sessions/${sessionId}/audience/join`, { method: "POST" });
+      setViewerId(r.data.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_AUDIENCE_JOIN_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  async function sendAudienceInteraction(type: "reaction" | "question" | "raise_hand" | "share") {
+    if (!selectedLiveSessionId || !viewerId) return;
+    setSessionLoading(true); setError(null);
+    try {
+      const r = await apiFetch<{ data: LiveInteraction }>(`/api/v1/live/sessions/${selectedLiveSessionId}/audience/interactions`, {
+        method: "POST",
+        body: JSON.stringify({ viewer_id: viewerId, interaction_type: type, payload: {} }),
+      });
+      setLiveInteractions(prev => [...prev.slice(-49), r.data]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_AUDIENCE_INTERACTION_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  useEffect(() => {
+    if (!selectedLiveSessionId) {
+      setLiveMessages([]); setLiveInteractions([]); setAudiencePresence(0); setRealtimeStatus("disconnected");
+      return;
+    }
+    let disposed = false;
+    const supabase = createSupabaseBrowserClient();
+    const session = sessions.find(s => s.id === selectedLiveSessionId);
+    void (async () => {
+      try {
+        await loadLiveMessages(selectedLiveSessionId);
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) throw new Error("AUTH_REQUIRED");
+        await supabase.realtime.setAuth(data.session.access_token);
+        const channel = supabase.channel(`live:${selectedLiveSessionId}`, {
+          config: { private: true, presence: { key: data.session.user.id } },
+        })
+          .on("broadcast", { event: "live_message_created" }, ({ payload }) => {
+            const next = payload as LiveMessage;
+            setLiveMessages(prev => prev.some(m => m.id === next.id) ? prev : [...prev, next]);
+          })
+          .on("broadcast", { event: "live_audience_interaction" }, ({ payload }) => {
+            const next = payload as LiveInteraction;
+            setLiveInteractions(prev => prev.some(i => i.id === next.id) ? prev : [...prev.slice(-49), next]);
+          })
+          .on("presence", { event: "sync" }, () => {
+            setAudiencePresence(Object.keys(channel.presenceState()).length);
+          });
+        channel.subscribe(async status => {
+          if (disposed) return;
+          setRealtimeStatus(status.toLowerCase());
+          if (status === "SUBSCRIBED" && session?.visibility === "public" && session.status === "live") {
+            try {
+              const joined = await apiFetch<{ data: { id: string } }>(`/api/v1/live/sessions/${selectedLiveSessionId}/audience/join`, { method: "POST" });
+              if (!disposed) setViewerId(joined.data.id);
+              await channel.track({ role: "viewer", session_id: selectedLiveSessionId });
+            } catch (e) {
+              if (!disposed) setError(e instanceof Error ? e.message : "LIVE_AUDIENCE_JOIN_FAILED");
+            }
+          }
+        });
+        (window as any).__allphaLiveChannel = channel;
+      } catch (e) {
+        if (!disposed) setError(e instanceof Error ? e.message : "LIVE_REALTIME_FAILED");
+      }
+    })();
+    return () => {
+      disposed = true;
+      const channel = (window as any).__allphaLiveChannel;
+      if (channel) {
+        void channel.untrack();
+        void supabase.removeChannel(channel);
+        (window as any).__allphaLiveChannel = null;
+      }
+      if (viewerId) void apiFetch(`/api/v1/live/sessions/${selectedLiveSessionId}/audience/leave`, { method: "POST" }).catch(() => undefined);
+    };
+  }, [selectedLiveSessionId, sessions]);
 
   useEffect(() => { void loadCatalog(); void loadSessions(); void loadAgents(); }, []);
 
@@ -360,6 +483,72 @@ export default function LiveStreamingCollaboration() {
                   </div>
                 </div>
               ))}
+          </div>
+        </section>
+
+        <section className={card + " mt-5 p-5"}>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-[.2em] text-[var(--allpha-cyan)]">Phase 22D</p>
+              <h2 className="mt-1 text-xl font-semibold">Realtime Live Conversation / Audience</h2>
+              <p className="mt-1 text-sm text-[var(--allpha-text-muted)]">Durable messages and audience interactions are backend-authoritative; Realtime only transports live events and presence.</p>
+            </div>
+            <div className="flex items-center gap-2 text-[10px]">
+              <span className="rounded-full border border-white/10 px-2 py-1">Realtime: {realtimeStatus}</span>
+              <span className="rounded-full border border-white/10 px-2 py-1">Online: {audiencePresence}</span>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-4 lg:grid-cols-[.75fr_1.5fr_.75fr]">
+            <div>
+              <label className="block text-xs text-[var(--allpha-text-muted)]">Live Session
+                <select className={input + " mt-1"} value={selectedLiveSessionId} onChange={e => {
+                  setSelectedLiveSessionId(e.target.value);
+                  const cs = collaborations[e.target.value] ?? [];
+                  const active = cs.find(c => c.status === "active");
+                  setSelectedConversationCollabId(active?.id ?? "");
+                }}>
+                  <option value="">Select live session</option>
+                  {sessions.filter(s => s.status === "live").map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+                </select>
+              </label>
+              {selectedLiveSessionId && (
+                <div className="mt-3 space-y-2">
+                  <button disabled={sessionLoading || !sessions.find(s => s.id === selectedLiveSessionId)?.visibility || !!viewerId} onClick={() => void joinAudience(selectedLiveSessionId)} className="w-full rounded-md border border-white/10 px-3 py-2 text-xs disabled:opacity-40">Join Audience</button>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["reaction","raise_hand","share"] as const).map(type => <button key={type} disabled={sessionLoading || !viewerId} onClick={() => void sendAudienceInteraction(type)} className="rounded-md border border-white/10 px-2 py-2 text-[10px] disabled:opacity-40">{type.replace("_"," ")}</button>)}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="rounded-lg border border-white/10 p-3">
+              <div className="max-h-80 space-y-2 overflow-auto">
+                {liveMessages.length === 0 ? <p className="p-4 text-xs text-[var(--allpha-text-muted)]">Belum ada pesan realtime.</p> : liveMessages.map(m => (
+                  <div key={m.id} className="rounded-md border border-white/10 bg-black/10 p-2 text-xs">
+                    <div className="flex items-center gap-2 text-[9px] uppercase text-white/45"><span>{m.sender_type}</span><span>{new Date(m.created_at).toLocaleTimeString()}</span></div>
+                    <p className="mt-1 whitespace-pre-wrap">{m.content}</p>
+                  </div>
+                ))}
+              </div>
+              {selectedLiveSessionId && (
+                <div className="mt-3 flex gap-2">
+                  <select className={input + " max-w-48"} value={selectedConversationCollabId} onChange={e => setSelectedConversationCollabId(e.target.value)}>
+                    <option value="">Active collaboration</option>
+                    {(collaborations[selectedLiveSessionId] ?? []).filter(c => c.status === "active").map(c => <option key={c.id} value={c.id}>{c.mode} · {c.required_capability}</option>)}
+                  </select>
+                  <input className={input} value={conversationText} onChange={e => setConversationText(e.target.value)} placeholder="Talk to the active Owned AI Agent" />
+                  <button disabled={sessionLoading || !selectedConversationCollabId || !conversationText.trim()} onClick={() => void sendConversation()} className="rounded-md border border-[var(--allpha-cyan)]/30 px-3 py-2 text-xs text-[var(--allpha-cyan)]">Send</button>
+                </div>
+              )}
+            </div>
+            <div className="rounded-lg border border-white/10 p-3">
+              <div className="text-[10px] uppercase tracking-[.18em] text-[var(--allpha-cyan)]">Audience Runtime</div>
+              <div className="mt-3 space-y-2 text-xs">
+                <div>Presence: <span className="text-white/60">{audiencePresence} connected</span></div>
+                <div>Viewer: <span className="font-mono text-white/50">{viewerId ? viewerId.slice(0,8) : "not joined"}</span></div>
+                <div>Interactions: <span className="text-white/60">{liveInteractions.length}</span></div>
+                <div className="pt-2 text-[10px] leading-4 text-[var(--allpha-text-muted)]">No fake viewer count or generated audience activity is used. Presence comes from the authenticated Realtime channel.</div>
+              </div>
+            </div>
           </div>
         </section>
       </div>
