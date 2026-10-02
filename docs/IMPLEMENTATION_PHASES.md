@@ -173,6 +173,43 @@ Remaining 11A.6 gates:
 - API/PWA build and CI
 - runtime/production Green gates
 
+### PHASE 11A.7 — Agent Intelligence Layer on Content — IMPLEMENTED FOUNDATION
+
+Implemented the Agent Intelligence composition layer defined by Master PRD Addendum v1.1.1.
+
+Canonical path:
+**Content Context → owned Agent context → reviewed AI Capsule / Topics → optional permission-scoped Memory/Knowledge → AI Gateway → Agent Insight**
+
+Implementation:
+- `apps/api/app/services/agent_intelligence.py` provides the authoritative orchestration boundary.
+- `apps/api/app/api/agent_intelligence.py` exposes `POST /api/v1/discovery/content/{content_id}/agent-intelligence`.
+- Only an Agent owned by the authenticated Human may be used.
+- Agent context is composed from existing Agent identity, Passport, enabled Capabilities and a sanitized Policy summary; policy rules are not exposed as model authority.
+- Content is limited to published Content through the existing authenticated Supabase/RLS boundary.
+- Existing reviewed `ai_capsules` and Content Topics are used as evidence when available.
+- Existing `retrieve_agent_memory` / `retrieve_agent_knowledge` RAG RPCs are reused when a real query embedding is supplied; no embedding is fabricated.
+- Model execution delegates exclusively to the existing Phase 14 AI Gateway.
+- Optional action requests produce an explicit Agent Runtime handoff contract only. Agent Intelligence never executes actions directly.
+- PWA Discovery now exposes an Agent Intelligence panel, loads real Owned Agents through `/api/v1/agents/me`, and records telemetry through the existing Feed interaction endpoint.
+- No second Agent Intelligence, Content, RAG, Recommendation, AI Gateway or Agent Runtime engine was introduced.
+- No migration, synthetic Agent, synthetic Content, synthetic Memory/Knowledge, or fake AI output was created.
+
+Runtime reconciliation:
+- Agents remain empty in the live database, so the UI correctly shows that Agent Intelligence cannot run until a real Owned Agent exists.
+- Content remains empty in the live database, so no synthetic Content was created to demonstrate the feature.
+- The implementation therefore remains **IMPLEMENTED FOUNDATION / NOT GREEN**.
+
+Remaining 11A.7 gates:
+- authenticated runtime E2E with a real Owned Agent and published Content
+- configured AI provider/model execution through the existing AI Gateway
+- real reviewed AI Capsule validation
+- real Memory/Knowledge retrieval with a real query-embedding provider path
+- Agent Runtime action-handoff E2E with policy/risk/approval/re-check
+- telemetry validation
+- accessibility/performance
+- API/PWA build and CI
+- runtime/production Green gates
+
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
