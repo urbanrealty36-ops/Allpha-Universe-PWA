@@ -1,0 +1,4 @@
+-- Phase 14 outcome RPC security hardening.
+-- Applied to Supabase migration history:
+-- record_ai_gateway_outcome(...) is SECURITY DEFINER, uses an empty search_path,
+-- checks auth.uid ownership and is executable only by authenticated.
