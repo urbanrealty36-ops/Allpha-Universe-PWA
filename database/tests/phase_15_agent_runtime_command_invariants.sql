@@ -1,5 +1,5 @@
 begin;
-select plan(35);
+select plan(39);
 select has_table('public','agent_commands','agent_commands exists');
 select has_table('public','agent_execution_contexts','execution contexts exists');
 select has_table('public','agent_tasks','agent tasks exists');
