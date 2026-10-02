@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.dependencies import get_auth_context
-from app.core.supabase_rest import SupabaseRestError, select
+from app.core.storage import SupabaseStorageError, create_signed_download_url\nfrom app.core.supabase_rest import SupabaseRestError, select
 
 router=APIRouter(prefix="/api/v1/themes/world-runtime",tags=["Allpha World Engine"])\n\nWORLD_ASSET_BUCKET="allpha-world-assets"
 
@@ -79,7 +79,16 @@ async def district_composition(district_id:str,context:dict=Depends(get_auth_con
             zone=zone_by_id.get(b.get("district_zone_id")) or {}
             zone_spatial=zone.get("spatial_config") or {}
             position=scene.get("position") or (b.get("display_config") or {}).get("position") or zone_spatial.get("booth_anchor")
-            booth_projection.append({**b,"spatial_projection":{"position":position,"zone_id":b.get("district_zone_id"),"presentation_only":True},"asset_manifest":[a for a in assets if a.get("booth_id")==b.get("id")],"display_slots":[s for s in slots if s.get("booth_id")==b.get("id")]})
+            booth_assets=[]
+            for a in assets:
+                if a.get("booth_id") != b.get("id") or a.get("asset_type") != "3d_scene" or a.get("status") != "active":
+                    continue
+                try:
+                    signed_url=await create_signed_download_url(context["user"],a["storage_bucket"],a["storage_path"],900)
+                except SupabaseStorageError:
+                    signed_url=None
+                booth_assets.append({**a,"signed_url":signed_url})
+            booth_projection.append({**b,"spatial_projection":{"position":position,"zone_id":b.get("district_zone_id"),"presentation_only":True},"asset_manifest":booth_assets,"display_slots":[s for s in slots if s.get("booth_id")==b.get("id")]})
         return {"data":{"district":district,"spatial_projection":{"spatial_config":district.get("spatial_config") or {},"presentation_only":True},"zones":zones,"booths":booth_projection}}
     except SupabaseRestError as e:
         raise err(e,"WORLD_RUNTIME_DISTRICT_LOAD_FAILED")
