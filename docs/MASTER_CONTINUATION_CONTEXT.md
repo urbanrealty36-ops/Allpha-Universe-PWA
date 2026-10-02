@@ -1,3 +1,36 @@
+## 2026-10-02 — Intelligence/Context Reconciliation
+
+World Engine continuation must include the existing AI intelligence stack; do not treat spatial rendering as an isolated feature.
+
+Canonical intelligence path:
+Spatial Runtime → bounded Context → Agent Memory / Knowledge RAG → Context Budget → AI Gateway / Model Router → Agent Runtime → Workflow/Mission → Policy/Risk/Approval → Execution.
+
+Verified live foundations:
+- agent_memory + agent_memory_embeddings
+- knowledge_items + knowledge_chunks
+- retrieve_agent_memory(...)
+- retrieve_agent_knowledge(...)
+- ai_gateway_requests + ai_gateway_attempts
+- agent_execution_contexts
+- Workflow/Mission run state
+- agent_spatial_states
+
+Implemented integration foundation:
+- apps/api/app/core/agent_context.py
+- apps/api/app/api/agent_context.py
+- GET /api/v1/agent-context/{agent_id}
+- database/tests/agent_context_learning_invariants.sql
+
+No second Memory Engine, RAG Engine, AI Gateway, Agent Runtime or Orchestrator was created.
+
+LLM usage policy from the source Master:
+Deterministic Logic → SQL/Cache/Search/Vector → Small Model → Large Model only when required.
+The context assembler itself makes no unnecessary model call.
+
+Learning remains multi-signal:
+Content → Interaction → Behavior Signal → Content Understanding → Interest → Passion → Habit → Goal/Context → Recommendation → New Interaction.
+Spatial presence is contextual evidence, not authority and not sufficient as an isolated learning fact.
+
 # MASTER CONTINUATION UPDATE — 2026-10-02 — WORLD ENGINE + 23D RECONCILIATION
 
 > This update is authoritative for continuation only after reconciling the latest Master PRD, implementation phases, repository and live Supabase.
