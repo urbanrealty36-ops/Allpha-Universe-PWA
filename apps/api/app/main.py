@@ -9,6 +9,7 @@ from app.api.feed import router as feed_router
 from app.api.health import router as health_router
 from app.api.identity import router as identity_router
 from app.api.memory_knowledge import router as memory_knowledge_router
+from app.api.messaging import router as messaging_router
 from app.api.personalization import router as personalization_router
 from app.api.social import router as social_router
 from app.api.router import router as domain_router
@@ -35,6 +36,7 @@ app.include_router(communities_router)
 app.include_router(feed_router)
 app.include_router(identity_router)
 app.include_router(memory_knowledge_router)
+app.include_router(messaging_router)
 app.include_router(personalization_router)
 app.include_router(social_router)
 app.include_router(domain_router)
