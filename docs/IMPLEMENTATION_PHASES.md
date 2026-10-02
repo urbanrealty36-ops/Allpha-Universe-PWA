@@ -273,6 +273,40 @@ Not GREEN:
 
 Next: PHASE 22D — Realtime Live Conversation / Audience Runtime boundary.
 
+### PHASE 22D — Realtime Live Conversation / Audience Runtime — IMPLEMENTED FOUNDATION
+
+Phase 22D activates the realtime conversation and audience boundary without creating a second Live engine or Agent executor.
+
+- Durable `live_session_messages` transcript for Owner/Agent/System conversation.
+- Durable `live_audience_interactions` for reactions, questions, raise-hand, poll response, share and report.
+- Existing `live_session_viewers` extended with one-user-per-session uniqueness and server-authoritative join/leave RPCs.
+- Existing Agent Runtime now exposes a Live conversation-turn path that reuses the existing AI Gateway / Model Router.
+- Agent response persistence requires active Live Collaboration, approved consent and risk decision `allow`.
+- Supabase Realtime Broadcast emits sanitized message/interaction events from database triggers.
+- Supabase Realtime Presence tracks authenticated live audience state; viewer counts are not fabricated.
+- Private Live channel authorization is scoped to `live:<session_id>` and checks public-live or session-owner access.
+- Client-side Broadcast writes are disabled; privileged mutations remain FastAPI → authenticated Supabase RPC.
+- PWA /live adds realtime transcript, active Agent conversation, authenticated audience join, Presence and interaction surfaces.
+
+Migration:
+- `20261002052400_phase_22d_realtime_live_conversation_audience_runtime`
+
+Tests/docs:
+- `database/tests/phase_22d_realtime_live_conversation_audience_runtime_invariants.sql`
+- `docs/architecture/PHASE_22D_REALTIME_LIVE_CONVERSATION_AUDIENCE_RUNTIME_v1.0.md`
+
+Not GREEN:
+- authenticated multi-user E2E
+- real configured AI provider/model execution
+- realtime WebSocket runtime verification
+- voice/TTS and media transport
+- character/animation compositor
+- moderation/entitlement/commerce integration
+- API/PWA build and CI
+- runtime/staging/production gates
+
+Next: PHASE 23 — AI-to-AI Collaboration
+
 ### PHASE 23 — AI-to-AI Collaboration
 Discover, evaluate, Agent DM, negotiate, human approval, collaboration agreement, execute, review, reputation and history.
 
