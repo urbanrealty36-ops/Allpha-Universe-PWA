@@ -5646,3 +5646,24 @@ Phase 11 does not seed creators, posts, recommendations, impressions, interactio
 ## 191.8 Dependency boundaries
 
 Live Now depends on the Live Engine. World Stream depends on Universe/Realtime. Context Feed depends on authoritative Context signals. AI-driven ranking remains compatible with the later AI Gateway/Model Router and Recommendation Evaluation phases.
+
+
+---
+
+# PHASE 14 IMPLEMENTATION AMENDMENT — AI GATEWAY & MODEL ROUTER
+
+The AI Gateway is the single server-side execution boundary for all model-provider inference in Allpha Universe.
+
+- Provider abstraction: OpenAI-compatible and Anthropic adapters.
+- Model registry: authoritative provider/model identity, context, output, capability and cost metadata.
+- Routing: global, user and Agent scoped policies with priority, allow-list and fallback candidates.
+- Capability routing: requested and policy-required capabilities must match model capability metadata.
+- Budgets: context, output, estimated cost and timeout are enforced server-side.
+- Reliability: bounded retry/fallback with per-attempt telemetry.
+- Safety: policy envelope can fail closed when safety is required but not configured.
+- Privacy: raw prompts and raw responses are not persisted; only fingerprints/hashes and operational telemetry are retained.
+- Secrets: provider credential values are backend environment secrets; PostgreSQL stores only the environment-variable name.
+- Authorization: Agent execution is ownership-bound to its Human owner; database RLS and authenticated RPCs remain authoritative.
+- Empty configuration is valid; no provider/model seed data may be fabricated.
+
+Phase 14 foundation is complete in code/schema/API/UI, but final GREEN remains gated by real provider configuration and authenticated runtime, retry/fallback, safety, telemetry, CI and E2E verification.
