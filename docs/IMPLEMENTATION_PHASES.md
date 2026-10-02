@@ -207,6 +207,43 @@ Migration: 20261002052000_phase_22a_live_session_core.
 
 Phase 22A deliberately does not activate AI Agent collaboration. Phase 22B is the next domain step: select an Agent owned by the Human Owner, verify ownership/capability, resolve Live Policy → Consent → Risk, then activate the existing Agent Runtime/AI Gateway path.
 
+
+### PHASE 22B — Human Owner → Owned AI Agent Collaboration — IMPLEMENTED FOUNDATION
+
+Implemented the canonical Human Owner → Owned AI Agent collaboration boundary on top of Phase 22A.
+
+- Reuses the existing live_agent_collaborations table; no parallel Live engine or Agent executor.
+- Explicit owned-Agent selection from the authenticated Human Owner.
+- Server-side Agent ownership verification.
+- Active Agent + verified Passport requirement.
+- Explicit required capability verification against existing Agent capability records.
+- Enabled Agent Policy is mandatory; latest policy version is snapshotted.
+- Agent kill-switch is fail-closed for request and activation.
+- Explicit Human consent lifecycle: pending → approved/revoked.
+- Live-specific policy/risk gate records pending/allow/deny without creating a second risk engine.
+- Activation re-checks ownership, capability, policy and kill-switch before collaboration becomes active.
+- Owner-scoped collaboration read surface and API-authoritative mutation RPCs.
+- PWA /live now exposes owned-Agent selection, mode, required capability, consent and activation controls.
+- No synthetic Agent, collaboration, session, viewer, stream or risk business data is seeded.
+
+Migration:
+- 20261002051941_phase_22b_live_agent_collaboration
+- 20261002051953_phase_22b_live_agent_collaboration_api_wrappers
+
+Not GREEN:
+- authenticated multi-user E2E
+- real Agent runtime execution from Live
+- AI Gateway/realtime conversation activation
+- camera/stream transport
+- voice/TTS
+- character/animation compositor
+- audience interaction
+- moderation/entitlement/commerce integration
+- API/PWA build and CI
+- runtime/production gates
+
+Next: PHASE 22C — Live Agent Runtime / AI Gateway Activation boundary.
+
 ### PHASE 23 — AI-to-AI Collaboration
 Discover, evaluate, Agent DM, negotiate, human approval, collaboration agreement, execute, review, reputation and history.
 
