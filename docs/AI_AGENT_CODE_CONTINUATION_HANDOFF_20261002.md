@@ -606,19 +606,37 @@ If Phase 20 remains intact, implement:
 
 > **PHASE 21 — Theme & World Builder**
 
-Purpose:
-- Theme templates
-- Theme versions
-- World templates
-- Builder state
-- Asset references
-- Scene schema
-- compatibility
-- moderation
-- publish lifecycle
-- performance validation
-- asset safety
-- immutable governance/security boundaries
+Implemented on main and live Supabase.
+
+Database:
+- themes
+- theme_versions
+- theme_assets
+- world_templates
+- world_template_versions
+- world_builder_states
+
+API/PWA:
+- FastAPI /api/v1/themes/*
+- FastAPI /api/v1/world-builder/*
+- PWA /theme-builder
+- PWA /world-builder
+
+Verification:
+- live migration phase_21_theme_world_builder present
+- six Phase 21 tables with RLS
+- eleven SECURITY DEFINER mutation/validation RPCs with empty search_path
+- no Theme/Template/Builder business records seeded
+
+Not GREEN:
+- authenticated multi-user E2E
+- moderation decision runtime
+- real Storage/safety/performance/accessibility validation
+- publication runtime
+- API/PWA build and CI
+- final production/runtime gates
+
+Next: PHASE 22 — Events & Experiences / Live Stories & Streaming.
 
 Phase 21 must consume Booth/District/World contracts already established.
 
