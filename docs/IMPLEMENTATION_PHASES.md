@@ -288,8 +288,11 @@ Phase 22D activates the realtime conversation and audience boundary without crea
 - Client-side Broadcast writes are disabled; privileged mutations remain FastAPI → authenticated Supabase RPC.
 - PWA /live adds realtime transcript, active Agent conversation, authenticated audience join, Presence and interaction surfaces.
 
-Migration:
+Migrations:
 - `20261002052400_phase_22d_realtime_live_conversation_audience_runtime`
+- `20261002052500_phase_22d_realtime_live_conversation_audience_hardening`
+- `20261002052600_phase_22d_realtime_live_conversation_privilege_hardening`
+- `20261002052700_phase_22d_realtime_topic_validation_hardening`
 
 Tests/docs:
 - `database/tests/phase_22d_realtime_live_conversation_audience_runtime_invariants.sql`
