@@ -1349,3 +1349,503 @@ Known global Supabase advisor findings remain; they are not reclassified as GREE
 
 Next integration target:
 Authenticated real-data E2E: create one real World-owned District → Zone → Booth → upload a real user-provided GLB → publish/activate → enter Agent into Phase 18 spatial runtime → verify Realtime presence and Booth anchor composition in /world.
+
+
+# MASTER CONTINUATION CONTEXT — DELIVERY COMPLETION & UNIVERSE DISCOVERY ADDENDUM
+## 2026-10-02 — Canonical continuation after chat-limit handoff
+
+This section is authoritative for continuation after the current conversation reaches its message limit. It does not erase historical implementation records above; it reconciles them into one current delivery map. Before any implementation, re-read this section together with AGENTS.md, the Master PRD, docs/IMPLEMENTATION_PHASES.md, relevant architecture/schema/test records, current source and live AllphaDb-Universe.
+
+### A. Current source-of-truth hierarchy
+
+1. AGENTS.md — binding engineering/governance rules.
+2. Master PRD — product, UX/UI, design system, architecture, engines, security and domain contract.
+3. docs/IMPLEMENTATION_PHASES.md — canonical top-level phase sequence.
+4. This Master Continuation Context — current cross-conversation implementation/status/reconciliation record.
+5. Phase/domain architecture and schema documents.
+6. Repository source, migrations and tests.
+7. Live AllphaDb-Universe schema, migration state, RLS, Storage and Realtime state.
+8. Uploaded design/UX source documents — incorporated only where their content is explicitly supported and mapped to existing architecture.
+
+No lower-level source may silently override a higher-level authority. When they disagree, stop, inspect, reconcile and document the decision before implementation.
+
+### B. Product direction added from Feed/UI/UX source
+
+The uploaded Feed/UI/UX document defines the Feed not as a TikTok/Instagram clone but as an **Allpha Universe Discovery Engine**. Its central interaction is:
+
+Universe → World → Experience → Content → Agent → Conversation → World.
+
+The Feed is therefore a navigation/presentation layer over existing engines, not an isolated video UI. This is consistent with the existing Phase 08 → 09 → 10 → 11 → 12 → 13 → 15 → 17 → 18 → 19 → 20 → 22 architecture. The source explicitly says the Feed UI should visualize those engines rather than create a separate static Feed system. fileciteturn1196file0L414-L439
+
+#### Canonical Allpha Universe Discovery Engine UX
+
+The Feed/Discovery layer must support, incrementally and without a second recommendation engine:
+
+- **Universe Scroll**: scrolling means discovery through related Universe objects, not merely next-video pagination.
+- **Universe Card / Scene**: content is presented with its World, Experience, Agent, context and related exploration path.
+- **Content → Understanding → Interaction → Exploration** rather than engagement-only UX.
+- **Ask the Content**: contextual AI actions such as explain, summarize, challenge, find related Worlds and ask a question, subject to authorization and context budget.
+- **Content Gravity**: relevance graph around the current content using Interest, Passion, Habit, Context, Community, Creator, Agent, World and Related Content.
+- **Content Evolution**: Original → AI Summary → Discussion → Community → Related Content → Live Experience → World.
+- **Agent as an intelligence layer**: the Human Creator and owned AI Agent are represented distinctly; the Agent can be available for content discussion only within explicit authority.
+- **Universe Navigator**: current Universe plus nearby Worlds/Agents/Topics/Experiences.
+- **Optional Agent Companion**: opt-in, dismissible, non-intrusive and never based on sensitive inferred attributes.
+- **Hybrid rendering**: default premium 2D UI with subtle spatial effects; 2.5D/spatial Explore mode; 3D/WebGL Universe/World mode. Do not force every screen into 3D.
+- **World Transition**: movement between related Worlds/Galaxies can progressively use WebGL/Three.js, while preserving normal 2D usability.
+- **Five Feed surfaces**: Home/Universe, Following, Moments, Worlds and Live, all using the same underlying Feed/Discovery Engine.
+- **Moments** is the preferred internal conceptual name for short-form experience content; the underlying Content Engine remains canonical.
+- **Create** expands beyond upload-video to Moment, Story, Post, Video, Podcast, Presentation, World, Community, AI Experience and Live Experience, with AI-assisted creation only through existing Agent Runtime/AI Gateway/Workflow/approval boundaries.
+- **Visual identity**: light default, elegant typography, large cinematic media, translucent hierarchy, subtle gradients, orbit/spatial cues, restrained particles/depth and intelligent motion; avoid copying TikTok/Instagram visual identity.
+- **Bottom navigation** must make Universe/Discover, Create, Agents, Messages/You and related first-class routes without creating duplicate navigation authorities.
+
+The source also explicitly frames Allpha as a social network plus AI civilization interface rather than a generic SaaS dashboard or video clone. fileciteturn1196file0L388-L413
+
+### C. Engine binding contract for Feed / Discovery
+
+The Discovery Engine is a **composition/orchestration layer over existing authoritative domains**:
+
+Content
+→ Social Graph
+→ Interest/Passion/Habit/Goal
+→ Feed Ranking
+→ Universe/World
+→ District/Booth/Experience
+→ Agent Context
+→ Memory/Knowledge/RAG
+→ Messaging/Community
+→ Live Experience
+→ Navigation/Spatial Runtime.
+
+It must not create:
+- a second Feed ranking engine,
+- a second Content engine,
+- a second Interest/Learning engine,
+- a second Memory/RAG engine,
+- a second Agent Runtime,
+- a second AI Gateway,
+- a second Workflow/Mission engine,
+- a second Messaging engine,
+- a second Spatial engine.
+
+The existing Phase 11 ranking engine remains the ranking authority. The new Universe Scroll/Content Gravity layer is a presentation and discovery composition layer that consumes authoritative ranked candidates plus relationship/context metadata.
+
+### D. AI / Memory / RAG / Learning contract
+
+Allpha's intelligence path remains:
+
+Human Intent
+→ Agent
+→ bounded Context
+→ Memory / Knowledge Retrieval
+→ Context Budget
+→ AI Gateway / Model Router
+→ Agent Runtime
+→ Workflow / Mission
+→ Policy / Risk / Approval
+→ Tool/Domain Execution
+→ Review / Telemetry / Learning.
+
+Canonical retrieval:
+Query
+→ authorization scope
+→ structured filters
+→ lexical retrieval
+→ vector retrieval
+→ rerank
+→ deduplicate
+→ context budget
+→ model only when required.
+
+LLM cost policy:
+Deterministic Logic
+→ SQL / Cache / Search / Vector
+→ small model
+→ large model only when required.
+
+Memory layers:
+Working → Short-Term → Episodic → Semantic → Procedural → Long-Term Knowledge.
+
+Learning path:
+Content → Interaction → Behavior Signal → Content Understanding → Interest Affinity → Passion Cluster → Habit Pattern → Goal/Context → Recommendation → New Interaction.
+
+Spatial presence is context, not authority and not sufficient as an isolated learning signal.
+
+### E. Current live reconciliation at handoff
+
+Verified against AllphaDb-Universe on 2026-10-02:
+
+- universe_worlds: 0
+- districts: 0
+- district_zones: 0
+- booths: 0
+- active booth 3D assets: 0
+- agent_spatial_states: 0
+- agent_memory: 0
+- knowledge_items: 0
+- ai_gateway_requests: 0
+- workflows: 0
+- missions: 0
+
+This is intentional from the no-fake-data rule. Existing platform catalog records remain separate from business-owned World/District/Zone/Booth records.
+
+Security/performance advisors remain non-GREEN at project level. Current observations include existing RLS-without-policy findings, many authenticated-callable SECURITY DEFINER functions, and multiple permissive policy/index findings. These are tracked as a dedicated hardening gate and must not be silently reclassified as Green.
+
+### F. Full implementation status matrix
+
+Status vocabulary:
+- **IMPLEMENTED** — domain foundation and core contracts are implemented; final cross-system/runtime gates can still remain.
+- **IMPLEMENTED FOUNDATION** — meaningful implementation exists but one or more critical runtime/domain integrations remain.
+- **PARTIAL / ACTIVATION REQUIRED** — substantial implementation exists but the user-facing system is not yet complete.
+- **NOT IMPLEMENTED** — no complete domain implementation should be assumed.
+- **FINAL GATE** — verification/production phase, not a substitute for missing domain implementation.
+
+#### Phase 00 — Governance & Repository Foundation
+**Status: IMPLEMENTED.**
+AGENTS.md, monorepo boundaries, app boundaries, source-of-truth rules and engineering workflow exist.
+Completion gate: governance audit and repository integrity verification.
+
+#### Phase 01 — Design System & UI Foundation
+**Status: IMPLEMENTED FOUNDATION.**
+Tokens, typography, spacing, responsive/accessibility foundations, PWA shell, navigation and UI primitives exist.
+Remaining activation: token coverage audit, component consistency, mobile/desktop visual verification, accessibility verification and final visual regression.
+
+#### Phase 02 — Complete UI/UX Information Architecture
+**Status: IMPLEMENTED FOUNDATION.**
+Route/screen inventory and major product surfaces exist.
+Remaining activation: every route must have complete loading/empty/error/not-configured/permission-denied/success states, consistent navigation, real API wiring and responsive behavior.
+
+#### Phase 03 — API Contract Layer
+**Status: IMPLEMENTED FOUNDATION.**
+FastAPI contracts and shared domain boundaries exist.
+Remaining activation: complete OpenAPI/contract conformance, error envelope consistency, pagination/filter/sort/idempotency audit, generated/verified client contracts and integration tests.
+
+#### Phase 04 — Supabase PostgreSQL Data Foundation
+**Status: IMPLEMENTED.**
+Core schema, pgvector, Storage, Realtime, migrations, grants and RLS foundations exist.
+Remaining: project-wide security/performance hardening and final production migration/recovery verification.
+
+#### Phase 05 — Identity, Authentication & Authorization
+**Status: IMPLEMENTED FOUNDATION.**
+Supabase Auth, sessions, RBAC/permissions, organization authorization, JWT/JWKS and RLS alignment exist.
+Remaining: authenticated multi-user E2E, session/security hardening and complete authorization matrix.
+
+#### Phase 06 — Human & AI Identity
+**Status: IMPLEMENTED FOUNDATION.**
+Human/Agent identity, lifecycle, Persona, Passport, capabilities, skills, policies, autonomy, budget, credentials and reputation read model exist.
+Remaining: full authenticated lifecycle E2E and runtime coupling to every dependent domain.
+
+#### Phase 07 — Agent Memory & Knowledge
+**Status: IMPLEMENTED FOUNDATION.**
+Memory, knowledge/chunks/provenance, embeddings and retrieval boundaries exist.
+Remaining: real embedding generation, complete hybrid retrieval/reranking/context-budget runtime, authenticated E2E, retention/access-audit runtime and production observability.
+
+#### Phase 08 — Interest / Passion / Habit / Goal / Personalization
+**Status: IMPLEMENTED FOUNDATION.**
+Ontology, graph, real signals, affinities, passion, habit, explicit goals and personalization refresh engine exist.
+Remaining: recommendation activation, multi-signal validation, learning feedback loop and authenticated runtime verification.
+
+#### Phase 09 — Social Graph & Relationship
+**Status: IMPLEMENTED FOUNDATION.**
+Relationship lifecycle, blocking, mentions, activity, notifications and APIs/UI exist.
+Remaining: authenticated multi-user E2E, realtime/notification delivery verification and complete relationship-dependent integrations.
+
+#### Phase 10 — Content Platform
+**Status: IMPLEMENTED FOUNDATION.**
+Content types, media metadata, Storage-path contracts, topics, revisions, moderation, AI Capsule provenance, telemetry, APIs/UI exist.
+Remaining: real binary Storage E2E, moderation runtime, media delivery, Content-to-Universe/Feed integration and complete publishing lifecycle.
+
+#### Phase 11 — Feed, Reels & Discovery
+**Status: IMPLEMENTED FOUNDATION + DISCOVERY UX EXPANSION REQUIRED.**
+Ranking, Home/Following/For You/Reels/Explore and dependency-aware feeds exist.
+Remaining: activate the Allpha Universe Discovery Engine described above; five Feed surfaces; Universe Scroll; Content Gravity; Ask Content; World/Agent transitions; Context/RAG-aware discovery; Moments presentation; real content/media E2E; recommendation evaluation; mobile performance.
+
+#### Phase 12 — Community
+**Status: IMPLEMENTED FOUNDATION.**
+Community ownership, membership, posts/comments, events/RSVP, reports, moderation and telemetry exist.
+Remaining: moderation decision runtime, event/live/content integration, realtime verification, authenticated multi-user E2E and complete discovery integration.
+
+#### Phase 13 — Messaging & Social Communication
+**Status: IMPLEMENTED FOUNDATION.**
+Human↔Human, Human↔Agent and Agent↔Agent messaging foundations, consent, requests, messages, receipts, reactions, abuse reports, notifications and realtime publication exist.
+Remaining: authenticated multi-user realtime E2E, notification delivery runtime, moderation/abuse runtime and all collaboration/live/content integrations.
+
+#### Phase 14 — AI Gateway & Model Router
+**Status: IMPLEMENTED FOUNDATION.**
+Provider/model registry, routing policies, capability-aware routing, budgets, fallback/retry, safety, telemetry and APIs exist.
+Remaining: configured real provider/model E2E, cost/latency/usage enforcement, fallback verification, streaming where required and production observability.
+
+#### Phase 15 — Agent Runtime & Command System
+**Status: IMPLEMENTED FOUNDATION.**
+Command lifecycle, execution context, planner, capability/policy/risk/approval, tools, telemetry, spend and kill switch exist.
+Remaining: authenticated real-Agent execution E2E, tool executor coverage, approval/resume, kill switch, budget/rate-limit behavior and real AI provider integration.
+
+#### Phase 16 — Workflow & Mission Engine
+**Status: IMPLEMENTED FOUNDATION.**
+Workflow versions/steps/runs, Missions and orchestration exist and delegate to Agent Runtime.
+Remaining: trigger/condition/retry/compensation runtime, cross-Agent collaboration, Mission E2E, durable state recovery and observability.
+
+#### Phase 17 — AI Universe
+**Status: IMPLEMENTED FOUNDATION / VERIFIED DATABASE.**
+Galaxy/World/Interest/Content/Community/Agent/Portal/Presence schema/API/UI and 32 live invariant assertions exist.
+Remaining: authenticated real World/Agent creation and membership E2E, portal/visibility runtime, Realtime/spatial integration and Universe Discovery consumption.
+
+#### Phase 18 — Agent Simulation & Spatial Runtime
+**Status: IMPLEMENTED FOUNDATION / VERIFIED DATABASE.**
+Authoritative spatial state, movement, sessions, interactions, ticks, realtime and APIs exist; bounded persistence/rate limiting and World-level realtime adapter are implemented.
+Remaining: authenticated real Agent presence E2E, District/Zone/Booth composition, device/mobile performance and integration with Agent Context/Memory/RAG/Universe Discovery.
+
+#### Phase 19 — Districts
+**Status: IMPLEMENTED FOUNDATION.**
+Districts, zones, access policies/grants, memberships, entitlements, requests, activity, API/UI and invariant verification exist.
+Remaining: authenticated District creation, enterprise ABAC runtime E2E, real Zone composition, realtime and integration with World/Booth/Discovery.
+
+#### Phase 20 — Booth / Tenant Platform
+**Status: IMPLEMENTED FOUNDATION + REAL STORAGE LIFECYCLE.**
+Booth ownership/tiers/placement, scene/presentation config, assets/slots, moderation, leasing foundation, FastAPI/PWA, private Storage signed upload/read lifecycle and GLB activation contract exist.
+Remaining: authenticated real Booth E2E, actual GLB upload/finalize, moderation/publish runtime, 3D composition, spatial anchors and billing/lease runtime.
+
+#### Phase 21 — Theme & World Builder
+**Status: IMPLEMENTED FOUNDATION + LIFECYCLE HARDENING.**
+Theme/World catalogs, versions, validation, moderation, builder states, safe scene schema and presentation-only tokens exist; current platform catalog has 25 Themes and 25 World Templates.
+Remaining: real asset manifest lifecycle, real user-authored publication, renderer/device verification, complete District/Booth binding and production moderation E2E.
+
+#### Phase 22 — Events & Experiences / Live
+**Status: IMPLEMENTED FOUNDATION.**
+22 template catalog, 22A session core, 22B owned-Agent collaboration, 22C Agent Runtime/AI Gateway activation and 22D realtime conversation/audience foundations exist.
+Remaining: authenticated Live E2E, configured AI provider, realtime WebSocket verification, camera/stream transport, voice/TTS, Character/animation compositor, moderation/entitlement/commerce and media runtime.
+
+#### Phase 23 — AI-to-AI Collaboration
+**Status: IMPLEMENTED FOUNDATION through 23D.**
+23A discovery/request, 23B DM/negotiation, 23C Human approval/agreement and 23D approved-agreement execution binding exist.
+Remaining: 23E Review + Reputation + History, proven cross-Agent execution semantics, Workflow/Mission collaboration E2E, realtime/runtime verification and authenticated multi-user E2E.
+
+#### Phase 24 — Marketplace & Commerce
+**Status: NOT IMPLEMENTED as a complete runtime domain.**
+Commerce foundations may exist in schema dependencies, but do not assume complete catalog/order/payment/payout/refund/commission/Agent-commerce runtime.
+Required completion: catalog → product/service → cart/checkout → order → transaction → payment gateway → fulfillment → payout/commission → refund/dispute → Agent commerce → approval/risk → audit/telemetry.
+
+#### Phase 25 — Economy, Credits & Billing
+**Status: NOT IMPLEMENTED as a complete runtime domain.**
+Required completion: plans → features → entitlements → subscriptions → usage → AI credits → invoices → billing events → payment synchronization → limits → renewals/cancellation → District/Booth pricing → audit/reconciliation.
+
+#### Phase 26 — Security, Governance & Trust
+**Status: PARTIAL / ACTIVATION REQUIRED.**
+Core policy/risk/approval/kill-switch/RLS/auth primitives already exist, but project-wide Zero Trust hardening, security advisor remediation, abuse/prompt-injection/anti-scam controls and governance consolidation are not complete.
+This phase must consume existing engines, not create duplicates.
+
+#### Phase 27 — Super Admin Control Plane
+**Status: PARTIAL / ACTIVATION REQUIRED.**
+Some admin surfaces and platform moderation exist, but a complete authoritative control plane across Users, Agents, Content, Communities, Universe, Districts, Booths, Themes, Live, Marketplace, Billing, Credits, AI providers/models, Policies, Risk, Moderation, Audit, Flags, Analytics and Configuration is not yet proven complete.
+
+#### Phase 28 — Analytics, Observability & Operational Intelligence
+**Status: PARTIAL / ACTIVATION REQUIRED.**
+Telemetry foundations exist across domains and AI usage, but unified event taxonomy, trace correlation, KPI/health dashboards, cost observability, recommendation/Agent/commerce analytics and operational alerts are not complete.
+
+#### Phase 29 — API Integration & Local End-to-End Wiring
+**Status: NOT IMPLEMENTED AS A COMPLETE GATE.**
+Requires verified Web→API→Supabase, Admin→API, Auth propagation, Storage, Realtime, AI Gateway, Workflow/Mission, idempotency, errors and real-data integration across all domains.
+
+#### Phase 30 — Full Feature Activation
+**Status: NOT IMPLEMENTED AS A COMPLETE GATE.**
+Requires every intended UI surface to have a real API contract, persistence, authorization, workflow, realtime where relevant, audit/telemetry, loading/empty/error/permission states and no dead/stubbed interactions.
+
+#### Phase 31 — End-to-End QA & Security Verification
+**Status: NOT IMPLEMENTED.**
+Final comprehensive unit/integration/API/RLS/authz/workflow/Agent/approval/commerce/security/prompt-injection/moderation/accessibility/visual/mobile/desktop E2E.
+
+#### Phase 32 — CI/CD
+**Status: NOT IMPLEMENTED AS FINAL GATE.**
+Lint, typecheck, Python checks, migration validation, RLS tests, API contracts, build, artifact and dependency/security pipelines.
+
+#### Phase 33 — Runtime Verification
+**Status: NOT IMPLEMENTED.**
+Real local services, Auth, Supabase, Realtime, Storage, AI Gateway, Model Router, workflows, Agents, approvals, commerce, Admin, audit and observability smoke tests.
+
+#### Phase 34 — Staging / Production Readiness
+**Status: NOT IMPLEMENTED.**
+Environment separation, secrets, migrations, backup/recovery, rollback, rate/capacity, domains/SSL, monitoring/alerts, incident response, retention/privacy/compliance.
+
+#### Phase 35 — Production Deployment & Final Green Gate
+**Status: NOT IMPLEMENTED.**
+Production migration/deployment, critical E2E, security/performance review, runtime monitoring, rollback proof, accessibility, architecture/prohibited-data audit and final build/deployment verification.
+
+#### Phases 36–38 — Reserved Product Expansion
+**Status: RESERVED.**
+Do not activate until Phases 00–35 are materially complete and a new owner-approved PRD establishes the expansion.
+
+### G. Completion / activation sub-phases
+
+These are **not new competing top-level phases**. They are completion increments used to finish domains that are currently foundation/partial. They must be executed only after reconciling the relevant existing domain and must reuse existing engines.
+
+#### 01A — Design System Completion
+Token coverage audit → component tokenization → state variants → dark/light/system parity → responsive/mobile → accessibility → visual regression.
+
+#### 02A — UX State Completion
+Every route/surface gets real loading/empty/error/not-configured/permission-denied/success states; navigation and deep-link consistency verified.
+
+#### 03A — API Contract Completion
+OpenAPI ↔ FastAPI ↔ Pydantic ↔ frontend client conformance, pagination/filter/sort/error/idempotency and contract tests.
+
+#### 07A — Memory/RAG Runtime Activation
+Real embeddings → hybrid lexical/vector retrieval → rerank → dedupe → context budget → provenance → authorization scope → retrieval telemetry. No second RAG engine.
+
+#### 08A — Learning/Recommendation Activation
+Real interaction signals → affinity → passion/habit evidence → explicit goals → recommendation candidate generation → feedback loop. Spatial presence alone is never sufficient.
+
+#### 09A — Social Graph Runtime E2E
+Two-user/Agent relationship, block, notification and consent E2E.
+
+#### 10A — Content Media Lifecycle
+Real Storage upload → media validation → content publish/moderation → delivery → revision → provenance → telemetry.
+
+#### 11A — Allpha Universe Discovery Engine
+Phase 11 ranking → five Feed surfaces → Universe Scroll → Content Gravity → Universe Navigator → Ask Content → Context/RAG-aware actions → Agent/World transition → Moments → Live entry. This is the main UX expansion from the uploaded source.
+
+#### 12A — Community Runtime Completion
+Moderation decisions, event integration, realtime, discovery, notifications and Content/Agent/Universe integration.
+
+#### 13A — Messaging Runtime Completion
+Realtime multi-user E2E, notification delivery, moderation/abuse, collaboration bridge and Live integration.
+
+#### 14A — AI Provider Activation
+Configured provider/model → real generation → streaming → fallback/retry → cost/usage limits → safety → observability.
+
+#### 15A — Agent Execution Completion
+Real Agent → command → policy/risk/approval → planner → tool → AI Gateway → execution → spend → result → audit → kill switch.
+
+#### 16A — Workflow/Mission Runtime Completion
+Trigger → plan → dependency resolution → approval detection → sequencing → retry → stop conditions → state transition → result aggregation → compensation/recovery.
+
+#### 17A — Universe Runtime Completion
+Real World/Galaxy creation → ownership/membership → portals/visibility → Agent presence → Discovery integration → Realtime.
+
+#### 18A — Spatial Runtime Completion
+Authenticated Agent → enter → bounded movement persistence → Realtime presence → Zone/District/Booth context → Agent Context → Memory/RAG, with no spatial authority.
+
+#### 19A — District Runtime Completion
+Real District/Zone → enterprise ABAC → organization/grant → access requests → activity/realtime → World/Booth/Discovery composition.
+
+#### 20A — Real Booth/GLB Lifecycle Completion
+Authenticated owner → District/Zone → Booth → signed upload → actual Storage object → checksum/size verification → finalize → moderation/publish → GLB renderer → spatial anchor.
+
+#### 21A — Theme/World Runtime Completion
+Real user-authored Theme/World Template → validation → moderation → publish → scene schema → renderer → District/Booth binding → device performance/accessibility.
+
+#### 22E — Live Media/Character Completion
+Live Session → Agent consent/policy/risk → Agent Runtime → AI Gateway → realtime conversation → camera/stream transport → voice/TTS → Character/costume/animation → overlays → audience moderation → commerce/entitlement.
+
+#### 23E — Collaboration Review/Reputation/History Completion
+Approved collaboration → real cross-Agent execution → Workflow/Mission → result → Human/Agent review → authoritative reputation event → history. Reputation remains evaluation/history, never authorization.
+
+#### 24A — Commerce Runtime Completion
+Catalog → item/product/service → cart/checkout → order → payment → fulfillment → payout/commission → refund/dispute → Agent commerce → approval/risk/audit.
+
+#### 25A — Economy/Billing Completion
+Plan → feature → entitlement → subscription → usage → AI credits → invoice → payment event → limit → renewal/cancel → reconciliation → Booth/District pricing.
+
+#### 26A — Zero Trust Hardening
+RLS policy audit → SECURITY DEFINER audit → function privilege minimization → policy consolidation → secret/session hardening → rate limits → abuse/prompt injection → anti-scam/impersonation → kill switch → audit governance.
+
+#### 27A — Admin Control Plane Completion
+Authoritative CRUD/approval/moderation/configuration for every domain plus audit, flags, providers/models, policy/risk, billing/credits, analytics and QA operations.
+
+#### 28A — Observability Completion
+Unified event taxonomy → correlation IDs/traces → domain dashboards → AI cost/latency → recommendation quality → Agent execution → commerce/billing → security signals → operational alerts.
+
+#### 29A — Full Integration Wiring
+Web/Admin → FastAPI → Supabase → Storage/Realtime → AI Gateway → Agent Runtime → Workflow/Mission → domain engines; auth propagation, idempotency and error contracts verified.
+
+#### 30A — Product Activation Audit
+Route-by-route feature activation audit; eliminate dead buttons/stubs/placeholders; verify every state and telemetry path; verify no frontend privileged bypass.
+
+#### 31A — Comprehensive QA
+Unit → integration → contract → RLS → auth/authz → workflow → Agent → approval/risk → commerce → security → accessibility → visual regression → mobile/desktop → critical E2E.
+
+#### 32A — Delivery Pipeline Completion
+CI checks, migrations, tests, builds, artifact signing/versioning, dependency/security scans and deployment promotion gates.
+
+#### 33A — Runtime Completion
+All local services + Supabase + Auth + Realtime + Storage + AI provider + Agent Runtime + Workflow/Mission + Admin + telemetry verified with real data.
+
+#### 34A — Production Readiness Completion
+Environment isolation, secrets, backup/restore, rollback, rate/capacity, domains/SSL, monitoring, incident response, retention/privacy/compliance.
+
+#### 35A — Final Green Certification
+Architecture audit + real-data audit + prohibited-data audit + security/performance advisor review + accessibility + critical E2E + build + deployment + rollback + runtime monitoring.
+
+### H. Authenticated Real-Data E2E — immediate next execution gate
+
+The intended E2E is:
+
+Authenticated Human
+→ existing authorized World
+→ real District
+→ real Zone
+→ real Booth
+→ real user-provided GLB
+→ private Storage upload
+→ finalize/activate
+→ publish/activate according to Booth lifecycle
+→ Agent enters Phase 18
+→ bounded spatial state
+→ Supabase Realtime presence
+→ World Runtime composition
+→ Booth spatial anchor
+→ real GLB renderer
+→ Agent Context
+→ Memory/Knowledge/RAG context.
+
+The user requested 25 District → 25 Zone → 25 Booth, but **25 records must only be created from real authenticated provisioning and legitimate product use**. Do not seed them as test/demo business records. The E2E should first prove one complete chain, then repeat to 25 only if the authenticated account actually owns/controls the required World/Agent and intentionally creates those records.
+
+A real GLB must come from an actual uploaded asset. Never generate a fabricated Storage URL, placeholder GLB, or fake Storage object.
+
+### I. Definition of complete web app
+
+Allpha is considered product-complete only when each domain has:
+
+PRD
++ Design System/Token
++ UI/UX
++ API Contract
++ FastAPI implementation
++ PostgreSQL schema/migration
++ RLS/authz
++ Storage where required
++ Realtime where required
++ Engine/workflow integration
++ Agent/AI Gateway integration where required
++ Memory/RAG/Knowledge integration where relevant
++ telemetry/observability
++ tests
++ real-data authenticated E2E
++ accessibility
++ responsive mobile/desktop behavior
++ build/CI
++ runtime verification
++ staging/production readiness
++ deployment evidence.
+
+A foundation phase is never silently promoted to GREEN because its files exist.
+
+### J. Continuation protocol for the next conversation
+
+At the beginning of the next conversation:
+
+1. Read this section.
+2. Read AGENTS.md.
+3. Read the Master PRD and docs/IMPLEMENTATION_PHASES.md.
+4. Reconcile current GitHub HEAD and Supabase migration/schema/advisors.
+5. Check whether authenticated real World/Agent records exist.
+6. If they exist, perform one real District → Zone → Booth → GLB → Phase 18 E2E before scaling.
+7. If they do not exist, do not fabricate them; improve activation/runtime contracts or request the real authenticated input required.
+8. Continue Phase 23E only after reconciling the cross-Agent execution semantics of 23D.
+9. Continue Phase 22E for real media/Character runtime.
+10. Activate Phase 11 Universe Discovery Engine as the Feed UX composition layer, not as a new engine.
+11. Finish completion sub-phases before claiming any top-level phase GREEN.
+12. Keep updating this document after every verified increment.
+
+## HANDOFF STATUS
+**Current overall status: IMPLEMENTED FOUNDATION / NOT GREEN.**
+
+Immediate target:
+**Authenticated Real-Data E2E + Allpha Universe Discovery Engine activation planning**, with no fake data/assets and no duplicate engines.
