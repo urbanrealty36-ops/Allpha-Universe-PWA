@@ -1,5 +1,5 @@
 -- Phase 16 Workflow & Mission Engine invariants
-select plan(32);
+select plan(35);
 select ok(to_regclass('public.workflows') is not null,'workflows table exists');
 select ok(to_regclass('public.workflow_versions') is not null,'workflow_versions table exists');
 select ok(to_regclass('public.workflow_steps') is not null,'workflow_steps table exists');
@@ -29,6 +29,9 @@ select ok(to_regprocedure('public.create_mission(text,uuid,uuid,text,text,text,t
 select ok(to_regprocedure('public.join_mission(uuid,text,uuid)') is not null,'join_mission exists');
 select ok(to_regprocedure('public.start_mission_run(uuid,uuid,uuid,jsonb)') is not null,'start_mission_run exists');
 select ok(to_regprocedure('public.sync_mission_run(uuid)') is not null,'sync_mission_run exists');
+select ok(to_regprocedure('public.publish_mission(uuid)') is not null,'publish_mission exists');
+select ok(to_regprocedure('public.decide_mission_participant(uuid,text)') is not null,'decide_mission_participant exists');
+select ok(to_regprocedure('public.create_shared_workflow_run(uuid,uuid,uuid,uuid,jsonb)') is not null,'create_shared_workflow_run exists');
 select ok((select count(*) from public.workflows)=0,'no workflow seed data');
 select ok((select count(*) from public.workflow_runs)=0,'no workflow run seed data');
 select ok((select count(*) from public.missions)=0,'no mission seed data');
