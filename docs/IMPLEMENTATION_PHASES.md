@@ -166,6 +166,10 @@ Runtime hardening added:
 Migrations:
 - `20261002040000_phase_21_theme_world_builder_runtime_hardening`
 - `20261002040100_phase_21_theme_world_builder_admin_read`
+- `20261002040200_phase_21_theme_world_builder_rls_policy_consolidation`
+- `20261002040300_phase_21_theme_world_builder_token_namespace_fix`
+- `20261002040200_phase_21_theme_world_builder_rls_policy_consolidation`
+- `20261002040300_phase_21_theme_world_builder_token_namespace_fix`
 
 Business data remains empty by design.
 
