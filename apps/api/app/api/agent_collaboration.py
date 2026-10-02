@@ -157,3 +157,30 @@ async def cancel_agreement(agreement_id:UUID,payload:AgreementCancel,context:dic
     except SupabaseRestError as exc:
         status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
         raise HTTPException(status_code=status,detail={"code":"AGREEMENT_CANCEL_FAILED","message":exc.message}) from exc
+
+
+class CollaborationExecutionCreate(BaseModel):
+    command: str = Field(min_length=1, max_length=20000)
+    capabilities: list[str] = Field(default_factory=list, max_length=32)
+    idempotency_key: str | None = Field(default=None, max_length=255)
+
+@router.post("/agreements/{agreement_id}/execute", status_code=201)
+async def execute_collaboration_agreement(
+    agreement_id: UUID,
+    payload: CollaborationExecutionCreate,
+    context: dict = Depends(get_auth_context),
+) -> Any:
+    try:
+        command = await rpc(context["user"], "create_collaboration_execution_command", {
+            "p_agreement_id": str(agreement_id),
+            "p_command_text": payload.command,
+            "p_requested_capabilities": payload.capabilities,
+            "p_idempotency_key": payload.idempotency_key,
+        })
+        return {"data": command}
+    except SupabaseRestError as exc:
+        status = exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
+        raise HTTPException(
+            status_code=status,
+            detail={"code": "COLLABORATION_EXECUTION_BIND_FAILED", "message": exc.message},
+        ) from exc
