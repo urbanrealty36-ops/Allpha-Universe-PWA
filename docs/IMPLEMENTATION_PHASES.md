@@ -445,6 +445,46 @@ Implemented Human-owned Agent command lifecycle, execution contexts, task/step s
 
 Final runtime GREEN remains gated on authenticated Agent command E2E, real AI provider configuration, planner execution, approval/resume, kill switch, budget/rate-limit behavior, tool executor coverage, CI/build and runtime verification.
 
+### PHASE 15 — Agent Runtime & Execution — IMPLEMENTED FOUNDATION
+
+Reconciled and hardened the existing Agent Runtime rather than creating a second execution engine.
+
+Canonical runtime:
+**Human Owner → Agent Passport/Policy → Command → Plan → Risk → Approval when required → Execution → Tool/AI Gateway → Result → Audit/Telemetry**
+
+Implemented/verified:
+- Authenticated Agent command creation with ownership, active-Agent and kill-switch checks.
+- Idempotent command creation, policy/autonomy snapshot and command rate limiting.
+- Planner delegation exclusively through the Phase 14 AI Gateway.
+- Declarative plan materialization against the authoritative Agent Tool Definition registry.
+- Tool capability validation before plan materialization.
+- Risk derivation from tool risk levels and autonomy.
+- Human approval boundary for high/critical/rule-required execution.
+- Execution re-check of Agent status, kill switch, policy and capabilities.
+- Approval resume hardening: expiry, Agent status, kill switch, current policy and current capabilities are revalidated immediately before execution.
+- Agent execution context, task/step lifecycle, runtime events, tool-run telemetry and spend controls.
+- Kill Switch cancellation of active runtime state.
+- Explicit owner command cancellation through the Agent Runtime API.
+- Existing Agent Runtime → AI Gateway integration remains the only AI execution path.
+- Live collaboration and collaboration-agreement execution checks remain enforced by the canonical runtime.
+- Anonymous execution RPC access remains denied; authenticated execution remains allowed.
+- Added 24 live Phase 15 invariants covering RLS, authenticated-only RPC boundaries, owner read policies, approval-resume rechecks and absence of synthetic command/runtime data.
+
+Live reconciliation:
+- Agents: 0
+- Commands: 0
+- Tasks: 0
+- Task Steps: 0
+- Tool Definitions: 1
+- Tool Runs: 0
+- Runtime Events: 0
+- Execution Contexts: 0
+- Spend Events: 0
+- Approval Requests: 0
+- Risk Assessments: 0
+
+Phase 15 remains **IMPLEMENTED FOUNDATION / NOT GREEN** because no real user-owned Agent has been created/executed in the live environment yet. Real authenticated Agent → Runtime → AI Gateway execution, provider runtime, multi-user/approval E2E, tool execution coverage, API/PWA/Admin build/CI, browser accessibility/performance and production runtime remain final verification gates.
+
 ### PHASE 16 — Workflow & Mission Engine — IMPLEMENTED FOUNDATION
 Workflow/version/step definitions, workflow runs, mission/participant/mission-run orchestration, API/PWA surfaces, RLS and secured RPCs. Workflow execution delegates to the Phase 15 Agent Runtime; no second executor is created. Final authenticated E2E, real AI runtime, approvals, retry/trigger runtime, CI/build and final Green remain separate gates.
 
