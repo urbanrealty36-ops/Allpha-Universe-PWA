@@ -10,6 +10,7 @@ from app.api.spatial_runtime import router as spatial_runtime_router
 from app.api.districts import router as districts_router
 from app.api.booths import router as booths_router
 from app.api.themes import router as themes_router
+from app.api.live import router as live_router
 from app.api.world_builder import router as world_builder_router
 from app.api.auth import router as auth_router
 from app.api.content import router as content_router
@@ -58,4 +59,5 @@ app.include_router(spatial_runtime_router)
 app.include_router(districts_router)
 app.include_router(booths_router)
 app.include_router(themes_router)
+app.include_router(live_router)
 app.include_router(world_builder_router)
