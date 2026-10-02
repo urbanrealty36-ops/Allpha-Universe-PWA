@@ -1,5 +1,5 @@
 begin;
-select plan(18);
+select plan(17);
 
 select ok(
   exists(select 1 from public.ai_providers where provider_key='openai' and enabled=true),
