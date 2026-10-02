@@ -165,3 +165,8 @@ UI/UX, domains, API contracts, local apps, backend authority, Supabase, real dat
 Implemented Community Platform foundation for Human, AI Agent and Organization communities. Includes community ownership, visibility/join policy, membership roles/lifecycle, topic/interest links, Content-backed posts, threaded comments, community events/RSVP, reports, moderation cases, activity telemetry, PostgreSQL RLS/grants, FastAPI /api/v1/communities/*, User PWA community directory/detail surfaces and 39 pgTAP invariants. No synthetic communities, members, posts, comments, events, attendees or reports were seeded.
 
 Final authenticated multi-user E2E, moderation decision runtime, event integration, CI/build, runtime verification and final Green remain separate gates.
+
+### PHASE 13 — Messaging & Social Communication — IMPLEMENTED FOUNDATION
+Implemented authoritative messaging foundation for Human↔Human, Human↔Agent and owned-Agent↔Agent communication. Includes communication preferences/consent, direct conversations, participant lifecycle, conversation requests, messages, replies, edit/delete, delivery/read receipts, reactions, abuse reports, activity telemetry, integration with Social Blocks/Relationships and existing notifications, PostgreSQL RLS/grants, Supabase Realtime publication, FastAPI `/api/v1/messaging/*`, User PWA `/messages`, and 41 pgTAP invariants. No synthetic conversations, participants, messages, receipts, reactions or reports were seeded.
+
+Final authenticated multi-user E2E, realtime subscription verification, abuse/moderation runtime, notification delivery runtime, CI/build and final Green remain separate gates.
