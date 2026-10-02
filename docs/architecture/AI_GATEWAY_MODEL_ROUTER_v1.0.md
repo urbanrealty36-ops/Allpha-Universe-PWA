@@ -40,3 +40,7 @@ Provider/model/policy records are intentionally empty. Authoritative configurati
 ## Runtime status
 
 Foundation is implemented. Final GREEN remains blocked until a real provider/model is configured and authenticated runtime generation, retry/fallback, cost/latency telemetry, safety behavior and end-to-end verification are executed.
+
+
+## Security advisor note
+Supabase Security Advisor reports the authenticated SECURITY DEFINER RPC pattern as warning 0029. This is intentional for the Phase 14 write boundary because direct table INSERT/UPDATE privileges remain revoked. The four gateway RPCs pin `search_path=''`, schema-qualify database objects, validate `auth.uid()` ownership, and are the only authenticated write path. This warning is therefore an acknowledged architecture finding, not an unreviewed secret/authorization bypass.
