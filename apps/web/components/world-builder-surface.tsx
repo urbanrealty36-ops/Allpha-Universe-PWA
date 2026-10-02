@@ -4,14 +4,16 @@ import { FormEvent, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
 type State={id:string;status:string;world_id:string|null;theme_id:string|null;theme_version_id:string|null;world_template_id:string|null;world_template_version_id:string|null;scene_schema:Record<string,unknown>};
-type Theme={id:string;name:string;status:string;moderation_status:string};
-type Template={id:string;name:string;status:string;moderation_status:string};
+type Theme={id:string;name:string;slug:string;description:string|null;category:string;status:string;moderation_status:string;source:"creator"|"platform";catalog_order:number|null};
+type Template={id:string;name:string;slug:string;description:string|null;category:string;status:string;moderation_status:string;source:"creator"|"platform";catalog_order:number|null};
+type Version={id:string;version:number;status:string};
 
 const inputClass="w-full rounded-[var(--allpha-radius-md)] border border-white/10 bg-[var(--allpha-space-elevated)] p-3 text-sm text-[var(--allpha-text)] outline-none focus:border-[var(--allpha-cyan)]";
 const cardClass="rounded-[var(--allpha-radius-lg)] border border-white/10 bg-[var(--allpha-surface)] p-5";
 
 export default function WorldBuilderSurface(){
   const[states,setStates]=useState<State[]>([]),[themes,setThemes]=useState<Theme[]>([]),[templates,setTemplates]=useState<Template[]>([]);
+  const[themeVersions,setThemeVersions]=useState<Version[]>([]),[templateVersions,setTemplateVersions]=useState<Version[]>([]);
   const[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null);
   const[worldId,setWorldId]=useState(""),[themeId,setThemeId]=useState(""),[themeVersionId,setThemeVersionId]=useState(""),[templateId,setTemplateId]=useState(""),[templateVersionId,setTemplateVersionId]=useState("");
   const[schema,setSchema]=useState('{"type":"world","zones":[],"objects":[],"events":[],"spawn_points":[],"rules":{}}');
@@ -21,13 +23,16 @@ export default function WorldBuilderSurface(){
     try{
       const [s,t,wt]=await Promise.all([
         apiFetch<{data:State[]}>("/api/v1/world-builder"),
-        apiFetch<{data:Theme[]}>("/api/v1/themes?status=published"),
-        apiFetch<{data:Template[]}>("/api/v1/themes/world-templates")
+        apiFetch<{data:Theme[]}>("/api/v1/themes?status=published&source=platform&limit=100"),
+        apiFetch<{data:Template[]}>("/api/v1/themes/world-templates?source=platform&limit=100")
       ]);
       setStates(s.data||[]);setThemes(t.data||[]);setTemplates(wt.data||[]);
     }catch(e){setError(e instanceof Error?e.message:"WORLD_BUILDER_LOAD_FAILED")}finally{setLoading(false)}
   }
   useEffect(()=>{void load()},[]);
+
+  useEffect(()=>{if(!themeId){setThemeVersions([]);setThemeVersionId("");return}void apiFetch<{data:Version[]}>(`/api/v1/themes/${themeId}/versions`).then(r=>{const v=(r.data||[]).filter(x=>x.status==="published");setThemeVersions(v);setThemeVersionId(v[0]?.id||"")}).catch(e=>setError(e instanceof Error?e.message:"THEME_VERSION_LOAD_FAILED"))},[themeId]);
+  useEffect(()=>{if(!templateId){setTemplateVersions([]);setTemplateVersionId("");return}void apiFetch<{data:Version[]}>(`/api/v1/themes/world-templates/${templateId}/versions`).then(r=>{const v=(r.data||[]).filter(x=>x.status==="published");setTemplateVersions(v);setTemplateVersionId(v[0]?.id||"")}).catch(e=>setError(e instanceof Error?e.message:"WORLD_TEMPLATE_VERSION_LOAD_FAILED"))},[templateId]);
 
   async function save(e:FormEvent){
     e.preventDefault();setBusy(true);setError(null);
@@ -44,7 +49,8 @@ export default function WorldBuilderSurface(){
 
   return <main className="min-h-screen bg-[var(--allpha-space)] px-5 py-7 text-[var(--allpha-text)] sm:px-9">
     <div className="mx-auto max-w-7xl">
-      <header><p className="text-xs font-medium uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Phase 21 · Theme & World Builder</p><h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">World Builder</h1><p className="mt-3 max-w-3xl text-[var(--allpha-text-secondary)]">Persistent scene configuration using real Worlds, published Themes and governed Templates. Scene JSON is declarative; arbitrary code/scripts and protected authority namespaces are rejected server-side.</p></header>
+      <header><p className="text-xs font-medium uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Phase 21 · Built-in Platform Theme Catalog</p><h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">3D World Universe</h1><p className="mt-3 max-w-3xl text-[var(--allpha-text-secondary)]">Allpha-built presentation worlds are available as the initial catalog. Creator-built themes remain a separate marketplace lifecycle.</p></header>
+      <section className="mt-7"><div className="mb-4 flex items-end justify-between gap-4"><div><h2 className="text-xl font-semibold">Allpha Universe Collection</h2><p className="mt-1 text-sm text-[var(--allpha-text-muted)]">{loading?"Loading catalog…":`${themes.length} built-in themes · declarative 3D-ready World DSL`}</p></div><button onClick={()=>void load()} className="rounded-[var(--allpha-radius-sm)] border border-white/10 px-3 py-2 text-xs">Refresh</button></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{themes.map(t=><button key={t.id} onClick={()=>{setThemeId(t.id);setTemplateId("");}} className={`group text-left rounded-[var(--allpha-radius-lg)] border p-4 transition ${themeId===t.id?"border-[var(--allpha-cyan)]":"border-white/10"}`}><div className="aspect-[4/3] rounded-[var(--allpha-radius-md)] bg-gradient-to-br from-[var(--allpha-primary)]/25 via-[var(--allpha-cyan)]/10 to-white/5 p-3"><div className="flex h-full flex-col justify-between"><span className="w-fit rounded-full border border-white/10 px-2 py-1 text-[10px] uppercase tracking-wider">3D World</span><div><p className="text-sm font-semibold">{t.name}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-[var(--allpha-text-muted)]">{t.category}</p></div></div></div><p className="mt-3 line-clamp-2 text-xs text-[var(--allpha-text-secondary)]">{t.description}</p></button>)}</div></section>
       {error&&<div className="mt-5 rounded-[var(--allpha-radius-md)] border border-[var(--allpha-danger)]/30 bg-[var(--allpha-danger)]/10 p-4 text-sm">{error}</div>}
       <div className="mt-7 grid gap-6 lg:grid-cols-[1.05fr_.95fr]">
         <section className={cardClass}>
@@ -53,9 +59,9 @@ export default function WorldBuilderSurface(){
           <form onSubmit={save} className="mt-5 grid gap-3">
             <input value={worldId} onChange={e=>setWorldId(e.target.value)} placeholder="World UUID (optional)" className={inputClass}/>
             <select value={themeId} onChange={e=>setThemeId(e.target.value)} className={inputClass}><option value="">No Theme selected</option>{themes.map(t=><option key={t.id} value={t.id}>{t.name} · {t.status}</option>)}</select>
-            <input value={themeVersionId} onChange={e=>setThemeVersionId(e.target.value)} placeholder="Published Theme Version UUID (optional)" className={inputClass}/>
+            <select value={themeVersionId} onChange={e=>setThemeVersionId(e.target.value)} className={inputClass} disabled={!themeId}><option value="">{themeId?"Published Theme Version":"Select Theme first"}</option>{themeVersions.map(v=><option key={v.id} value={v.id}>v{v.version} · {v.status}</option>)}</select>
             <select value={templateId} onChange={e=>setTemplateId(e.target.value)} className={inputClass}><option value="">No World Template selected</option>{templates.map(t=><option key={t.id} value={t.id}>{t.name} · {t.status}</option>)}</select>
-            <input value={templateVersionId} onChange={e=>setTemplateVersionId(e.target.value)} placeholder="World Template Version UUID (optional)" className={inputClass}/>
+            <select value={templateVersionId} onChange={e=>setTemplateVersionId(e.target.value)} className={inputClass} disabled={!templateId}><option value="">{templateId?"Published World Template Version":"Select Template first"}</option>{templateVersions.map(v=><option key={v.id} value={v.id}>v{v.version} · {v.status}</option>)}</select>
             <label className="grid gap-1 text-xs text-[var(--allpha-text-secondary)]"><span>World Scene Schema</span><textarea value={schema} onChange={e=>setSchema(e.target.value)} rows={15} className={`${inputClass} font-mono text-xs`}/></label>
             <button disabled={busy} className="rounded-[var(--allpha-radius-md)] bg-[var(--allpha-primary)] px-4 py-3 text-sm font-medium disabled:opacity-40">{busy?"Saving…":"Save builder state"}</button>
           </form>
