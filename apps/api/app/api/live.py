@@ -131,7 +131,104 @@ async def create_live_session(
     return {"data": rows[0] if rows else None}
 
 
-@router.get("/sessions/{session_id}")
+
+class LiveCollaborationCreate(BaseModel):
+    agent_id: UUID
+    mode: Literal["cohost", "interactive", "sales", "podcast", "talkshow", "presentation", "moderation"] = "cohost"
+    required_capability: str = Field(min_length=1, max_length=200)
+    authority_policy: dict[str, Any] = Field(default_factory=dict)
+    interaction_policy: dict[str, Any] = Field(default_factory=dict)
+
+
+class LiveCollaborationConsent(BaseModel):
+    approved: bool
+
+
+@router.get("/sessions/{session_id}/collaborations")
+async def list_live_collaborations(session_id: UUID, context: dict = Depends(get_auth_context)):
+    rows = await select(
+        context["user"], "live_agent_collaborations",
+        {"select": "*", "live_session_id": f"eq.{session_id}", "order": "created_at.desc"},
+    )
+    return {"data": rows}
+
+
+@router.post("/sessions/{session_id}/collaborations", status_code=201)
+async def request_live_collaboration(
+    session_id: UUID,
+    payload: LiveCollaborationCreate,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        result = await rpc(
+            context["user"],
+            "request_live_agent_collaboration",
+            {
+                "p_live_session_id": str(session_id),
+                "p_agent_id": str(payload.agent_id),
+                "p_mode": payload.mode,
+                "p_required_capability": payload.required_capability.strip(),
+                "p_authority_policy": payload.authority_policy,
+                "p_interaction_policy": payload.interaction_policy,
+            },
+        )
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COLLAB_REQUEST_FAILED") from exc
+
+
+@router.post("/collaborations/{collaboration_id}/consent")
+async def consent_live_collaboration(
+    collaboration_id: UUID,
+    payload: LiveCollaborationConsent,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        result = await rpc(
+            context["user"],
+            "set_live_agent_consent",
+            {"p_collaboration_id": str(collaboration_id), "p_approved": payload.approved},
+        )
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COLLAB_CONSENT_FAILED") from exc
+
+
+@router.post("/collaborations/{collaboration_id}/activate")
+async def activate_live_collaboration(collaboration_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(
+            context["user"], "activate_live_agent_collaboration",
+            {"p_collaboration_id": str(collaboration_id)},
+        )
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COLLAB_ACTIVATION_FAILED") from exc
+
+
+@router.post("/collaborations/{collaboration_id}/pause")
+async def pause_live_collaboration(collaboration_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(
+            context["user"], "transition_live_agent_collaboration",
+            {"p_collaboration_id": str(collaboration_id), "p_target": "paused"},
+        )
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COLLAB_PAUSE_FAILED") from exc
+
+
+@router.post("/collaborations/{collaboration_id}/end")
+async def end_live_collaboration(collaboration_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(
+            context["user"], "transition_live_agent_collaboration",
+            {"p_collaboration_id": str(collaboration_id), "p_target": "ended"},
+        )
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COLLAB_END_FAILED") from exc
+\n@router.get("/sessions/{session_id}")
 async def get_live_session(session_id: UUID, context: dict = Depends(get_auth_context)):
     rows = await select(
         context["user"],
