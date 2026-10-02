@@ -85,6 +85,13 @@ async def begin_execution(user: AuthenticatedUser, command_id: UUID) -> dict[str
         raise AgentRuntimeError("AGENT_EXECUTION_START_FAILED", exc.message, 409) from exc
 
 
+async def cancel_command(user: AuthenticatedUser, command_id: UUID, reason: str | None = None) -> dict[str, Any]:
+    try:
+        return await rpc(user, "cancel_agent_command", {"p_command_id": str(command_id), "p_reason": reason})
+    except SupabaseRestError as exc:
+        raise AgentRuntimeError("AGENT_COMMAND_CANCEL_FAILED", exc.message, 409) from exc
+
+
 async def resume_after_approval(user: AuthenticatedUser, command_id: UUID) -> dict[str, Any]:
     try:
         return await rpc(user, "resume_agent_after_approval", {"p_command_id": str(command_id)})
