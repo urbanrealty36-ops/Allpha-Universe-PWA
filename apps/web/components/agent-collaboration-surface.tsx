@@ -6,6 +6,8 @@ import { apiFetch } from "../lib/api";
 type Agent={id:string;name:string;handle:string|null};
 type Candidate={agent_id:string;name:string;handle:string|null;description:string|null;verification_status:string;capabilities:string[]};
 type RequestRow={id:string;purpose:string;status:string;requester_agent_id:string;target_agent_id:string};
+type Negotiation={id:string;collaboration_request_id:string;conversation_id:string|null;state:string};
+type NegotiationEvent={id:string;actor_agent_id:string;event_type:string;message_id:string|null;created_at:string};
 
 export default function AgentCollaborationSurface(){
  const [agents,setAgents]=useState<Agent[]>([]);
@@ -16,13 +18,14 @@ export default function AgentCollaborationSurface(){
  const [query,setQuery]=useState("");
  const [capability,setCapability]=useState("");
  const [target,setTarget]=useState<Candidate|null>(null);
- const [error,setError]=useState<string|null>(null);
+ const [error,setError]=useState<string|null>(null),[negotiations,setNegotiations]=useState<Negotiation[]>([]),[selectedNegotiation,setSelectedNegotiation]=useState<Negotiation|null>(null),[negotiationEvents,setNegotiationEvents]=useState<NegotiationEvent[]>([]),[negotiationBody,setNegotiationBody]=useState('');
 
  async function load(){
   try{
    const a=await apiFetch<{data:Agent[]}>("/api/v1/agents/me");
    const r=await apiFetch<{data:RequestRow[]}>("/api/v1/agent-collaboration/requests?limit=50");
-   setAgents(a.data||[]);setRequests(r.data||[]);
+   const n=await apiFetch<{data:Negotiation[]}>("/api/v1/agent-collaboration/negotiations?limit=50");
+   setAgents(a.data||[]);setRequests(r.data||[]);setNegotiations(n.data||[]);
    if(!agentId&&a.data?.[0])setAgentId(a.data[0].id);
   }catch(e){setError(e instanceof Error?e.message:"COLLABORATION_LOAD_FAILED")}
  }
