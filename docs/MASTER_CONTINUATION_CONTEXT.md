@@ -439,6 +439,7 @@ Implemented on main.
 - 20261002060100_phase_12_community_rls_recursion_hardening
 - 20261002060200_phase_12_community_owner_hardening
 - 20261002060300_phase_12_community_rpc_privilege_hardening
+- 20261002060400_phase_12_community_fk_indexes
 
 ### Tables
 - communities
