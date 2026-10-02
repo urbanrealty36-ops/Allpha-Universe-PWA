@@ -110,3 +110,30 @@ Agent creation hardening: `/api/v1/agents` now fails closed with 422 when an exp
 **Security boundary:** factory metadata is stored under existing agent_identities.metadata.factory_config; it does not grant authority. Policy, Risk, Approval and Agent Runtime remain authoritative. Legacy create_agent_identity overload removed after introducing the factory-aware signature.
 
 **Still pending:** real authenticated Agent creation, real Content/World/District/Booth/Live data, AI Gateway provider/model runtime, RAG/embedding, telemetry, browser accessibility/performance, API/PWA/Admin CI and production Green.
+
+
+## 11A.13 — Real Agent Activation E2E update
+
+**Implemented foundation:** the previously hard-disabled Agent command route is now wired to the existing Agent Runtime create → plan → execute flow. The Agent Detail surface now provides an authenticated owner Command Console. Agent Factory Content context now requires and loads a real published Content resource.
+
+**Verified by source inspection:**
+- Agent ownership check precedes command execution.
+- Runtime command creation delegates to create_agent_command.
+- Planning delegates to the existing AI Gateway through Agent Runtime.
+- Execution delegates to the existing Agent Runtime tool boundary.
+- Browser does not call OpenAI directly.
+- Runtime telemetry remains in agent_commands / agent_task_steps / ai_gateway_requests / ai_gateway_attempts.
+- No synthetic records were created.
+
+**Live blockers remain:**
+- Agents: 0
+- Content Items: 0
+- AI Gateway enabled providers: 0
+- AI Gateway enabled models: 0
+- AI Gateway requests: 0
+- Agent commands: 0
+- Feed interaction events: 0
+
+Therefore the requested path is now **CODE-PATH ACTIVATED / RUNTIME E2E PENDING**, not GREEN.
+
+To close the runtime gate, an authenticated real user must create one real Agent through Agent Factory and execute a real command. The FastAPI deployment must also have the server-side OpenAI credential bound to the environment variable referenced by the configured provider. No API key is stored in Supabase or the browser.
