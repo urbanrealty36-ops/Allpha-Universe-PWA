@@ -25,7 +25,7 @@ export default function AgentFactory(){
   async function loadCatalog(){try{const r=await apiFetch<{data:{types:AgentType[];skills:Skill[];characters:Character[]}}>("/api/v1/agent-catalog");setTypes(r.data.types);setSkills(r.data.skills);setCharacters(r.data.characters)}catch(e){setError(e instanceof Error?e.message:"AGENT_FACTORY_LOAD_FAILED")}finally{setLoading(false)}}
 
   useEffect(()=>{
-    if(["universe","feed","content","personal","private"].includes(form.scope)){setResources([]);return}
+    if(["universe","feed","personal","private"].includes(form.scope)){setResources([]);return}
     if(form.scope==="zone"){void loadResources("district");return}
     void loadResources(form.scope);
   },[form.scope,form.districtId]);
@@ -33,7 +33,7 @@ export default function AgentFactory(){
   useEffect(()=>{if(form.scope==="zone"&&form.districtId)void loadZoneResources(form.districtId)},[form.scope,form.districtId]);
 
   async function loadResources(scope:string){
-    const urls:Record<string,string>={world:"/api/v1/universe/worlds?limit=100",district:"/api/v1/districts?limit=100",booth:"/api/v1/booths?limit=100",live:"/api/v1/live/sessions?limit=100"};
+    const urls:Record<string,string>={world:"/api/v1/universe/worlds?limit=100",district:"/api/v1/districts?limit=100",booth:"/api/v1/booths?limit=100",live:"/api/v1/live/sessions?limit=100",content:"/api/v1/content?status=published&limit=100"};
     if(!urls[scope])return;
     try{const r=await apiFetch<{data:Resource[]}>(urls[scope]);setResources(r.data||[]);if(scope==="district")setDistricts(r.data||[])}catch(e){setError(e instanceof Error?e.message:"CONTEXT_LOAD_FAILED")}
   }
@@ -79,7 +79,7 @@ export default function AgentFactory(){
     {step===4&&<section className={card}><h2 className="text-xl font-semibold">Universe Context</h2><p className="mt-2 text-sm text-slate-400">Context menentukan experience. Authority tetap berada di Policy dan Agent Runtime.</p><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{contexts.map(([key,label])=><button key={key} onClick={()=>setForm({...form,scope:key,resourceId:"",districtId:""})} className={"rounded-xl border p-3 text-left text-sm "+cls(form.scope===key)}>{label}</button>)}</div>
       {form.scope==="zone"&&<select className={input+" mt-5"} value={form.districtId} onChange={e=>setForm({...form,districtId:e.target.value,resourceId:""})}><option value="">Pilih District untuk melihat Zone</option>{districts.map(d=><option key={d.id} value={d.id}>{d.name||d.slug||d.id}</option>)}</select>}
       {resources.length>0&&!["universe","feed","content","personal","private"].includes(form.scope)&&<select className={input+" mt-3"} value={form.resourceId} onChange={e=>setForm({...form,resourceId:e.target.value})}><option value="">Pilih {form.scope}</option>{resources.map(r=><option key={r.id} value={r.id}>{r.name||r.title||r.slug||r.id}</option>)}</select>}
-      {resources.length===0&&["world","district","zone","booth","live"].includes(form.scope)&&<p className="mt-4 text-sm text-slate-500">Belum ada data {form.scope} yang tersedia untuk akun ini. Tidak ada data sintetis yang ditampilkan.</p>}
+      {resources.length===0&&["world","district","zone","booth","live","content"].includes(form.scope)&&<p className="mt-4 text-sm text-slate-500">Belum ada data {form.scope} yang tersedia untuk akun ini. Tidak ada data sintetis yang ditampilkan.</p>}
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{modes.map(([key,label])=><button key={key} onClick={()=>setForm({...form,mode:key})} className={"rounded-xl border p-3 text-left text-sm "+(form.mode===key?"border-violet-400/50 bg-violet-400/10":"border-white/10 bg-white/[0.025]")}>{label}</button>)}</div>
     </section>}
 
