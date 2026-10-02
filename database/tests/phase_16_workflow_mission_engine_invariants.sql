@@ -35,4 +35,10 @@ select ok(to_regprocedure('public.create_shared_workflow_run(uuid,uuid,uuid,uuid
 select ok((select count(*) from public.workflows)=0,'no workflow seed data');
 select ok((select count(*) from public.workflow_runs)=0,'no workflow run seed data');
 select ok((select count(*) from public.missions)=0,'no mission seed data');
+select ok(to_regprocedure('public.cancel_workflow_run(uuid,text)') is not null,'cancel_workflow_run exists');
+select ok(to_regprocedure('public.cancel_mission_run(uuid,text)') is not null,'cancel_mission_run exists');
+select ok(exists(select 1 from pg_proc p where p.oid='public.cancel_workflow_run(uuid,text)'::regprocedure and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'cancel workflow authenticated-only');
+select ok(exists(select 1 from pg_proc p where p.oid='public.cancel_mission_run(uuid,text)'::regprocedure and has_function_privilege('anon',p.oid,'execute')=false and has_function_privilege('authenticated',p.oid,'execute')),'cancel mission authenticated-only');
+select ok(exists(select 1 from pg_proc p where p.oid='public.prepare_workflow_run(uuid)'::regprocedure and pg_get_functiondef(p.oid) like '%create_agent_command%'),'workflow delegates command creation to Agent Runtime');
+select ok(exists(select 1 from pg_proc p where p.oid='public.cancel_workflow_run(uuid,text)'::regprocedure and pg_get_functiondef(p.oid) like '%cancel_agent_command%'),'workflow cancellation delegates to Agent Runtime');
 select * from finish();
