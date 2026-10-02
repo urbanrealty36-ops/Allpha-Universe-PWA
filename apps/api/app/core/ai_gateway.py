@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 import time
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from typing import Any
 
@@ -176,7 +177,10 @@ def _estimate_cost(model: dict[str, Any], input_tokens: int | None, output_token
 
 
 async def _update_request(user: AuthenticatedUser, request_id: str, values: dict[str, Any]) -> None:
-    await update(user, "ai_gateway_requests", {"id": f"eq.{request_id}"}, values, returning=False)
+    payload = dict(values)
+    if payload.get("status") in {"completed", "failed", "denied", "not_configured"}:
+        payload["completed_at"] = datetime.now(timezone.utc).isoformat()
+    await update(user, "ai_gateway_requests", {"id": f"eq.{request_id}"}, payload, returning=False)
 
 
 async def _record_attempt(user: AuthenticatedUser, values: dict[str, Any]) -> None:
@@ -237,7 +241,6 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
             "safety_status": "not_configured",
             "error_code": "AI_NO_COMPATIBLE_MODEL",
             "error_message": "No enabled model satisfies the requested capabilities.",
-            "completed_at": "now()",
         })
         await _record_usage(user, {
             "request_id": request_id,
