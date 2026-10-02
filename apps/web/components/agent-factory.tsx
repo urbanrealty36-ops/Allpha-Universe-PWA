@@ -26,7 +26,7 @@ export default function AgentFactory(){
 
   useEffect(()=>{
     if(["universe","feed","content","personal","private"].includes(form.scope)){setResources([]);return}
-    if(form.scope==="zone"&&form.districtId)return;
+    if(form.scope==="zone"){void loadResources("district");return}
     void loadResources(form.scope);
   },[form.scope,form.districtId]);
 
