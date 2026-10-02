@@ -35,3 +35,43 @@ select
   (select count(*) from public.theme_assets ta join public.themes t on t.id=ta.theme_id where t.source='platform') as platform_theme_assets,
   (select count(*) from public.booths) as booths,
   (select count(*) from public.districts) as districts;
+
+-- Asset/spatial foundation invariants: read-only.
+do $$
+declare
+  invalid integer;
+begin
+  select count(*) into invalid
+  from public.theme_assets
+  where trim(storage_path) = '' or storage_path like 'http://%' or storage_path like 'https://%';
+  if invalid <> 0 then raise exception 'THEME_ASSETS_MUST_STORE_PATHS_NOT_URLS_%',invalid; end if;
+
+  select count(*) into invalid
+  from public.booth_display_assets
+  where trim(storage_path) = '' or storage_path like 'http://%' or storage_path like 'https://%';
+  if invalid <> 0 then raise exception 'BOOTH_ASSETS_MUST_STORE_PATHS_NOT_URLS_%',invalid; end if;
+
+  select count(*) into invalid
+  from public.districts
+  where jsonb_typeof(spatial_config) <> 'object';
+  if invalid <> 0 then raise exception 'DISTRICT_SPATIAL_CONFIG_INVALID_%',invalid; end if;
+
+  select count(*) into invalid
+  from public.district_zones
+  where jsonb_typeof(spatial_config) <> 'object';
+  if invalid <> 0 then raise exception 'DISTRICT_ZONE_SPATIAL_CONFIG_INVALID_%',invalid; end if;
+
+  select count(*) into invalid
+  from public.booths
+  where jsonb_typeof(scene_config) <> 'object'
+     or jsonb_typeof(display_config) <> 'object';
+  if invalid <> 0 then raise exception 'BOOTH_SPATIAL_CONFIG_INVALID_%',invalid; end if;
+end $$;
+
+select
+  (select count(*) from public.theme_assets) as theme_assets,
+  (select count(*) from public.booth_display_assets) as booth_display_assets,
+  (select count(*) from public.booth_display_slots) as booth_display_slots,
+  (select count(*) from public.districts) as districts,
+  (select count(*) from public.district_zones) as district_zones,
+  (select count(*) from public.booths) as booths;
