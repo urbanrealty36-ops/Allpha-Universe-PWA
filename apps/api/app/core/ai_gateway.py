@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 from app.core.auth import AuthenticatedUser
-from app.core.supabase_rest import rpc, select
+from app.core.supabase_rest import insert, select, update
 
 
 class AIGatewayError(RuntimeError):
@@ -175,18 +175,43 @@ def _estimate_cost(model: dict[str, Any], input_tokens: int | None, output_token
     return ((input_tokens or 0) * float(model.get("input_cost_per_1m") or 0) + (output_tokens or 0) * float(model.get("output_cost_per_1m") or 0)) / 1_000_000
 
 
+async def _update_request(user: AuthenticatedUser, request_id: str, values: dict[str, Any]) -> None:
+    await update(user, "ai_gateway_requests", {"id": f"eq.{request_id}"}, values, returning=False)
+
+
+async def _record_attempt(user: AuthenticatedUser, values: dict[str, Any]) -> None:
+    await insert(user, "ai_gateway_attempts", values, returning=False)
+
+
+async def _record_usage(user: AuthenticatedUser, values: dict[str, Any]) -> None:
+    await insert(user, "ai_usage_events", {"user_id": str(user.user_id), **values}, returning=False)
+
+
 async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, agent_id: str | None = None, capabilities: list[str] | None = None, idempotency_key: str | None = None, metadata: dict[str, Any] | None = None) -> GatewayResult:
     requested = {str(value) for value in (capabilities or [])}
-    request = await rpc(user, "create_ai_gateway_request", {
-        "p_agent_id": agent_id,
-        "p_idempotency_key": idempotency_key,
-        "p_requested_capabilities": sorted(requested),
-        "p_input_fingerprint": fingerprint_messages(messages),
-        "p_metadata": metadata or {},
+    existing = []
+    if idempotency_key:
+        existing = await select(user, "ai_gateway_requests", {
+            "select": "id,status",
+            "user_id": f"eq.{user.user_id}",
+            "idempotency_key": f"eq.{idempotency_key}",
+            "limit": "1",
+        })
+        if existing:
+            raise AIGatewayError("AI_IDEMPOTENCY_REPLAY_UNAVAILABLE", "An idempotency key has already been used. A new provider call was not started.", 409)
+
+    request_rows = await insert(user, "ai_gateway_requests", {
+        "user_id": str(user.user_id),
+        "agent_id": agent_id,
+        "idempotency_key": idempotency_key,
+        "requested_capabilities": sorted(requested),
+        "input_fingerprint": fingerprint_messages(messages),
+        "metadata": metadata or {},
     })
+    if not request_rows:
+        raise AIGatewayError("AI_GATEWAY_REQUEST_CREATE_FAILED", "The AI gateway request could not be created.", 502)
+    request = request_rows[0]
     request_id = str(request["id"])
-    if request.get("idempotency_reused"):
-        raise AIGatewayError("AI_IDEMPOTENCY_REPLAY_UNAVAILABLE", "An idempotency key has already been used. A new provider call was not started.", 409)
 
     providers = await select(user, "ai_providers", {"select": "id,provider_key,display_name,adapter,base_url,credential_env_var,enabled,metadata", "enabled": "eq.true"})
     models = await select(user, "ai_models", {"select": "id,provider_id,model_key,model_identifier,display_name,enabled,context_window_tokens,max_output_tokens,input_cost_per_1m,output_cost_per_1m,capabilities,ai_providers(id,provider_key,adapter,base_url,credential_env_var,enabled,metadata)", "enabled": "eq.true"})
@@ -199,14 +224,14 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
 
     candidates = _candidate_models(models, policy, requested)
     if not candidates:
-        await rpc(user, "record_ai_gateway_outcome", {"p_request_id": request_id, "p_status": "not_configured", "p_safety_status": "not_configured", "p_error_code": "AI_NO_COMPATIBLE_MODEL", "p_error_message": "No enabled model satisfies the requested capabilities."})
-        await rpc(user, "record_ai_usage_event", {"p_request_id": request_id, "p_event_type": "denied", "p_agent_id": agent_id, "p_metadata": {"reason": "no_compatible_model"}})
+        await _update_request(user, request_id, {"request_id": request_id, "status": "not_configured", "safety_status": "not_configured", "error_code": "AI_NO_COMPATIBLE_MODEL", "error_message": "No enabled model satisfies the requested capabilities."})
+        await _record_usage(user, {"p_request_id": request_id, "event_type": "denied", "agent_id": agent_id, "metadata": {"reason": "no_compatible_model"}})
         raise AIGatewayError("AI_NO_COMPATIBLE_MODEL", "No configured AI model can satisfy this request.", 503)
 
     estimated_input = _estimate_tokens(messages)
     max_context = int((policy or {}).get("max_context_tokens") or candidates[0]["context_window_tokens"])
     if estimated_input >= max_context:
-        await rpc(user, "record_ai_gateway_outcome", {"p_request_id": request_id, "p_status": "denied", "p_safety_status": "denied", "p_selected_policy_id": str(policy["id"]) if policy else None, "p_error_code": "AI_CONTEXT_BUDGET_EXCEEDED", "p_error_message": "Input exceeds the configured context budget."})
+        await rpc(user, "record_ai_gateway_outcome", {"p_request_id": request_id, "p_status": "denied", "p_safety_status": "denied", "selected_policy_id": str(policy["id"]) if policy else None, "p_error_code": "AI_CONTEXT_BUDGET_EXCEEDED", "p_error_message": "Input exceeds the configured context budget."})
         raise AIGatewayError("AI_CONTEXT_BUDGET_EXCEEDED", "Input exceeds the configured context budget.", 413)
 
     safety = (policy or {}).get("safety_policy") or {}
@@ -223,20 +248,20 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
     max_output = int((policy or {}).get("max_output_tokens") or candidates[0].get("max_output_tokens") or 2048)
     last_error: AIGatewayError | None = None
 
-    await rpc(user, "record_ai_gateway_outcome", {"p_request_id": request_id, "p_status": "running", "p_safety_status": "allowed" if safety.get("enabled") else "not_configured", "p_selected_policy_id": str(policy["id"]) if policy else None})
+    await rpc(user, "record_ai_gateway_outcome", {"p_request_id": request_id, "status": "running", "p_safety_status": "allowed" if safety.get("enabled") else "not_configured", "p_selected_policy_id": str(policy["id"]) if policy else None})
 
     for index, model in enumerate(candidates[: max_retries + 1], start=1):
         provider = model.get("ai_providers") or {}
-        await rpc(user, "record_ai_gateway_attempt", {"p_request_id": request_id, "p_attempt_no": index, "p_provider_id": str(provider["id"]), "p_model_id": str(model["id"]), "p_status": "started"})
+        await _record_attempt(user, {"p_request_id": request_id, "attempt_no": index, "provider_id": str(provider["id"]), "model_id": str(model["id"]), "p_status": "started"})
         try:
             text, input_tokens, output_tokens, latency = await _provider_call(provider, model, messages, max_output, timeout_ms)
             total = (input_tokens or 0) + (output_tokens or 0) if input_tokens is not None or output_tokens is not None else None
             cost = _estimate_cost(model, input_tokens, output_tokens)
             if policy and policy.get("max_cost_usd") is not None and cost is not None and cost > float(policy["max_cost_usd"]):
                 raise AIGatewayError("AI_COST_BUDGET_EXCEEDED", "Estimated model cost exceeds the routing policy budget.", 402)
-            await rpc(user, "record_ai_gateway_attempt", {"p_request_id": request_id, "p_attempt_no": index, "p_provider_id": str(provider["id"]), "p_model_id": str(model["id"]), "p_status": "completed", "p_latency_ms": latency, "p_input_tokens": input_tokens, "p_output_tokens": output_tokens, "p_total_tokens": total, "p_estimated_cost_usd": cost})
-            await rpc(user, "record_ai_gateway_outcome", {"p_request_id": request_id, "p_status": "completed", "p_safety_status": "allowed" if safety.get("enabled") else "not_configured", "p_selected_model_id": str(model["id"]), "p_selected_policy_id": str(policy["id"]) if policy else None, "p_input_tokens": input_tokens, "p_output_tokens": output_tokens, "p_total_tokens": total, "p_estimated_cost_usd": cost, "p_latency_ms": latency, "p_response_text_hash": hashlib.sha256(text.encode()).hexdigest()})
-            await rpc(user, "record_ai_usage_event", {"p_request_id": request_id, "p_event_type": "success", "p_provider_id": str(provider["id"]), "p_model_id": str(model["id"]), "p_agent_id": agent_id, "p_input_tokens": input_tokens, "p_output_tokens": output_tokens, "p_total_tokens": total, "p_estimated_cost_usd": cost, "p_latency_ms": latency})
+            await rpc(user, "record_ai_gateway_attempt", {"p_request_id": request_id, "p_attempt_no": index, "p_provider_id": str(provider["id"]), "p_model_id": str(model["id"]), "p_status": "completed", "latency_ms": latency, "input_tokens": input_tokens, "output_tokens": output_tokens, "total_tokens": total, "estimated_cost_usd": cost})
+            await rpc(user, "record_ai_gateway_outcome", {"p_request_id": request_id, "p_status": "completed", "p_safety_status": "allowed" if safety.get("enabled") else "not_configured", "selected_model_id": str(model["id"]), "p_selected_policy_id": str(policy["id"]) if policy else None, "p_input_tokens": input_tokens, "p_output_tokens": output_tokens, "p_total_tokens": total, "p_estimated_cost_usd": cost, "p_latency_ms": latency, "response_text_hash": hashlib.sha256(text.encode()).hexdigest()})
+            await rpc(user, "record_ai_usage_event", {"p_request_id": request_id, "p_event_type": "success", "p_provider_id": str(provider["id"]), "p_model_id": str(model["id"]), "agent_id": agent_id, "p_input_tokens": input_tokens, "p_output_tokens": output_tokens, "p_total_tokens": total, "p_estimated_cost_usd": cost, "p_latency_ms": latency})
             return GatewayResult(text=text, provider_id=str(provider["id"]), model_id=str(model["id"]), model_identifier=str(model["model_identifier"]), input_tokens=input_tokens, output_tokens=output_tokens, total_tokens=total, estimated_cost_usd=cost, latency_ms=latency, attempt_no=index)
         except AIGatewayError as exc:
             last_error = exc
