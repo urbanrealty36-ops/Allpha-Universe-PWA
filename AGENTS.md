@@ -143,3 +143,19 @@ Implementation rules:
 - Safety policy can fail closed when configured as required but unavailable.
 - Empty/not-configured provider/model state is valid; no synthetic models or responses may be shown.
 - Phase 14 foundation is not final GREEN until real provider configuration, authenticated generation, retry/fallback, safety, telemetry, build and runtime E2E verification pass.
+
+
+## Phase 15 — Agent Runtime & Command System
+- Agent Runtime is the canonical execution boundary between Human-owned Agents and executable tools.
+- Command lifecycle is server-authoritative: received → planning → ready → running / waiting_approval → completed / failed / cancelled / killed.
+- Agent ownership, active status, Agent Policy, capabilities, rate limits, budget and kill switch are evaluated server-side.
+- Plans are generated through the Phase 14 AI Gateway; raw planner chain-of-thought is never persisted or exposed.
+- Only enabled Tool Definitions may be materialized into executable steps.
+- A tool step requires the Agent capability matching the tool capability.
+- Command risk is derived from authoritative tool risk metadata; planner-provided risk cannot lower tool risk.
+- High/critical and policy/autonomy-sensitive execution enters the Human Approval path.
+- Kill switch is fail-closed and can terminate pending/running command state.
+- Tool execution results and runtime transitions are auditable.
+- Spend events are server-recorded and checked against Agent action/daily/monthly budgets.
+- Phase 15 currently has a canonical built-in ai.generate tool backed by Phase 14 AI Gateway. No synthetic Agent/user/task records are seeded.
+- New tool executors must be server-side and must not provide arbitrary network, shell, database, secret or privileged access.
