@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
 from app.core.supabase_rest import SupabaseRestError, insert, select, update, rpc
-from app.core.agent_runtime import AgentRuntimeError, create_command, plan_command, execute_command
+from app.core.agent_runtime import AgentRuntimeError, create_command, plan_command, execute_command, run_live_conversation_turn
 
 router = APIRouter(prefix="/api/v1/live", tags=["Live Stories & Streaming"])
 
@@ -143,6 +143,17 @@ class LiveCollaborationCreate(BaseModel):
 
 class LiveCollaborationConsent(BaseModel):
     approved: bool
+
+class LiveConversationMessage(BaseModel):
+    content: str = Field(min_length=1, max_length=20000)
+
+
+class LiveAudienceInteraction(BaseModel):
+    viewer_id: UUID
+    interaction_type: Literal["reaction", "question", "raise_hand", "poll_response", "share", "report"]
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
 
 
 @router.get("/sessions/{session_id}/collaborations")
@@ -294,6 +305,67 @@ async def execute_live_runtime_command(
         return {"data": await execute_command(context["user"], command_id)}
     except AgentRuntimeError as exc:
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+
+
+
+@router.get("/sessions/{session_id}/messages")
+async def list_live_messages(session_id: UUID, limit: int = Query(100, ge=1, le=200), context: dict = Depends(get_auth_context)):
+    rows = await select(context["user"], "live_session_messages", {
+        "select": "id,live_session_id,live_collaboration_id,viewer_id,sender_type,sender_user_id,sender_agent_id,role,message_type,content,created_at",
+        "live_session_id": f"eq.{session_id}",
+        "order": "created_at.asc",
+        "limit": str(limit),
+    })
+    return {"data": rows}
+
+
+@router.post("/sessions/{session_id}/conversation", status_code=201)
+async def send_live_conversation(session_id: UUID, payload: LiveConversationMessage, collaboration_id: UUID = Query(...), context: dict = Depends(get_auth_context)):
+    try:
+        await rpc(context["user"], "create_live_session_message", {
+            "p_live_session_id": str(session_id),
+            "p_sender_type": "owner",
+            "p_content": payload.content.strip(),
+            "p_live_collaboration_id": str(collaboration_id),
+            "p_viewer_id": None,
+        })
+        return {"data": await run_live_conversation_turn(context["user"], session_id, collaboration_id)}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_CONVERSATION_MESSAGE_FAILED") from exc
+    except AgentRuntimeError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+
+
+@router.post("/sessions/{session_id}/audience/join")
+async def join_live_audience(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "join_live_session", {"p_live_session_id": str(session_id)})
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_AUDIENCE_JOIN_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/audience/leave")
+async def leave_live_audience(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "leave_live_session", {"p_live_session_id": str(session_id)})
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_AUDIENCE_LEAVE_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/audience/interactions", status_code=201)
+async def create_live_audience_interaction(session_id: UUID, payload: LiveAudienceInteraction, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "create_live_audience_interaction", {
+            "p_live_session_id": str(session_id),
+            "p_viewer_id": str(payload.viewer_id),
+            "p_interaction_type": payload.interaction_type,
+            "p_payload": payload.payload,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_AUDIENCE_INTERACTION_FAILED") from exc
 
 @router.get("/sessions/{session_id}")
 async def get_live_session(session_id: UUID, context: dict = Depends(get_auth_context)):
