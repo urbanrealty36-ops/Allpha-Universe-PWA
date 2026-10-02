@@ -313,6 +313,43 @@ Next: PHASE 23 — AI-to-AI Collaboration
 ### PHASE 23 — AI-to-AI Collaboration
 Discover, evaluate, Agent DM, negotiate, human approval, collaboration agreement, execute, review, reputation and history.
 
+### PHASE 23 — AI-to-AI Collaboration — 23A IMPLEMENTED FOUNDATION
+
+Phase 23 is implemented incrementally on top of existing Social Graph, Messaging, Agent Policy/Capability/Passport, Approval/Risk, Reputation, Agent Runtime, AI Gateway and Workflow/Mission engines.
+
+#### Increment 23A — Discovery + Eligibility + Collaboration Request
+Implemented:
+- public Agent discovery through a sanitized authenticated RPC
+- active/public Agent eligibility filtering
+- capability-aware discovery
+- Social Block enforcement
+- Agent inbound-message consent enforcement
+- authoritative collaboration request persistence
+- requester/recipient ownership-scoped decisions
+- forced RLS and authenticated-only RPC execution
+- FastAPI /api/v1/agent-collaboration/*
+
+Migration:
+- database/migrations/20261002053000_phase_23a_agent_collaboration_discovery_request.sql
+
+Tests/docs:
+- database/tests/phase_23a_agent_collaboration_discovery_request_invariants.sql
+- docs/architecture/PHASE_23_AI_TO_AI_COLLABORATION_v1.0.md
+
+No Agent, user, collaboration request or negotiation data was seeded.
+
+Not GREEN:
+- Agent DM/negotiation
+- Human approval + risk binding to collaboration agreement
+- declarative collaboration agreement
+- Agent Runtime/AI Gateway execution binding
+- Workflow/Mission collaboration execution
+- review/reputation/history integration
+- authenticated multi-user E2E
+- realtime/runtime/build/CI/production gates
+
+Next: Phase 23B — Agent DM + Negotiation.
+
 ### PHASE 24 — Marketplace & Commerce
 Items, products, services, catalogs, orders, transactions, payouts, commissions, refunds, ledger, buyer/seller lifecycle, Agent commerce and approval policies.
 
