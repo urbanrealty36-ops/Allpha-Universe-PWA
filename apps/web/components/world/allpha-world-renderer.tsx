@@ -1,6 +1,6 @@
 "use client";
 import {Canvas} from "@react-three/fiber";
-import {OrbitControls,PerspectiveCamera} from "@react-three/drei";
+import {OrbitControls,PerspectiveCamera,useGLTF} from "@react-three/drei";
 import {useMemo} from "react";
 import * as THREE from "three";
 import type {WorldScene,SceneNode} from "../../lib/world-engine/scene-schema";
@@ -15,6 +15,11 @@ function Structure({kind,color,accent,position,scale=1}:{kind:string;color:strin
  if(kind==="castle") return <group position={position} scale={scale}><mesh position={[0,1.2,0]} castShadow><boxGeometry args={[2.4,2.4,2.4]}/><meshStandardMaterial color={color}/></mesh><mesh position={[-1,2.7,0]}><cylinderGeometry args={[.4,.5,2,8]}/><meshStandardMaterial color={accent}/></mesh><mesh position={[1,2.7,0]}><cylinderGeometry args={[.4,.5,2,8]}/><meshStandardMaterial color={accent}/></mesh></group>;
  if(kind==="tech") return <group position={position} scale={scale}><mesh position={[0,1.2,0]} castShadow><boxGeometry args={[1.8,2.4,1.8]}/><meshStandardMaterial color={color} metalness={.65} roughness={.25}/></mesh><mesh position={[0,1.2,0]}><boxGeometry args={[1.85,.08,1.85]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.8}/></mesh></group>;
  return <group position={position} scale={scale}><mesh position={[0,1.4,0]} castShadow><cylinderGeometry args={[.65,.9,2.8,8]}/><meshStandardMaterial color={color}/></mesh><mesh position={[0,3.1,0]}><sphereGeometry args={[.42,12,12]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.6}/></mesh></group>;
+}
+
+function Booth3DAsset({url,position,scale=1,onClick}:{url:string;position:[number,number,number];scale?:number;onClick?:()=>void}){
+ const gltf=useGLTF(url);
+ return <primitive object={gltf.scene.clone(true)} position={position} scale={scale} onClick={onClick}/>;
 }
 
 function WorldObjects({scene,tokens,onHotspot,lowPower,booths}:{scene:WorldScene;tokens?:Record<string,unknown>;onHotspot?:Props["onHotspot"];lowPower:boolean;booths:SceneNode[]}){
@@ -35,7 +40,7 @@ function WorldObjects({scene,tokens,onHotspot,lowPower,booths}:{scene:WorldScene
     <Structure kind={style.structure} color={style.secondary} accent={accent} position={[0,0,0]} scale={.75+(i%3)*.1}/>
   </group>})}
   {Array.from({length:density}).map((_,i)=>{const a=i/density*Math.PI*2;const r=8+(i%3)*1.1;return <Structure key={"decor-"+i} kind={style.structure} color={style.secondary} accent={accent} position={[Math.cos(a)*r,.05,Math.sin(a)*r]} scale={.45+(i%2)*.12}/>})}
-  {booths.map((booth,i)=>{const x=booth.position?.x??(i%4)*2.8-4.2;const z=booth.position?.z??Math.floor(i/4)*2.8-2.8;return <mesh key={booth.id} position={[x,.8,z]} castShadow onClick={()=>onHotspot?.(booth)}><boxGeometry args={[1.6,1.6,1.6]}/><meshStandardMaterial color={accent} metalness={.25} roughness={.55}/></mesh>})}
+  {booths.map((booth,i)=>{const x=booth.position?.x??(i%4)*2.8-4.2;const z=booth.position?.z??Math.floor(i/4)*2.8-2.8;const modelUrl=typeof booth.metadata?.model_url==="string"?booth.metadata.model_url:null;const scale=booth.scale?.x??1;return modelUrl?<Booth3DAsset key={booth.id} url={modelUrl} position={[x,0,z]} scale={scale} onClick={()=>onHotspot?.(booth)}/>:<mesh key={booth.id} position={[x,.8,z]} castShadow onClick={()=>onHotspot?.(booth)}><boxGeometry args={[1.6,1.6,1.6]}/><meshStandardMaterial color={accent} metalness={.25} roughness={.55}/></mesh>})}
   {scene.spawn_points.map((p,i)=>{const x=p.position?.x??(i===0?0:2);const z=p.position?.z??(i===0?0:2);return <mesh key={p.id} position={[x,.08,z]}><cylinderGeometry args={[.25,.25,.08,16]}/><meshStandardMaterial color="#f8fafc"/></mesh>})}
  </>;
 }
