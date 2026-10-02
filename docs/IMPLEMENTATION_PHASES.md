@@ -252,6 +252,42 @@ Remaining 11A.8 gates:
 - API/PWA build and CI
 - runtime/production Green
 
+### PHASE 11A — FULL DISCOVERY DOMAIN COMPLETION — IN PROGRESS
+
+Phase 11A is now governed as a full-domain delivery phase rather than a foundation-only milestone. The phase must provide a complete Universe Discovery experience over the existing Feed, Universe, World and Live engines without creating duplicate engines.
+
+Completed implementation increments:
+- 11A.1 Discovery orchestration: Universe, Following, For You, Moments, Worlds and Live.
+- 11A.4 Content Gravity composition over authoritative Feed + existing Personalization/Interest/World signals.
+- 11A.5 Ask the Content over authorized Content Context + existing Memory/Knowledge RAG + AI Gateway, with Agent Runtime handoff only for actions.
+- 11A.6 Content Evolution: Original → AI Summary → Discussion → Related Content → Live Experience → World.
+- 11A.7 Agent Intelligence over owned Agent context + Content + optional permission-scoped RAG + AI Gateway.
+- 11A.8 Optional Agent Companion reusing Agent Intelligence.
+- 11A.9 Universe Theme Navigator with authoritative published Theme catalog and progressive 2D / 2.5D / procedural 3D presentation.
+
+11A.9 implementation:
+- Added apps/web/components/universe-theme-navigator.tsx.
+- Reads GET /api/v1/themes/world-runtime/catalog; no Theme records are hardcoded in the browser.
+- Exposes real published platform Theme selection and presentation mode controls.
+- 2D is the accessible baseline.
+- 2.5D provides depth-oriented presentation without changing authority.
+- 3D uses the published World/Scene schema and Theme Design Tokens to render a procedural spatial preview through the existing Three.js / React Three Fiber stack.
+- 3D presentation is explicitly presentation-only and cannot grant Agent, ownership, permission, billing or governance authority.
+- The component reports the real binary asset-manifest condition; it does not fabricate Storage objects or signed URLs.
+- DiscoverySurface now mounts the Universe Theme Navigator on the Universe/Home surface.
+
+11A Theme Runtime invariant gate:
+- 25 published platform Themes.
+- 25 published v1 Theme Versions.
+- all 25 use allpha-3d-progressive.
+- all 25 declare a presentation-only authority boundary.
+- all 25 satisfy the configured LOD/mobile/target FPS performance contract.
+- all 25 satisfy the required accessibility contract.
+- Live invariant: PASS.
+- Binary theme_assets: still 0 by design; no synthetic assets were created.
+- Storage allpha-world-assets: still 0 by design.
+
+11A remains NOT GREEN until the full authenticated runtime path is verified with real user-owned Agent + published Content, configured AI provider/model, real RAG/embedding path where applicable, telemetry, browser accessibility/performance, API/PWA/Admin builds and CI/runtime gates.
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
