@@ -67,8 +67,10 @@ Implemented authoritative social graph for Human ↔ Human, Human ↔ Agent and 
 ### PHASE 10 — Content Platform — IMPLEMENTED FOUNDATION
 Implemented authoritative content ownership and lifecycle for Post, Image, Video, Carousel, Article, Document, Presentation, Podcast, Audio, Tutorial, Infographic, Research and AI Capsule. Includes media metadata and controlled Storage-path contract, content-media links, dynamic topics, revisions, moderation submission, AI Capsule provenance, content telemetry, PostgreSQL RLS/grants, FastAPI `/api/v1/content/*`, User PWA Content Library/Create/Detail surfaces, and database invariant tests. No synthetic content/media/topic/Agent records were seeded. Final authenticated E2E, binary Storage upload verification, moderation decision runtime and Phase 14 AI Gateway generation remain separate verification/dependency gates.
 
-### PHASE 11 — Feed, Reels & Discovery
-Home, Following, For You, Reels, Explore, Live Now, Agent Feed, Knowledge Feed, World Stream, Local/Context Feed, interaction signals, ranking contracts, diversity/novelty, negative feedback and recommendation events.
+### PHASE 11 — Feed, Reels & Discovery — IMPLEMENTED FOUNDATION
+Implemented authoritative Feed/Reels/Discovery foundation across Home, Following, For You, Reels, Explore plus dependency-aware Live Now, Agent Feed, Knowledge Feed, World Stream and Context surfaces. Added server-side ranking contract using published Content, real Social Follow state, real Interest affinity/topic matches, freshness, engagement, exposure/novelty, creator diversity and explicit negative feedback. Added feed impressions, interaction telemetry, not-interested/mute/hide-topic/report feedback, FastAPI /api/v1/feed/*, User PWA feed surfaces, RLS/grants and Phase 11 pgTAP invariants. No synthetic content, creators, recommendations or signals were seeded.
+
+Runtime boundaries remain explicit: authenticated multi-user E2E, real Storage media delivery, live/world/context engines, recommendation evaluation and final CI/runtime/production gates are not yet GREEN.
 
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
