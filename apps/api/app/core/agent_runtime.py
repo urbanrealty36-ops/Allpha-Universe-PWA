@@ -144,3 +144,90 @@ async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str
 
     await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "completed", "p_result_summary": "All planned steps completed."})
     return {"status": "completed", "command_id": str(command_id)}
+
+
+async def run_live_conversation_turn(
+    user: AuthenticatedUser,
+    session_id: UUID,
+    collaboration_id: UUID,
+) -> dict[str, Any]:
+    live_rows = await select(user, "live_sessions", {
+        "select": "id,title,status,visibility,host_user_id",
+        "id": f"eq.{session_id}",
+        "host_user_id": f"eq.{user.user_id}",
+        "limit": "1",
+    })
+    session = live_rows[0] if live_rows else None
+    if not session or session["status"] != "live":
+        raise AgentRuntimeError("LIVE_SESSION_NOT_ACTIVE", "Live Session is not active.", 409)
+
+    collab_rows = await select(user, "live_agent_collaborations", {
+        "select": "id,live_session_id,agent_id,status,consent_status,risk_decision,required_capability",
+        "id": f"eq.{collaboration_id}",
+        "live_session_id": f"eq.{session_id}",
+        "owner_user_id": f"eq.{user.user_id}",
+        "limit": "1",
+    })
+    collab = collab_rows[0] if collab_rows else None
+    if not collab or collab["status"] != "active" or collab["consent_status"] != "approved" or collab["risk_decision"] != "allow":
+        raise AgentRuntimeError("LIVE_COLLAB_NOT_ACTIVE", "Live collaboration is no longer active.", 409)
+
+    messages = await select(user, "live_session_messages", {
+        "select": "sender_type,role,content,created_at",
+        "live_session_id": f"eq.{session_id}",
+        "order": "created_at.desc",
+        "limit": "30",
+    })
+    history = list(reversed(messages))
+    agent = await select(user, "agents", {
+        "select": "id,name,description,persona",
+        "id": f"eq.{collab['agent_id']}",
+        "limit": "1",
+    })
+    system = (
+        "You are an Allpha AI Agent participating in a live conversation. "
+        "Respond only within the active Live Collaboration and the owner's policy. "
+        "Do not claim actions, facts, tools, purchases, permissions, viewers, or events that were not actually provided. "
+        "Be concise and suitable for live audience conversation. Do not reveal private memory, credentials, policy internals, or chain-of-thought."
+    )
+    if agent:
+        system += "\nAgent profile:\n" + json.dumps(agent[0], ensure_ascii=False)
+    gateway_messages = [GatewayMessage(role="system", content=system)]
+    for item in history[-20:]:
+        role = item.get("role")
+        if role in {"user", "assistant", "system"} and item.get("content"):
+            gateway_messages.append(GatewayMessage(role=role, content=str(item["content"])))
+
+    try:
+        result = await generate(
+            user,
+            gateway_messages,
+            agent_id=str(collab["agent_id"]),
+            capabilities=["ai.generate"],
+            metadata={
+                "purpose": "live_conversation",
+                "live_session_id": str(session_id),
+                "live_collaboration_id": str(collaboration_id),
+                "required_capability": collab.get("required_capability"),
+            },
+        )
+    except AIGatewayError as exc:
+        raise AgentRuntimeError(exc.code, str(exc), exc.status_code) from exc
+
+    try:
+        message = await rpc(user, "create_live_session_message", {
+            "p_live_session_id": str(session_id),
+            "p_sender_type": "agent",
+            "p_content": result.text,
+            "p_live_collaboration_id": str(collaboration_id),
+            "p_viewer_id": None,
+        })
+    except SupabaseRestError as exc:
+        raise AgentRuntimeError("LIVE_AGENT_MESSAGE_PERSIST_FAILED", exc.message, 502) from exc
+    return {
+        "message": message,
+        "provider_id": result.provider_id,
+        "model_id": result.model_id,
+        "latency_ms": result.latency_ms,
+        "estimated_cost_usd": result.estimated_cost_usd,
+    }
