@@ -37,6 +37,9 @@ The empty runtime domains are authoritative state. No synthetic Agent, Content, 
 | No duplicate engine | PASS | Source inspection confirms reuse of canonical engines |
 | FastAPI mounting | PASS | Discovery/Ask/Evolution/Agent Intelligence routes mounted |
 | Canonical navigation | PASS | World/Live links use existing /worlds and /live surfaces |
+| Universe Theme Navigator | PASS — implemented | PWA reads authoritative published Theme catalog through /api/v1/themes/world-runtime/catalog; supports 2D, 2.5D and schema-driven procedural 3D presentation |
+| 25 Theme runtime contract | PASS — live invariant | 25 published Themes + 25 published v1 versions; all use allpha-3d-progressive, presentation-only authority boundary, LOD/performance and accessibility constraints |
+| Binary 3D asset runtime | BLOCKED | theme_assets=0 and allpha-world-assets=0; no synthetic binary assets were created |
 | Real authenticated user | PASS | Live user exists; no password/session was stored by implementation |
 | Real Agent + published Content E2E | BLOCKED | Live Agents=0 and Content=0 |
 | Real Memory/Knowledge RAG | BLOCKED | Live Memory=0 and Knowledge=0 |
