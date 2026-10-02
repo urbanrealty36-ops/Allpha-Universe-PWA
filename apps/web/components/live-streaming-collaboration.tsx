@@ -168,7 +168,6 @@ export default function LiveStreamingCollaboration() {
       });
       setTitle(""); setScheduledAt("");
       await loadSessions();
-      await loadCollaborations(id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "LIVE_SESSION_CREATE_FAILED");
     } finally { setSessionLoading(false); }
@@ -201,10 +200,10 @@ export default function LiveStreamingCollaboration() {
     <main className="min-h-screen bg-[var(--allpha-space)] px-5 py-7 text-[var(--allpha-text)] sm:px-9">
       <div className="mx-auto max-w-7xl">
         <header>
-          <p className="text-xs font-medium uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Phase 22A · Live Session Core</p>
+          <p className="text-xs font-medium uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Phase 22 · Live Stories / Streaming / Experiences</p>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">Live Stories / Streaming / Experiences</h1>
           <p className="mt-3 max-w-3xl text-[var(--allpha-text-secondary)]">
-            Pilih template, buat Live Session milik Anda, lalu kelola lifecycle-nya. Human Owner tetap menjadi authority; AI Agent Collaboration masuk pada Phase 22B.
+            Pilih template, buat Live Session milik Anda, lalu kelola lifecycle-nya. Human Owner tetap menjadi authority. Phase 22B menambahkan kolaborasi dengan Owned AI Agent melalui ownership, capability, policy, consent, risk gate, dan Agent Runtime boundary.
           </p>
         </header>
 
