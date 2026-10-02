@@ -11,6 +11,12 @@ type Version = {
   id: string; version: number; template_schema: Record<string, any>;
   performance_budget: Record<string, any>; accessibility_constraints: Record<string, any>;
 };
+type Agent = { id: string; name: string; handle: string | null; status: string; runtime_state: string; };
+type Collaboration = {
+  id: string; live_session_id: string; agent_id: string; mode: string; required_capability: string | null;
+  capability_verified: boolean; policy_verified: boolean; consent_status: string; status: string; risk_decision: string;
+  started_at: string | null; ended_at: string | null;
+};
 type Session = {
   id: string; title: string; status: "draft" | "scheduled" | "live" | "ended" | "cancelled";
   visibility: string; source_type: string; scheduled_at: string | null;
@@ -71,6 +77,11 @@ export default function LiveStreamingCollaboration() {
   const [loading, setLoading] = useState(true);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentId, setAgentId] = useState("");
+  const [collaborationMode, setCollaborationMode] = useState("cohost");
+  const [requiredCapability, setRequiredCapability] = useState("live");
+  const [collaborations, setCollaborations] = useState<Record<string, Collaboration[]>>({});
 
   async function loadCatalog() {
     setLoading(true); setError(null);
@@ -93,6 +104,53 @@ export default function LiveStreamingCollaboration() {
     }
   }
 
+  async function loadAgents() {
+    try {
+      const r = await apiFetch<{ data: Agent[] }>("/api/v1/agents/me");
+      const rows = r.data ?? [];
+      setAgents(rows);
+      if (!agentId && rows[0]) setAgentId(rows[0].id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "AGENT_LOAD_FAILED");
+    }
+  }
+
+  async function loadCollaborations(sessionId: string) {
+    try {
+      const r = await apiFetch<{ data: Collaboration[] }>(`/api/v1/live/sessions/${sessionId}/collaborations`);
+      setCollaborations(prev => ({ ...prev, [sessionId]: r.data ?? [] }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_COLLAB_LOAD_FAILED");
+    }
+  }
+
+  async function requestCollaboration(sessionId: string) {
+    if (!agentId || !requiredCapability.trim()) return;
+    setSessionLoading(true); setError(null);
+    try {
+      await apiFetch(`/api/v1/live/sessions/${sessionId}/collaborations`, {
+        method: "POST",
+        body: JSON.stringify({ agent_id: agentId, mode: collaborationMode, required_capability: requiredCapability.trim() }),
+      });
+      await loadCollaborations(sessionId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_COLLAB_REQUEST_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  async function collaborationAction(id: string, action: "consent" | "activate" | "pause" | "end", approved?: boolean) {
+    setSessionLoading(true); setError(null);
+    try {
+      await apiFetch(`/api/v1/live/collaborations/${id}/${action}`, {
+        method: "POST",
+        body: action === "consent" ? JSON.stringify({ approved: approved ?? false }) : undefined,
+      });
+      await Promise.all(sessions.map(s => loadCollaborations(s.id)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_COLLAB_ACTION_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
   async function createSession() {
     if (!selected || !version || !title.trim()) return;
     setSessionLoading(true); setError(null);
@@ -110,6 +168,7 @@ export default function LiveStreamingCollaboration() {
       });
       setTitle(""); setScheduledAt("");
       await loadSessions();
+      await loadCollaborations(id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "LIVE_SESSION_CREATE_FAILED");
     } finally { setSessionLoading(false); }
@@ -125,7 +184,7 @@ export default function LiveStreamingCollaboration() {
     } finally { setSessionLoading(false); }
   }
 
-  useEffect(() => { void loadCatalog(); void loadSessions(); }, []);
+  useEffect(() => { void loadCatalog(); void loadSessions(); void loadAgents(); }, []);
 
   useEffect(() => {
     if (!selected) { setVersion(null); return; }
@@ -222,6 +281,39 @@ export default function LiveStreamingCollaboration() {
                     {s.status === "draft" && <><button disabled={sessionLoading} onClick={() => void transition(s.id, "schedule")} className="rounded-md border border-white/10 px-3 py-2 text-xs">Schedule</button><button disabled={sessionLoading} onClick={() => void transition(s.id, "cancel")} className="rounded-md border border-white/10 px-3 py-2 text-xs">Cancel</button></>}
                     {s.status === "scheduled" && <><button disabled={sessionLoading} onClick={() => void transition(s.id, "start")} className="rounded-md border border-[var(--allpha-cyan)]/30 px-3 py-2 text-xs text-[var(--allpha-cyan)]">Start Live</button><button disabled={sessionLoading} onClick={() => void transition(s.id, "cancel")} className="rounded-md border border-white/10 px-3 py-2 text-xs">Cancel</button></>}
                     {s.status === "live" && <button disabled={sessionLoading} onClick={() => void transition(s.id, "end")} className="rounded-md border border-red-300/20 px-3 py-2 text-xs text-red-200">End Live</button>}
+                  </div>
+                  <div className="mt-3 rounded-lg border border-[var(--allpha-cyan)]/15 bg-[var(--allpha-cyan)]/5 p-3">
+                    <div className="text-[10px] font-medium uppercase tracking-[.18em] text-[var(--allpha-cyan)]">Phase 22B · Human Owner → Owned AI Agent</div>
+                    <div className="mt-2 grid gap-2 md:grid-cols-4">
+                      <select className={input} value={agentId} onChange={e => setAgentId(e.target.value)}>
+                        <option value="">Select owned Agent</option>
+                        {agents.map(a => <option key={a.id} value={a.id}>{a.name}{a.handle ? ` · @${a.handle}` : ""}</option>)}
+                      </select>
+                      <select className={input} value={collaborationMode} onChange={e => setCollaborationMode(e.target.value)}>
+                        <option value="cohost">Co-host</option><option value="interactive">Interactive</option><option value="sales">Sales</option>
+                        <option value="podcast">Podcast</option><option value="talkshow">Talkshow</option><option value="presentation">Presentation</option><option value="moderation">Moderation</option>
+                      </select>
+                      <input className={input} value={requiredCapability} onChange={e => setRequiredCapability(e.target.value)} placeholder="Required capability" />
+                      <button disabled={sessionLoading || !agentId || !requiredCapability.trim()} onClick={() => void requestCollaboration(s.id)} className="rounded-md border border-[var(--allpha-cyan)]/30 px-3 py-2 text-xs text-[var(--allpha-cyan)]">Request Collaboration</button>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      {(collaborations[s.id] ?? []).map(c => (
+                        <div key={c.id} className="rounded-md border border-white/10 bg-black/10 p-3 text-xs">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{agents.find(a => a.id === c.agent_id)?.name ?? "Owned Agent"}</span>
+                            <span className="text-white/50">{c.mode}</span><span className="text-white/50">cap:{c.required_capability ?? "—"}</span>
+                            <span className="rounded-full border border-white/10 px-2 py-0.5">{c.status}</span>
+                            <span className="text-white/45">consent:{c.consent_status} · risk:{c.risk_decision}</span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {c.status === "requested" && <button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "consent", true)} className="rounded-md border border-white/10 px-2 py-1">Approve Consent</button>}
+                            {c.status === "approved" && <button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "activate")} className="rounded-md border border-[var(--allpha-cyan)]/30 px-2 py-1 text-[var(--allpha-cyan)]">Activate</button>}
+                            {c.status === "active" && <><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "pause")} className="rounded-md border border-white/10 px-2 py-1">Pause</button><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "end")} className="rounded-md border border-red-300/20 px-2 py-1 text-red-200">End</button></>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[10px] leading-4 text-[var(--allpha-text-muted)]">Ownership, capability, Agent policy, kill-switch and consent are verified server-side. Theme/character presentation cannot grant Agent authority.</p>
                   </div>
                 </div>
               ))}
