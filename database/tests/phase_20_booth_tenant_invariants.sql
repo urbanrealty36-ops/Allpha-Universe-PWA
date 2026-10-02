@@ -22,8 +22,8 @@ select ok((select prosecdef from pg_proc where oid='public.create_booth(uuid,uui
 select ok((select proconfig @> ARRAY['search_path=""'] from pg_proc where oid='public.create_booth(uuid,uuid,text,uuid,uuid,text,text,text,text,text,text,jsonb,jsonb,jsonb,jsonb)'::regprocedure),'create booth empty search_path');
 select ok((select prosecdef from pg_proc where oid='public.add_booth_asset(uuid,text,text,text,jsonb,integer)'::regprocedure),'asset SECURITY DEFINER');
 select ok((select prosecdef from pg_proc where oid='public.publish_booth(uuid)'::regprocedure),'publish SECURITY DEFINER');
-select ok((select count(*)::int from public.booths),0,'no booth seed data');
-select ok((select count(*)::int from public.booth_leases),0,'no lease seed data');
-select ok((select count(*)::int from public.booth_display_assets),0,'no asset seed data');
+select is((select count(*)::int from public.booths),0,'no booth seed data');
+select is((select count(*)::int from public.booth_leases),0,'no lease seed data');
+select is((select count(*)::int from public.booth_display_assets),0,'no asset seed data');
 select * from finish();
 rollback;
