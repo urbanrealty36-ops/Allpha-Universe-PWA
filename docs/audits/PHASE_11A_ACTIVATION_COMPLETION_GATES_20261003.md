@@ -97,3 +97,5 @@ Coverage now explicitly includes:
 The external 500-AI-Agents-Projects repository is used as a broad taxonomy/reference, not copied as runtime implementations. Its catalog spans multiple frameworks and industries and its contribution guidance emphasizes reproducibility, provenance, safety and human-in-the-loop for higher-risk agents. citeturn0search0turn0search2
 
 No user-owned Agent or other synthetic business data was created during this expansion.
+
+Agent creation hardening: `/api/v1/agents` now fails closed with 422 when an explicitly supplied Agent Type, AI Character or Skill is not present/enabled in the platform catalog. Catalog selections are validated before `create_agent_identity` is invoked; catalog configuration does not grant capabilities or permissions.
