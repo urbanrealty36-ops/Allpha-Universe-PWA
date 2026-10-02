@@ -1,0 +1,23 @@
+"use client";
+import dynamic from "next/dynamic";
+import { useEffect,useMemo,useState } from "react";
+import { apiFetch } from "../../lib/api";
+import { normalizeWorldScene,type WorldScene, type SceneNode } from "../../lib/world-engine/scene-schema";
+const AllphaWorldRenderer=dynamic(()=>import("./allpha-world-renderer"),{ssr:false,loading:()=> <div className="flex min-h-[420px] items-center justify-center rounded-3xl border border-white/10 bg-black text-sm text-slate-400">Preparing renderer…</div>});
+
+type CatalogItem={id:string;name:string;slug:string;description:string|null;category:string;catalog_order:number|null;theme_version_id?:string;world_schema?:unknown;compatibility?:Record<string,unknown>;performance_budget?:Record<string,unknown>;accessibility_constraints?:Record<string,unknown>};
+
+export default function WorldPreviewSurface(){
+ const [items,setItems]=useState<CatalogItem[]>([]),[selected,setSelected]=useState<CatalogItem|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[lowPower,setLowPower]=useState(false);
+ useEffect(()=>{void (async()=>{try{const r=await apiFetch<{data:CatalogItem[]}>("/api/v1/themes/world-runtime/catalog");setItems(r.data||[]);setSelected((r.data||[])[0]??null)}catch(e){setError(e instanceof Error?e.message:"WORLD_CATALOG_LOAD_FAILED")}finally{setLoading(false)}})()},[]);
+ const scene=useMemo<WorldScene|null>(()=>selected?normalizeWorldScene(selected.world_schema):null,[selected]);
+ const invalid=selected&&!scene;
+ return <main className="min-h-screen bg-[var(--allpha-space)] px-5 py-7 text-[var(--allpha-text)] sm:px-9"><div className="mx-auto max-w-7xl">
+  <header><p className="text-xs uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Allpha World Engine</p><h1 className="mt-2 text-4xl font-semibold tracking-tight">Theme → Scene → World</h1><p className="mt-3 max-w-3xl text-sm text-[var(--allpha-text-secondary)]">One shared renderer consumes validated platform Theme/World configuration. No business activity or synthetic Agent data is created.</p></header>
+  {error&&<div className="mt-5 rounded-2xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
+  <div className="mt-7 grid gap-5 lg:grid-cols-[320px_1fr]">
+   <aside className="rounded-3xl border border-white/10 bg-[var(--allpha-surface)] p-4"><div className="flex items-center justify-between"><span className="text-sm font-semibold">Platform Catalog</span><span className="text-xs text-slate-500">{items.length}</span></div><div className="mt-3 space-y-2">{items.map(item=><button key={item.id} onClick={()=>setSelected(item)} className={`w-full rounded-2xl border p-3 text-left ${selected?.id===item.id?"border-[var(--allpha-cyan)]/60 bg-white/5":"border-white/10"}`}><div className="flex justify-between gap-2"><span className="text-sm font-medium">{item.name}</span><span className="text-[10px] text-slate-500">#{item.catalog_order}</span></div><p className="mt-1 text-xs text-slate-500">{item.category}</p></button>)}</div></aside>
+   <section className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{selected?.name??(loading?"Loading…":"No catalog")}</h2><p className="text-xs text-slate-500">{selected?.description??""}</p></div><label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={lowPower} onChange={e=>setLowPower(e.target.checked)}/> Low-power renderer</label></div>{invalid?<div className="rounded-3xl border border-amber-400/30 bg-amber-400/10 p-5 text-sm text-amber-100">SCENE_INVALID — renderer refuses this catalog configuration.</div>:scene?<AllphaWorldRenderer scene={scene} lowPower={lowPower} onHotspot={(node:SceneNode)=>console.info("world-interaction",node.id)}/>:<div className="flex min-h-[420px] items-center justify-center rounded-3xl border border-white/10 text-sm text-slate-500">No validated scene available.</div>}</section>
+  </div>
+ </div></main>;
+}
