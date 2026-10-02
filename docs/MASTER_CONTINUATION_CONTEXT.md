@@ -1261,3 +1261,54 @@ Implemented Web App provisioning surfaces without synthetic business records:
 
 Live verification: platform Themes=25, platform World Templates=25, published 3D World Template versions=25, Districts=0, Zones=0, Booths=0, Theme assets=0, Booth assets=0.
 Status: IMPLEMENTED FOUNDATION / NOT GREEN.
+
+
+## Latest — Real Storage 3D Asset Lifecycle + Booth 3D Composition
+
+Status: **IMPLEMENTED FOUNDATION / NOT GREEN**.
+
+Implemented:
+- Reused existing \`allpha-world-assets\` private Storage bucket.
+- Extended existing \`booth_display_assets\` metadata with authoritative storage bucket, size, checksum and uploaded timestamp fields.
+- Added authenticated lifecycle RPCs:
+  - \`prepare_booth_3d_asset\`
+  - \`finalize_booth_3d_asset\`
+  - \`archive_booth_display_asset\`
+- Upload path is generated server-side from Booth ownership and a server-generated asset UUID; clients cannot choose arbitrary Storage paths.
+- FastAPI now provides:
+  - \`POST /api/v1/booths/{booth_id}/assets/3d/upload-url\`
+  - \`POST /api/v1/booths/{booth_id}/assets/{asset_id}/3d/finalize\`
+  - \`GET /api/v1/booths/{booth_id}/assets/3d\`
+  - \`DELETE /api/v1/booths/{booth_id}/assets/{asset_id}/3d\`
+- Browser uploads the real user-provided GLB to a time-limited signed Storage URL; the backend then verifies the Storage object before activating metadata.
+- World Runtime now resolves only active Booth 3D assets to time-limited signed read URLs.
+- World Preview projects the authoritative signed GLB URL into the existing React Three Fiber/Three.js renderer.
+- No second asset registry, Storage engine, renderer, or Booth engine was created.
+- No service-role/secret is exposed to the browser.
+- No fake GLB/GLTF file, fake Storage URL, Booth record, asset record or Storage object was created.
+- Only \`.glb\` is activated in this increment; external \`.gltf\` dependency bundles are intentionally deferred rather than fabricated.
+- Added invariant test: \`database/tests/phase_20_real_storage_3d_asset_lifecycle_invariants.sql\`.
+- Added architecture record: \`docs/architecture/PHASE_20_REAL_STORAGE_3D_ASSET_LIFECYCLE_v1.0.md\`.
+- Migration recorded as \`20261002134712_phase_20_real_storage_3d_asset_lifecycle.sql\`.
+
+Live verification:
+- Booths: 0
+- Booth display assets: 0
+- Booth display slots: 0
+- \`allpha-world-assets\` Storage objects: 0
+- lifecycle RPCs present
+- authenticated execute allowed
+- anonymous execute denied
+- active Booth 3D Storage read policy present
+- invariant assertions passed
+- Supabase security/performance advisors reviewed; existing project-wide findings remain and are not reclassified as GREEN.
+
+Not yet proven:
+- authenticated real-user GLB upload E2E
+- actual user-provided Storage object
+- populated District → Zone → Booth → GLB runtime composition
+- GLB device/mobile performance
+- accessibility, build/CI, runtime and production gates.
+
+Next integration target:
+**Real populated District → Zone → Booth runtime + Phase 18 spatial state + Booth 3D composition E2E**, using only records/assets created by an authenticated authorized user.
