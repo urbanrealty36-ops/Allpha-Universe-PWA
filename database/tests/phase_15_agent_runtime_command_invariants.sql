@@ -1,5 +1,5 @@
 begin;
-select plan(38);
+select plan(39);
 select has_table('public','agent_commands','agent_commands exists');
 select has_table('public','agent_execution_contexts','execution contexts exists');
 select has_table('public','agent_tasks','agent tasks exists');
@@ -26,6 +26,7 @@ select has_function('public','record_agent_tool_result',array['uuid','text','jso
 select has_function('public','record_agent_spend',array['uuid','uuid','uuid','numeric','text','jsonb'],'spend RPC');
 select has_function('public','transition_agent_command',array['uuid','text','text','text','text'],'transition RPC');
 select has_function('public','set_agent_kill_switch',array['uuid','boolean','text'],'kill switch RPC');
+select has_function('public','decide_agent_approval',array['uuid','text','text'],'approval decision RPC');
 select results_eq($$select count(*)::bigint from public.agent_commands$$,$$values (0::bigint)$$,'no command seed data');
 select results_eq($$select count(*)::bigint from public.agent_execution_contexts$$,$$values (0::bigint)$$,'no context seed data');
 select results_eq($$select count(*)::bigint from public.agent_tasks$$,$$values (0::bigint)$$,'no task seed data');
