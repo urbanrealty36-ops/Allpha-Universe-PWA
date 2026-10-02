@@ -5,10 +5,11 @@ import { apiFetch } from "../../lib/api";
 import { normalizeWorldScene,type WorldScene, type SceneNode } from "../../lib/world-engine/scene-schema";
 const AllphaWorldRenderer=dynamic(()=>import("./allpha-world-renderer"),{ssr:false,loading:()=> <div className="flex min-h-[420px] items-center justify-center rounded-3xl border border-white/10 bg-black text-sm text-slate-400">Preparing renderer…</div>});
 
+type SpatialPresence={id:string;agent_id:string;movement_state:string;position?:{x:number;y:number;z:number};rotation?:{x:number;y:number;z:number};zone_key?:string|null;updated_at:string};
 type CatalogItem={id:string;name:string;slug:string;description:string|null;category:string;catalog_order:number|null;theme_version_id?:string;theme_version?:number;tokens?:Record<string,unknown>;world_schema?:unknown;compatibility?:Record<string,unknown>;performance_budget?:Record<string,unknown>;accessibility_constraints?:Record<string,unknown>};
 
 export default function WorldPreviewSurface(){
- const [items,setItems]=useState<CatalogItem[]>([]),[selected,setSelected]=useState<CatalogItem|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[lowPower,setLowPower]=useState(false),[districtId,setDistrictId]=useState(""),[booths,setBooths]=useState<SceneNode[]>([]);
+ const [items,setItems]=useState<CatalogItem[]>([]),[selected,setSelected]=useState<CatalogItem|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[lowPower,setLowPower]=useState(false),[districtId,setDistrictId]=useState(""),[booths,setBooths]=useState<SceneNode[]>([]),[presence,setPresence]=useState<SpatialPresence[]>([]);
  useEffect(()=>{void (async()=>{try{const r=await apiFetch<{data:CatalogItem[]}>("/api/v1/themes/world-runtime/catalog");setItems(r.data||[]);setSelected((r.data||[])[0]??null)}catch(e){setError(e instanceof Error?e.message:"WORLD_CATALOG_LOAD_FAILED")}finally{setLoading(false)}})()},[]);
  const scene=useMemo<WorldScene|null>(()=>selected?normalizeWorldScene(selected.world_schema):null,[selected]);
  const invalid=selected&&!scene;
