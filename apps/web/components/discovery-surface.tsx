@@ -75,6 +75,11 @@ export default function DiscoverySurface() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [askContentId, setAskContentId] = useState<string | null>(null);
+  const [askQuestion, setAskQuestion] = useState("");
+  const [askAnswer, setAskAnswer] = useState<string | null>(null);
+  const [askMeta, setAskMeta] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
 
   async function load(nextSurface = surface) {
     setLoading(true);
@@ -118,6 +123,35 @@ export default function DiscoverySurface() {
       });
     } catch {
       // Telemetry is best-effort; navigation and discovery must remain available.
+    }
+  }
+
+  async function askTheContent(contentId: string) {
+    if (!askQuestion.trim()) return;
+    setAsking(true);
+    setAskAnswer(null);
+    setAskMeta(null);
+    try {
+      const result = await apiFetch<{
+        data: {
+          answer: string;
+          rag: { status: string; memory_count: number; knowledge_count: number };
+          action_handoff?: { status: string } | null;
+        };
+      }>("/api/v1/discovery/content/" + contentId + "/ask", {
+        method: "POST",
+        body: JSON.stringify({ question: askQuestion.trim() }),
+      });
+      setAskAnswer(result.data.answer);
+      setAskMeta(
+        result.data.rag.status === "embedding_required"
+          ? "Jawaban memakai Content Context. Vector Memory/Knowledge RAG belum dijalankan karena query embedding belum tersedia."
+          : "Jawaban menggunakan context yang diizinkan oleh permission boundary.",
+      );
+    } catch (e) {
+      setAskAnswer(e instanceof Error ? e.message : "ASK_CONTENT_FAILED");
+    } finally {
+      setAsking(false);
     }
   }
 
@@ -287,14 +321,49 @@ export default function DiscoverySurface() {
                         >
                           Open
                         </a>
-                        <a
-                          href={"/content/" + item.id}
-                          onClick={(event) => void openContent(event, item.id, "ask_content")}
-                          className="rounded-xl border border-white/10 px-3 py-2 text-xs text-slate-400"
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAskContentId(askContentId === item.id ? null : item.id);
+                            setAskAnswer(null);
+                            setAskMeta(null);
+                          }}
+                          className="rounded-xl border border-white/10 px-3 py-2 text-xs text-slate-300"
                         >
                           Ask the Content
-                        </a>
+                        </button>
                       </div>
+                      {askContentId === item.id ? (
+                        <div className="mt-4 rounded-2xl border border-cyan-300/10 bg-black/20 p-4">
+                          <form
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              void askTheContent(item.id);
+                            }}
+                            className="flex flex-col gap-2 sm:flex-row"
+                          >
+                            <input
+                              value={askQuestion}
+                              onChange={(event) => setAskQuestion(event.target.value)}
+                              placeholder="Tanyakan sesuatu tentang content ini…"
+                              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-cyan-300/30"
+                              maxLength={12000}
+                            />
+                            <button
+                              disabled={asking || !askQuestion.trim()}
+                              className="rounded-xl bg-cyan-300 px-3 py-2 text-xs font-medium text-slate-950 disabled:opacity-40"
+                            >
+                              {asking ? "Thinking…" : "Ask"}
+                            </button>
+                          </form>
+                          {askAnswer ? (
+                            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                              <p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">{askAnswer}</p>
+                              {askMeta ? <p className="mt-3 text-[10px] leading-4 text-slate-500">{askMeta}</p> : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null
                     </article>
                   ))}
                 </div>
