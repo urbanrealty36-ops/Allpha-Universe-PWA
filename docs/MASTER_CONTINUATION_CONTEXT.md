@@ -1,5 +1,46 @@
 # ALLPHA UNIVERSE — MASTER CONTINUATION CONTEXT
 
+
+## PHASE 21 — Theme & World Builder — IMPLEMENTED FOUNDATION
+
+Implemented on main and applied to AllphaDb-Universe.
+
+Database:
+- `themes`
+- `theme_versions`
+- `theme_assets`
+- `world_templates`
+- `world_template_versions`
+- `world_builder_states`
+
+Migration:
+- repository: `database/migrations/20261002033500_phase_21_theme_world_builder.sql`
+- live: `phase_21_theme_world_builder` / version `20261002033548`
+
+API:
+- `apps/api/app/api/themes.py`
+- `apps/api/app/api/world_builder.py`
+
+PWA:
+- `/theme-builder`
+- `/world-builder`
+
+Verification:
+- six Phase 21 tables exist with RLS enabled/forced
+- eleven mutation/validation RPCs exist and are SECURITY DEFINER with pinned empty search_path
+- all Phase 21 business tables are empty by design
+- invariant suite committed in `database/tests/phase_21_theme_world_builder_invariants.sql`
+
+Not GREEN:
+- authenticated multi-user E2E
+- moderation decision runtime
+- real Storage/safety/performance/accessibility validation
+- publication runtime
+- API/PWA build
+- CI/runtime/production gates
+
+Next: PHASE 22 — Events & Experiences / Live Stories & Streaming.
+
 ## Purpose
 This file is the cross-conversation continuation baseline for AI Agent Code working on Allpha Universe.
 
