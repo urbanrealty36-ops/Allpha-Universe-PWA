@@ -11,9 +11,16 @@ type Version = {
   id: string; version: number; template_schema: Record<string, any>;
   performance_budget: Record<string, any>; accessibility_constraints: Record<string, any>;
 };
+type Session = {
+  id: string; title: string; status: "draft" | "scheduled" | "live" | "ended" | "cancelled";
+  visibility: string; source_type: string; scheduled_at: string | null;
+  experience_template_id: string; experience_template_version_id: string;
+  live_experience_templates?: { name: string; slug: string; category: string } | null;
+  live_experience_template_versions?: { version: number } | null;
+};
 
 const card = "rounded-[var(--allpha-radius-lg)] border border-white/10 bg-[var(--allpha-surface)]";
-const input = "rounded-[var(--allpha-radius-md)] border border-white/10 bg-[var(--allpha-space-elevated)] px-3 py-2 text-sm text-[var(--allpha-text)] outline-none focus:border-[var(--allpha-cyan)]";
+const input = "w-full rounded-[var(--allpha-radius-md)] border border-white/10 bg-[var(--allpha-space-elevated)] px-3 py-2 text-sm text-[var(--allpha-text)] outline-none focus:border-[var(--allpha-cyan)]";
 
 function Preview({ schema }: { schema: Record<string, any> | null }) {
   const stage = schema?.stage ?? {};
@@ -32,9 +39,7 @@ function Preview({ schema }: { schema: Record<string, any> | null }) {
       <div className="absolute inset-x-5 bottom-9 top-12 grid min-h-0 gap-2" style={{ gridTemplateColumns: roles.length > 2 ? "repeat(3,minmax(0,1fr))" : "repeat(2,minmax(0,1fr))" }}>
         {roles.map((role: any, i: number) => (
           <div key={role.slot ?? i} className="relative min-h-0 rounded-xl border border-white/10 bg-white/[.06] p-2 backdrop-blur">
-            <div className="absolute bottom-2 left-2 right-2 rounded-md bg-black/45 px-2 py-1 text-[9px] text-white/80">
-              {role.slot ?? "participant"}
-            </div>
+            <div className="absolute bottom-2 left-2 right-2 rounded-md bg-black/45 px-2 py-1 text-[9px] text-white/80">{role.slot ?? "participant"}</div>
             <div className="flex h-full items-center justify-center text-xl text-white/25">{role.slot?.startsWith("ai_") || role.slot?.startsWith("agent_") ? "✦" : "●"}</div>
           </div>
         ))}
@@ -46,15 +51,28 @@ function Preview({ schema }: { schema: Record<string, any> | null }) {
   );
 }
 
+function statusClass(status: Session["status"]) {
+  if (status === "live") return "text-red-300 border-red-300/20 bg-red-300/10";
+  if (status === "scheduled") return "text-[var(--allpha-cyan)] border-[var(--allpha-cyan)]/20 bg-[var(--allpha-cyan)]/10";
+  if (status === "ended" || status === "cancelled") return "text-white/45 border-white/10 bg-white/5";
+  return "text-amber-200 border-amber-200/20 bg-amber-200/10";
+}
+
 export default function LiveStreamingCollaboration() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selected, setSelected] = useState<Template | null>(null);
   const [version, setVersion] = useState<Version | null>(null);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [category, setCategory] = useState("all");
+  const [title, setTitle] = useState("");
+  const [visibility, setVisibility] = useState("public");
+  const [sourceType, setSourceType] = useState("live");
+  const [scheduledAt, setScheduledAt] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sessionLoading, setSessionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() {
+  async function loadCatalog() {
     setLoading(true); setError(null);
     try {
       const r = await apiFetch<{ data: Template[] }>("/api/v1/live/templates?source=platform&limit=100");
@@ -66,7 +84,48 @@ export default function LiveStreamingCollaboration() {
     } finally { setLoading(false); }
   }
 
-  useEffect(() => { void load(); }, []);
+  async function loadSessions() {
+    try {
+      const r = await apiFetch<{ data: Session[] }>("/api/v1/live/sessions?limit=50");
+      setSessions(r.data ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_SESSION_LOAD_FAILED");
+    }
+  }
+
+  async function createSession() {
+    if (!selected || !version || !title.trim()) return;
+    setSessionLoading(true); setError(null);
+    try {
+      await apiFetch("/api/v1/live/sessions", {
+        method: "POST",
+        body: JSON.stringify({
+          experience_template_id: selected.id,
+          experience_template_version_id: version.id,
+          source_type: sourceType,
+          title: title.trim(),
+          visibility,
+          scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        }),
+      });
+      setTitle(""); setScheduledAt("");
+      await loadSessions();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_SESSION_CREATE_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  async function transition(id: string, action: "schedule" | "start" | "end" | "cancel") {
+    setSessionLoading(true); setError(null);
+    try {
+      await apiFetch("/api/v1/live/sessions/" + id + "/" + action, { method: "POST" });
+      await loadSessions();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_SESSION_TRANSITION_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  useEffect(() => { void loadCatalog(); void loadSessions(); }, []);
 
   useEffect(() => {
     if (!selected) { setVersion(null); return; }
@@ -83,12 +142,14 @@ export default function LiveStreamingCollaboration() {
     <main className="min-h-screen bg-[var(--allpha-space)] px-5 py-7 text-[var(--allpha-text)] sm:px-9">
       <div className="mx-auto max-w-7xl">
         <header>
-          <p className="text-xs font-medium uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Phase 22 · Live Stories / Streaming / Experiences</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">Live Streaming Collaboration</h1>
+          <p className="text-xs font-medium uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Phase 22A · Live Session Core</p>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">Live Stories / Streaming / Experiences</h1>
           <p className="mt-3 max-w-3xl text-[var(--allpha-text-secondary)]">
-            Human Owner + owned AI Agent dalam satu Live Session. Template mengatur panggung, role, overlay, audience surface dan presentasi — bukan ownership, permission, policy atau risk authority.
+            Pilih template, buat Live Session milik Anda, lalu kelola lifecycle-nya. Human Owner tetap menjadi authority; AI Agent Collaboration masuk pada Phase 22B.
           </p>
         </header>
+
+        {error && <div className="mt-5 rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-sm">{error}</div>}
 
         <section className="mt-7 grid gap-5 lg:grid-cols-[1.4fr_.8fr]">
           <div className={card + " p-5"}>
@@ -97,19 +158,15 @@ export default function LiveStreamingCollaboration() {
                 <h2 className="text-xl font-semibold">Allpha Live Collection</h2>
                 <p className="mt-1 text-sm text-[var(--allpha-text-muted)]">{loading ? "Loading catalog…" : `${templates.length} built-in collaboration templates`}</p>
               </div>
-              <select className={input} value={category} onChange={e => setCategory(e.target.value)}>
+              <select className={input + " max-w-48"} value={category} onChange={e => setCategory(e.target.value)}>
                 {categories.map(c => <option key={c} value={c}>{c === "all" ? "All formats" : c}</option>)}
               </select>
             </div>
 
-            {error && <div className="mt-4 rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-sm">{error}</div>}
-
             <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map(t => (
                 <button key={t.id} onClick={() => setSelected(t)} className={`text-left rounded-[var(--allpha-radius-lg)] border p-4 transition ${selected?.id === t.id ? "border-[var(--allpha-cyan)] bg-[var(--allpha-cyan)]/5" : "border-white/10 hover:border-white/20"}`}>
-                  <div className="mb-3 aspect-[16/9] overflow-hidden rounded-lg bg-[var(--allpha-space-elevated)]">
-                    <Preview schema={selected?.id === t.id ? schema : null} />
-                  </div>
+                  <div className="mb-3"><Preview schema={selected?.id === t.id ? schema : null} /></div>
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="font-medium">{t.name}</h3>
                     <span className="text-[9px] uppercase tracking-wider text-[var(--allpha-cyan)]">{t.category}</span>
@@ -122,21 +179,53 @@ export default function LiveStreamingCollaboration() {
 
           <aside className={card + " h-fit p-5 lg:sticky lg:top-5"}>
             {selected ? <>
-              <p className="text-xs uppercase tracking-[.2em] text-[var(--allpha-cyan)]">Selected Template</p>
+              <p className="text-xs uppercase tracking-[.2em] text-[var(--allpha-cyan)]">Session Setup</p>
               <h2 className="mt-2 text-2xl font-semibold">{selected.name}</h2>
               <p className="mt-2 text-sm text-[var(--allpha-text-secondary)]">{selected.description}</p>
               <div className="mt-5"><Preview schema={schema} /></div>
-              <div className="mt-5 grid gap-3 text-sm">
-                <div className="rounded-lg border border-white/10 p-3"><span className="text-xs text-[var(--allpha-text-muted)]">Stage</span><div className="mt-1">{schema?.stage?.layout ?? "Loading…"}</div></div>
-                <div className="rounded-lg border border-white/10 p-3"><span className="text-xs text-[var(--allpha-text-muted)]">Collaboration</span><div className="mt-1">Human Owner + {schema?.ai_collaboration?.suggested_role_slots?.length ?? 0} AI role slot(s)</div></div>
-                <div className="rounded-lg border border-white/10 p-3"><span className="text-xs text-[var(--allpha-text-muted)]">Audience</span><div className="mt-1">Chat · Questions · Reactions · Participant Requests</div></div>
-                <div className="rounded-lg border border-white/10 p-3"><span className="text-xs text-[var(--allpha-text-muted)]">Accessibility</span><div className="mt-1">Captions · Reduced Motion · Keyboard · AA</div></div>
+
+              <div className="mt-5 space-y-3">
+                <label className="block text-xs text-[var(--allpha-text-muted)]">Live title<input className={input + " mt-1"} value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Allpha Product Talk" /></label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block text-xs text-[var(--allpha-text-muted)]">Format<select className={input + " mt-1"} value={sourceType} onChange={e => setSourceType(e.target.value)}><option value="live">Live</option><option value="story">Story</option><option value="event">Event</option><option value="booth">Booth</option><option value="agent_world">Agent World</option></select></label>
+                  <label className="block text-xs text-[var(--allpha-text-muted)]">Visibility<select className={input + " mt-1"} value={visibility} onChange={e => setVisibility(e.target.value)}><option value="public">Public</option><option value="followers">Followers</option><option value="community">Community</option><option value="enterprise">Enterprise</option><option value="private">Private</option></select></label>
+                </div>
+                <label className="block text-xs text-[var(--allpha-text-muted)]">Schedule (optional)<input type="datetime-local" className={input + " mt-1"} value={scheduledAt} onChange={e => setScheduledAt(e.target.value)} /></label>
+                <button disabled={sessionLoading || !title.trim() || !version} onClick={() => void createSession()} className="w-full rounded-[var(--allpha-radius-md)] bg-[var(--allpha-cyan)] px-4 py-2.5 text-sm font-semibold text-black disabled:opacity-40">Create Live Session</button>
               </div>
+
               <div className="mt-5 rounded-lg border border-[var(--allpha-cyan)]/20 bg-[var(--allpha-cyan)]/5 p-3 text-xs leading-5 text-[var(--allpha-text-secondary)]">
-                Template is presentation configuration only. Actual Live Session activation still resolves owner, Agent ownership/capability, consent, policy, risk, AI Gateway, Agent Runtime, media transport and Realtime authorization server-side.
+                Template Version {version?.version ?? "—"} is bound when the session is created. Presentation config cannot grant Agent ownership, permission, policy or risk authority.
               </div>
-            </> : <p className="text-sm text-[var(--allpha-text-muted)]">{loading ? "Loading…" : "No published platform templates available."}</p>}
+            </> : <p className="text-sm text-[var(--allpha-text-muted)]">No published platform templates available.</p>}
           </aside>
+        </section>
+
+        <section className={card + " mt-5 p-5"}>
+          <div className="flex items-end justify-between gap-3">
+            <div><h2 className="text-xl font-semibold">My Live Sessions</h2><p className="mt-1 text-sm text-[var(--allpha-text-muted)]">Owner-scoped sessions from the authoritative backend.</p></div>
+            <button className="rounded-md border border-white/10 px-3 py-2 text-xs" onClick={() => void loadSessions()}>Refresh</button>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {sessions.length === 0 ? <div className="rounded-lg border border-dashed border-white/10 p-6 text-sm text-[var(--allpha-text-muted)]">Belum ada Live Session. Membuat session tidak membuat Agent, viewer, atau stream palsu.</div> :
+              sessions.map(s => (
+                <div key={s.id} className="grid gap-3 rounded-lg border border-white/10 p-4 md:grid-cols-[1fr_auto] md:items-center">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-medium">{s.title}</h3>
+                      <span className={`rounded-full border px-2 py-0.5 text-[9px] uppercase ${statusClass(s.status)}`}>{s.status}</span>
+                      <span className="text-[9px] uppercase tracking-wider text-[var(--allpha-cyan)]">{s.live_experience_templates?.name ?? "Template"}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--allpha-text-muted)]">{s.source_type} · {s.visibility}{s.scheduled_at ? ` · ${new Date(s.scheduled_at).toLocaleString()}` : ""}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {s.status === "draft" && <><button disabled={sessionLoading} onClick={() => void transition(s.id, "schedule")} className="rounded-md border border-white/10 px-3 py-2 text-xs">Schedule</button><button disabled={sessionLoading} onClick={() => void transition(s.id, "cancel")} className="rounded-md border border-white/10 px-3 py-2 text-xs">Cancel</button></>}
+                    {s.status === "scheduled" && <><button disabled={sessionLoading} onClick={() => void transition(s.id, "start")} className="rounded-md border border-[var(--allpha-cyan)]/30 px-3 py-2 text-xs text-[var(--allpha-cyan)]">Start Live</button><button disabled={sessionLoading} onClick={() => void transition(s.id, "cancel")} className="rounded-md border border-white/10 px-3 py-2 text-xs">Cancel</button></>}
+                    {s.status === "live" && <button disabled={sessionLoading} onClick={() => void transition(s.id, "end")} className="rounded-md border border-red-300/20 px-3 py-2 text-xs text-red-200">End Live</button>}
+                  </div>
+                </div>
+              ))}
+          </div>
         </section>
       </div>
     </main>
