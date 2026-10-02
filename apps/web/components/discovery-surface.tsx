@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
+import ContentEvolutionPanel from "./content-evolution-panel";
 
 type Surface = "home" | "following" | "for_you" | "moments" | "worlds" | "live";
 
@@ -334,6 +335,14 @@ export default function DiscoverySurface() {
                           Ask the Content
                         </button>
                       </div>
+                      <ContentEvolutionPanel
+                        contentId={item.id}
+                        onTelemetry={(action) =>
+                          void trackContentInteraction(item.id, "event_interaction", {
+                            action: "content_evolution:" + action,
+                          })
+                        }
+                      />
                       {askContentId === item.id ? (
                         <div className="mt-4 rounded-2xl border border-cyan-300/10 bg-black/20 p-4">
                           <form
