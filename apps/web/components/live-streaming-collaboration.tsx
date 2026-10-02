@@ -282,11 +282,14 @@ export default function LiveStreamingCollaboration() {
       return;
     }
     let disposed = false;
+    let activeChannel: any = null;
+    let joinedViewerId = "";
     const supabase = createSupabaseBrowserClient();
     const session = sessions.find(s => s.id === selectedLiveSessionId);
     void (async () => {
       try {
         await loadLiveMessages(selectedLiveSessionId);
+        await loadCollaborations(selectedLiveSessionId);
         const { data } = await supabase.auth.getSession();
         if (!data.session) throw new Error("AUTH_REQUIRED");
         await supabase.realtime.setAuth(data.session.access_token);
@@ -302,8 +305,10 @@ export default function LiveStreamingCollaboration() {
             setLiveInteractions(prev => prev.some(i => i.id === next.id) ? prev : [...prev.slice(-49), next]);
           })
           .on("presence", { event: "sync" }, () => {
-            setAudiencePresence(Object.keys(channel.presenceState()).length);
+            const state = channel.presenceState();
+            setAudiencePresence(Object.values(state).flat().filter((entry: any) => entry?.role === "viewer").length);
           });
+        activeChannel = channel;
         channel.subscribe(async status => {
           if (disposed) return;
           setRealtimeStatus(status.toLowerCase());
@@ -311,26 +316,24 @@ export default function LiveStreamingCollaboration() {
             try {
               const joined = await apiFetch<{ data: { id: string } }>(`/api/v1/live/sessions/${selectedLiveSessionId}/audience/join`, { method: "POST" });
               if (!disposed) setViewerId(joined.data.id);
+              joinedViewerId = joined.data.id;
               await channel.track({ role: "viewer", session_id: selectedLiveSessionId });
             } catch (e) {
               if (!disposed) setError(e instanceof Error ? e.message : "LIVE_AUDIENCE_JOIN_FAILED");
             }
           }
         });
-        (window as any).__allphaLiveChannel = channel;
       } catch (e) {
         if (!disposed) setError(e instanceof Error ? e.message : "LIVE_REALTIME_FAILED");
       }
     })();
     return () => {
       disposed = true;
-      const channel = (window as any).__allphaLiveChannel;
-      if (channel) {
-        void channel.untrack();
-        void supabase.removeChannel(channel);
-        (window as any).__allphaLiveChannel = null;
+      if (activeChannel) {
+        void activeChannel.untrack();
+        void supabase.removeChannel(activeChannel);
       }
-      if (viewerId) void apiFetch(`/api/v1/live/sessions/${selectedLiveSessionId}/audience/leave`, { method: "POST" }).catch(() => undefined);
+      if (joinedViewerId) void apiFetch(`/api/v1/live/sessions/${selectedLiveSessionId}/audience/leave`, { method: "POST" }).catch(() => undefined);
     };
   }, [selectedLiveSessionId, sessions]);
 
