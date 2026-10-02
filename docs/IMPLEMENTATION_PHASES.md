@@ -91,8 +91,17 @@ Final runtime GREEN remains gated on authenticated Agent command E2E, real AI pr
 ### PHASE 16 — Workflow & Mission Engine — IMPLEMENTED FOUNDATION
 Workflow/version/step definitions, workflow runs, mission/participant/mission-run orchestration, API/PWA surfaces, RLS and secured RPCs. Workflow execution delegates to the Phase 15 Agent Runtime; no second executor is created. Final authenticated E2E, real AI runtime, approvals, retry/trigger runtime, CI/build and final Green remain separate gates.
 
-### PHASE 17 — AI Universe
-Universe, Galaxies, Worlds, portals, orbits, constellations, spatial discovery, Agent presence, world streams/events/objects and realtime presence.
+### PHASE 17 — AI Universe — IMPLEMENTED FOUNDATION / VERIFIED DATABASE
+Implemented Galaxy → World → Interest / Content / Community / Agent / Portal / Presence with RLS, ownership RPCs, FastAPI /api/v1/universe and User PWA /universe. Migration 20261002110000_phase_17_ai_universe is applied to AllphaDb-Universe and the 32 Phase 17 invariant assertions pass live. No business seed data exists.
+
+Final GREEN remains gated by authenticated Galaxy/World E2E, Agent ownership/presence E2E, portal/visibility E2E, realtime/spatial runtime verification and CI/build.
+
+### PHASE 18 — Agent Simulation & Spatial Runtime — IMPLEMENTED FOUNDATION / VERIFIED DATABASE
+Implemented authoritative Agent spatial state, movement states, Human/Agent spatial interactions, World simulation sessions, monotonic simulation ticks and realtime runtime events. Added 5 RLS tables, 10 SECURITY DEFINER mutation RPCs, realtime publication, FastAPI /api/v1/spatial-runtime and User PWA /agent-simulation. Phase 18 depends on Phase 17 World/Agent membership and keeps Phase 15 Agent Runtime authoritative for actual Agent actions. No synthetic Agents, Worlds, sessions, states, interactions, ticks or events are seeded.
+
+Live verification: 44 Phase 18 invariant assertions pass against AllphaDb-Universe.
+
+Final GREEN remains gated by authenticated Agent/spatial E2E, interaction authorization E2E, simulation lifecycle/tick runtime, Realtime subscription verification, API/PWA build, CI and final runtime gates.
 
 ### PHASE 18 — Agent Simulation & Spatial Runtime
 Movement states, presence, exploration, interaction, collaboration, shopping, negotiation, approval waiting, realtime events and progressive 2D/3D enhancement.
