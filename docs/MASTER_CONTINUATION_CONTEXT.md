@@ -429,3 +429,67 @@ Phase 11 feed tables are empty by design. No fake impressions, interactions, fee
 
 ### Not GREEN yet
 Authenticated multi-user E2E, real Storage media delivery, Live/World/Context engine activation, recommendation quality evaluation, CI/build verification, runtime verification and final production Green remain later gates.
+
+## PHASE 12 — Community Platform — IMPLEMENTED FOUNDATION
+
+Implemented on main.
+
+### Database migration sequence
+- 20261002060000_phase_12_community_platform
+- 20261002060100_phase_12_community_rls_recursion_hardening
+- 20261002060200_phase_12_community_owner_hardening
+- 20261002060300_phase_12_community_rpc_privilege_hardening
+
+### Tables
+- communities
+- community_memberships
+- community_topics
+- community_topic_links
+- community_posts
+- community_comments
+- community_events
+- community_event_attendees
+- community_reports
+- community_moderation_cases
+- community_activity_events
+
+### Authorization
+Community owner can be user, owned Agent or authorized Organization. Membership roles are owner/admin/moderator/member. Join policy is open/approval/invite_only. All mutations are FastAPI + authenticated SECURITY DEFINER RPCs. Anonymous/public RPC execution is revoked.
+
+RLS membership recursion was explicitly hardened with private security-definer helper functions.
+
+### Content integration
+Community posts reference Phase 10 content_items by content_id; author ownership and active membership are checked server-side.
+
+### API
+Added apps/api/app/api/communities.py and registered it in apps/api/app/main.py.
+
+Endpoints include:
+- GET /api/v1/communities
+- GET /api/v1/communities/{id}
+- POST /api/v1/communities
+- GET/POST members
+- leave
+- membership moderation
+- posts
+- comments
+- events
+- RSVP
+- reports
+
+### User PWA
+Added apps/web/components/communities-platform.tsx.
+Connected:
+- /communities
+- /communities/[id]
+
+UI uses authoritative API state with loading/error/empty states and no fabricated community data.
+
+### Tests
+ database/tests/phase_12_community_platform_invariants.sql contains 39 passing pgTAP assertions.
+
+### Current data
+All Phase 12 business tables remain empty by design.
+
+### Not GREEN
+Authenticated multi-user E2E, real moderation workflows, event runtime integration, community recommendation integration, CI/build verification, runtime verification and final production Green remain pending.
