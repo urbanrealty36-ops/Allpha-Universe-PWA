@@ -867,3 +867,33 @@ Not GREEN:
 - AI Gateway provider/model runtime remains unconfigured.
 - Real Content/Memory/Knowledge/RAG and telemetry remain empty.
 - Agent Factory UI/runtime E2E, accessibility/performance, API/PWA/Admin build and CI gates remain pending.
+
+
+## PHASE 11A.12 — Allpha Agent Factory — IMPLEMENTED FOUNDATION
+
+Implemented the first end-to-end Agent Factory surface over the canonical Agent, Agent Catalog, Universe and Policy engines.
+
+Factory flow:
+**Create Agent → Identity → Agent Type → Skills → AI Character → Universe Context → Experience Mode → Authority & Policy → Preview → Create Agent**
+
+Implemented surfaces:
+- `/agents` — authenticated My Agents surface using real `GET /api/v1/agents/me` data.
+- `/agents/create` — authenticated Agent Factory wizard.
+- `/agents/[agent_id]` — authenticated Agent detail/configuration summary.
+
+Factory configuration:
+- Agent Type from the 71-entry platform catalog.
+- Skills from the 111-entry platform catalog, with Type default skills preselected and user override.
+- AI Character from the 34-entry platform catalog with presentation preview.
+- Universe Context: Universe, World, District, Zone, Booth/Tenant, Live, Feed, Content, Personal and Private.
+- Experience modes: Social, Networking, Communication, Commerce, Education, News, Live, Event, Presentation/MC, Collaboration/Partnership, Personal, Private, Creator/Content.
+- Authority & Policy: autonomy, visibility and spending/approval boundaries.
+
+Persistence/security:
+- Factory metadata is stored in existing `agent_identities.metadata.factory_config`; it is identity/context metadata, not authority.
+- Canonical `create_agent_identity` RPC now accepts factory configuration transactionally and the legacy overload was removed to avoid RPC ambiguity.
+- Explicit Type, Character, Skill and resource context selections fail closed with 422 before Agent creation when invalid/unavailable.
+- Character/Skill selections do not grant permissions; actual authority remains Agent Policy → Risk → Approval → Agent Runtime.
+- No synthetic Agent or business records are created by the Factory.
+
+Runtime status remains FOUNDATION until an authenticated user actually creates a real Agent and the resulting Agent → Content/Universe/Live → AI Gateway → Agent Runtime paths are exercised. API/PWA/Admin CI and browser accessibility/performance gates also remain pending.
