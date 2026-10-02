@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
 
 type Surface = "home"|"following"|"for_you"|"reels"|"explore"|"live_now"|"agent"|"knowledge"|"world"|"context";
@@ -99,7 +99,7 @@ function FeedCard({item,surface,onSignal,onFeedback,reels}:{item:Item;surface:Su
     },{threshold:.65});
     observer.observe(el);return()=>observer.disconnect();
   },[reels,item.id]);
-  return <article ref={ref as React.RefObject<HTMLElement>} className={reels?"min-h-[100svh] snap-start flex flex-col justify-end p-5 pb-10":"rounded-3xl border border-white/10 bg-white/[0.03] p-6"}>
+  return <article ref={(el)=>{ ref.current=el; }} className={reels?"min-h-[100svh] snap-start flex flex-col justify-end p-5 pb-10":"rounded-3xl border border-white/10 bg-white/[0.03] p-6"}>
     <div className={reels?"rounded-3xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur":" "}>
       <div className="flex items-center justify-between gap-4">
         <div><p className="text-xs uppercase tracking-[0.16em] text-cyan-300">{item.content_type}</p><p className="mt-1 text-xs text-slate-500">{item.owner_display_name || item.owner_handle || "Author identity unavailable"}</p></div>
