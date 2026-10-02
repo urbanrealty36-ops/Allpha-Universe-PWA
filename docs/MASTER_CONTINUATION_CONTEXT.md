@@ -1220,3 +1220,26 @@ Product availability interpretation:
 - Character asset storage/schema foundation exists, but no real character assets/runtime catalog is provisioned.
 - Sticker-specific registry was not found in the live schema; do not claim Sticker catalog is implemented.
 - 25 World Templates are platform catalog records and should be treated as the initial 3D/presentation template layer, not as 25 uploaded 3D asset packs.
+
+
+## Latest — Real Spatial Context → Agent Context → Memory/RAG/Knowledge/Learning
+
+Implemented as bounded runtime activation without creating a second engine.
+
+### Runtime adapter
+- Added `apps/api/app/core/agent_context_retrieval.py`.
+- Added `POST /api/v1/agent-context/{agent_id}/retrieve`.
+- Reuses canonical `retrieve_agent_memory` and `retrieve_agent_knowledge` RPCs when a query embedding is supplied.
+- Adds bounded lexical retrieval from authorized Agent-owned active Memory and Knowledge when a text query is supplied.
+- GET Agent Context now composes spatial state → District → Zone → active Booth context.
+- GET Agent Context also exposes existing Interest Affinity, Passion Cluster and Habit Pattern signals as bounded learning context.
+- No LLM is called by the retrieval adapter; AI Gateway remains the only model boundary.
+- Spatial presence is context only and never grants authority.
+
+### Learning boundary
+The runtime reads existing learning signals only. It does not fabricate signals, infer a new permission, or create a parallel learning engine. The canonical learning loop remains Content → Interaction → Behavior Signal → Content Understanding → Interest Affinity → Passion Cluster → Habit Pattern → Goal/Context → Recommendation.
+
+### Verification
+Live Supabase invariant check passed for Memory, Knowledge, Interest Affinity, Passion Cluster, Habit Pattern and canonical retrieval RPC foundations. Current live counts remain zero for these business records; no synthetic Agent/Memory/Knowledge/Learning data was created.
+
+Status: IMPLEMENTED FOUNDATION / NOT GREEN. Full vector embedding generation, authenticated end-to-end retrieval with real Agent data, recommendation activation, runtime model calls, mobile verification and final E2E remain downstream gates.
