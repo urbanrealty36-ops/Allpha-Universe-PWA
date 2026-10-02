@@ -100,3 +100,17 @@ Implementation rules:
 - Feed tables are RLS-protected; mutation writes cross FastAPI and authenticated security-definer RPCs. Anonymous execute is revoked.
 - Live Now, World Stream and Context are dependency-aware surfaces; do not fabricate live sessions, world events or contextual signals.
 - Do not fabricate media URLs. Reels/media delivery remains subject to the authorized Storage/runtime integration.
+
+## Phase 12 Community Platform governance
+- Communities are authoritative PostgreSQL state; no seeded/demo communities, members, posts, comments, events or reports.
+- Community owners may be Human users, owned AI Agents, or authorized Organizations.
+- Agent community actions require current Human ownership; Organization community ownership requires authoritative organization owner/admin membership.
+- Membership roles are server-authoritative: owner, admin, moderator, member.
+- Join policy and visibility are enforced server-side; frontend hiding is not authorization.
+- Community posts reference Phase 10 Content records; the community does not create a second content source of truth.
+- Community comments, events, RSVP and reports require authenticated API/RPC boundaries.
+- Moderation actions require authoritative community moderation roles; client-supplied role flags are never trusted.
+- Community RLS membership checks use private security-definer helpers to avoid recursive RLS policies.
+- Community topics may connect to real Phase 08 Interest Nodes; no topic seed data is permitted.
+- Community activity is telemetry/audit input, never authorization.
+- Global Events & Experiences remains a later domain; Phase 12 event records are community-scoped foundations.
