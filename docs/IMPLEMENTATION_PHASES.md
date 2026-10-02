@@ -83,8 +83,10 @@ Implemented the server-side AI execution boundary with provider registry, model 
 
 Final runtime GREEN remains gated on real provider/model configuration, authenticated generation, retry/fallback, safety behavior, telemetry, CI/build and E2E/runtime verification.
 
-### PHASE 15 — Agent Runtime & Command System
-Command API, intent parsing, task command, tools, execution context, state machine, planner, policy, risk, approvals, execution, audit ledger, kill switch and spending/rate limits.
+### PHASE 15 — Agent Runtime & Command System — IMPLEMENTED FOUNDATION
+Implemented Human-owned Agent command lifecycle, execution contexts, task/step state machine, Tool Definition registry, AI-Gateway-backed planner, capability validation, policy/autonomy/risk evaluation, Human Approval integration, execution telemetry, tool runs, spend ledger, rate limits and kill switch. Added FastAPI /api/v1/agent-runtime/* and User PWA /agent-runtime. Canonical built-in ai.generate tool delegates to Phase 14 AI Gateway. No synthetic Agent/command/task records are seeded.
+
+Final runtime GREEN remains gated on authenticated Agent command E2E, real AI provider configuration, planner execution, approval/resume, kill switch, budget/rate-limit behavior, tool executor coverage, CI/build and runtime verification.
 
 ### PHASE 16 — Workflow & Mission Engine
 Missions, steps, runs, state transitions, scheduling, retries, idempotency, human-in-loop, outputs, review, completion and recovery.
