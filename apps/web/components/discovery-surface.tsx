@@ -128,6 +128,7 @@ export default function DiscoverySurface() {
 
   async function askTheContent(contentId: string) {
     if (!askQuestion.trim()) return;
+    await trackContentInteraction(contentId, "event_interaction", { action: "ask_content" });
     setAsking(true);
     setAskAnswer(null);
     setAskMeta(null);
