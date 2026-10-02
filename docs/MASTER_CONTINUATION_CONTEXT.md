@@ -550,3 +550,39 @@ Phase 14 AI Gateway & Model Router is implemented as a foundation on main. Supab
 
 ## Phase 15 continuation state
 Phase 15 Agent Runtime & Command System is implemented as a foundation on main. The runtime now owns command state, planning, tool materialization, risk/approval, execution, spend/rate-limit controls, kill switch and audit events. The canonical built-in ai.generate tool delegates exclusively to Phase 14 AI Gateway. No synthetic runtime records are seeded. Final GREEN requires authenticated E2E with real Agent ownership and AI provider configuration.
+
+
+## Phase 16 continuation state
+Phase 16 Workflow & Mission Engine is implemented as a foundation on main.
+
+### Database
+Migration: 20261002100000_phase_16_workflow_mission_engine.sql
+Tables:
+- workflows
+- workflow_versions
+- workflow_steps
+- workflow_runs
+- workflow_run_steps
+- workflow_events
+- missions
+- mission_participants
+- mission_runs
+
+All nine tables have RLS. Direct table mutation is revoked from anonymous/authenticated roles. Eleven Phase 16 RPCs are SECURITY DEFINER with pinned empty search_path.
+
+### Runtime boundary
+Workflow preparation converts a published workflow version into a deterministic Phase 15 Agent plan and calls the existing Phase 15 materialize_agent_plan RPC. Workflow execution then uses the existing Phase 15 Agent Runtime. Mission runs reference Workflow Runs and never execute tools directly.
+
+### API/UI
+- FastAPI: apps/api/app/api/workflows.py, registered in apps/api/app/main.py.
+- API prefix: /api/v1/workflows.
+- User PWA: /workflows, apps/web/components/workflow-mission-surface.tsx.
+
+### Verification
+- database/tests/phase_16_workflow_mission_engine_invariants.sql
+- Live pgTAP: 32 assertions passed.
+- Live database: 9 Phase 16 tables, all RLS-enabled; 11 RPCs present and SECURITY DEFINER/search_path hardened.
+- Phase 16 business tables contain zero records by design.
+
+### Not GREEN
+Authenticated real-Agent E2E, real AI provider execution, approval/resume, retry execution, schedule/event/webhook triggers, multi-participant mission runtime, CI/build, runtime verification and final Green remain pending.
