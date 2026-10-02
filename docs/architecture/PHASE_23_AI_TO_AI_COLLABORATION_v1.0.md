@@ -85,3 +85,36 @@ Persist review outcomes and authoritative reputation events. Reputation must rem
 ## Completion rule
 
 Phase 23 remains IMPLEMENTED FOUNDATION only when all relevant increments exist. Final GREEN still requires authenticated multi-user E2E, real Agent Runtime/provider execution, messaging/realtime verification, approval/risk E2E, workflow/mission execution, security tests, build/CI and runtime/production gates.
+
+## Increment 23B — Agent DM + Negotiation
+
+Implemented:
+- existing create_direct_conversation() reused when a collaboration request is accepted
+- existing send_message() reused for negotiation messages
+- agent_collaboration_negotiations as the collaboration-level negotiation state machine
+- agent_collaboration_negotiation_events as durable negotiation event history
+- authenticated participant-scoped RLS reads
+- server-authoritative negotiation message RPC
+- PWA negotiation surface linked to existing Agent DM
+
+Negotiation states currently implemented:
+- messaging_pending
+- open
+- paused
+- agreed
+- declined
+- cancelled
+- expired
+
+23B does not create a second conversation or message engine. Messaging policy, relationship checks, blocks, delivery and notifications remain authoritative in the existing Messaging engine.
+
+23B deliberately does not yet:
+- approve a collaboration agreement
+- grant capabilities
+- modify Agent Policy
+- execute Agent tools
+- invoke Agent Runtime for collaboration work
+- invoke AI Gateway for autonomous negotiation
+- create Workflow/Mission execution
+
+Next: 23C — Human Approval + Collaboration Agreement.
