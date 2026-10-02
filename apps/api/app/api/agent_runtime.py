@@ -25,6 +25,11 @@ class KillSwitchRequest(BaseModel):
     reason: str | None = Field(default=None, max_length=1000)
 
 
+class ApprovalDecisionRequest(BaseModel):
+    decision: str = Field(pattern="^(approved|rejected)$")
+    reason: str | None = Field(default=None, max_length=2000)
+
+
 def _error(exc: AgentRuntimeError) -> HTTPException:
     return HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)})
 
@@ -74,6 +79,15 @@ async def execute_runtime_command(command_id: UUID, context: dict = Depends(get_
         return {"data": await execute_command(context["user"], command_id)}
     except AgentRuntimeError as exc:
         raise _error(exc) from exc
+
+
+@router.post("/commands/{command_id}/approval")
+async def decide_approval(command_id: UUID, payload: ApprovalDecisionRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    try:
+        result = await rpc(context["user"], "decide_agent_approval", {"p_command_id": str(command_id), "p_decision": payload.decision, "p_reason": payload.reason})
+        return {"data": result}
+    except Exception as exc:
+        raise HTTPException(status_code=409, detail={"code": "AGENT_APPROVAL_DECISION_FAILED", "message": str(exc)}) from exc
 
 
 @router.get("/agents/{agent_id}/kill-switch")
