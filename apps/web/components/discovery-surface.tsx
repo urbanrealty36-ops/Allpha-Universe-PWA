@@ -18,6 +18,14 @@ type ContentItem = {
   rank_score?: number;
   position?: number;
   reason_codes?: (string | null)[];
+  gravity_score?: number;
+  gravity_reason_codes?: string[];
+  gravity_signals?: {
+    feed_base?: number;
+    interest_context?: number;
+    personalization?: number;
+    world_context?: number;
+  };
 };
 
 type World = {
@@ -265,7 +273,7 @@ export default function DiscoverySurface() {
                         <p className="mt-3 line-clamp-4 text-sm leading-6 text-slate-400">{item.excerpt}</p>
                       ) : null}
                       <div className="mt-5 flex flex-wrap gap-2">
-                        {(item.reason_codes || []).filter(Boolean).slice(0, 4).map((reason) => (
+                        {(item.gravity_reason_codes || item.reason_codes || []).filter(Boolean).slice(0, 4).map((reason) => (
                           <span key={reason} className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-slate-500">
                             {reason}
                           </span>
