@@ -5,11 +5,11 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 
-type Props={scene:WorldScene; lowPower?:boolean; onHotspot?: (node:SceneNode)=>void; booths?:SceneNode[]};
+type Props={scene:WorldScene; tokens?:Record<string,unknown>; lowPower?:boolean; onHotspot?: (node:SceneNode)=>void; booths?:SceneNode[]};
 
-function WorldObjects({scene,onHotspot,lowPower,booths}:{scene:WorldScene;onHotspot?:Props["onHotspot"];lowPower:boolean;booths:SceneNode[]}){
-  const primary=String((scene.lighting as any)?.key ?? "#334155").replace("theme.color.primary", "#4f46e5");
-  const accent=String((scene.lighting as any)?.emissive ?? "#38bdf8").replace("theme.effects.glow", "#38bdf8");
+function WorldObjects({scene,tokens,onHotspot,lowPower,booths}:{scene:WorldScene;tokens?:Record<string,unknown>;onHotspot?:Props["onHotspot"];lowPower:boolean;booths:SceneNode[]}){
+  const primary=String(tokens?.["theme.color.primary"] ?? (scene.lighting as any)?.key ?? "#4f46e5").replace("var(--allpha-primary)", "#4f46e5");
+  const accent=String(tokens?.["theme.color.accent"] ?? tokens?.["theme.color.secondary"] ?? (scene.lighting as any)?.emissive ?? "#38bdf8").replace("var(--allpha-cyan)", "#38bdf8");
   const color=primary.startsWith("#")?primary:"#4f46e5";
   const accentColor=accent.startsWith("#")?accent:"#38bdf8";
   const zones=scene.zones;
@@ -27,14 +27,14 @@ function WorldObjects({scene,onHotspot,lowPower,booths}:{scene:WorldScene;onHots
 }
 function MotionCamera(){const ref=useRef<THREE.Group>(null);useFrame((_,delta)=>{if(ref.current)ref.current.rotation.y+=delta*0.01});return <group ref={ref}/>}
 
-export default function AllphaWorldRenderer({scene,lowPower=false,onHotspot,booths=[]}:Props){
+export default function AllphaWorldRenderer({scene,tokens,lowPower=false,onHotspot,booths=[]}:Props){
   const shadows=!lowPower;
   const dpr=lowPower?[1,1.25]:[1,1.75] as [number,number];
   const background=useMemo(()=>"#070b14",[]);
   return <div className="relative h-full min-h-[420px] w-full overflow-hidden rounded-3xl border border-white/10 bg-black">
     <Canvas dpr={dpr} shadows={shadows} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}}>
       <color attach="background" args={[background]}/><PerspectiveCamera makeDefault position={[14,11,14]} fov={58}/><ambientLight intensity={0.8}/><directionalLight position={[8,14,6]} intensity={2} castShadow={shadows}/>
-      <WorldObjects scene={scene} onHotspot={onHotspot} lowPower={lowPower} booths={booths}/><MotionCamera/><OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*0.48}/>
+      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths}/><MotionCamera/><OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*0.48}/>
     </Canvas>
   </div>;
 }
