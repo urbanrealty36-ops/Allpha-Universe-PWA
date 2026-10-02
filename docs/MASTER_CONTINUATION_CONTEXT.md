@@ -1312,3 +1312,40 @@ Not yet proven:
 
 Next integration target:
 **Real populated District → Zone → Booth runtime + Phase 18 spatial state + Booth 3D composition E2E**, using only records/assets created by an authenticated authorized user.
+
+
+## Latest — Real District → Zone → Booth → GLB → World Runtime → Phase 18 Spatial Presence
+
+Status: **IMPLEMENTED FOUNDATION / NOT GREEN**.
+
+Implemented:
+- World Runtime District composition now derives an authoritative Booth spatial anchor in this order: booths.scene_config.position → booths.display_config.position → district_zones.spatial_config.booth_anchor.
+- Anchor values are normalized to numeric XYZ. Missing/invalid anchors remain null; the runtime does not invent a position.
+- Active Booth 3D assets continue to resolve through the existing private Storage lifecycle and signed read URL.
+- District composition now also returns Phase 18 agent_spatial_states for the same World and Zone context, subject to existing RLS.
+- World Preview consumes the authoritative Booth anchor and real signed GLB URL.
+- World Preview subscribes to the existing Supabase Realtime agent_spatial_states publication through an extended adapter; no second spatial engine was created.
+- Existing Phase 18 update_agent_spatial_state remains the only authoritative spatial mutation boundary.
+- Real spatial presence is rendered only when a real Phase 18 position exists. No fallback position is generated for missing Agent spatial state.
+- Booth 3D presentation remains presentation-only and cannot grant Agent permission, ownership, capability, entitlement or execution authority.
+- Added read-only invariant test: database/tests/phase_20_booth_3d_spatial_composition_invariants.sql.
+
+Live verification:
+- Districts: 0
+- Zones: 0
+- Booths: 0
+- Booth 3D assets: 0
+- Storage objects in allpha-world-assets: 0
+- Agent spatial states: 0
+- Phase 18 Realtime publication: present
+- Booth Realtime publication: present
+- Composition invariants passed
+- No synthetic business data or asset was created.
+
+Important boundary:
+The runtime path is implemented, but the requested real populated state is not claimed because the live project currently has no authorized District/Zone/Booth/GLB/Agent spatial records. Those must be created by an authenticated authorized user through the existing provisioning/upload flows.
+
+Known global Supabase advisor findings remain; they are not reclassified as GREEN. In particular, the project already has multiple SECURITY DEFINER functions callable by authenticated users and several existing duplicate permissive RLS policies. The current increment did not create a second authorization/spatial engine.
+
+Next integration target:
+Authenticated real-data E2E: create one real World-owned District → Zone → Booth → upload a real user-provided GLB → publish/activate → enter Agent into Phase 18 spatial runtime → verify Realtime presence and Booth anchor composition in /world.
