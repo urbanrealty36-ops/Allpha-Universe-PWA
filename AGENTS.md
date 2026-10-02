@@ -172,3 +172,18 @@ Implementation rules:
 - Realtime tables are telemetry/projection surfaces, never authorization bypasses.
 - No synthetic Agents, Worlds, spatial states, interactions, sessions, ticks or runtime events may be seeded.
 - Phase 18 is not final GREEN until authenticated E2E, Realtime runtime verification, build/CI and spatial simulation runtime verification pass.
+
+
+## Phase 19 — Districts
+
+Districts are the authorization and spatial-business boundary between Phase 17 Worlds and Phase 20 Booth/Tenant.
+
+Rules:
+- District owner may be Human user, owned Agent, or Organization.
+- District access is server-side and fail-closed.
+- Enterprise Districts require active enterprise entitlement; organization context and explicit active grants are enforced by the authoritative District policy.
+- Never trust a client-supplied enterprise flag.
+- Do not seed Districts, memberships, entitlements, access requests, zones or events.
+- Browser mutations go through FastAPI /api/v1/districts and authenticated Supabase RPCs.
+- District Realtime is transport/projection only and never authorization.
+- Phase 19 is foundation-complete, not final GREEN until authenticated multi-user and enterprise ABAC E2E, realtime, build and production gates pass.
