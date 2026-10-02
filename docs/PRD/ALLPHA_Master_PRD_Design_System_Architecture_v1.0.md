@@ -5667,3 +5667,87 @@ The AI Gateway is the single server-side execution boundary for all model-provid
 - Empty configuration is valid; no provider/model seed data may be fabricated.
 
 Phase 14 foundation is complete in code/schema/API/UI, but final GREEN remains gated by real provider configuration and authenticated runtime, retry/fallback, safety, telemetry, CI and E2E verification.
+
+
+---
+
+# PHASE 15 IMPLEMENTATION AMENDMENT — AGENT RUNTIME & COMMAND SYSTEM
+
+Phase 15 establishes the canonical execution runtime for Human-owned AI Agents.
+
+## Runtime contract
+
+Command flow:
+
+`Human → Agent Command → Planner → Policy → Capability → Risk → Approval → Tool Execution → Result → Audit`
+
+Canonical command states:
+
+`planning → ready → running → waiting_approval → completed / failed / cancelled / killed`
+
+## Runtime components
+
+- Agent Command
+- Execution Context
+- Agent Task
+- Agent Task Step
+- Tool Definition
+- Tool Run
+- Runtime Event
+- Spend Event
+- Kill Switch
+
+## Authority
+
+The runtime must validate:
+
+1. Agent ownership
+2. Agent active status
+3. Agent capability
+4. Agent policy
+5. autonomy level
+6. tool availability
+7. tool risk
+8. Human approval where required
+9. rate limit
+10. budget
+11. kill switch
+
+Planner output is advisory and cannot lower authoritative tool risk or bypass capability/policy controls.
+
+## Planner
+
+Planning is delegated through the Phase 14 AI Gateway. The planner must return a constrained executable JSON plan. The server validates every tool and capability before materialization.
+
+Private chain-of-thought is never persisted or exposed.
+
+## Built-in tool boundary
+
+The initial canonical tool is `ai.generate`, which delegates exclusively to the Phase 14 AI Gateway.
+
+Future tools must have:
+
+- Tool Definition
+- capability
+- risk classification
+- input schema
+- server-side executor
+- authorization boundary
+- audit contract
+- idempotency where applicable
+
+Arbitrary shell, arbitrary network, arbitrary SQL, secret access and privileged browser execution are not permitted as implicit Agent tools.
+
+## Human approval
+
+High/critical risk and autonomy/policy-sensitive actions enter the existing Approval Request system. Approval is evaluated server-side and must precede execution.
+
+## Kill switch
+
+A Human owner can activate the Agent kill switch. Pending/running/waiting commands are moved to `killed`, execution contexts are stopped, and a runtime event is recorded.
+
+## Spending and rate limits
+
+Command creation can enforce Agent policy command rate limits. Actual AI/tool spend is recorded against Agent action, daily and monthly budget constraints.
+
+Phase 15 foundation is implemented. Final GREEN remains gated on authenticated multi-user Agent E2E, real AI provider configuration, planner/runtime execution, approval/resume, kill switch, budget/rate-limit tests, complete tool executor coverage, CI/build and runtime verification.
