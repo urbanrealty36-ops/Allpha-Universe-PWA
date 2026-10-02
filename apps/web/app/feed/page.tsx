@@ -1,5 +1,5 @@
-import FeedSurface from "../../components/feed-surface";
+import DiscoverySurface from "../../components/discovery-surface";
 
 export default function Page() {
-  return <FeedSurface surface="home" />;
+  return <DiscoverySurface />;
 }
