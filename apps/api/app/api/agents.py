@@ -16,6 +16,11 @@ class AgentCommandRequest(BaseModel):
     command: str
 
 
+class AgentFactoryContext(BaseModel):
+    scope: str = Field(default="universe", pattern=r"^(universe|world|district|zone|booth|live|feed|content|personal|private)$")
+    resource_id: UUID | None = None
+
+
 class AgentCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     handle: str | None = Field(default=None, min_length=3, max_length=64)
@@ -36,6 +41,8 @@ class AgentCreateRequest(BaseModel):
     agent_type_key: str | None = Field(default=None, min_length=1, max_length=120)
     character_key: str | None = Field(default=None, min_length=1, max_length=120)
     skill_keys: list[str] = Field(default_factory=list, max_length=32)
+    universe_context: AgentFactoryContext = Field(default_factory=AgentFactoryContext)
+    experience_mode: str = Field(default="social", pattern=r"^(social|networking|communication|commerce|education|news|live|event|presentation|collaboration|personal|private|creator)$")
 
 
 class AgentUpdateRequest(BaseModel):
@@ -140,6 +147,31 @@ async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_
     if payload.character_key and not character_rows:
         raise HTTPException(status_code=422, detail={"code": "AGENT_CHARACTER_INVALID", "message": "The selected AI Character is not available."})
 
+    context_tables = {
+        "world": "universe_worlds",
+        "district": "districts",
+        "zone": "district_zones",
+        "booth": "booths",
+        "live": "live_sessions",
+        "content": "content_items",
+    }
+    factory_context = payload.universe_context.model_dump(mode="json")
+    scope = factory_context["scope"]
+    resource_id = factory_context.get("resource_id")
+    if scope in context_tables and not resource_id:
+        raise HTTPException(status_code=422, detail={"code": "AGENT_CONTEXT_RESOURCE_REQUIRED", "message": f"A resource_id is required for {scope} context."})
+    if scope in context_tables and resource_id:
+        rows = await select(user, context_tables[scope], {"select": "id", "id": f"eq.{resource_id}", "limit": "1"})
+        if not rows:
+            raise HTTPException(status_code=422, detail={"code": "AGENT_CONTEXT_RESOURCE_INVALID", "message": "The selected Universe context resource is unavailable to this user."})
+
+    factory_config = {
+        "agent_type_key": payload.agent_type_key,
+        "character_key": payload.character_key,
+        "experience_mode": payload.experience_mode,
+        "universe_context": factory_context,
+    }
+
     selected_skills = list(dict.fromkeys(payload.skill_keys))
     if type_rows:
         selected_skills = list(dict.fromkeys(selected_skills + list(type_rows[0].get("default_skill_keys") or [])))
@@ -172,6 +204,7 @@ async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_
             "p_autonomy_level": payload.autonomy_level, "p_budget_currency": payload.budget_currency.upper(),
             "p_max_spend_per_action": payload.max_spend_per_action, "p_daily_spend_limit": payload.daily_spend_limit,
             "p_monthly_spend_limit": payload.monthly_spend_limit, "p_requires_approval_above": payload.requires_approval_above,
+            "p_factory_config": factory_config,
         })
     except SupabaseRestError as exc:
         raise HTTPException(status_code=exc.status_code if 400 <= exc.status_code < 500 else 502, detail={"code": "AGENT_CREATE_FAILED", "message": exc.message}) from exc
