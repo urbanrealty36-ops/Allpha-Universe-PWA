@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(25);
 select ok(to_regclass('public.booths') is not null,'booths table exists');
 select ok(to_regclass('public.booth_leases') is not null,'booth leases table exists');
 select ok(to_regclass('public.booth_display_assets') is not null,'booth assets table exists');
