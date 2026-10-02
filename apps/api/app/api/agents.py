@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from app.api.dependencies import get_auth_context
 from app.core.auth import AuthenticatedUser, require_auth
+from app.core.agent_runtime import AgentRuntimeError, create_command, execute_command, plan_command
 from app.core.supabase_rest import SupabaseRestError, insert, rpc, select, update
 
 
@@ -14,6 +15,8 @@ router = APIRouter(prefix="/api/v1/agents", tags=["Agents"])
 
 class AgentCommandRequest(BaseModel):
     command: str
+    requested_capabilities: list[str] = Field(default_factory=list, max_length=16)
+    idempotency_key: str | None = Field(default=None, max_length=200)
 
 
 class AgentFactoryContext(BaseModel):
@@ -417,9 +420,16 @@ async def add_permission(agent_id: UUID, payload: PermissionCreateRequest, conte
     return (await insert(user, "agent_permissions", {"agent_id": str(agent_id), **payload.model_dump()}))[0]
 
 
-@router.post("/{agent_id}/command", status_code=status.HTTP_501_NOT_IMPLEMENTED)
-async def command_agent(agent_id: UUID, payload: AgentCommandRequest, user: AuthenticatedUser = Depends(require_auth)) -> None:
+@router.post("/{agent_id}/command", status_code=201)
+async def command_agent(agent_id: UUID, payload: AgentCommandRequest, user: AuthenticatedUser = Depends(require_auth)) -> dict[str, Any]:
     if not payload.command.strip():
         raise HTTPException(status_code=422, detail={"code": "AGENT_COMMAND_EMPTY", "message": "Agent command must not be empty."})
     await _owned_agent(user, agent_id)
-    raise HTTPException(status_code=501, detail={"code": "AGENT_RUNTIME_NOT_ACTIVATED", "agent_id": str(agent_id), "message": "Agent runtime is not activated until Phase 15."})
+    try:
+        command = await create_command(user, agent_id, payload.command.strip(), payload.requested_capabilities, payload.idempotency_key)
+        command_id = UUID(command["command_id"] if "command_id" in command else command["id"])
+        planned = await plan_command(user, command_id)
+        execution = await execute_command(user, command_id)
+        return {"data": {"command": command, "plan": planned, "execution": execution}, "runtime": {"agent_id": str(agent_id), "command_id": str(command_id), "status": execution.get("status") or planned.get("status") or command.get("status"), "ai_gateway": "delegated", "telemetry": "agent_commands + agent_task_steps + ai_gateway_requests/attempts"}}
+    except AgentRuntimeError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc), "agent_id": str(agent_id)}) from exc
