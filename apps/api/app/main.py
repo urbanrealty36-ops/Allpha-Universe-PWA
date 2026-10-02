@@ -19,6 +19,7 @@ from app.api.communities import router as communities_router
 from app.api.feed import router as feed_router
 from app.api.discovery import router as discovery_router
 from app.api.ask_content import router as ask_content_router
+from app.api.content_evolution import router as content_evolution_router
 from app.api.health import router as health_router
 from app.api.identity import router as identity_router
 from app.api.memory_knowledge import router as memory_knowledge_router
@@ -50,6 +51,7 @@ app.include_router(communities_router)
 app.include_router(feed_router)
 app.include_router(discovery_router)
 app.include_router(ask_content_router)
+app.include_router(content_evolution_router)
 app.include_router(identity_router)
 app.include_router(memory_knowledge_router)
 app.include_router(messaging_router)
