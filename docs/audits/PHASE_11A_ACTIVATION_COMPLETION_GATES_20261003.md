@@ -40,6 +40,8 @@ The empty runtime domains are authoritative state. No synthetic Agent, Content, 
 | Universe Theme Navigator | PASS — implemented | PWA reads authoritative published Theme catalog through /api/v1/themes/world-runtime/catalog; supports 2D, 2.5D and schema-driven procedural 3D presentation |
 | 25 Theme runtime contract | PASS — live invariant | 25 published Themes + 25 published v1 versions; all use allpha-3d-progressive, presentation-only authority boundary, LOD/performance and accessibility constraints |
 | Binary 3D asset runtime | BLOCKED | theme_assets=0 and allpha-world-assets=0; no synthetic binary assets were created |
+| Agent Skill / Type / Character catalog | PASS — implemented foundation | 46 Skills, 25 Agent Types, 15 AI Characters; platform catalog only; no synthetic user-owned Agent |
+| Real Agent creation path | FOUNDATION | Agent creation accepts catalog type/character/skills; capability/permission authority remains explicit |
 | Real authenticated user | PASS | Live user exists; no password/session was stored by implementation |
 | Real Agent + published Content E2E | BLOCKED | Live Agents=0 and Content=0 |
 | Real Memory/Knowledge RAG | BLOCKED | Live Memory=0 and Knowledge=0 |
