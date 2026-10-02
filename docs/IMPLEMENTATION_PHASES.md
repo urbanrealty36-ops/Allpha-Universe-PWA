@@ -76,6 +76,27 @@ Runtime boundaries remain explicit: authenticated multi-user E2E, real Storage m
 
 Implemented the first production-safe Discovery Experience vertical slice over the existing Feed, Universe and Live engines. Added FastAPI `/api/v1/discovery/home` orchestration for Universe, Following, For You, Moments, Worlds and Live surfaces; no second Feed/Recommendation/World/Live engine was introduced. Added the User PWA Discovery Surface with Universe Scroll, Live Now, Content Gravity presentation, Moments terminology, search, responsive 2D-first presentation and authoritative empty/error/loading states. Discovery composes existing `get_feed`, published Universe Worlds and public Live Sessions; it does not fabricate records or bypass FastAPI. Phase 11A remains FOUNDATION until authenticated E2E, real Content/World/Live data, telemetry validation, accessibility/performance checks and CI/runtime gates are green.
 
+### PHASE 11A.4 — Content Gravity Engine — IMPLEMENTED FOUNDATION
+
+Implemented the first Content Gravity cross-domain relevance layer without creating a second Feed or Recommendation engine. The layer consumes the authoritative `get_feed` ranking as its base and enriches published Content with existing user-scoped Personalization signals, Interest Affinity ↔ Content Topic matches, World Content placement context, and existing Feed reason signals. It returns `gravity_score`, `gravity_signals`, `gravity_reason_codes`, and `gravity_position` while preserving the original Feed ranking metadata.
+
+Implementation:
+- FastAPI discovery orchestration now delegates Content candidates to `apps/api/app/services/content_gravity.py`.
+- Gravity reads existing `content_topic_links`, `content_topics`, `subject_interest_affinities`, `interest_nodes`, `personalization_signals`, and `universe_world_content`.
+- Source failures fail open to the authoritative Feed result; no synthetic score/data is generated.
+- User PWA Discovery displays Gravity relevance and contextual reason codes.
+- No migration, new table, seed, duplicate Feed engine, duplicate Recommendation engine, or privileged frontend database access was introduced.
+
+Gravity is a relevance/presentation layer only. Ownership, visibility, authorization, Agent authority, risk, approval, billing and transactions remain governed by their canonical backend/domain engines.
+
+Remaining 11A.4 gates:
+- authenticated production E2E
+- real multi-signal personalization validation
+- Content/World/Live populated runtime validation
+- accessibility/performance runtime checks
+- CI/build verification
+- production Green
+
 ### PHASE 12 — Community Platform
 Communities, memberships, roles, posts, discussions, moderation, events, hybrid human/Agent participation and discovery.
 
