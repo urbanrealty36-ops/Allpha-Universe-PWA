@@ -12,6 +12,7 @@ from app.api.booths import router as booths_router
 from app.api.themes import router as themes_router
 from app.api.live import router as live_router
 from app.api.world_builder import router as world_builder_router
+from app.api.world_runtime import router as world_runtime_router
 from app.api.auth import router as auth_router
 from app.api.content import router as content_router
 from app.api.communities import router as communities_router
@@ -63,3 +64,4 @@ app.include_router(booths_router)
 app.include_router(themes_router)
 app.include_router(live_router)
 app.include_router(world_builder_router)
+app.include_router(world_runtime_router)
