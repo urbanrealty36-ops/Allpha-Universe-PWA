@@ -218,4 +218,24 @@ async def end_live_session(session_id: UUID, context: dict = Depends(get_auth_co
 
 @router.post("/sessions/{session_id}/cancel")
 async def cancel_live_session(session_id: UUID, context: dict = Depends(get_auth_context)):
-    return await _transition(session_id, "draft", "cancelled", context)
+    rows = await select(
+        context["user"],
+        "live_sessions",
+        {"select": "id,status,host_user_id", "id": f"eq.{session_id}", "host_user_id": f"eq.{context['user'].user_id}", "limit": "1"},
+    )
+    if not rows:
+        raise HTTPException(status_code=404, detail={"code": "LIVE_SESSION_NOT_FOUND"})
+    if rows[0]["status"] not in {"draft", "scheduled"}:
+        raise HTTPException(status_code=409, detail={"code": "LIVE_INVALID_STATUS_TRANSITION", "from": rows[0]["status"], "to": "cancelled"})
+    try:
+        result = await update(
+            context["user"],
+            "live_sessions",
+            {"id": f"eq.{session_id}", "host_user_id": f"eq.{context['user'].user_id}", "status": f"in.(draft,scheduled)"},
+            {"status": "cancelled"},
+        )
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_SESSION_CANCEL_FAILED") from exc
+    if not result:
+        raise HTTPException(status_code=409, detail={"code": "LIVE_SESSION_CANCEL_CONFLICT"})
+    return {"data": result[0]}
