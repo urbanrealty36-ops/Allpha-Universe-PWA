@@ -209,3 +209,40 @@ Authenticated multi-user E2E, enterprise ABAC runtime E2E, organization/grant co
 
 ### Next
 PHASE 20 — Booth / Tenant Platform.
+
+
+## PHASE 20 — Booth / Tenant Platform — IMPLEMENTED FOUNDATION
+
+Implemented on main. Depends on Phase 19 Districts and provides the spatial tenant boundary for Phase 21 Theme/World Builder and Phase 22 Live Stories/Streaming/Experiences.
+
+Implemented database/API/UI:
+- Booth ownership: Human, Organization, or owned AI Agent, exactly one authoritative owner.
+- Tiers: Free, Standard, Creator, Business, Prime, Event, Enterprise.
+- District/Zone placement with FK hardening.
+- District access and paid-tier entitlement checks server-side.
+- District theme compatibility check.
+- Declarative 2D/2.5D/Spatial/3D scene configuration.
+- Catalog/presentation/media configuration and owner-scoped asset path validation.
+- Display assets: image, video, presentation, 3D scene, document.
+- Display slots and asset binding.
+- Booth moderation/publish lifecycle.
+- Booth leasing foundation without fabricated billing/pricing state.
+- Declarative live_entry_config for Phase 22; no Live runtime is implemented in Phase 20.
+- Booth activity telemetry and Supabase Realtime publication.
+- FastAPI /api/v1/booths/* and PWA /booths.
+
+Verification:
+- Live Phase 20 invariant suite: 25/25 passed.
+- Booth, lease and display business data remain empty by design.
+
+Not GREEN:
+- authenticated multi-user Booth E2E
+- real Storage upload/moderation runtime
+- moderation decision runtime
+- entitlement/billing synchronization
+- lease/payment runtime
+- realtime runtime verification
+- API/PWA build verification
+- CI/runtime/production Green gates
+
+Next: PHASE 21 — Theme & World Builder.
