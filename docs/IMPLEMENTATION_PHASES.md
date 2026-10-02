@@ -413,7 +413,32 @@ Status: **IMPLEMENTED FOUNDATION / NOT GREEN** until authenticated multi-user ru
 ### PHASE 14 — AI Gateway & Model Router — IMPLEMENTED FOUNDATION
 Implemented the server-side AI execution boundary with provider registry, model registry, normalized capabilities, global/user/Agent routing policies, context/output/cost/timeout/retry budgets, capability-aware routing, provider adapters, fallback/retry, request/attempt/usage telemetry, safety gating, input fingerprints and response hashes. Added FastAPI /api/v1/ai/config, /api/v1/ai/generate, /api/v1/ai/usage and /api/v1/ai/requests plus User PWA /ai. Provider secrets remain server-side environment variables and no provider/model seed data is inserted.
 
-Final runtime GREEN remains gated on real provider/model configuration, authenticated generation, retry/fallback, safety behavior, telemetry, CI/build and E2E/runtime verification.
+### PHASE 14A — AI Provider Activation & Runtime Readiness — IMPLEMENTED FOUNDATION
+Completed the provider-activation layer without introducing a second AI engine.
+
+Implemented:
+- Live AllphaDb-Universe configuration for the first enabled OpenAI provider, enabled gpt-6-luna generation model and global allpha-default-openai routing policy.
+- Server-side credential contract remains environment-only through OPENAI_API_KEY; no secret value is stored in PostgreSQL, GitHub or the browser.
+- Added authenticated GET /api/v1/ai/health readiness diagnostics. It reports provider/model/routing readiness and whether the referenced server environment variable is populated, but never returns credential material.
+- PWA /ai now surfaces Gateway Readiness alongside configured models and usage telemetry.
+- Added database/tests/phase_14_ai_gateway_activation_invariants.sql with 17 live assertions covering provider activation, model/policy binding, secret-reference hygiene, authenticated-only RPC execution, RLS read boundaries and absence of synthetic request/usage data.
+- Existing AI Gateway → Model Router → provider adapter → telemetry path remains canonical. Agent Runtime and higher-level features continue to call this gateway rather than a duplicate provider client.
+
+Live reconciliation after activation:
+- enabled providers: 1
+- enabled models: 1
+- enabled routing policies: 1
+- AI Gateway requests: 0
+- AI Gateway attempts: 0
+- AI usage events: 0
+
+Current gates:
+- FastAPI deployment must expose OPENAI_API_KEY before a real provider call can succeed.
+- Authenticated real generation, retry/fallback behavior, safety-gate behavior, telemetry persistence, browser accessibility/performance, API/PWA/Admin build and CI, and production runtime remain unverified.
+- The health endpoint is a readiness diagnostic, not proof of provider inference.
+
+Therefore Phase 14A is IMPLEMENTED FOUNDATION / NOT GREEN. Phase 14 remains incomplete for final runtime GREEN until a real authenticated request is observed end-to-end through the deployed FastAPI runtime.
+
 
 ### PHASE 15 — Agent Runtime & Command System — IMPLEMENTED FOUNDATION
 Implemented Human-owned Agent command lifecycle, execution contexts, task/step state machine, Tool Definition registry, AI-Gateway-backed planner, capability validation, policy/autonomy/risk evaluation, Human Approval integration, execution telemetry, tool runs, spend ledger, rate limits and kill switch. Added FastAPI /api/v1/agent-runtime/* and User PWA /agent-runtime. Canonical built-in ai.generate tool delegates to Phase 14 AI Gateway. No synthetic Agent/command/task records are seeded.
