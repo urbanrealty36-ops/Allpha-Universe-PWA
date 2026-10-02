@@ -244,6 +244,35 @@ Not GREEN:
 
 Next: PHASE 22C — Live Agent Runtime / AI Gateway Activation boundary.
 
+
+### PHASE 22C — Live Agent Runtime / AI Gateway Activation — IMPLEMENTED FOUNDATION
+
+Phase 22C binds active Live Agent Collaboration to the existing Agent Runtime and AI Gateway.
+
+- Added Live context to Agent Commands: `live_session_id`, `live_collaboration_id`, `command_source`.
+- Added server-authoritative `create_live_agent_command` gate.
+- Live command creation requires active collaboration, approved consent, risk decision `allow`, owned Live Session and scheduled/live session state.
+- Existing `AgentRuntime.plan_command()` and `execute_command()` are reused.
+- Existing `AI Gateway.generate()` remains the model/provider routing boundary.
+- Runtime execution re-checks Live Collaboration state and fails closed if collaboration is no longer active.
+- AI Gateway requests receive Live runtime context in metadata.
+- Existing risk assessment, approval, Agent Policy, kill-switch, cost and usage telemetry paths remain in force.
+- PWA Live UI now exposes Runtime → AI Gateway command creation, planning and execution controls.
+- No synthetic Agents, Live Sessions, commands, AI Gateway requests or provider output were created.
+
+Not GREEN:
+- real authenticated Agent/Live execution with configured provider
+- realtime conversation/media
+- voice/TTS
+- character/animation
+- audience runtime
+- streaming transport
+- multi-user E2E
+- build/CI
+- runtime/production gates
+
+Next: PHASE 22D — Realtime Live Conversation / Audience Runtime boundary.
+
 ### PHASE 23 — AI-to-AI Collaboration
 Discover, evaluate, Agent DM, negotiate, human approval, collaboration agreement, execute, review, reputation and history.
 
