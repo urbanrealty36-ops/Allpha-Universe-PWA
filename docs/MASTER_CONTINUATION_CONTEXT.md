@@ -1243,3 +1243,21 @@ The runtime reads existing learning signals only. It does not fabricate signals,
 Live Supabase invariant check passed for Memory, Knowledge, Interest Affinity, Passion Cluster, Habit Pattern and canonical retrieval RPC foundations. Current live counts remain zero for these business records; no synthetic Agent/Memory/Knowledge/Learning data was created.
 
 Status: IMPLEMENTED FOUNDATION / NOT GREEN. Full vector embedding generation, authenticated end-to-end retrieval with real Agent data, recommendation activation, runtime model calls, mobile verification and final E2E remain downstream gates.
+
+
+## Latest — District → Zone → Booth Provisioning + Procedural 3D Theme Runtime
+
+Implemented Web App provisioning surfaces without synthetic business records:
+- `/districts` now selects an existing authoritative World, creates District through existing FastAPI/RPC, loads Zones and creates Zones through existing `create_district_zone` boundary.
+- `/booths` now provisions Booth/Tenant against an existing District/Zone through existing `create_booth`; no direct Supabase browser mutation and no fake records.
+- Existing backend District/Booth authorization and RLS remain authoritative.
+
+3D Theme Runtime:
+- Existing 25 platform Themes + 25 platform World Templates remain canonical; no duplicate catalog was created.
+- Verified all 25 published platform World Template versions use `allpha-3d-progressive` renderer schema.
+- Added deterministic procedural 3D style mapping in `apps/web/lib/world-engine/procedural-theme.ts`.
+- Updated `AllphaWorldRenderer` to render biome/architecture-specific procedural structures, water/rings, zone platforms and Booth projections.
+- This provides real 3D Web App presentation without fabricated GLB/GLTF/Storage assets. Asset lifecycle remains available for future real uploaded assets.
+
+Live verification: platform Themes=25, platform World Templates=25, published 3D World Template versions=25, Districts=0, Zones=0, Booths=0, Theme assets=0, Booth assets=0.
+Status: IMPLEMENTED FOUNDATION / NOT GREEN.
