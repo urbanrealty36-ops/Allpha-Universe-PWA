@@ -56,7 +56,7 @@ async def get_health(context: dict = Depends(get_auth_context)) -> dict[str, Any
     provider_status = []
     for provider in providers:
         env_name = str(provider.get("credential_env_var") or "").strip()
-        configured = bool(env_name and __import__("os").getenv(env_name, "").strip())
+        configured = bool(env_name and os.getenv(env_name, "").strip())
         provider_status.append({
             "id": provider.get("id"),
             "provider_key": provider.get("provider_key"),
