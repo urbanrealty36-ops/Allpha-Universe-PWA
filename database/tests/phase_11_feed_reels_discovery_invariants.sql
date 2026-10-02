@@ -1,5 +1,5 @@
 begin;
-select plan(29);
+select plan(27);
 select has_table('public','feed_impressions','feed impressions exists');
 select has_table('public','feed_interaction_events','feed interaction events exists');
 select has_table('public','feed_feedback','feed feedback exists');
