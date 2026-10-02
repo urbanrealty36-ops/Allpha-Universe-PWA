@@ -149,6 +149,38 @@ Authenticated multi-user E2E, moderation decision runtime, real Storage asset va
 ### Next
 PHASE 22 — Events & Experiences / Live Stories & Streaming.
 
+### PHASE 21 — Theme & World Builder — IMPLEMENTED FOUNDATION + LIFECYCLE HARDENING
+Implemented on `main` and applied to AllphaDb-Universe.
+
+Runtime hardening added:
+- Theme token namespace enforcement with protected-authority rejection.
+- Recursive World/Builder scene schema safety validation.
+- Theme version structural validation for schema, performance and accessibility configuration.
+- World Template version validation, submit and publish lifecycle.
+- Theme and World Template platform moderation RPCs guarded by `admin.manage`.
+- Platform moderator RLS read boundary for Theme/Template moderation queues.
+- User PWA Theme Builder now creates versions, validates versions and submits Themes for review.
+- User PWA World Builder now consumes real published Themes/Templates and supports validate/submit lifecycle.
+- Super Admin Theme moderation surface is API-authoritative and token-based.
+
+Migrations:
+- `20261002040000_phase_21_theme_world_builder_runtime_hardening`
+- `20261002040100_phase_21_theme_world_builder_admin_read`
+
+Business data remains empty by design.
+
+Not GREEN:
+- authenticated multi-user E2E
+- real Storage upload/safety lifecycle
+- actual renderer performance/accessibility runtime validation
+- publication E2E
+- API/PWA/Admin build verification
+- CI
+- Realtime/runtime verification where applicable
+- final production/runtime gates
+
+Next dependency: Phase 22 — Events & Experiences / Live Stories & Streaming.
+
 ### PHASE 22 — Events & Experiences
 Webinars, AMA, live discussions, networking, conferences, hackathons, competitions, business matching, community events, festivals, launches, workshops, concerts and registration/ticketing contracts.
 
