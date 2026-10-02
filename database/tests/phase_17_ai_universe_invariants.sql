@@ -1,5 +1,5 @@
 -- Phase 17 AI Universe invariants
-select plan(30);
+select plan(32);
 select ok(to_regclass('public.universe_galaxies') is not null,'universe_galaxies exists');
 select ok(to_regclass('public.universe_worlds') is not null,'universe_worlds exists');
 select ok(to_regclass('public.universe_world_memberships') is not null,'world memberships exists');
