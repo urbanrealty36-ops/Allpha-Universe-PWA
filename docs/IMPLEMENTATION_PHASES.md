@@ -88,8 +88,8 @@ Implemented Human-owned Agent command lifecycle, execution contexts, task/step s
 
 Final runtime GREEN remains gated on authenticated Agent command E2E, real AI provider configuration, planner execution, approval/resume, kill switch, budget/rate-limit behavior, tool executor coverage, CI/build and runtime verification.
 
-### PHASE 16 — Workflow & Mission Engine
-Missions, steps, runs, state transitions, scheduling, retries, idempotency, human-in-loop, outputs, review, completion and recovery.
+### PHASE 16 — Workflow & Mission Engine — IMPLEMENTED FOUNDATION
+Workflow/version/step definitions, workflow runs, mission/participant/mission-run orchestration, API/PWA surfaces, RLS and secured RPCs. Workflow execution delegates to the Phase 15 Agent Runtime; no second executor is created. Final authenticated E2E, real AI runtime, approvals, retry/trigger runtime, CI/build and final Green remain separate gates.
 
 ### PHASE 17 — AI Universe
 Universe, Galaxies, Worlds, portals, orbits, constellations, spatial discovery, Agent presence, world streams/events/objects and realtime presence.
