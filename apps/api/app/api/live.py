@@ -4,7 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
-from app.core.supabase_rest import SupabaseRestError, insert, select, update
+from app.core.supabase_rest import SupabaseRestError, insert, select, update, rpc
+from app.core.agent_runtime import AgentRuntimeError, create_command, plan_command, execute_command
 
 router = APIRouter(prefix="/api/v1/live", tags=["Live Stories & Streaming"])
 
@@ -228,7 +229,73 @@ async def end_live_collaboration(collaboration_id: UUID, context: dict = Depends
         return {"data": result}
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_COLLAB_END_FAILED") from exc
-\n@router.get("/sessions/{session_id}")
+\n
+class LiveRuntimeCommandCreate(BaseModel):
+    command: str = Field(min_length=1, max_length=20000)
+    capabilities: list[str] = Field(default_factory=lambda: ["ai.generate"], max_length=32)
+    idempotency_key: str | None = Field(default=None, max_length=255)
+
+
+@router.post("/collaborations/{collaboration_id}/runtime/commands", status_code=201)
+async def create_live_runtime_command(
+    collaboration_id: UUID,
+    payload: LiveRuntimeCommandCreate,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        result = await rpc(context["user"], "create_live_agent_command", {
+            "p_collaboration_id": str(collaboration_id),
+            "p_command_text": payload.command.strip(),
+            "p_requested_capabilities": payload.capabilities,
+            "p_idempotency_key": payload.idempotency_key,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_RUNTIME_COMMAND_CREATE_FAILED") from exc
+
+
+@router.post("/collaborations/{collaboration_id}/runtime/commands/{command_id}/plan")
+async def plan_live_runtime_command(
+    collaboration_id: UUID,
+    command_id: UUID,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        rows = await select(context["user"], "agent_commands", {
+            "select": "id,live_collaboration_id,owner_user_id",
+            "id": f"eq.{command_id}",
+            "live_collaboration_id": f"eq.{collaboration_id}",
+            "owner_user_id": f"eq.{context['user'].user_id}",
+            "limit": "1",
+        })
+        if not rows:
+            raise HTTPException(status_code=404, detail={"code": "LIVE_RUNTIME_COMMAND_NOT_FOUND"})
+        return {"data": await plan_command(context["user"], command_id)}
+    except AgentRuntimeError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+
+
+@router.post("/collaborations/{collaboration_id}/runtime/commands/{command_id}/execute")
+async def execute_live_runtime_command(
+    collaboration_id: UUID,
+    command_id: UUID,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        rows = await select(context["user"], "agent_commands", {
+            "select": "id,live_collaboration_id,owner_user_id",
+            "id": f"eq.{command_id}",
+            "live_collaboration_id": f"eq.{collaboration_id}",
+            "owner_user_id": f"eq.{context['user'].user_id}",
+            "limit": "1",
+        })
+        if not rows:
+            raise HTTPException(status_code=404, detail={"code": "LIVE_RUNTIME_COMMAND_NOT_FOUND"})
+        return {"data": await execute_command(context["user"], command_id)}
+    except AgentRuntimeError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+
+@router.get("/sessions/{session_id}")
 async def get_live_session(session_id: UUID, context: dict = Depends(get_auth_context)):
     rows = await select(
         context["user"],
