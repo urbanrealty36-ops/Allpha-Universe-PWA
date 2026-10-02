@@ -33,6 +33,9 @@ class AgentCreateRequest(BaseModel):
     daily_spend_limit: float | None = Field(default=None, ge=0)
     monthly_spend_limit: float | None = Field(default=None, ge=0)
     requires_approval_above: float | None = Field(default=None, ge=0)
+    agent_type_key: str | None = Field(default=None, min_length=1, max_length=120)
+    character_key: str | None = Field(default=None, min_length=1, max_length=120)
+    skill_keys: list[str] = Field(default_factory=list, max_length=32)
 
 
 class AgentUpdateRequest(BaseModel):
@@ -130,7 +133,56 @@ async def create_agent(payload: AgentCreateRequest, context: dict = Depends(get_
         })
     except SupabaseRestError as exc:
         raise HTTPException(status_code=exc.status_code if 400 <= exc.status_code < 500 else 502, detail={"code": "AGENT_CREATE_FAILED", "message": exc.message}) from exc
-    return await _agent_bundle(user, UUID(result["agent_id"]), context)
+    agent_id = UUID(result["agent_id"])
+    if payload.agent_type_key or payload.character_key or payload.skill_keys:
+        type_rows = await select(user, "agent_type_catalog", {
+            "select": "type_key,default_skill_keys",
+            "type_key": f"eq.{payload.agent_type_key}" if payload.agent_type_key else "is.null",
+            "enabled": "eq.true",
+            "limit": "1",
+        }) if payload.agent_type_key else []
+        character_rows = await select(user, "agent_character_catalog", {
+            "select": "character_key,persona_defaults,tone_defaults",
+            "character_key": f"eq.{payload.character_key}" if payload.character_key else "is.null",
+            "enabled": "eq.true",
+            "limit": "1",
+        }) if payload.character_key else []
+
+        selected_skills = list(dict.fromkeys(payload.skill_keys))
+        if type_rows:
+            selected_skills = list(dict.fromkeys(selected_skills + list(type_rows[0].get("default_skill_keys") or [])))
+        if selected_skills:
+            skill_rows = await select(user, "agent_skill_catalog", {
+                "select": "skill_key,name,description",
+                "skill_key": f"in.({','.join(selected_skills)})",
+                "enabled": "eq.true",
+            })
+            for skill in skill_rows:
+                await insert(user, "agent_skills", {
+                    "agent_id": str(agent_id),
+                    "name": skill["name"],
+                    "description": skill.get("description"),
+                    "version": "1.0.0",
+                    "configuration": {
+                        "catalog_key": skill["skill_key"],
+                        "source": "platform_catalog",
+                    },
+                })
+
+        if character_rows:
+            character = character_rows[0]
+            current_persona = await select(user, "agent_personas", {"select": "persona,tone", "agent_id": f"eq.{agent_id}", "limit": "1"})
+            persona = dict(character.get("persona_defaults") or {})
+            persona.update(payload.persona)
+            tone = dict(character.get("tone_defaults") or {})
+            tone.update(payload.tone)
+            values = {"persona": persona, "tone": tone}
+            if current_persona:
+                await update(user, "agent_personas", {"agent_id": f"eq.{agent_id}"}, values)
+            else:
+                await insert(user, "agent_personas", {"agent_id": str(agent_id), **values})
+
+    return await _agent_bundle(user, agent_id, context)
 
 
 @router.get("/{agent_id}")
