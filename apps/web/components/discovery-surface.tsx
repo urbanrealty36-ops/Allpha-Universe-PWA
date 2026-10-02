@@ -5,6 +5,7 @@ import { apiFetch } from "../lib/api";
 import ContentEvolutionPanel from "./content-evolution-panel";
 import AgentIntelligencePanel from "./agent-intelligence-panel";
 import AgentCompanion from "./agent-companion";
+import UniverseThemeNavigator from "./universe-theme-navigator";
 
 type Surface = "home" | "following" | "for_you" | "moments" | "worlds" | "live";
 
@@ -166,9 +167,7 @@ export default function DiscoverySurface() {
   ) {
     event.preventDefault();
     const href = event.currentTarget.href;
-    await trackContentInteraction(contentId, "event_interaction", {
-      action,
-    });
+    await trackContentInteraction(contentId, "event_interaction", { action });
     window.location.assign(href);
   }
 
@@ -222,6 +221,8 @@ export default function DiscoverySurface() {
             ))}
           </nav>
         </header>
+
+        {surface === "home" ? <UniverseThemeNavigator /> : null}
 
         {error && (
           <div className="mt-5 rounded-2xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">
@@ -391,7 +392,7 @@ export default function DiscoverySurface() {
                             </div>
                           ) : null}
                         </div>
-                      ) : null
+                      ) : null}
                     </article>
                   ))}
                 </div>
