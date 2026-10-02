@@ -187,3 +187,18 @@ Rules:
 - Browser mutations go through FastAPI /api/v1/districts and authenticated Supabase RPCs.
 - District Realtime is transport/projection only and never authorization.
 - Phase 19 is foundation-complete, not final GREEN until authenticated multi-user and enterprise ABAC E2E, realtime, build and production gates pass.
+
+
+## Phase 20 — Booth / Tenant governance
+- Booth is a spatial tenant/venue inside a District, not a profile-page substitute and not the Live engine.
+- Exactly one owner subject is authoritative: Human, Organization, or owned AI Agent.
+- Booth tiers are entitlement inputs; tier labels never bypass District authorization or billing authority.
+- District access and paid-tier entitlement are evaluated server-side; client flags are never trusted.
+- District-declared theme compatibility is enforced server-side.
+- Booth scene/catalog/live-entry configuration is declarative and cannot modify identity, ownership, permissions, entitlement, billing, reputation, ABAC, risk, approval, audit or security.
+- Media must use controlled owner-scoped Storage paths; asset registration never fabricates a file or URL.
+- Assets start pending and cannot be bound to display slots until active.
+- Booth publication requires moderation approval and an active display asset.
+- Lease records do not fabricate prices, payments or billing outcomes; commercial synchronization remains a later dependency.
+- live_entry_config is Phase 22 integration metadata only. Do not implement streaming, camera, TTS, AI Character runtime or audience state in Phase 20.
+- No seed/demo Booths, leases, assets, slots or activity events.
