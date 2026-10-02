@@ -82,6 +82,8 @@ export default function LiveStreamingCollaboration() {
   const [collaborationMode, setCollaborationMode] = useState("cohost");
   const [requiredCapability, setRequiredCapability] = useState("live");
   const [collaborations, setCollaborations] = useState<Record<string, Collaboration[]>>({});
+  const [runtimeCommand, setRuntimeCommand] = useState<Record<string, string>>({});
+  const [runtimeCommands, setRuntimeCommands] = useState<Record<string, { id: string; status: string }[]>>({});
 
   async function loadCatalog() {
     setLoading(true); setError(null);
@@ -135,6 +137,32 @@ export default function LiveStreamingCollaboration() {
       await loadCollaborations(sessionId);
     } catch (e) {
       setError(e instanceof Error ? e.message : "LIVE_COLLAB_REQUEST_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  async function createRuntimeCommand(collaborationId: string) {
+    const command = (runtimeCommand[collaborationId] ?? "").trim();
+    if (!command) return;
+    setSessionLoading(true); setError(null);
+    try {
+      const r = await apiFetch<{ data: { id: string; status: string } }>("/api/v1/live/collaborations/" + collaborationId + "/runtime/commands", {
+        method: "POST",
+        body: JSON.stringify({ command, capabilities: ["ai.generate"] }),
+      });
+      setRuntimeCommands(prev => ({ ...prev, [collaborationId]: [...(prev[collaborationId] ?? []), r.data] }));
+      setRuntimeCommand(prev => ({ ...prev, [collaborationId]: "" }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_RUNTIME_COMMAND_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  async function runtimeAction(collaborationId: string, commandId: string, action: "plan" | "execute") {
+    setSessionLoading(true); setError(null);
+    try {
+      const r = await apiFetch<{ data: { status?: string } }>("/api/v1/live/collaborations/" + collaborationId + "/runtime/commands/" + commandId + "/" + action, { method: "POST" });
+      setRuntimeCommands(prev => ({ ...prev, [collaborationId]: (prev[collaborationId] ?? []).map(c => c.id === commandId ? { ...c, status: r.data?.status ?? c.status } : c) }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_RUNTIME_ACTION_FAILED");
     } finally { setSessionLoading(false); }
   }
 
@@ -309,6 +337,22 @@ export default function LiveStreamingCollaboration() {
                             {c.status === "approved" && <button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "activate")} className="rounded-md border border-[var(--allpha-cyan)]/30 px-2 py-1 text-[var(--allpha-cyan)]">Activate</button>}
                             {c.status === "active" && <><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "pause")} className="rounded-md border border-white/10 px-2 py-1">Pause</button><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "end")} className="rounded-md border border-red-300/20 px-2 py-1 text-red-200">End</button></>}
                           </div>
+                          {c.status === "active" && (
+                            <div className="mt-3 rounded-md border border-white/10 p-2">
+                              <div className="text-[10px] uppercase tracking-[.16em] text-white/45">Agent Runtime → AI Gateway</div>
+                              <div className="mt-2 flex gap-2">
+                                <input className={input + " flex-1"} value={runtimeCommand[c.id] ?? ""} onChange={e => setRuntimeCommand(prev => ({ ...prev, [c.id]: e.target.value }))} placeholder="Send a Live Agent command" />
+                                <button disabled={sessionLoading || !(runtimeCommand[c.id] ?? "").trim()} onClick={() => void createRuntimeCommand(c.id)} className="rounded-md border border-[var(--allpha-cyan)]/30 px-3 py-2 text-xs text-[var(--allpha-cyan)]">Create</button>
+                              </div>
+                              {(runtimeCommands[c.id] ?? []).map(cmd => (
+                                <div key={cmd.id} className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+                                  <span className="font-mono text-white/50">{cmd.id.slice(0, 8)}</span><span>{cmd.status}</span>
+                                  {cmd.status === "planning" && <button disabled={sessionLoading} onClick={() => void runtimeAction(c.id, cmd.id, "plan")} className="rounded border border-white/10 px-2 py-1">Plan</button>}
+                                  {cmd.status === "ready" && <button disabled={sessionLoading} onClick={() => void runtimeAction(c.id, cmd.id, "execute")} className="rounded border border-[var(--allpha-cyan)]/30 px-2 py-1 text-[var(--allpha-cyan)]">Execute</button>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
