@@ -174,3 +174,13 @@ Spatial context can become one contextual signal, but it must not be treated as 
 ### Orchestration
 
 Phase 16 Workflow/Mission and Phase 15 Agent Runtime remain canonical. Spatial encounter, collaboration, Live and Character flows feed context into these engines; they do not create alternative orchestration/execution paths.
+
+
+### Phase 18 — Spatial Runtime Adapter
+- Reuses existing `agent_spatial_states`, `spatial_runtime_events`, `universe_agent_presences` and Supabase Realtime publication.
+- Existing `update_agent_spatial_state` remains the authoritative persistence boundary; it now enforces bounded speed, required XYZ position shape, and a 100ms persistence floor.
+- Every accepted spatial state update continues to project presence through existing `upsert_universe_agent_presence`.
+- Added `GET /api/v1/spatial-runtime/worlds/{world_id}/agents/{agent_id}/context` to compose current spatial state with authoritative District → Zone → Booth context.
+- Added browser Realtime adapter for `agent_spatial_states`; no second realtime/spatial engine.
+- Spatial context explicitly carries `spatial_context_grants_permission=false`; authority remains in existing Agent Policy/RLS/Risk/Approval boundaries.
+- Spatial context is a deterministic input to the existing Agent Context layer; it does not invoke an LLM per movement/update.
