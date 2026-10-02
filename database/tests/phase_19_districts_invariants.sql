@@ -1,5 +1,5 @@
 begin;
-select plan(30);
+select plan(31);
 select has_table('public','districts','districts table');
 select has_table('public','district_memberships','district memberships table');
 select has_table('public','district_entitlements','district entitlements table');
