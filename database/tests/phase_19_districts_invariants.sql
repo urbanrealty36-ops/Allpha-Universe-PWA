@@ -1,5 +1,5 @@
 begin;
-select plan(25);
+select plan(26);
 select ok(to_regclass('public.districts') is not null,'districts table exists');
 select ok(to_regclass('public.district_memberships') is not null,'district memberships table exists');
 select ok(to_regclass('public.district_entitlements') is not null,'district entitlements table exists');
