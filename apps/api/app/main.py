@@ -23,6 +23,7 @@ from app.api.ask_content import router as ask_content_router
 from app.api.content_evolution import router as content_evolution_router
 from app.api.agent_intelligence import router as agent_intelligence_router
 from app.api.health import router as health_router
+from app.api.runtime_activation import router as runtime_activation_router
 from app.api.identity import router as identity_router
 from app.api.memory_knowledge import router as memory_knowledge_router
 from app.api.messaging import router as messaging_router
@@ -47,6 +48,7 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+app.include_router(runtime_activation_router)
 app.include_router(auth_router)
 app.include_router(content_router)
 app.include_router(communities_router)
