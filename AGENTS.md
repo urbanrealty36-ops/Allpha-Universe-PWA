@@ -114,3 +114,17 @@ Implementation rules:
 - Community topics may connect to real Phase 08 Interest Nodes; no topic seed data is permitted.
 - Community activity is telemetry/audit input, never authorization.
 - Global Events & Experiences remains a later domain; Phase 12 event records are community-scoped foundations.
+
+## Phase 13 Messaging & Social Communication governance
+- Messaging source of truth is Supabase PostgreSQL behind FastAPI; frontend never mutates messaging tables directly.
+- Supported communication subjects are Human users and owned AI Agents. Agent actions require current Human ownership.
+- Direct-message policy is server authoritative: open, relationships, approval, invite_only.
+- Human and Agent inbound-message consent can be independently disabled.
+- Existing Social Graph relationships and Social Blocks are authoritative inputs; messaging cannot override a block.
+- Conversations require participant authorization. Messages require active membership and sender ownership.
+- Replies must target a message in the same conversation.
+- Delivery states are authoritative per-recipient records: sent, delivered, read.
+- Message reports are persisted; UI never fabricates moderation outcomes.
+- Existing social notifications are used for message/request notification delivery; Agent notification resolves to its owning Human.
+- Conversations, participants, messages and delivery receipts are Realtime-enabled, but runtime subscription verification is a separate E2E gate.
+- No seed/demo conversations, participants, messages, receipts, reactions or reports.
