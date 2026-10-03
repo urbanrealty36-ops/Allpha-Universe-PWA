@@ -1095,6 +1095,41 @@ Defense-in-depth security across frontend, backend/API, Auth/session, database/R
 
 Status: OPEN — live Security Advisor has one remaining external Auth finding (`auth_leaked_password_protection`). SECURITY DEFINER executable audit, anonymous EXECUTE hardening, RLS coverage, IDOR/BOLA regression, session revocation, distributed rate limiting, CSP baseline, CI secret/dependency gates and live security checks are implemented and revalidated. Do not advance to Phase 27 until the Auth control is enabled and Security Advisor is re-run clean.
 
+### PHASE 27A — Super Admin Control Plane Foundation — IMPLEMENTED FOUNDATION
+
+Implemented the first governance increment of Phase 27 over the existing Super Admin application and existing domain engines.
+
+Implemented:
+- authoritative Super Admin overview across existing domain tables
+- platform feature flags with server-authoritative rollout configuration
+- configuration versioning with draft → publish → archived lifecycle
+- audited configuration/feature-flag mutations
+- FastAPI /api/v1/admin/control-plane/*
+- Admin PWA Feature Flags and Configuration Versions surfaces
+- fail-closed RLS and explicit authenticated RPC execution
+- private governance functions using the existing private.has_platform_permission
+- reuse of existing RBAC/ABAC, Audit, Approval, Risk, Billing, Economy, Commerce, AI Gateway/Model Router and domain engines
+
+No duplicate domain engine and no business seed/demo data was introduced.
+
+Live verification:
+- both Phase 27A tables have RLS enabled
+- ordinary client policies on Phase 27A tables: 0
+- public EXECUTE on Phase 27A wrappers: revoked
+- authenticated EXECUTE: present
+- private governance functions: SECURITY DEFINER with fixed search_path
+- non-admin authenticated identity is denied control-plane access
+
+Status: IMPLEMENTED FOUNDATION / NOT GREEN.
+
+Remaining:
+- authenticated Super Admin browser E2E with an actual admin-role account
+- API/Admin typecheck/build/CI
+- consumer integration for feature flags
+- full Phase 27 domain operations
+- Phase 26 production security gates
+
+Next: PHASE 27B — Super Admin Domain Operations & Governance Surfaces.
 ### PHASE 27 — Super Admin Control Plane
 Overview, Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
 
