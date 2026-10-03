@@ -35,6 +35,7 @@ from app.api.agent_collaboration import router as agent_collaboration_router
 from app.api.marketplace import router as marketplace_router
 from app.api.economy import router as economy_router
 from app.api.payouts import router as payouts_router
+from app.api.admin_control_plane import router as admin_control_plane_router
 from app.api.security import router as security_router
 from app.api.personalization import router as personalization_router
 from app.api.social import router as social_router
