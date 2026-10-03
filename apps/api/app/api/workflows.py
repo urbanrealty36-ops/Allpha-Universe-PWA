@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.api.dependencies import get_auth_context
-from app.core.agent_runtime import AgentRuntimeError, begin_execution, execute_command
+from app.core.agent_runtime import AgentRuntimeError, execute_command
 from app.core.auth import AuthenticatedUser
 from app.core.supabase_rest import SupabaseRestError, rpc, select
 
@@ -158,28 +158,30 @@ async def cancel_run(run_id: UUID, payload: dict[str, str | None] | None = None,
 
 @router.post("/runs/{run_id}/execute")
 async def execute_run(run_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
-    user=context["user"]
+    user = context["user"]
     try:
-        rows=await select(user,"workflow_runs",{"select":"id,command_id,status","id":f"eq.{run_id}","limit":"1"})
-        if not rows: raise HTTPException(status_code=404,detail={"code":"WORKFLOW_RUN_NOT_FOUND","message":"Workflow run is not available."})
-        run=rows[0]
+        rows = await select(user, "workflow_runs", {
+            "select": "id,command_id,status",
+            "id": f"eq.{run_id}",
+            "limit": "1",
+        })
+        if not rows:
+            raise HTTPException(status_code=404, detail={"code": "WORKFLOW_RUN_NOT_FOUND", "message": "Workflow run is not available."})
+        run = rows[0]
         if not run.get("command_id"):
-            prepared=await rpc(user,"prepare_workflow_run",{"p_workflow_run_id":str(run_id)})
-            run=prepared.get("workflow_run",run)
-        command_id=UUID(str(run["command_id"]))
-        state=await begin_execution(user,command_id) if run.get("status") in {"ready","preparing","created"} else {"status":run.get("status")}
-        if state.get("status") == "waiting_approval":
-            synced=await rpc(user,"sync_workflow_run",{"p_workflow_run_id":str(run_id)})
-            return {"data":synced}
-        if state.get("status") == "running" or run.get("status") in {"running","waiting_approval"}:
-            try: await execute_command(user,command_id)
-            except AgentRuntimeError as exc:
-                if exc.code not in {"AGENT_APPROVAL_REQUIRED","AGENT_EXECUTION_START_FAILED"}: raise
-        synced=await rpc(user,"sync_workflow_run",{"p_workflow_run_id":str(run_id)})
-        return {"data":synced}
-    except HTTPException: raise
-    except AgentRuntimeError as exc: raise _runtime_error(exc) from exc
-    except SupabaseRestError as exc: raise _error(exc,"WORKFLOW_RUN_EXECUTION_FAILED") from exc
+            prepared = await rpc(user, "prepare_workflow_run", {"p_workflow_run_id": str(run_id)})
+            run = prepared.get("workflow_run", run)
+        command_id = UUID(str(run["command_id"]))
+        execution = await execute_command(user, command_id)
+        synced = await rpc(user, "sync_workflow_run", {"p_workflow_run_id": str(run_id)})
+        return {"data": synced, "execution": execution}
+    except HTTPException:
+        raise
+    except AgentRuntimeError as exc:
+        raise _runtime_error(exc) from exc
+    except SupabaseRestError as exc:
+        raise _error(exc, "WORKFLOW_RUN_EXECUTION_FAILED") from exc
+
 
 @router.get("/missions")
 async def list_missions(status: Literal["draft","open","active","completed","cancelled","archived"] | None = None, limit: int = Query(50, ge=1, le=100), context: dict = Depends(get_auth_context)) -> dict[str, Any]:
