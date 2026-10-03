@@ -1382,6 +1382,6 @@ Continuation completed without replacing the existing Phase 22I architecture:
 - Added Phase 22I runtime contract invariant suite: **10/10 passed** on the canonical AllphaDb-Universe project.
 - No per-frame animation persistence, duplicate event bus, duplicate renderer, duplicate AI Gateway, duplicate Agent Runtime, fake users, fake Agents, fake Live Sessions, or fake business data were introduced.
 
-External provider verification remains a runtime gate. OpenAI's current public pricing confirms `gpt-live-1` as a GPT-Live voice session model; the repository's authenticated WebRTC/provider execution still requires a real configured credential and real Live Session/Collaboration/device runtime before E2E can be marked complete. citeturn2search0
+External provider verification remains a runtime gate. OpenAI's current public pricing confirms `gpt-live-1` as a GPT-Live voice session model; the repository's authenticated WebRTC/provider execution still requires a real configured credential and real Live Session/Collaboration/device runtime before E2E can be marked complete.
 
 **Next implementation phase:** **Phase 23 — AI-to-AI Collaboration**, continuing at **23E — Review + Reputation + History** after reconciling the existing 23A–23D foundation. Do not restart 23A–23D.
