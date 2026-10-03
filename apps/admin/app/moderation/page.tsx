@@ -1,15 +1,9 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Trust</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Moderation</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Moderation operations</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
-}
+"use client";
+import { useEffect,useState } from "react";
+import { apiFetch } from "../../lib/api";
+type Case={id:string;content_id:string|null;media_asset_id:string|null;status:string;reason_code:string|null;notes:string|null;title:string|null;content_type:string|null;content_status:string|null;storage_bucket:string|null;storage_path:string|null;media_type:string|null;mime_type:string|null;media_moderation_status:string|null;media_status:string|null;created_at:string};
+export default function Page(){const [rows,setRows]=useState<Case[]>([]),[error,setError]=useState<string|null>(null),[busy,setBusy]=useState<string|null>(null);
+async function load(){try{const r=await apiFetch<{data:Case[]}>("/api/v1/admin/content-moderation/queue");setRows(r.data??[])}catch(e){setError(e instanceof Error?e.message:"MODERATION_QUEUE_FAILED")}}
+useEffect(()=>{void load()},[]);
+async function decide(id:string,decision:"approved"|"rejected"){setBusy(id);setError(null);try{await apiFetch("/api/v1/admin/content-moderation/"+id+"/decision",{method:"POST",body:JSON.stringify({decision})});await load()}catch(e){setError(e instanceof Error?e.message:"MODERATION_DECISION_FAILED")}finally{setBusy(null)}}
+return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl"><div className="flex items-end justify-between gap-4"><div><p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Trust & Safety</p><h1 className="mt-3 text-4xl font-semibold">Content Moderation</h1><p className="mt-4 max-w-3xl text-slate-300">Authoritative moderation queue for real Content and Media records. Empty means there are no pending cases; no synthetic records are inserted.</p></div><button onClick={()=>void load()} className="rounded-xl border border-white/10 px-4 py-2 text-xs">Refresh</button></div>{error&&<div className="mt-6 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>}<div className="mt-8 space-y-4">{rows.length===0&&!error&&<div className="rounded-2xl border border-white/10 bg-white/[.03] p-6 text-sm text-slate-500">No pending moderation cases.</div>}{rows.map(x=><article key={x.id} className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[.2em] text-cyan-300">{x.content_type||x.media_type||"content"}</p><h2 className="mt-2 text-xl font-semibold">{x.title||x.storage_path||x.id}</h2><p className="mt-2 text-sm text-slate-400">{x.reason_code||"No reason code"}{x.notes?" · "+x.notes:""}</p></div><span className="rounded-full border border-amber-300/20 px-3 py-1 text-xs text-amber-200">{x.status}</span></div><div className="mt-5 grid gap-2 text-xs text-slate-500 sm:grid-cols-3"><span>Content: {x.content_status||"—"}</span><span>Media: {x.media_moderation_status||"—"}</span><span>Submitted: {x.created_at}</span></div><div className="mt-5 flex gap-2"><button disabled={busy===x.id} onClick={()=>void decide(x.id,"approved")} className="rounded-xl bg-white px-4 py-2 text-xs font-medium text-slate-950">Approve</button><button disabled={busy===x.id} onClick={()=>void decide(x.id,"rejected")} className="rounded-xl border border-red-300/20 px-4 py-2 text-xs text-red-200">Reject</button></div></article>)}</div></div></main>}
