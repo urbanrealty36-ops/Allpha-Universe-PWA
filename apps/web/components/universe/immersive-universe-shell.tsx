@@ -449,6 +449,7 @@ export default function ImmersiveUniverseShell() {
             ) : (
               <ImmersiveStage
                 level={level}
+                galaxies={galaxies}
                 themes={themes}
                 worlds={worlds}
                 districts={districts}
@@ -526,39 +527,41 @@ export default function ImmersiveUniverseShell() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <SpatialQuickList
-                  title={level === "galaxy" ? "Galaxies" : level === "world" ? "Worlds" : level === "district" ? "Districts" : "Booths"}
-                  items={level === "galaxy" ? galaxies : level === "world" ? worlds : level === "district" ? districts : (composition?.booths ?? booths)}
-                  selectedId={level === "galaxy" ? selectedGalaxy?.id : level === "world" ? selectedWorld?.id : level === "district" ? selectedDistrict?.id : selectedBooth?.id}
-                  onSelect={(item) => {
-                    if (level === "galaxy") void selectGalaxy(item as Galaxy);
-                    if (level === "world") void selectWorld(item as World);
-                    if (level === "district") void selectDistrict(item as District);
-                    if (level === "booth") selectBooth(item as SpatialBooth);
-                  }}
-                />
-                <SpatialQuickList
-                  title="Portals"
-                  items={portals}
-                  selectedId={selectedPortal?.id}
-                  onSelect={(item) => selectPortal(item as Portal)}
-                  empty="No published World Portal."
-                />
-                <SpatialQuickList
-                  title="Content"
-                  items={content.slice(0, 8)}
-                  selectedId={selectedContent?.id}
-                  onSelect={(item) => void openCapsule(item as Content)}
-                  empty="No published Content."
-                />
-                <SpatialQuickList
-                  title="Agent presence"
-                  items={presence}
-                  selectedId={undefined}
-                  onSelect={() => setMobileHudOpen(true)}
-                  empty="No live Agent presence."
-                />
+              <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto rounded-full border border-white/10 bg-black/35 px-2 py-2 shadow-2xl backdrop-blur-2xl">
+                <span className="shrink-0 px-3 text-[9px] uppercase tracking-[0.22em] text-white/35">
+                  {level === "galaxy" ? "Galaxy" : level === "world" ? "World" : level === "district" ? "District" : "Booth"}
+                </span>
+                {(level === "galaxy" ? galaxies : level === "world" ? worlds : level === "district" ? districts : (composition?.booths ?? booths))
+                  .slice(0, 10)
+                  .map((item: any) => {
+                    const id = item.id;
+                    const selectedId = level === "galaxy" ? selectedGalaxy?.id : level === "world" ? selectedWorld?.id : level === "district" ? selectedDistrict?.id : selectedBooth?.id;
+                    const active = selectedId === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => {
+                          if (level === "galaxy") void selectGalaxy(item as Galaxy);
+                          if (level === "world") void selectWorld(item as World);
+                          if (level === "district") void selectDistrict(item as District);
+                          if (level === "booth") selectBooth(item as SpatialBooth);
+                        }}
+                        className={`shrink-0 rounded-full border px-3 py-1.5 text-[10px] transition ${active ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-50" : "border-white/8 text-white/45 hover:border-white/20 hover:text-white"}`}
+                      >
+                        {item.name}
+                      </button>
+                    );
+                  })}
+                {level === "world" && portals.length > 0 && (
+                  <span className="shrink-0 border-l border-white/10 pl-2 text-[10px] text-fuchsia-200/70">{portals.length} portals</span>
+                )}
+                {level !== "galaxy" && presence.length > 0 && (
+                  <span className="shrink-0 border-l border-white/10 pl-2 text-[10px] text-emerald-200/70">{presence.length} agents</span>
+                )}
+                {content.length > 0 && (
+                  <span className="shrink-0 border-l border-white/10 pl-2 text-[10px] text-amber-100/70">{content.length} content</span>
+                )}
               </div>
             </div>
           </div>
@@ -605,6 +608,7 @@ export default function ImmersiveUniverseShell() {
 
 function ImmersiveStage({
   level,
+  galaxies,
   themes,
   worlds,
   districts,
@@ -624,6 +628,7 @@ function ImmersiveStage({
   onPresence,
 }: {
   level: Level;
+  galaxies: Galaxy[];
   themes: Theme[];
   worlds: World[];
   districts: District[];
@@ -658,7 +663,7 @@ function ImmersiveStage({
           <PerspectiveCamera makeDefault position={[0, 3.8, 13]} fov={54} />
           <ambientLight intensity={0.55} />
           <pointLight position={[0, 4, 0]} intensity={24} color="#7c3aed" />
-          <GalaxyScene themes={themes} />
+          <GalaxyScene galaxies={galaxies} themes={themes} />
           <OrbitControls enablePan={false} minDistance={7} maxDistance={20} autoRotate={!lowPower} autoRotateSpeed={0.16} enableDamping dampingFactor={0.08} />
         </Canvas>
       </div>
@@ -726,29 +731,61 @@ function ImmersiveStage({
   );
 }
 
-function GalaxyScene({ themes }: { themes: Theme[] }) {
+function GalaxyScene({ galaxies, themes }: { galaxies: Galaxy[]; themes: Theme[] }) {
   return (
     <group>
       <mesh>
-        <sphereGeometry args={[1.65, 40, 40]} />
-        <meshStandardMaterial color="#111827" emissive="#7c3aed" emissiveIntensity={0.7} metalness={0.65} roughness={0.28} />
+        <sphereGeometry args={[1.55, 48, 48]} />
+        <meshStandardMaterial color="#0b1224" emissive="#6d28d9" emissiveIntensity={0.9} metalness={0.72} roughness={0.22} />
       </mesh>
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[2.7, 0.045, 8, 96]} />
-        <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.2} />
+        <torusGeometry args={[2.25, 0.055, 10, 128]} />
+        <meshStandardMaterial color="#67e8f9" emissive="#22d3ee" emissiveIntensity={1.4} transparent opacity={0.9} />
       </mesh>
-      {themes.slice(0, 25).map((theme, index) => {
-        const angle = (index / Math.max(1, Math.min(themes.length, 25))) * Math.PI * 2;
-        const radius = 3.8 + (index % 4) * 0.75;
+      <mesh rotation={[Math.PI / 2.25, 0.25, 0]}>
+        <torusGeometry args={[3.2, 0.025, 8, 128]} />
+        <meshStandardMaterial color="#a78bfa" emissive="#8b5cf6" emissiveIntensity={1.1} transparent opacity={0.65} />
+      </mesh>
+      <Html center distanceFactor={8} style={{ pointerEvents: "none" }}>
+        <div className="rounded-full border border-cyan-200/20 bg-slate-950/65 px-4 py-2 text-center shadow-2xl backdrop-blur-xl">
+          <div className="text-[8px] uppercase tracking-[0.3em] text-cyan-200/60">Allpha AI Social Universe</div>
+          <div className="mt-1 text-sm font-semibold text-white">Explore the living Galaxy</div>
+          <div className="mt-1 text-[8px] text-white/40">{galaxies.length ? `${galaxies.length} published Galaxy${galaxies.length === 1 ? "" : "ies"}` : "No published Galaxy yet"}</div>
+        </div>
+      </Html>
+
+      {galaxies.slice(0, 24).map((galaxy, index) => {
+        const angle = (index / Math.max(1, galaxies.length)) * Math.PI * 2;
+        const radius = 4.6 + (index % 3) * 0.65;
         return (
-          <group key={theme.id} position={[Math.cos(angle) * radius, Math.sin(index * 0.62) * 1.35, Math.sin(angle) * radius]}>
+          <group key={galaxy.id} position={[Math.cos(angle) * radius, Math.sin(index * 0.71) * 1.1, Math.sin(angle) * radius]}>
             <mesh>
-              <sphereGeometry args={[0.16 + (index % 3) * 0.045, 14, 14]} />
-              <meshStandardMaterial color={index % 2 ? "#22d3ee" : "#a78bfa"} emissive={index % 2 ? "#22d3ee" : "#a78bfa"} emissiveIntensity={2.1} />
+              <icosahedronGeometry args={[0.55 + (index % 3) * 0.08, 1]} />
+              <meshStandardMaterial color={index % 2 ? "#22d3ee" : "#8b5cf6"} emissive={index % 2 ? "#22d3ee" : "#8b5cf6"} emissiveIntensity={1.15} metalness={0.5} roughness={0.35} />
             </mesh>
-            <Html center distanceFactor={10} style={{ pointerEvents: "none" }}>
-              <div className="whitespace-nowrap rounded-full border border-white/10 bg-black/45 px-2 py-1 text-[8px] text-white/55 backdrop-blur-xl">{theme.name}</div>
+            <Html center distanceFactor={9} style={{ pointerEvents: "none" }}>
+              <div className="rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[9px] text-white/70 backdrop-blur-xl">{galaxy.name}</div>
             </Html>
+          </group>
+        );
+      })}
+
+      <Html position={[-5.8, -2.9, 0]} center distanceFactor={11} style={{ pointerEvents: "none" }}>
+        <div className="max-w-[220px] rounded-2xl border border-white/10 bg-black/40 px-3 py-2 text-[9px] leading-4 text-white/40 backdrop-blur-xl">
+          <span className="text-cyan-200/70">3D Theme Templates</span><br />
+          {themes.length} published platform themes provide the visual language for Worlds. Theme Templates are configuration, not business records.
+        </div>
+      </Html>
+
+      {themes.slice(0, 25).map((theme, index) => {
+        const angle = (index / Math.max(1, Math.min(themes.length, 25))) * Math.PI * 2 + 0.18;
+        const radius = 7.2 + (index % 3) * 0.45;
+        return (
+          <group key={`theme-${theme.id}`} position={[Math.cos(angle) * radius, Math.sin(index * 0.44) * 1.7, Math.sin(angle) * radius]}>
+            <mesh>
+              <sphereGeometry args={[0.09 + (index % 2) * 0.025, 12, 12]} />
+              <meshStandardMaterial color={index % 2 ? "#67e8f9" : "#c4b5fd"} emissive={index % 2 ? "#22d3ee" : "#8b5cf6"} emissiveIntensity={1.7} />
+            </mesh>
           </group>
         );
       })}
