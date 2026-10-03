@@ -2799,3 +2799,120 @@ The public Agent Account/discovery contract is implemented. Authenticated multi-
 
 Next:
 **Slice B — Ask / Conversation Contract**, reusing the existing Messaging + Human Owner Takeover + Conversation Service boundary.
+
+## PHASE 21B — ASK / CONVERSATION CONTRACT — IMPLEMENTED FOUNDATION
+
+Implemented as a composition layer over the existing canonical Messaging + Conversation Service Boundary + Human Owner Takeover. No second Conversation engine, Ask engine, or AI execution engine was introduced.
+
+### Canonical contract
+
+```text
+Discovery Surface
+ → Agent Account
+ → Ask / Message
+ → canonical Conversation
+ → normal Message / Ask = free interaction
+
+Explicit AI task
+ → existing Agent Service
+ → Agent Runtime
+ → Memory/RAG
+ → AI Gateway / Model Router
+ → result
+```
+
+Important:
+- Ask is an interaction primitive, not a billing primitive.
+- Normal Message/Ask does not automatically invoke Model Router, AI Gateway, Agent Runtime, reserve Agent Service, debit AI Credits, or create Skill Challenge reward usage.
+- Explicit AI work continues through the existing Agent Service boundary.
+- Human Owner Takeover remains authoritative and unchanged.
+- Proximity/discovery context is provenance only and never grants authority.
+
+### Database
+
+Migration:
+database/migrations/20261003160000_phase_21b_ask_conversation_contract.sql
+
+Canonical RPC:
+- get_or_create_agent_conversation(agent_id, interaction_mode, source_context, initial_message, client_message_id)
+
+Behavior:
+- validates authenticated Human
+- validates active/non-archived target Agent
+- reuses the latest active/pending direct Human↔Agent Conversation when present
+- otherwise delegates creation to existing create_direct_conversation
+- records discovery provenance in Conversation metadata
+- records Ask/Message mode in message metadata when an initial message is sent
+- delegates message creation to existing send_message
+- does not create a new Conversation engine
+
+Security:
+- SECURITY DEFINER
+- empty search_path
+- anonymous EXECUTE revoked
+- authenticated EXECUTE granted
+
+### FastAPI
+
+Modified:
+apps/api/app/api/messaging.py
+
+New endpoint:
+- POST /api/v1/messaging/conversations/agent
+
+Payload:
+- agent_id
+- interaction_mode: message | ask
+- optional message
+- optional client_message_id
+- optional source_context
+
+The endpoint is an authenticated application-boundary wrapper over the canonical RPC.
+
+### Web
+
+Modified:
+- apps/web/components/messaging-platform.tsx
+- apps/web/components/agent-account-card.tsx
+- apps/web/app/agents/account/[agent_id]/page.tsx
+
+Activated behavior:
+- Agent Account can enter Messaging directly as Ask or Message
+- existing /messages resolves target_type=agent&target_id=...
+- optional discovery provenance can be carried with district_id, booth_id, live_session_id, content_id, or moment_id
+- the existing Conversation is reused instead of creating a duplicate direct Conversation
+- the UI explicitly explains that Ask is free interaction, while AI Service remains a separate paid/credit-bearing path
+- Human Owner Takeover controls remain on the same Conversation surface
+
+### Test
+
+Repository test:
+database/tests/phase_21b_ask_conversation_contract_invariants.sql
+
+Verified live:
+- resolver exists
+- SECURITY DEFINER
+- empty search_path
+- anon execution denied
+- authenticated execution granted
+- existing direct Conversation RPC remains
+- existing send-message RPC remains
+- existing Human Owner Takeover RPCs remain
+- no Agent or Conversation business records were seeded
+
+Invariant execution:
+10/10 passed
+
+### Verification boundary
+
+No authenticated multi-user runtime E2E was fabricated because:
+- live Agents = 0
+- live Skills = 0
+- no real second Human/Agent pair exists for a valid cross-owner test
+
+The implementation is therefore:
+**PHASE 21B — IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING**
+
+### Next implementation
+
+**Slice C — Explicit AI Service Contract & Skill Resolution**, reusing the existing Agent Service → Agent Runtime → Memory/RAG → AI Gateway / Model Router path.
