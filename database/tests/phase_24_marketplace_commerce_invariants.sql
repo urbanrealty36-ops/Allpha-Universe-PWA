@@ -1,0 +1,27 @@
+-- Phase 24 Marketplace & Commerce invariant checks
+select to_regclass('public.marketplace_listings') is not null as marketplace_listings_exists;
+select to_regclass('public.marketplace_offers') is not null as marketplace_offers_exists;
+select to_regclass('public.commerce_orders') is not null as commerce_orders_exists;
+select to_regclass('public.commerce_order_items') is not null as commerce_order_items_exists;
+select to_regclass('public.commerce_payments') is not null as commerce_payments_exists;
+select to_regclass('public.commerce_entitlements') is not null as commerce_entitlements_exists;
+select to_regclass('public.commerce_events') is not null as commerce_events_exists;
+select c.relrowsecurity from pg_class c where c.oid='public.marketplace_listings'::regclass;
+select c.relrowsecurity from pg_class c where c.oid='public.marketplace_offers'::regclass;
+select c.relrowsecurity from pg_class c where c.oid='public.commerce_orders'::regclass;
+select c.relrowsecurity from pg_class c where c.oid='public.commerce_payments'::regclass;
+select c.relrowsecurity from pg_class c where c.oid='public.commerce_entitlements'::regclass;
+select count(*) as listings from public.marketplace_listings;
+select count(*) as offers from public.marketplace_offers;
+select count(*) as orders from public.commerce_orders;
+select count(*) as payments from public.commerce_payments;
+select count(*) as entitlements from public.commerce_entitlements;
+select count(*) as commerce_events from public.commerce_events;
+select exists(select 1 from pg_proc where proname='create_marketplace_listing') as create_listing_rpc;
+select exists(select 1 from pg_proc where proname='list_marketplace_listings') as list_listing_rpc;
+select exists(select 1 from pg_proc where proname='create_marketplace_offer') as create_offer_rpc;
+select exists(select 1 from pg_proc where proname='respond_marketplace_offer') as respond_offer_rpc;
+select exists(select 1 from pg_proc where proname='create_commerce_order') as create_order_rpc;
+select exists(select 1 from pg_proc where proname='create_commerce_payment_intent') as payment_intent_rpc;
+select exists(select 1 from pg_proc where proname='get_my_commerce_orders') as order_history_rpc;
+select count(*)=0 as no_fabricated_checkout_urls from public.commerce_payments where checkout_url is not null;
