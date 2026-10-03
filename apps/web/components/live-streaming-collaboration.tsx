@@ -24,6 +24,8 @@ type LiveMessage = {
   sender_type: "owner" | "agent" | "audience" | "system"; sender_user_id: string | null; sender_agent_id: string | null;
   role: "user" | "assistant" | "system"; message_type: string; content: string; created_at: string;
 };
+type LiveCharacterAsset = { id: string; agent_id: string | null; asset_type: string; name: string; storage_path: string; mime_type: string | null; metadata: Record<string, any>; moderation_status: string; status: string; };
+type LiveCharacterBinding = { id: string; live_session_id: string; live_agent_collaboration_id: string | null; asset_id: string; status: string; selected_at: string; removed_at: string | null; metadata: Record<string, any>; };
 type LiveInteraction = {
   id: string; live_session_id: string; viewer_id: string; interaction_type: string; payload: Record<string, any>;
   status: string; created_at: string;
@@ -99,6 +101,9 @@ export default function LiveStreamingCollaboration() {
   const [selectedConversationCollabId, setSelectedConversationCollabId] = useState("");
   const [liveMessages, setLiveMessages] = useState<LiveMessage[]>([]);
   const [liveInteractions, setLiveInteractions] = useState<LiveInteraction[]>([]);
+  const [characterAssets, setCharacterAssets] = useState<LiveCharacterAsset[]>([]);
+  const [characterBinding, setCharacterBinding] = useState<LiveCharacterBinding | null>(null);
+  const [selectedCharacterAssetId, setSelectedCharacterAssetId] = useState("");
   const [conversationText, setConversationText] = useState("");
   const [viewerId, setViewerId] = useState("");
   const [audiencePresence, setAudiencePresence] = useState(0);
@@ -155,6 +160,46 @@ export default function LiveStreamingCollaboration() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "LIVE_COLLAB_LOAD_FAILED");
     }
+  }
+
+  async function loadCharacters(sessionId: string) {
+    try {
+      const bindingResponse = await apiFetch<{ data: LiveCharacterBinding[] }>(`/api/v1/live/sessions/${sessionId}/characters`);
+      setCharacterBinding(bindingResponse.data?.find(b => b.status === "active") ?? null);
+      const collab = (collaborations[sessionId] ?? []).find(c => c.status === "active");
+      if (!collab) { setCharacterAssets([]); return; }
+      const assetsResponse = await apiFetch<{ data: LiveCharacterAsset[] }>(`/api/v1/live/character-assets?agent_id=${collab.agent_id}`);
+      const assets = assetsResponse.data ?? [];
+      setCharacterAssets(assets);
+      setSelectedCharacterAssetId(bindingResponse.data?.find(b => b.status === "active")?.asset_id ?? assets[0]?.id ?? "");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_CHARACTER_LOAD_FAILED");
+    }
+  }
+
+  async function selectCharacter() {
+    if (!selectedLiveSessionId || !selectedCharacterAssetId || !selectedConversationCollabId) return;
+    setSessionLoading(true); setError(null);
+    try {
+      const r = await apiFetch<{ data: LiveCharacterBinding }>(`/api/v1/live/sessions/${selectedLiveSessionId}/characters`, {
+        method: "POST",
+        body: JSON.stringify({ asset_id: selectedCharacterAssetId, collaboration_id: selectedConversationCollabId, metadata: { surface: "live" } }),
+      });
+      setCharacterBinding(r.data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_CHARACTER_SELECT_FAILED");
+    } finally { setSessionLoading(false); }
+  }
+
+  async function removeCharacter() {
+    if (!selectedLiveSessionId) return;
+    setSessionLoading(true); setError(null);
+    try {
+      await apiFetch(`/api/v1/live/sessions/${selectedLiveSessionId}/characters/remove`, { method: "POST" });
+      setCharacterBinding(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "LIVE_CHARACTER_REMOVE_FAILED");
+    } finally { setSessionLoading(false); }
   }
 
   async function requestCollaboration(sessionId: string) {
@@ -303,6 +348,7 @@ export default function LiveStreamingCollaboration() {
       try {
         await loadLiveMessages(selectedLiveSessionId);
         await loadCollaborations(selectedLiveSessionId);
+        await loadCharacters(selectedLiveSessionId);
         const { data } = await supabase.auth.getSession();
         if (!data.session) throw new Error("AUTH_REQUIRED");
         await supabase.realtime.setAuth(data.session.access_token);
@@ -477,6 +523,18 @@ export default function LiveStreamingCollaboration() {
                             {c.status === "active" && <><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "pause")} className="rounded-md border border-white/10 px-2 py-1">Pause</button><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "end")} className="rounded-md border border-red-300/20 px-2 py-1 text-red-200">End</button></>}
                           </div>
                           {c.status === "active" && (
+                            <div className="mt-3 rounded-md border border-[var(--allpha-cyan)]/15 bg-[var(--allpha-cyan)]/5 p-3">
+                              <div className="text-[10px] uppercase tracking-[.16em] text-[var(--allpha-cyan)]">AI Character / Presentation Runtime</div>
+                              <div className="mt-2 grid gap-2 md:grid-cols-[1fr_auto_auto]">
+                                <select className={input} value={selectedCharacterAssetId} onChange={e => setSelectedCharacterAssetId(e.target.value)} disabled={!characterAssets.length}>
+                                  <option value="">{characterAssets.length ? "Select approved character asset" : "No approved character asset"}</option>
+                                  {characterAssets.map(a => <option key={a.id} value={a.id}>{a.name} · {a.asset_type}</option>)}
+                                </select>
+                                <button disabled={sessionLoading || !selectedCharacterAssetId} onClick={() => void selectCharacter()} className="rounded border border-[var(--allpha-cyan)]/30 px-3 py-2 text-xs text-[var(--allpha-cyan)]">Select</button>
+                                <button disabled={sessionLoading || !characterBinding} onClick={() => void removeCharacter()} className="rounded border border-white/10 px-3 py-2 text-xs">Remove</button>
+                              </div>
+                              <p className="mt-2 text-[10px] leading-4 text-[var(--allpha-text-muted)]">{characterBinding ? "Character is bound to this Live Session. Character presentation never grants Agent authority." : "Character assets require real owned/approved Storage assets; none are fabricated."}</p>
+                            </div>
                             <div className="mt-3 rounded-md border border-white/10 p-2">
                               <div className="text-[10px] uppercase tracking-[.16em] text-white/45">Agent Runtime → AI Gateway</div>
                               <div className="mt-2 flex gap-2">
