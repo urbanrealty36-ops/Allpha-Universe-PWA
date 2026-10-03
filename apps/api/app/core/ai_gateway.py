@@ -27,6 +27,7 @@ class GatewayMessage:
 
 @dataclass(frozen=True)
 class GatewayResult:
+    request_id: str
     text: str
     provider_id: str
     model_id: str
@@ -318,7 +319,7 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
                 "p_response_text_hash": hashlib.sha256(text.encode()).hexdigest(),
             })
             await _record_usage(user, {"request_id": request_id, "event_type": "success", "provider_id": str(provider["id"]), "model_id": str(model["id"]), "agent_id": agent_id, "input_tokens": input_tokens, "output_tokens": output_tokens, "total_tokens": total, "estimated_cost_usd": cost, "latency_ms": latency})
-            return GatewayResult(text=text, provider_id=str(provider["id"]), model_id=str(model["id"]), model_identifier=str(model["model_identifier"]), input_tokens=input_tokens, output_tokens=output_tokens, total_tokens=total, estimated_cost_usd=cost, latency_ms=latency, attempt_no=index)
+            return GatewayResult(request_id=request_id, text=text, provider_id=str(provider["id"]), model_id=str(model["id"]), model_identifier=str(model["model_identifier"]), input_tokens=input_tokens, output_tokens=output_tokens, total_tokens=total, estimated_cost_usd=cost, latency_ms=latency, attempt_no=index)
         except AIGatewayError as exc:
             last_error = exc
             await _record_attempt(user, {"request_id": request_id, "attempt_no": index, "provider_id": str(provider["id"]), "model_id": str(model["id"]), "status": "timeout" if exc.code == "AI_PROVIDER_TIMEOUT" else ("rate_limited" if exc.code == "AI_PROVIDER_RATE_LIMITED" else "failed"), "error_code": exc.code, "error_message": str(exc)[:1000]})
