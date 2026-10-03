@@ -1,5 +1,5 @@
 begin;
-select plan(41);
+select plan(52);
 select has_table('public','communication_preferences','communication preferences exists');
 select has_table('public','conversations','conversations exists');
 select has_table('public','conversation_participants','conversation participants exists');
@@ -46,5 +46,17 @@ select is((select count(*) from public.messages),0::bigint,'no message seed data
 select is((select count(*) from public.message_delivery_receipts),0::bigint,'no receipt seed data');
 select is((select count(*) from public.message_reports),0::bigint,'no report seed data');
 select is((select count(*) from public.communication_activity_events),0::bigint,'no communication activity seed data');
+select has_table('public','agent_service_requests','agent service requests exists');
+select has_table('public','ai_credit_ledger','AI credit ledger exists');
+select is((select relrowsecurity from pg_class where oid='public.agent_service_requests'::regclass),true,'agent service requests RLS');
+select is((select relrowsecurity from pg_class where oid='public.ai_credit_ledger'::regclass),true,'AI credit ledger RLS');
+select is((select has_function_privilege('anon','public.get_ai_credit_balance()','execute')),false,'anon cannot execute credit balance');
+select is((select has_function_privilege('anon','public.list_public_agent_services(text,integer)','execute')),false,'anon cannot discover Agent services');
+select is((select has_function_privilege('anon','public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb)','execute')),false,'anon cannot reserve credits');
+select is((select has_function_privilege('anon','public.complete_agent_service_request(uuid,uuid,uuid,jsonb)','execute')),false,'anon cannot settle Agent service');
+select is((select has_function_privilege('anon','public.release_agent_service_request(uuid,text)','execute')),false,'anon cannot release Agent service');
+select is((select has_function_privilege('anon','public.append_agent_service_message(uuid,uuid,text,jsonb)','execute')),false,'anon cannot author Agent service messages');
+select is((select count(*) from public.agent_service_requests),0::bigint,'no Agent service seed data');
+select is((select count(*) from public.ai_credit_ledger),0::bigint,'no AI credit seed data');
 select * from finish();
 rollback;
