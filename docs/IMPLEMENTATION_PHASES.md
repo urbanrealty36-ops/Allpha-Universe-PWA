@@ -310,37 +310,34 @@ Live invariant:
 - Invalid Character profile objects: 0
 
 Phase 11A remains NOT GREEN until a real authenticated user creates/owns an Agent, real Content exists, AI provider/model is configured, and the complete runtime path is exercised.
-### PHASE 12 — Community Platform — IMPLEMENTED FOUNDATION
+### PHASE 12 — Community Platform — WEB COMPLETED / RUNTIME GATE DEFERRED
 
-The authoritative Community Platform foundation is implemented over Supabase PostgreSQL + FastAPI and does not create a second Content or Social Graph source of truth.
+The authoritative Community Platform is fully activated across DB contract, FastAPI and User PWA without creating a second Content, Social Graph, Feed or World engine.
 
-Implemented foundation:
-- Communities with Human, owned Agent and Organization ownership paths.
+Implemented:
+- Community ownership: Human, owned Agent and authorized Organization.
 - Server-authoritative visibility, join policy and membership roles.
-- Membership lifecycle: join, leave and moderation actions.
-- Community posts reference canonical Phase 10 Content records.
+- Membership lifecycle: join, leave, approval, reject, suspend, ban, restore.
+- Community posts reference canonical Phase 10 Content.
 - Threaded comments.
 - Community-scoped events and authenticated RSVP.
-- Community reporting and moderation-case storage.
-- Community topics / Interest linkage foundation.
+- Reports → moderation cases → server-authoritative moderation decisions.
+- Community Topics with optional Phase 08 Interest Node linkage.
+- Community Topic links.
+- Community ↔ Universe World linkage through the existing World engine.
 - Community activity telemetry/audit records.
-- RLS, security-definer RPC boundaries and anonymous execute hardening.
-- FastAPI `/api/v1/communities` contract and User PWA `/communities` + detail surface.
+- RLS + security-definer RPC boundaries + anonymous execute hardening.
+- FastAPI /api/v1/communities lifecycle and completion endpoints.
+- User PWA /communities + detail interaction surface.
+- Universe Discovery now composes real Communities alongside Content, Worlds and Live.
+- Empty/not-configured states remain authoritative; no demo business data was created.
 
-### PHASE 12.1 — Community Experience Activation — IMPLEMENTED FOUNDATION
+Completion endpoints:
+- topics list/create/link
+- world links list/create
+- moderation cases list/decision
 
-Activated the existing Community backend into a complete first-party User PWA interaction surface:
-- Create/search/open Community.
-- Join/leave Community.
-- Publish existing authoritative Content into a Community.
-- Read and create threaded discussion comments.
-- Create Community events and RSVP.
-- Report Community posts, comments and events.
-- Expose pending membership moderation actions through the existing server-authoritative moderation RPC.
-- Preserve empty/not-configured states when no real Communities, Content or Events exist.
-- No demo Communities, Content, members, posts, comments or Events were created.
-
-Live reconciliation at implementation time:
+Live state remains intentionally empty:
 - Communities: 0
 - Memberships: 0
 - Posts: 0
@@ -350,7 +347,7 @@ Live reconciliation at implementation time:
 - Event attendees: 0
 - Moderation cases: 0
 
-The UI increment is therefore **IMPLEMENTED FOUNDATION / NOT GREEN** until authenticated multi-user runtime E2E, real Agent participation, real Content linkage, moderation/report runtime, telemetry, accessibility/performance and CI/build gates are verified.
+Status: WEB COMPLETED / RUNTIME GATE DEFERRED. Authenticated multi-user E2E, real Human↔Agent participation, real Content linkage, moderation decision runtime, RSVP/capacity runtime, Universe Discovery runtime, accessibility/performance, CI/build, deployment and production Green remain later gates.
 
 ### PHASE 13 — Messaging & Social Communication — IMPLEMENTED FOUNDATION
 
