@@ -436,6 +436,18 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             "p_metadata": {
                 "mode": payload.mode,
                 "agent_runtime_command_id": str(command_id),
+                "generated_content": {
+                    "enabled": payload.mode == "generate_content",
+                    "content_type": "article",
+                    "title": f"AI-generated {payload.skill_name}",
+                    "body": result_text,
+                    "excerpt": result_text[:500],
+                    "visibility": "public",
+                    "metadata": {
+                        "mode": payload.mode,
+                        "source_content_id": str(payload.source_content_id) if payload.source_content_id else None,
+                    },
+                } if payload.mode == "generate_content" else {"enabled": False},
             },
         })
         return {"data": {
