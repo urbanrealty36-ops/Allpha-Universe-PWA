@@ -29,8 +29,8 @@ This audit measures **what a user can actually see/use in the Web PWA**. A migra
 | 08 Personalization | IMPLEMENTED | Personalization Graph surface; Interest/Goal mutation and derived Passion/Habit views |
 | 09 Social Graph | IMPLEMENTED | dedicated `/social` discovery + relationship management over canonical Social Graph API; authenticated multi-user E2E remains deferred |
 | 10 Content | IMPLEMENTED | Content/creation/discovery exists; Storage/moderation lifecycle remains |
-| 11 Feed/Reels/Discovery | IMPLEMENTED | Discovery surface + Feed/Reels/Explore APIs; richer Universe discovery remains |
-| 11A Universe Discovery | PARTIAL | immersive Universe + Ask Content/Gravity foundations; full discovery choreography remains |
+| 11 Feed/Reels/Discovery | IMPLEMENTED | Reconciled authoritative Feed RPCs + telemetry/feedback + Feed/Reels/Explore/Discovery Web surfaces; deployed runtime E2E remains |
+| 11A Universe Discovery | IMPLEMENTED | Universe Navigator/Scroll-oriented portal, Moments, Content Gravity, Ask Content, Agent/Content intelligence composition and progressive 2D→spatial presentation; deployed runtime E2E remains |
 | 12 Community | IMPLEMENTED | Communities PWA is wired |
 | 13 Messaging | IMPLEMENTED | DM/request/preferences/realtime surface |
 | 14 AI Gateway | IMPLEMENTED | Gateway UI + generation + usage/readiness |
