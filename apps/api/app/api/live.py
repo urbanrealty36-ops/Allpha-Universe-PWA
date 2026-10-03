@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from typing import Any, Literal
-import hashlib
 import os
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -873,15 +872,25 @@ class LiveVoiceStateRequest(BaseModel):
     target: Literal["active", "stopped", "failed"]
 
 
-@router.post("/sessions/{session_id}/voice/token")
-async def create_live_voice_token(
+class LiveVoiceSessionRequest(BaseModel):
+    collaboration_id: UUID
+    sdp: str = Field(min_length=1)
+
+
+class LiveVoiceStateRequest(BaseModel):
+    binding_id: UUID
+    target: Literal["active", "stopped", "failed"]
+
+
+@router.post("/sessions/{session_id}/voice/session")
+async def create_live_voice_session(
     session_id: UUID,
-    payload: LiveVoiceTokenRequest,
+    payload: LiveVoiceSessionRequest,
     context: dict = Depends(get_auth_context),
 ):
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
-        raise HTTPException(status_code=503, detail={"code": "OPENAI_REALTIME_NOT_CONFIGURED"})
+        raise HTTPException(status_code=503, detail={"code": "OPENAI_LIVE_NOT_CONFIGURED"})
     try:
         sessions = await select(context["user"], "live_sessions", {
             "select": "id,status,title,host_user_id",
@@ -912,8 +921,8 @@ async def create_live_voice_token(
         binding = await rpc(context["user"], "prepare_live_voice_binding", {
             "p_live_session_id": str(session_id),
             "p_collaboration_id": str(payload.collaboration_id),
-            "p_model": "gpt-realtime-2.1",
-            "p_voice": payload.voice.strip(),
+            "p_model": "gpt-live-1",
+            "p_voice": "marin",
         })
 
         identities = await select(context["user"], "agent_identities", {
@@ -928,52 +937,49 @@ async def create_live_voice_token(
         tone = metadata.get("tone_defaults") or metadata.get("tone") or {}
         interaction = metadata.get("interaction_style") or {}
         instructions = (
-            "You are the AI Agent speaking inside an Allpha Universe Live Experience. "
-            "Respond as the owned Agent represented by this Live collaboration. "
-            "Use realtime speech, concise turn-taking, natural interruption handling, and helpful conversation. "
-            "Never claim authority beyond the existing Agent Passport, Capability, Policy, Consent, Risk and Approval chain. "
-            "Do not execute or promise privileged actions merely because the user is speaking. "
-            f"Agent mode: {collab.get('mode')}. "
-            f"Persona: {persona}. Tone: {tone}. Interaction style: {interaction}. "
-            f"Factory configuration: {factory}."
+            "You are the spoken voice of an owned Allpha AI Agent in a Live Experience. "
+            "Speak naturally, actively listen, allow interruption, and keep turns concise. "
+            "Delegate substantive business questions, memory retrieval, planning, tool use, or governed actions to the Allpha backend. "
+            "Never claim that a privileged action happened until the backend confirms it. "
+            "Respect the existing Agent Passport, Capability, Policy, Consent, Risk and Approval chain. "
+            f"Persona: {persona}. Tone: {tone}. Interaction style: {interaction}. Factory: {factory}."
         )
 
-        session_config = {
-            "session": {
-                "type": "realtime",
-                "model": binding["model"],
-                "audio": {"output": {"voice": binding["voice"]}},
-                "instructions": instructions[:12000],
-            }
+        session = {
+            "model": "gpt-live-1",
+            "instructions": instructions[:12000],
+            "audio": {"output": {"voice": "marin"}},
+            "delegation": {"type": "client"},
         }
-        safety_identifier = hashlib.sha256(str(context["user"].user_id).encode()).hexdigest()
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=25.0) as client:
             response = await client.post(
-                "https://api.openai.com/v1/realtime/client_secrets",
+                "https://api.openai.com/v1/live/sessions",
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
-                    "OpenAI-Safety-Identifier": safety_identifier,
                 },
-                json=session_config,
+                json={
+                    "session": session,
+                    "transport": {"type": "webrtc", "sdp": payload.sdp},
+                },
             )
         if response.status_code >= 400:
-            detail = response.text[:1000]
-            raise HTTPException(status_code=502, detail={"code": "OPENAI_REALTIME_CLIENT_SECRET_FAILED", "message": detail})
-        data = response.json()
+            raise HTTPException(status_code=502, detail={"code": "OPENAI_GPT_LIVE_SESSION_FAILED", "message": response.text[:1000]})
+        result = response.json()
         return {
             "data": {
                 "binding": binding,
-                "client_secret": data.get("value"),
-                "expires_at": data.get("expires_at"),
-                "model": binding["model"],
-                "voice": binding["voice"],
-                "transport": "webrtc",
-                "authority_boundary": "existing_live_collaboration_and_agent_runtime",
+                "session": result.get("session"),
+                "transport": result.get("transport"),
+                "provider": "openai_gpt_live",
+                "model": "gpt-live-1",
+                "voice": "marin",
+                "delegation": "client",
+                "backend_authority": "existing_live_agent_runtime",
             }
         }
     except SupabaseRestError as exc:
-        raise err(exc, "LIVE_VOICE_TOKEN_PREPARE_FAILED") from exc
+        raise err(exc, "LIVE_VOICE_SESSION_FAILED") from exc
 
 
 @router.post("/sessions/{session_id}/voice/state")
