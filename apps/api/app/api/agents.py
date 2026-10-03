@@ -433,3 +433,43 @@ async def command_agent(agent_id: UUID, payload: AgentCommandRequest, user: Auth
         return {"data": {"command": command, "plan": planned, "execution": execution}, "runtime": {"agent_id": str(agent_id), "command_id": str(command_id), "status": execution.get("status") or planned.get("status") or command.get("status"), "ai_gateway": "delegated", "telemetry": "agent_commands + agent_task_steps + ai_gateway_requests/attempts"}}
     except AgentRuntimeError as exc:
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc), "agent_id": str(agent_id)}) from exc
+
+
+
+@router.get("/{agent_id}/authority")
+async def get_authority_snapshot(agent_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    try:
+        return {"data": await rpc(user, "get_agent_authority_snapshot", {"p_agent_id": str(agent_id)})}
+    except SupabaseRestError as exc:
+        raise HTTPException(status_code=502, detail={"code": "AGENT_AUTHORITY_SNAPSHOT_FAILED", "message": exc.message}) from exc
+
+
+@router.patch("/{agent_id}/capabilities/{capability_id}")
+async def set_capability_state(agent_id: UUID, capability_id: UUID, payload: dict[str, Any], context: dict = Depends(get_auth_context)) -> Any:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    enabled = payload.get("enabled")
+    if not isinstance(enabled, bool):
+        raise HTTPException(status_code=422, detail={"code": "CAPABILITY_STATE_INVALID", "message": "enabled must be boolean."})
+    try:
+        return await rpc(user, "set_agent_capability_state", {
+            "p_capability_id": str(capability_id),
+            "p_enabled": enabled,
+            "p_constraints": payload.get("constraints"),
+        })
+    except SupabaseRestError as exc:
+        raise HTTPException(status_code=exc.status_code if 400 <= exc.status_code < 500 else 502, detail={"code": "CAPABILITY_STATE_UPDATE_FAILED", "message": exc.message}) from exc
+
+
+@router.delete("/{agent_id}/permissions/{permission_id}")
+async def revoke_permission(agent_id: UUID, permission_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user: AuthenticatedUser = context["user"]
+    await _owned_agent(user, agent_id)
+    rows = await select(user, "agent_permissions", {"select": "id", "id": f"eq.{permission_id}", "agent_id": f"eq.{agent_id}", "limit": "1"})
+    if not rows:
+        raise HTTPException(status_code=404, detail={"code": "PERMISSION_NOT_FOUND", "message": "Permission was not found."})
+    await rpc(user, "refresh_agent_passport", {"p_agent_id": str(agent_id)})
+    deleted = await update(user, "agent_permissions", {"id": f"eq.{permission_id}"}, {"valid_until": "now()"})
+    return {"data": deleted[0] if deleted else {"id": str(permission_id), "revoked": True}}
