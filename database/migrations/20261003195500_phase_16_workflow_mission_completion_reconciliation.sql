@@ -17,14 +17,9 @@ using (
   )
 );
 
-create or replace function public.trigger_workflow(
-  p_workflow_id uuid,
-  p_trigger_type text,
-  p_input jsonb default '{}'::jsonb,
-  p_idempotency_key text default null
-)
-returns public.workflow_runs
-language plpgsql security definer set search_path to ''
+drop function if exists public.trigger_workflow(uuid,text,uuid,jsonb,text);
+create function public.trigger_workflow(p_workflow_id uuid,p_trigger_type text,p_agent_id uuid,p_input jsonb default '{}'::jsonb,p_idempotency_key text default null)
+returns public.workflow_runs language plpgsql security definer set search_path to ''
 as $function$
 declare w public.workflows; v public.workflow_versions; a public.agents; r public.workflow_runs;
 begin
@@ -32,39 +27,33 @@ begin
   select * into w from public.workflows where id=p_workflow_id and status='active';
   if not found then raise exception 'WORKFLOW_NOT_ACTIVE'; end if;
   if not private.workflow_subject_owned(w.owner_type,w.owner_id) then raise exception 'WORKFLOW_TRIGGER_DENIED'; end if;
-  if w.trigger_type <> p_trigger_type then raise exception 'WORKFLOW_TRIGGER_TYPE_MISMATCH'; end if;
+  if w.trigger_type<>p_trigger_type then raise exception 'WORKFLOW_TRIGGER_TYPE_MISMATCH'; end if;
   select * into v from public.workflow_versions where workflow_id=w.id and status='published' order by version_no desc limit 1;
   if not found then raise exception 'WORKFLOW_VERSION_NOT_PUBLISHED'; end if;
-  select * into a from public.agents where owner_user_id=auth.uid() and status not in ('archived','deleted') order by created_at asc limit 1;
+  select * into a from public.agents where id=p_agent_id and owner_user_id=auth.uid() and status not in ('archived','deleted');
   if not found then raise exception 'AGENT_OWNERSHIP_DENIED'; end if;
   if p_idempotency_key is not null and exists (
-    select 1 from public.workflow_runs
-    where initiated_by_user_id=auth.uid() and workflow_id=w.id
-      and input->>'_idempotency_key'=p_idempotency_key
-      and created_at > timezone('utc',now()) - interval '24 hours'
+    select 1 from public.workflow_runs where initiated_by_user_id=auth.uid() and workflow_id=w.id and agent_id=a.id
+      and input->>'_idempotency_key'=p_idempotency_key and created_at>timezone('utc',now())-interval '24 hours'
   ) then
-    select * into r from public.workflow_runs
-    where initiated_by_user_id=auth.uid() and workflow_id=w.id
-      and input->>'_idempotency_key'=p_idempotency_key
-    order by created_at desc limit 1;
+    select * into r from public.workflow_runs where initiated_by_user_id=auth.uid() and workflow_id=w.id and agent_id=a.id
+      and input->>'_idempotency_key'=p_idempotency_key order by created_at desc limit 1;
     return r;
   end if;
   insert into public.workflow_runs(workflow_id,workflow_version_id,initiated_by_user_id,agent_id,status,input)
-  values(w.id,v.id,auth.uid(),a.id,'created',coalesce(p_input,'{}'::jsonb) ||
-    case when p_idempotency_key is null then '{}'::jsonb else jsonb_build_object('_idempotency_key',p_idempotency_key) end)
+  values(w.id,v.id,auth.uid(),a.id,'created',coalesce(p_input,'{}'::jsonb)||case when p_idempotency_key is null then '{}'::jsonb else jsonb_build_object('_idempotency_key',p_idempotency_key) end)
   returning * into r;
   insert into public.workflow_run_steps(workflow_run_id,workflow_step_id,status)
-  select r.id,s.id,'pending' from public.workflow_steps s
-  where s.workflow_version_id=v.id and s.enabled=true order by s.sequence_no;
+  select r.id,s.id,'pending' from public.workflow_steps s where s.workflow_version_id=v.id and s.enabled=true order by s.sequence_no;
   insert into public.workflow_events(workflow_run_id,event_type,to_status,metadata)
-  values(r.id,'workflow_triggered','created',jsonb_build_object('trigger_type',p_trigger_type,'workflow_id',w.id,'workflow_version_id',v.id));
+  values(r.id,'workflow_triggered','created',jsonb_build_object('trigger_type',p_trigger_type,'workflow_id',w.id,'workflow_version_id',v.id,'agent_id',a.id));
   return r;
 end;
 $function$;
 
-revoke execute on function public.trigger_workflow(uuid,text,jsonb,text) from public;
-revoke execute on function public.trigger_workflow(uuid,text,jsonb,text) from anon;
-grant execute on function public.trigger_workflow(uuid,text,jsonb,text) to authenticated;
+revoke execute on function public.trigger_workflow(uuid,text,uuid,jsonb,text) from public;
+revoke execute on function public.trigger_workflow(uuid,text,uuid,jsonb,text) from anon;
+grant execute on function public.trigger_workflow(uuid,text,uuid,jsonb,text) to authenticated;
 
 create or replace function public.prepare_workflow_run(p_workflow_run_id uuid)
 returns jsonb language plpgsql security definer set search_path to ''
