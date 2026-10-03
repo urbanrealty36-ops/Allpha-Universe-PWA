@@ -9,7 +9,5 @@
     "build:web": "pnpm --filter @allpha/web build",
     "build:admin": "pnpm --filter @allpha/admin build"
   },
-  "devDependencies": {
-    "@playwright/test": "1.63.0"
-  }
+  "devDependencies": {}
 }
