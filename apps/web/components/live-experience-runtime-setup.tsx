@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
-import LiveRealtimeVoice from "./live-realtime-voice";
+import LiveGptLiveVoice from "./live-gpt-live-voice";
 import { normalizeWorldScene } from "../lib/world-engine/scene-schema";
 import type { WorldScene } from "../lib/world-engine/scene-schema";
 
@@ -515,7 +515,7 @@ export default function LiveExperienceRuntimeSetup() {
             <button className="mt-2 w-full rounded-[var(--allpha-radius-md)] bg-[var(--allpha-cyan)] px-3 py-2 text-sm font-semibold text-black disabled={!stage?.active || !camera || !presence || presence.verification_status !== "verified" || !collaborationId || busy} onClick={activate}>Activate Live Experience</button>
             {collaborationId && (
               <div className="mt-3">
-                <LiveRealtimeVoice sessionId={sessionId} collaborationId={collaborationId} onPerformance={setVoicePerformance} />
+                <LiveGptLiveVoice sessionId={sessionId} collaborationId={collaborationId} onPerformance={setVoicePerformance} />
                 <div className="mt-2 text-[10px] text-white/35">Character performance signal · voice level {voicePerformance.level.toFixed(2)} · {voicePerformance.speaking ? "Agent speaking" : voicePerformance.userSpeaking ? "Human speaking" : "idle"}</div>
               </div>
             )}
