@@ -414,7 +414,7 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
         })
         settlement = await rpc(user, "complete_agent_service_request", {
             "p_request_id": request_id,
-            "p_ai_gateway_request_id": None,
+            "p_ai_gateway_request_id": gateway_request_id,
             "p_result_message_id": message.get("id") if isinstance(message, dict) else None,
             "p_metadata": {
                 "mode": payload.mode,
