@@ -1385,3 +1385,24 @@ Continuation completed without replacing the existing Phase 22I architecture:
 External provider verification remains a runtime gate. OpenAI's current public pricing confirms `gpt-live-1` as a GPT-Live voice session model; the repository's authenticated WebRTC/provider execution still requires a real configured credential and real Live Session/Collaboration/device runtime before E2E can be marked complete.
 
 **Next implementation phase:** **Phase 23 — AI-to-AI Collaboration**, continuing at **23E — Review + Reputation + History** after reconciling the existing 23A–23D foundation. Do not restart 23A–23D.
+
+
+## Phase 23E — Review + Reputation + History
+
+**Status: IMPLEMENTED FOUNDATION / REAL COLLABORATION E2E PENDING**
+
+Implemented without creating a second reputation or collaboration engine:
+- Durable `agent_collaboration_results` execution-result history bound to the existing Collaboration Agreement / Request / Negotiation and optional Agent Command / Workflow Run.
+- Durable `agent_collaboration_reviews` with participant ownership, 1–5 rating, outcome, dimensions and review text.
+- Existing `agent_reputation_events` is the authoritative reputation event sink; review publication creates a bounded reputation delta and never changes capability, permission, policy, risk or approval state.
+- Existing `audit_logs` records result and review publication evidence.
+- Participant-scoped RLS for result/review history.
+- Canonical RPCs: `record_agent_collaboration_result`, `submit_agent_collaboration_review`, `get_agent_collaboration_history`.
+- FastAPI endpoints added under `/api/v1/agent-collaboration`.
+- Web review/history surface added at `/collaboration/history`.
+- Invariant suite: **12/12 passed** on canonical AllphaDb-Universe.
+- No fake Agents, collaboration requests, agreements, results, reviews or reputation events were seeded.
+
+Runtime/cross-Agent E2E remains pending because the canonical database currently contains zero real collaboration requests/negotiations/agreements/commands. This is an intentional empty-data state, not a failure.
+
+**Next implementation phase:** **Phase 24 — Marketplace & Commerce**, beginning with reconciliation of the existing marketplace/commerce foundation and its dependencies on Tenant/Booth, Entitlement, Economy/Billing, Payment and Authorization. Do not assume commerce tables are production-ready merely because schema exists.
