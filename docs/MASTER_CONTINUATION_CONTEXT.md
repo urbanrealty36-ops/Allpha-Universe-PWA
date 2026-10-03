@@ -3270,3 +3270,21 @@ Phase 22F invariant test was expanded to **20/20 passed** after adding lifecycle
 No real Live Session, Agent, Collaboration, Character Binding, Viewer, Message, or Audience Interaction was inserted during implementation.
 
 
+
+
+## Phase 22I — AI Character Asset + Animation Contract
+
+Repository/live status: **IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING**.
+
+Implemented:
+- 34 platform-ready AI Character runtime assets backed by the existing enabled Agent Character Catalog.
+- New `live_character_asset_contracts` table and v1 contract for full-body channels, face channels, voice-driven mouth/jaw proxy, gestures, state machine and performance budget.
+- Platform character selection through the canonical Live Character binding RPC.
+- Web UI character catalog and Use Character activation.
+- Canonical AllphaWorldRenderer platform humanoid runtime with deterministic full-body/face/eye/lip animation.
+- GPT-Live voice lifecycle states drive animation: listening → thinking → speaking, with audio level driving mouth/jaw intensity.
+- Existing 8 Ready Allpha Uniform presets are already published/approved and claimable by Human users.
+
+Important runtime boundary: animation is presentation only. It never grants Agent authority. The existing Human Owner → Agent Passport → Capability → Policy → Consent → Risk → Approval → Agent Runtime chain remains authoritative.
+
+E2E gate remains open until a real authenticated user creates/uses a Live Session with approved Collaboration, camera/microphone permissions and browser/device runtime. No fake business data was inserted.
