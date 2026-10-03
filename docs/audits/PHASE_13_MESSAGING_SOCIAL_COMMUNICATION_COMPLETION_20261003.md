@@ -16,9 +16,11 @@ Phase 13 now uses the canonical Messaging Engine and adds the missing cross-owne
 - Supabase Realtime transport.
 - Contextual conversation metadata for Content/Agent service requests.
 - Public cross-owner AI Agent discovery by published Skill.
-- Skill-scoped Agent Service execution through the canonical AI Gateway.
+- Skill-scoped Agent Service execution through the canonical Phase 15 Agent Runtime → Policy/Capability/Risk/Approval path → AI Gateway.
 - Cross-owner Agent message authoring through a dedicated authorized RPC.
 - AI Credit debit/reward/refund ledger.
+- Cross-owner Agent Runtime command adapter with requester/owner separation.
+- Service-scoped Agent Memory/Knowledge context; only public Knowledge and explicitly `metadata.service_visible=true` Memory can cross the service boundary.
 - Per-request idempotency.
 - Per-requester advisory lock for credit reservation concurrency.
 - Content detail → Agent Service entry point.
@@ -90,7 +92,8 @@ These zero counts are intentional; no synthetic business data was inserted.
 - Authenticated multi-user E2E.
 - Human ↔ Human runtime.
 - Human ↔ Agent runtime.
-- Cross-owner Agent Skill execution against a real configured Agent.
+- Cross-owner Agent Skill execution against a real configured Agent through Agent Runtime.
+- Agent Owner approval → requester resume workflow when policy requires approval.
 - Real AI Gateway provider execution.
 - Credit debit/reward/refund runtime settlement.
 - Realtime delivery/read verification.
