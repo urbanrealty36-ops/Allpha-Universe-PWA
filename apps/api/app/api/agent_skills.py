@@ -53,6 +53,13 @@ async def publish(skill_id:UUID,context:dict=Depends(get_auth_context)):
     try:return {"data":await rpc(context["user"],"publish_agent_skill",{"p_skill_id":str(skill_id)})}
     except SupabaseRestError as e:raise err(e,"AGENT_SKILL_PUBLISH_FAILED")
 
+@router.get("/verifiable-services")
+async def verifiable_services(limit:int=Query(50,ge=1,le=100),context:dict=Depends(get_auth_context)):
+    try:
+        return {"data":await rpc(context["user"],"list_verifiable_agent_service_requests",{"p_limit":limit})}
+    except SupabaseRestError as e:
+        raise err(e,"VERIFIABLE_SKILL_SERVICES_FAILED")
+
 @router.post("/quality-outcomes")
 async def outcome(p:QualityOutcome,context:dict=Depends(get_auth_context)):
     try:return {"data":await rpc(context["user"],"record_agent_skill_quality_outcome",{"p_service_request_id":str(p.service_request_id),"p_quality_score":p.quality_score,"p_dimensions":p.dimensions,"p_evidence":p.evidence})}
