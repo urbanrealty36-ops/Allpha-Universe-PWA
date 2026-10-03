@@ -32,7 +32,7 @@ This audit measures **what a user can actually see/use in the Web PWA**. A migra
 | 11 Feed/Reels/Discovery | IMPLEMENTED | Reconciled authoritative Feed RPCs + telemetry/feedback + Feed/Reels/Explore/Discovery Web surfaces; deployed runtime E2E remains |
 | 11A Universe Discovery | IMPLEMENTED | Universe Navigator/Scroll-oriented portal, Moments, Content Gravity, Ask Content, Agent/Content intelligence composition and progressive 2D→spatial presentation; deployed runtime E2E remains |
 | 12 Community | IMPLEMENTED | Communities PWA is wired |
-| 13 Messaging | IMPLEMENTED | DM/request/preferences/realtime surface |
+| 13 Messaging | IMPLEMENTED | DM/request/preferences/realtime + cross-owner Agent Skill services + AI Credit attribution; deployment/E2E remains |
 | 14 AI Gateway | IMPLEMENTED | Gateway UI + generation + usage/readiness |
 | 15 Agent Runtime | IMPLEMENTED | command/plan/execute UI; runtime E2E later |
 | 16 Workflow/Mission | FOUNDATION | orchestration engine exists; complete user mission experience remains |
