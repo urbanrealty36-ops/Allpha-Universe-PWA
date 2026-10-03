@@ -1,5 +1,5 @@
 begin;
-select plan(16);
+select plan(17);
 select ok(to_regclass('public.agent_service_requests') is not null,'service requests exists');
 select ok(exists(select 1 from information_schema.columns where table_schema='public' and table_name='agent_service_requests' and column_name='skill_id'),'service request skill snapshot column exists');
 select ok(to_regprocedure('public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb)') is not null,'canonical reservation RPC exists');
@@ -11,7 +11,7 @@ select ok(not has_function_privilege('anon','public.record_agent_skill_quality_o
 select ok(has_function_privilege('authenticated','public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)','execute'),'quality outcome granted to authenticated');
 select ok((select prokind='f' and prosecdef from pg_proc where oid='public.list_verifiable_agent_service_requests(integer)'::regprocedure),'verifiable listing security definer');
 select ok((select prosecdef from pg_proc where oid='public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure),'quality outcome security definer');
-select ok((select proconfig @> array['search_path='] from pg_proc where oid='public.list_verifiable_agent_service_requests(integer)'::regprocedure),'verifiable listing empty search_path');
+select ok((select proconfig @> array['search_path=""'] from pg_proc where oid='public.list_verifiable_agent_service_requests(integer)'::regprocedure),'verifiable listing empty search_path');
 select ok((select proconfig @> array['search_path='] from pg_proc where oid='public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure),'quality outcome empty search_path');
 select ok(pg_get_functiondef('public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure) like '%SKILL_REWARD_SELF_USAGE_FORBIDDEN%','self reward guard');
 select ok(pg_get_functiondef('public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure) like '%SKILL_REWARD_REQUESTER_ONLY%','requester-only guard');
