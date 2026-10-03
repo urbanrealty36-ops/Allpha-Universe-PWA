@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
 
+type VoicePerformance = { state: "idle" | "listening" | "thinking" | "speaking"; speaking: boolean; level: number; userSpeaking: boolean };
+
 type Props = {
   sessionId: string;
   collaborationId: string;
-  onPerformance?: (signal: { speaking: boolean; level: number; userSpeaking: boolean }) => void;
+  onPerformance?: (signal: VoicePerformance) => void;
 };
 
 type LiveSessionResult = {
@@ -64,7 +66,8 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
           sum += normalized * normalized;
         }
         const level = Math.min(1, Math.sqrt(sum / data.length) * 5);
-        onPerformance?.({ speaking: level > 0.035, level, userSpeaking: false });
+        const speaking = level > 0.035;
+        onPerformance?.({ state: speaking ? "speaking" : "idle", speaking, level, userSpeaking: false });
         rafRef.current = requestAnimationFrame(tick);
       };
       rafRef.current = requestAnimationFrame(tick);
@@ -133,6 +136,7 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
           const type = String(message?.type ?? "");
           if (type === "session.started") {
             setStatus("connected");
+            onPerformance?.({ state: "idle", speaking: false, level: 0, userSpeaking: false });
             liveSessionIdRef.current = message?.session?.id ?? null;
             void apiFetch("/api/v1/live/sessions/" + sessionId + "/voice/state", {
               method: "POST",
@@ -144,10 +148,10 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
             void delegateToAllpha(String(message.delegation.id));
           }
           if (type === "input_audio_buffer.speech_started" || type === "session.input_audio.speech_started") {
-            onPerformance?.({ speaking: false, level: 0, userSpeaking: true });
+            onPerformance?.({ state: "listening", speaking: false, level: 0, userSpeaking: true });
           }
           if (type === "input_audio_buffer.speech_stopped" || type === "session.input_audio.speech_stopped") {
-            onPerformance?.({ speaking: false, level: 0, userSpeaking: false });
+            onPerformance?.({ state: "thinking", speaking: false, level: 0, userSpeaking: false });
           }
           if (type === "session.closed") {
             void stop();
@@ -206,7 +210,7 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
     remoteAudioRef.current = null;
     liveSessionIdRef.current = null;
     transcriptRef.current = "";
-    onPerformance?.({ speaking: false, level: 0, userSpeaking: false });
+    onPerformance?.({ state: "idle", speaking: false, level: 0, userSpeaking: false });
     setStatus("idle");
   }
 
