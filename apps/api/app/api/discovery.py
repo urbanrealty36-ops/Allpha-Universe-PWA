@@ -47,6 +47,7 @@ async def discovery_home(
         "worlds": [],
         "communities": [],
         "live": [],
+        "agents": [],
         "navigation": {
             "feed": "/feed",
             "reels": "/reels",
