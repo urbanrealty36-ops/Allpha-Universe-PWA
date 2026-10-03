@@ -38,6 +38,7 @@ type Props = {
   portals?: SpatialPortal[];
   content?: SpatialContent[];
   selectedBoothId?: string;
+  themePackUrl?: string | null;
   selectedDistrictId?: string;
 };
 
@@ -62,6 +63,27 @@ function Structure({
   return <group position={position} scale={scale}><mesh position={[0, 1.4, 0]} castShadow><cylinderGeometry args={[.65, .9, 2.8, 8]} /><meshStandardMaterial color={color} /></mesh><mesh position={[0, 3.1, 0]}><sphereGeometry args={[.42, 12, 12]} /><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.6} /></mesh></group>;
 }
 
+function ThemePackEnvironment({ url }: { url: string }) {
+  const gltf = useGLTF(url);
+  const scene = useMemo(() => {
+    const clone = gltf.scene.clone(true);
+    clone.traverse((object: any) => {
+      const name = String(object.name || "");
+      if (
+        name === "BoothTemplate" ||
+        name === "AgentCharacterTemplate" ||
+        name === "ContentAICapsule" ||
+        name === "PortalGateway" ||
+        name === "LiveExperienceStage"
+      ) {
+        object.visible = false;
+      }
+    });
+    return clone;
+  }, [gltf.scene, url]);
+  return <primitive object={scene} />;
+}
+
 function Booth3DAsset({ url, position, scale = 1, onClick }: { url: string; position: [number, number, number]; scale?: number; onClick?: () => void }) {
   const gltf = useGLTF(url);
   return <primitive object={gltf.scene.clone(true)} position={position} scale={scale} onClick={onClick} />;
@@ -77,6 +99,7 @@ function WorldObjects({
   portals,
   content,
   selectedBoothId,
+  themePackUrl,
 }: {
   scene: WorldScene;
   tokens?: Record<string, unknown>;
@@ -95,12 +118,16 @@ function WorldObjects({
   const color = primary.startsWith("#") ? primary : style.accent;
   const zones = scene.zones;
   const density = lowPower ? Math.min(4, style.density) : style.density;
+  const hasThemePack = Boolean(themePackUrl);
 
   return <>
-    <mesh position={[0, -.3, 0]} receiveShadow><boxGeometry args={[28, .5, 28]} /><meshStandardMaterial color={style.ground} roughness={.9} /></mesh>
-    <mesh position={[0, -.02, 0]}><boxGeometry args={[22, .06, 22]} /><meshStandardMaterial color={secondary} /></mesh>
-    {style.water && !lowPower && <mesh position={[0, .02, -5]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[4, 32]} /><meshStandardMaterial color={accent} transparent opacity={.28} metalness={.2} /></mesh>}
-    {style.ring && !lowPower && <mesh position={[0, 2.8, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[4.8, .08, 8, 64]} /><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.5} /></mesh>}
+    {themePackUrl ? <ThemePackEnvironment url={themePackUrl} /> : null}
+    {!hasThemePack && <>
+      <mesh position={[0, -.3, 0]} receiveShadow><boxGeometry args={[28, .5, 28]} /><meshStandardMaterial color={style.ground} roughness={.9} /></mesh>
+      <mesh position={[0, -.02, 0]}><boxGeometry args={[22, .06, 22]} /><meshStandardMaterial color={secondary} /></mesh>
+    </>}
+    {!hasThemePack && style.water && !lowPower && <mesh position={[0, .02, -5]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[4, 32]} /><meshStandardMaterial color={accent} transparent opacity={.28} metalness={.2} /></mesh>}
+    {!hasThemePack && style.ring && !lowPower && <mesh position={[0, 2.8, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[4.8, .08, 8, 64]} /><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.5} /></mesh>}
 
     {zones.map((zone, i) => {
       const angle = (i / Math.max(1, zones.length)) * Math.PI * 2;
@@ -108,11 +135,11 @@ function WorldObjects({
       const z = Math.sin(angle) * 6;
       return <group key={zone.id} position={[x, 0, z]}>
         <mesh onClick={() => onHotspot?.({ id: zone.id, kind: "zone", metadata: { type: zone.type } })}><boxGeometry args={[3.4, .45, 3.4]} /><meshStandardMaterial color={i === 0 ? color : style.secondary} /></mesh>
-        <Structure kind={style.structure} color={style.secondary} accent={accent} position={[0, 0, 0]} scale={.75 + (i % 3) * .1} />
+        {!hasThemePack && <Structure kind={style.structure} color={style.secondary} accent={accent} position={[0, 0, 0]} scale={.75 + (i % 3) * .1} />}
       </group>;
     })}
 
-    {Array.from({ length: density }).map((_, i) => {
+    {!hasThemePack && Array.from({ length: density }).map((_, i) => {
       const a = i / density * Math.PI * 2;
       const r = 8 + (i % 3) * 1.1;
       return <Structure key={"decor-" + i} kind={style.structure} color={style.secondary} accent={accent} position={[Math.cos(a) * r, .05, Math.sin(a) * r]} scale={.45 + (i % 2) * .12} />;
@@ -175,6 +202,7 @@ export default function AllphaWorldRenderer({
   portals = [],
   content = [],
   selectedBoothId,
+  themePackUrl = null,
 }: Props) {
   if (!scene) {
     return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
@@ -190,7 +218,7 @@ export default function AllphaWorldRenderer({
       <PerspectiveCamera makeDefault position={[14, 11, 14]} fov={58} />
       <ambientLight intensity={.8} />
       <directionalLight position={[8, 14, 6]} intensity={2} castShadow={shadows} />
-      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} selectedBoothId={selectedBoothId} />
+      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} selectedBoothId={selectedBoothId} themePackUrl={themePackUrl} />
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI * .48} enableDamping dampingFactor={.08} />
     </Canvas>
   </div>;
