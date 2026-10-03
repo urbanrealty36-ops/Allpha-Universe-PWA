@@ -481,7 +481,7 @@ export default function LiveExperienceRuntimeSetup() {
                 {ownedOptions.map((x) => <option key={"o"+x.id} value={"uniform:"+x.id}>Ready/Owned · {x.name}</option>)}
                 {customOptions.map((x) => <option key={"c"+x.id} value={"custom:"+x.id}>Custom GLB · {x.name}</option>)}
               </select>
-              <label className={button + " cursor-pointer whitespace-nowrap">
+              <label className={button + " cursor-pointer whitespace-nowrap"}>
                 Upload Custom
                 <input type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" className="hidden" onChange={(e) => e.target.files?.[0] && void createCustomCostume(e.target.files[0])} />
               </label>
