@@ -658,6 +658,45 @@ Not GREEN:
 
 Next dependency: Phase 22 — Events & Experiences / Live Stories & Streaming.
 
+### PHASE 21.5 — ALLPHA 25 THEME 3D ASSET PACK — IMPLEMENTED FOUNDATION / STORAGE ACTIVATION PENDING
+
+Implemented on `main` and applied to AllphaDb-Universe.
+
+Scope:
+- Treats the existing 25 platform Themes + 25 published Theme Versions as the canonical 3D template catalog; no duplicate Theme records are created.
+- Adds verified binary 3D asset lifecycle fields to `theme_assets`: private Storage bucket, byte size, SHA-256, upload timestamp and immutable activation metadata.
+- Adds platform-admin-only prepare/finalize/archive RPCs for the `allpha-world-assets` bucket.
+- Adds FastAPI signed-upload lifecycle endpoints for platform Theme 3D assets.
+- World Runtime asset manifest now returns only verified active/approved/safe/performance-passed binary assets with server-generated signed URLs.
+- PWA Universe shell consumes the manifest and mounts a verified Theme GLB into the existing Allpha World Renderer without creating a second renderer.
+- Renderer hides static template-only Booth/Agent/Portal/Content/Live nodes from the Theme pack so real server-authoritative runtime objects remain the active interactive layer.
+- 25 low-poly Theme GLB packs were generated and independently loaded/validated in the implementation workspace. The distributable pack is provided as an implementation artifact; it is not treated as Supabase Storage state until an authenticated platform-admin upload/finalization flow completes.
+
+Canonical component contract per pack:
+Galaxy/World environment → District templates → Booth template → Agent/Character presentation → Portal template → Content/AI Capsule object → Live Experience stage.
+
+Database:
+- Migration: `20261003190000_phase_21_5_allpha_25_theme_3d_asset_pack.sql`
+- Invariant test: `database/tests/phase_21_5_allpha_25_theme_3d_asset_pack_invariants.sql`
+- Live platform Themes: 25
+- Live published Theme Versions: 25
+- Live Theme binary assets: 0
+- Live Storage objects in `allpha-world-assets`: 0
+
+Security:
+- Platform 3D mutation RPCs require `admin.manage`.
+- Anonymous EXECUTE is revoked.
+- Storage bucket remains private.
+- Browser receives only time-limited signed URLs for verified active assets.
+- Theme assets remain presentation-only; they cannot modify ownership, Agent authority, permissions, billing, risk, approvals or governance.
+
+Not GREEN:
+- 25 GLB packs are generated and validated locally, but are not yet uploaded/finalized in Supabase Storage.
+- Authenticated Super Admin upload E2E and finalization have not been exercised.
+- Browser/device 3D performance/accessibility validation is pending.
+- API/PWA/Admin build and CI status is not verified.
+- Production runtime remains pending.
+
 ### PHASE 22 — Events & Experiences / Live Stories & Streaming
 
 Phase 22 is implemented incrementally. Phase 22A establishes the Live Session Core; 22B and later sub-stages extend Human Owner → Owned AI Agent collaboration, capability/policy/consent/risk, character/voice, realtime media and audience interaction.
