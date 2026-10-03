@@ -10,7 +10,7 @@ const states=["idle","moving","exploring","interacting","collaborating","shoppin
 
 export default function AgentSimulationSurface(){
  const[worldId,setWorldId]=useState(""),[agentId,setAgentId]=useState(""),[statesData,setStatesData]=useState<State[]>([]),[sessions,setSessions]=useState<Session[]>([]);
- const[session,setSession]=useState<Session|null>(null),[movement,setMovement]=useState("idle"),[zone,setZone]=useState(""),[x,setX]=useState("0"),[y,setY]=useState("0"),[z,setZ]=useState("0"),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState<string|null>(null);
+ const[session,setSession]=useState<Session|null>(null),[realtimeStatus,setRealtimeStatus]=useState("disconnected"),[movement,setMovement]=useState("idle"),[zone,setZone]=useState(""),[x,setX]=useState("0"),[y,setY]=useState("0"),[z,setZ]=useState("0"),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState<string|null>(null);
 
  const load=useCallback(async()=>{
   if(!worldId)return;
