@@ -153,3 +153,17 @@ create policy agent_spend_events_owner_read on public.agent_spend_events for sel
 
 revoke all on function public.create_agent_service_command(uuid,text,text[],text) from public,anon;
 grant execute on function public.create_agent_service_command(uuid,text,text[],text) to authenticated;
+
+create or replace function public.get_agent_service_context(p_service_request_id uuid,p_limit integer default 8)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare r public.agent_service_requests%rowtype; lim integer:=greatest(1,least(coalesce(p_limit,8),20)); skills jsonb; knowledge jsonb; memory jsonb;
+begin
+select * into r from public.agent_service_requests where id=p_service_request_id and requester_user_id=auth.uid();
+if r.id is null then raise exception 'SERVICE_REQUEST_NOT_FOUND'; end if;
+select coalesce(jsonb_agg(to_jsonb(s) order by s.name),'[]'::jsonb) into skills from (select id,name,description,version,configuration from public.agent_skills where agent_id=r.agent_id and enabled=true and lower(name)=lower(r.skill_name)) s;
+select coalesce(jsonb_agg(to_jsonb(k) order by k.updated_at desc),'[]'::jsonb) into knowledge from (select id,title,content,source_uri,provenance,updated_at from public.knowledge_items where agent_id=r.agent_id and status='active' and deleted_at is null and lower(coalesce(visibility::text,''))='public' order by updated_at desc limit lim) k;
+select coalesce(jsonb_agg(to_jsonb(m) order by m.updated_at desc),'[]'::jsonb) into memory from (select id,memory_type,content,metadata,updated_at from public.agent_memory where agent_id=r.agent_id and status='active' and deleted_at is null and coalesce(metadata->>'service_visible','false')='true' order by updated_at desc limit lim) m;
+return jsonb_build_object('skills',skills,'public_knowledge',knowledge,'service_visible_memory',memory,'privacy',jsonb_build_object('private_memory_excluded',true,'memory_requires_explicit_service_visible',true));
+end $$;
+revoke all on function public.get_agent_service_context(uuid,integer) from public,anon;
+grant execute on function public.get_agent_service_context(uuid,integer) to authenticated;
