@@ -74,9 +74,41 @@ def verify_access_token(token: str) -> AuthenticatedUser:
         raise _unauthorized("AUTH_INVALID_TOKEN", "The Supabase access token could not be verified.") from exc
 
 
+async def _assert_session_not_revoked(user: AuthenticatedUser) -> None:
+    if user.session_id is None:
+        return
+
+    from app.core.supabase_rest import SupabaseRestError, select
+
+    try:
+        rows = await select(
+            user,
+            "security_session_revocations",
+            {
+                "select": "session_id",
+                "session_id": f"eq.{user.session_id}",
+                "user_id": f"eq.{user.user_id}",
+                "limit": "1",
+            },
+        )
+    except SupabaseRestError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "code": "AUTH_SESSION_REVOCATION_UNAVAILABLE",
+                "message": "Session security state is temporarily unavailable.",
+            },
+        ) from exc
+
+    if rows:
+        raise _unauthorized("AUTH_SESSION_REVOKED", "The authenticated session has been revoked.")
+
+
 async def require_auth(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> AuthenticatedUser:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise _unauthorized("AUTH_REQUIRED", "A Supabase access token is required.")
-    return verify_access_token(credentials.credentials)
+    user = verify_access_token(credentials.credentials)
+    await _assert_session_not_revoked(user)
+    return user
