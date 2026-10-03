@@ -423,9 +423,20 @@ async def list_live_character_assets(
         q["asset_type"] = f"eq.{asset_type}"
     try:
         rows = await select(context["user"], "live_character_assets", q)
+        result = []
+        for row in rows:
+            item = dict(row)
+            if row.get("storage_bucket") and row.get("storage_path"):
+                try:
+                    item["signed_url"] = await create_signed_download_url(context["user"], row["storage_bucket"], row["storage_path"], 900)
+                except SupabaseStorageError:
+                    item["signed_url"] = None
+            else:
+                item["signed_url"] = None
+            result.append(item)
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_CHARACTER_ASSET_LIST_FAILED") from exc
-    return {"data": rows}
+    return {"data": result}
 
 
 @router.get("/sessions/{session_id}/characters")
