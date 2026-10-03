@@ -3413,3 +3413,43 @@ Status: **IMPLEMENTED FOUNDATION / REAL COLLABORATION E2E PENDING** because the 
 
 ### Next continuation
 **Phase 24 — Marketplace & Commerce**, starting with repository/live-Supabase reconciliation of the existing marketplace, commerce, Tenant/Booth, Entitlement, Economy/Billing and Payment dependencies. Do not create a second commerce, wallet or entitlement engine.
+
+
+## 2026-10-04 — PHASE 26 SECURITY, GOVERNANCE & TRUST + SELLER PAYOUTS
+
+Implemented foundation on canonical AllphaDb-Universe and repository main.
+
+### Governance reconciliation
+Existing Policy, Permission, Risk, Approval and Audit foundations are reused. No duplicate governance engines were introduced. New payout actions are permission-gated and all money movement is treated as high risk.
+
+### Seller payout
+New persistence:
+- payout_accounts
+- payout_requests
+- payout_events
+
+Canonical seller flow:
+`Captured Marketplace Commerce → Seller Available Balance → Payout Request → Risk Assessment → Approval Request → Super Admin Review → Processing → Paid/Failed`
+
+Seller earnings are derived from real captured Commerce Payments and Marketplace order items. Payout reservations prevent double withdrawal. The seller bank account is owner-scoped by RLS.
+
+### Super Admin
+Permission keys:
+- payout.read
+- payout.review
+- payout.process
+
+Super Admin can review requests, approve/reject, mark processing, and record paid with a disbursement reference. No bank transfer provider is fabricated; actual transfer remains an operational step until a provider is explicitly integrated.
+
+### Verification
+- payout permissions present: PASS
+- RLS on payout accounts/requests/events: PASS
+- anonymous payout decision/process execution: DENIED/PASS
+- payout/accounts/events live seed counts: 0/0/0
+- Security Advisor was rechecked; existing project-wide findings remain and are not newly attributed to payout implementation.
+
+### Status
+**PHASE 26 — IMPLEMENTED FOUNDATION / REAL MONEY-MOVEMENT E2E PENDING**
+
+### Next
+**PHASE 27 — Subscription/Billing & Entitlement hardening / Economy activation continuation.**
