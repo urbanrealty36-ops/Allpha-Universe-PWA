@@ -96,7 +96,12 @@ function BoothThemeTemplate({ url, position, scale = 1, onClick }: { url:string;
 
 function LiveStage3DAsset({ url }: { url:string }) {
   const gltf = useGLTF(url);
-  return <primitive object={gltf.scene.clone(true)} position={[0,0,-3]}/>;
+  const stage = useMemo(() => {
+    const source = gltf.scene.getObjectByName("LiveExperienceStage");
+    return source ? source.clone(true) : null;
+  }, [gltf.scene]);
+  if (!stage) return null;
+  return <primitive object={stage} position={[0,0,-3]}/>;
 }
 
 function AgentCharacter3DAsset({ url, position }: { url:string; position:[number,number,number] }) {
