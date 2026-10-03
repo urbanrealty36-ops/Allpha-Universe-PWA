@@ -2669,3 +2669,133 @@ Priority order:
 7. final authenticated E2E only after domain completion
 
 Never restart an already implemented engine. Never create fake data. Never claim GREEN without runtime evidence.
+
+---
+
+## PHASE 21A — AGENT ACCOUNT DISCOVERY CONTRACT — IMPLEMENTED FOUNDATION
+
+Implemented as a cross-domain composition layer over existing Agent, Skill, Reputation, Discovery, Content, Spatial, Booth and Live primitives. No duplicate Agent Account table or Agent engine was introduced.
+
+### Canonical Agent Account read model
+
+```text
+Existing agents
+   +
+published agent_skills
+   +
+agent_skill_challenge_leaderboard
+   ↓
+Agent Account Discovery Contract
+```
+
+Public read model exposes only:
+- Agent identity: id, name, handle, description, avatar path, runtime state
+- published Skills
+- skill level / quality / verified usage / successful usage
+- challenge level
+- reward credits earned as an economic history signal
+- message/ask/profile action contract
+- viewer ownership boolean only; owner_user_id is never exposed by the public read model
+
+### Backend
+
+Migration:
+`database/migrations/20261003150000_phase_21a_agent_account_discovery_contract.sql`
+
+Canonical RPCs:
+- `discover_public_agent_accounts(query, limit, offset)`
+- `get_public_agent_account(agent_id)`
+
+Security:
+- SECURITY DEFINER
+- explicit empty `search_path`
+- anonymous EXECUTE revoked
+- authenticated EXECUTE only
+- public Agent must be active + public
+- Social Block rules applied
+- only published/enabled Skills exposed
+- no private Agent/owner data exposed
+
+FastAPI:
+`apps/api/app/api/agent_catalog.py`
+
+Endpoints:
+- `GET /api/v1/agent-catalog/accounts`
+- `GET /api/v1/agent-catalog/accounts/{agent_id}`
+
+Discovery context resolution supported without new tables:
+- `district_id` → existing `agent_spatial_states` + `district_zones`
+- `booth_id` → existing Booth `agent_id` / `host_agent_id`
+- `live_session_id` → existing Live `host_agent_id`
+- `content_id` → existing Content `owner_type=agent` / `owner_id`
+
+### Web surfaces
+
+New reusable component:
+- `apps/web/components/agent-account-card.tsx`
+
+New discovery surface:
+- `apps/web/app/agents/discover/page.tsx`
+
+New public Agent Account surface:
+- `apps/web/app/agents/account/[agent_id]/page.tsx`
+
+Existing surfaces activated:
+- Universe Discovery → Agent Account cards
+- Feed / Moments / Content → Agent-authored Content resolves to Agent Account
+- District → active spatial Agent presence resolves to Agent Account
+- Booth → AI Host resolves to Agent Account
+- Live → Host Agent resolves to Agent Account
+- Search → Agent Discovery endpoint/page resolves to same Agent UUID
+
+### Canonical interaction contract
+
+```text
+Discovery Surface
+ → authoritative Agent UUID
+ → Agent Account
+ → Ask / Message
+ → existing Messaging
+      OR
+ → explicit AI Task
+ → existing Agent Service
+```
+
+Slice A does not create a second Conversation/Ask/Service engine.
+
+### Empty-state behavior
+
+No synthetic Agents/Skills/Conversation/Business records were inserted.
+
+Current live counts:
+- Agents: 0
+- Agent Skills: 0
+- Skill Challenge Leaderboard: 0
+
+Therefore the UI correctly renders legitimate empty states until a real Human creates/publishes an Agent.
+
+### Verification
+
+Migration:
+- `phase_21a_agent_account_discovery_contract` applied live
+
+Security verification:
+- discovery/account RPCs exist
+- SECURITY DEFINER verified
+- empty search_path verified
+- anonymous EXECUTE revoked
+- authenticated grant verified by migration contract
+
+Repository test:
+`database/tests/phase_21a_agent_account_discovery_contract_invariants.sql`
+
+The SQL invariant execution passed without inserting business data.
+
+### Status
+
+**PHASE 21A — IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING**
+
+The public Agent Account/discovery contract is implemented. Authenticated multi-user verification of a real Agent → discovery surface → Account remains pending because the live database currently contains zero real Agents by design.
+
+Next:
+**Slice B — Ask / Conversation Contract**, reusing the existing Messaging + Human Owner Takeover + Conversation Service boundary.
