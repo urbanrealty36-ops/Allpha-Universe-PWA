@@ -181,11 +181,12 @@ export default function AllphaWorldRenderer({
   }
 
   const shadows = !lowPower;
+  const style = proceduralThemeStyle(scene);
   const dpr = (lowPower ? [1, 1.25] : [1, 1.75]) as [number, number];
 
   return <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-black">
     <Canvas dpr={dpr} shadows={shadows} performance={{ min: .55 }} gl={{ antialias: !lowPower, powerPreference: lowPower ? "low-power" : "high-performance" }}>
-      <color attach="background" args={["#070b14"]} />
+      <color attach="background" args={[style.sky]} />
       <PerspectiveCamera makeDefault position={[14, 11, 14]} fov={58} />
       <ambientLight intensity={.8} />
       <directionalLight position={[8, 14, 6]} intensity={2} castShadow={shadows} />
