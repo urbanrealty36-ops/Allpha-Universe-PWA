@@ -178,6 +178,37 @@ async def archive(content_id: UUID, context: dict = Depends(get_auth_context)) -
         raise _error(exc) from exc
 
 
+@router.get("/{content_id:uuid}/topics")
+async def list_content_topics(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    rows = await select(context["user"], "content_topic_links", {
+        "select": "id,content_id,topic_id,created_at,content_topics(id,name,slug,parent_id,description,status)",
+        "content_id": f"eq.{content_id}",
+        "order": "created_at.asc",
+    })
+    return {"data": rows}
+
+
+@router.get("/{content_id:uuid}/revisions")
+async def list_revisions(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    rows = await select(context["user"], "content_revisions", {
+        "select": "id,content_id,revision_number,title,body,excerpt,metadata,created_by_user_id,created_at",
+        "content_id": f"eq.{content_id}",
+        "order": "revision_number.desc",
+    })
+    return {"data": rows}
+
+
+@router.get("/{content_id:uuid}/events")
+async def list_events(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    rows = await select(context["user"], "content_events", {
+        "select": "id,content_id,actor_user_id,event_type,metadata,created_at",
+        "content_id": f"eq.{content_id}",
+        "order": "created_at.desc",
+        "limit": "100",
+    })
+    return {"data": rows}
+
+
 @router.get("/{content_id:uuid}/media")
 async def list_media(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     return {"data": await select(context["user"], "content_media", {"select":"id,content_id,media_asset_id,slot_type,position,caption,alt_text,metadata,created_at","content_id":f"eq.{content_id:uuid}","order":"slot_type.asc,position.asc"})}
