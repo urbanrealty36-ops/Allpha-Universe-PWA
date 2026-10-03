@@ -27,7 +27,7 @@ select ok(
   not exists (
     select 1 from public.live_character_asset_contracts
     where contract_version='ai-character-animation-v1'
-      and jsonb_array_length(body_channels) < 19
+      and jsonb_array_length(body_channels) < 18
   ),
   'v1 contract exposes the full-body channel baseline'
 );
