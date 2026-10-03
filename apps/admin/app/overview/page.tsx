@@ -1,15 +1,11 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Control Plane</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Overview</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Operational overview</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
+"use client";
+import { useEffect, useState } from "react";
+import { apiFetch } from "../../lib/api";
+type Domain={key:string;label:string;count:number};
+type Overview={generated_at:string;domains:Domain[];security:{rls_feature_flags:boolean;rls_config_versions:boolean}};
+export default function Page(){
+ const [data,setData]=useState<Overview|null>(null),[error,setError]=useState<string|null>(null);
+ useEffect(()=>{void apiFetch<{data:Overview}>("/api/v1/admin/control-plane/overview").then(r=>setData(r.data)).catch(e=>setError(e instanceof Error?e.message:"ADMIN_OVERVIEW_FAILED"))},[]);
+ const security=data?"Feature Flags RLS: "+(data.security.rls_feature_flags?"enabled":"disabled")+" · Config Versions RLS: "+(data.security.rls_config_versions?"enabled":"disabled"):"Loading authoritative security state…";
+ return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl"><p className="text-xs font-medium uppercase tracking-[0.24em] text-cyan-300">Allpha Control Plane · Phase 27A</p><h1 className="mt-3 text-4xl font-semibold tracking-tight">Super Admin Overview</h1><p className="mt-3 max-w-3xl text-slate-400">Authoritative platform inventory and governance controls. Counts are read from existing domain tables; no synthetic business data is generated.</p>{error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm">{error}</div>:null}<div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{(data?.domains??[]).map(d=><div key={d.key} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="text-sm text-slate-400">{d.label}</p><p className="mt-2 text-3xl font-semibold">{d.count}</p></div>)}</div><div className="mt-8 grid gap-4 md:grid-cols-2"><a href="/feature-flags" className="rounded-2xl border border-cyan-300/20 bg-cyan-300/5 p-5 hover:bg-cyan-300/10"><p className="font-semibold">Feature Flags</p><p className="mt-2 text-sm text-slate-400">Server-authoritative rollout configuration.</p></a><a href="/config-versions" className="rounded-2xl border border-cyan-300/20 bg-cyan-300/5 p-5 hover:bg-cyan-300/10"><p className="font-semibold">Configuration Versions</p><p className="mt-2 text-sm text-slate-400">Draft, publish and audit configuration changes.</p></a></div><section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="text-sm text-slate-400">Security boundary</p><p className="mt-2 text-sm">{security}</p></section></div></main>;
 }
