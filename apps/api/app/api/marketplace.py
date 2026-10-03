@@ -2,7 +2,7 @@ from typing import Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from app.api.dependencies import get_auth_context, require_owned_order
+from app.api.dependencies import get_auth_context, require_owned_order, require_owned_order
 from app.core.supabase_rest import SupabaseRestError, rpc, select
 
 router=APIRouter(prefix="/api/v1/marketplace",tags=["Marketplace & Commerce"])
