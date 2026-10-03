@@ -872,11 +872,13 @@ API:
 - GET /api/v1/live/costumes/catalog
 - POST /api/v1/live/costumes/custom
 - POST /api/v1/live/costumes/custom/{costume_id}/finalize
+- POST /api/v1/live/costumes/custom/{costume_id}/moderate
 - POST /api/v1/live/sessions/{session_id}/activate-experience
 
 Database:
 - phase_22g_live_experience_3d_stage_human_presentation
 - phase_22g_live_human_presentation_uniform_ownership_hardening
+- phase_22g_live_custom_costume_moderation
 
 Security:
 - All new privileged mutations use SECURITY DEFINER RPCs with empty search_path.
