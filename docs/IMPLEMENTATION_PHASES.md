@@ -530,6 +530,45 @@ Implemented Galaxy → World → Interest / Content / Community / Agent / Portal
 
 Final GREEN remains gated by authenticated Galaxy/World E2E, Agent ownership/presence E2E, portal/visibility E2E, realtime/spatial runtime verification and CI/build.
 
+### PHASE 17.1 — Living Universe 3D Experience — IMPLEMENTED FOUNDATION / NOT GREEN
+
+Implemented the first immersive spatial realization of Phase 17 over the existing Universe, Theme/World Runtime and Phase 18 spatial foundations. No second World/Spatial/Agent engine was introduced.
+
+Implemented:
+- Rebuilt PWA /universe as a full-bleed Living Universe shell instead of a developer-preview/card surface.
+- Galaxy → World transition with spatial camera staging, transition treatment, orbit navigation and mobile low-power fallback.
+- World surface with real published Worlds when available, plus the existing 25 platform Themes as a visual atlas only; no creator/business Worlds are fabricated.
+- World → District transition through the authoritative District API.
+- District composition through `/api/v1/themes/world-runtime/districts/{district_id}/composition`, reusing authoritative zones, Booth projections, active 3D assets and Phase 18 spatial presence.
+- Booths rendered as spatial objects, with verified active 3D Scene assets loaded only from server-signed Storage URLs; procedural presentation remains a fallback when no 3D asset exists.
+- Agent/Character presence rendered from authoritative presence/spatial-state data when positions are available; presentation never grants Agent authority.
+- World Portals rendered as spatial gateway objects and routed through the existing Universe portal boundary.
+- Feed/Content surfaced as spatial Content nodes; selecting a node opens the existing reviewed AI Capsule endpoint rather than creating a second intelligence engine.
+- AI Capsule presented as contextual/spatial insight over the existing Content → AI Capsule lifecycle.
+- Mobile gesture/HUD behavior: touch drag/orbit, swipe up/down HUD, compact contextual controls and low-power/reduced-motion rendering.
+- Extended the canonical World renderer to accept Booth, Portal, Content and Presence spatial objects without creating a second 3D renderer.
+- Performance guardrails use low-power DPR, reduced density and R3F performance bounds; R3F guidance favors shared rendering and avoiding unnecessary remounting. citeturn0search0turn0search1
+
+Files:
+- `apps/web/components/universe/immersive-universe-shell.tsx`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+
+No migration or business data seed was required.
+
+Live reconciliation at implementation time:
+- Galaxies: 0
+- Worlds: 0
+- Districts: 0
+- Booths: 0
+- World Portals: 0
+- Universe Agent Presences: 0
+- Agent Spatial States: 0
+- Published platform Themes: 25
+- Published Theme Versions: 25
+- Theme Assets: 0
+
+Therefore this increment is **IMPLEMENTED FOUNDATION / NOT GREEN**. The visual shell is implemented against authoritative empty states, but authenticated browser E2E, real 3D asset delivery, real Agent spatial presence, Portal traversal, Content/AI Capsule runtime, mobile accessibility/performance, API/PWA/Admin build and CI, and production runtime remain verification gates.
+
 ### PHASE 18 — Agent Simulation & Spatial Runtime — IMPLEMENTED FOUNDATION / VERIFIED DATABASE
 Implemented authoritative Agent spatial state, movement states, Human/Agent spatial interactions, World simulation sessions, monotonic simulation ticks and realtime runtime events. Added 5 RLS tables, 10 SECURITY DEFINER mutation RPCs, realtime publication, FastAPI /api/v1/spatial-runtime and User PWA /agent-simulation. Phase 18 depends on Phase 17 World/Agent membership and keeps Phase 15 Agent Runtime authoritative for actual Agent actions. No synthetic Agents, Worlds, sessions, states, interactions, ticks or events are seeded.
 
