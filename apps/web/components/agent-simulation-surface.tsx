@@ -31,16 +31,36 @@ export default function AgentSimulationSurface(){
   if(!worldId)return;
   const supabase=createSupabaseBrowserClient();
   const channel=supabase.channel(`spatial-runtime:${worldId}`)
-   .on("postgres_changes",{event:"*",schema:"public",table:"simulation_sessions",filter:`world_id=eq.${worldId}`},()=>void load())
-   .on("postgres_changes",{event:"*",schema:"public",table:"agent_spatial_states",filter:`world_id=eq.${worldId}`},()=>void load())
-   .on("postgres_changes",{event:"*",schema:"public",table:"spatial_runtime_events",filter:`world_id=eq.${worldId}`},()=>void load())
+   .on("postgres_changes",{event:"*",schema:"public",table:"simulation_sessions",filter:`world_id=eq.${worldId}`},payload=>{
+    if(payload.eventType==="DELETE"){
+     const deletedId=String((payload.old as {id?:string}).id||"");
+     setSessions(prev=>prev.filter(v=>v.id!==deletedId));
+     setSession(prev=>prev?.id===deletedId?null:prev);
+     return;
+    }
+    const next=payload.new as Session;
+    setSessions(prev=>prev.some(v=>v.id===next.id)?prev.map(v=>v.id===next.id?next:v):[next,...prev]);
+    setSession(prev=>{
+     if(prev?.id===next.id)return next.status==="stopped"?null:next;
+     return prev||(["starting","running","paused"].includes(next.status)?next:null);
+    });
+   })
+   .on("postgres_changes",{event:"*",schema:"public",table:"agent_spatial_states",filter:`world_id=eq.${worldId}`},payload=>{
+    if(payload.eventType==="DELETE"){
+     const deletedId=String((payload.old as {id?:string}).id||"");
+     setStatesData(prev=>prev.filter(v=>v.id!==deletedId));
+     return;
+    }
+    const next=payload.new as State;
+    setStatesData(prev=>prev.some(v=>v.id===next.id)?prev.map(v=>v.id===next.id?next:v):[next,...prev]);
+   })
    .subscribe((status,err)=>{
     if(status==="SUBSCRIBED")setRealtimeStatus("connected");
     else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){setRealtimeStatus("error");if(err)console.error("SPATIAL_REALTIME_SUBSCRIPTION_ERROR",err)}
     else if(status==="CLOSED")setRealtimeStatus("disconnected");
    });
   return()=>{setRealtimeStatus("disconnected");void supabase.removeChannel(channel)};
- },[worldId,load]);
+ },[worldId]);
 
  async function enter(e:FormEvent){e.preventDefault();setBusy(true);setError(null);try{
   await apiFetch(`/api/v1/spatial-runtime/worlds/${worldId}/agents/enter`,{method:"POST",body:JSON.stringify({agent_id:agentId,position:{x:Number(x),y:Number(y),z:Number(z)},rotation:{x:0,y:0,z:0},zone_key:zone||null})});await load();
