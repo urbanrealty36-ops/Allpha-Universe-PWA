@@ -258,6 +258,18 @@ class AgentServiceRequest(BaseModel):
     idempotency_key: str | None = Field(default=None, max_length=255)
 
 
+@router.get("/agent-services/resolve")
+async def resolve_agent_service(agent_id: UUID, skill: str, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    try:
+        data = await rpc(context["user"], "resolve_public_agent_service", {
+            "p_agent_id": str(agent_id),
+            "p_skill_name": skill,
+        })
+        return {"data": data}
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
+
+
 @router.get("/agent-services")
 async def agent_services(skill: str | None = None, limit: int = Query(default=30, ge=1, le=100), context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     try:
@@ -361,13 +373,16 @@ async def resume_agent_service(service_request_id: UUID, context: dict = Depends
 @router.post("/agent-services/generate", status_code=201)
 async def generate_agent_service(payload: AgentServiceRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     user = context["user"]
-    services = await rpc(user, "list_public_agent_services", {"p_skill_name": payload.skill_name, "p_limit": 100})
-    service = next((row for row in (services or []) if str(row.get("agent_id")) == str(payload.agent_id)), None)
-    if not service:
-        raise HTTPException(status_code=404, detail={"code": "AGENT_SKILL_NOT_AVAILABLE", "message": "The selected Agent does not expose the requested Skill."})
+    try:
+        service = await rpc(user, "resolve_public_agent_service", {
+            "p_agent_id": str(payload.agent_id),
+            "p_skill_name": payload.skill_name,
+        })
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
     configuration = service.get("skill_configuration") or {}
     configured_cost = configuration.get("credit_cost") if isinstance(configuration, dict) else None
-    credit_cost = int(configured_cost) if isinstance(configured_cost, int) and configured_cost > 0 else 1
+    credit_cost = int(service.get("credit_cost") or (configured_cost if isinstance(configured_cost, int) else 1))
     request_id: str | None = None
     try:
         reservation = await rpc(user, "reserve_agent_service_request", {
@@ -394,17 +409,18 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
 
         conversation_id = payload.conversation_id
         if not conversation_id:
-            conversation = await rpc(user, "create_contextual_direct_conversation", {
-                "p_target_type": "agent",
-                "p_target_id": str(payload.agent_id),
-                "p_message": None,
-                "p_context_type": "content" if payload.source_content_id else "agent_service",
-                "p_context_id": str(payload.source_content_id) if payload.source_content_id else request_id,
-                "p_context": payload.source_context | {
-                    "service_request_id": request_id,
-                    "skill_name": payload.skill_name,
-                    "mode": payload.mode,
-                },
+            service_source_context = {
+                key: value for key, value in payload.source_context.items()
+                if key in {"source_surface", "district_id", "zone_id", "booth_id", "live_session_id", "content_id", "moment_id"}
+            }
+            if payload.source_content_id:
+                service_source_context["content_id"] = str(payload.source_content_id)
+            conversation = await rpc(user, "get_or_create_agent_conversation", {
+                "p_agent_id": str(payload.agent_id),
+                "p_interaction_mode": "ask",
+                "p_source_context": service_source_context,
+                "p_initial_message": None,
+                "p_client_message_id": None,
             })
             conversation_id = UUID(str(conversation["conversation_id"]))
 
