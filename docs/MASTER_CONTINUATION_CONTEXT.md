@@ -2832,6 +2832,7 @@ Important:
 
 Migration:
 database/migrations/20261003160000_phase_21b_ask_conversation_contract.sql
+database/migrations/20261003160100_phase_21b_ask_context_hardening.sql
 
 Canonical RPC:
 - get_or_create_agent_conversation(agent_id, interaction_mode, source_context, initial_message, client_message_id)
@@ -2842,6 +2843,7 @@ Behavior:
 - reuses the latest active/pending direct Human↔Agent Conversation when present
 - otherwise delegates creation to existing create_direct_conversation
 - records discovery provenance in Conversation metadata
+- hardening restricts provenance keys to source_surface, district_id, zone_id, booth_id, live_session_id, content_id, and moment_id
 - records Ask/Message mode in message metadata when an initial message is sent
 - delegates message creation to existing send_message
 - does not create a new Conversation engine
