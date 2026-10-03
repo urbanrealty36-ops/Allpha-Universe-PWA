@@ -405,13 +405,13 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             if str(conversation.get("status")) != "active":
                 raise HTTPException(status_code=409, detail={"code": "AGENT_CONVERSATION_NOT_ACTIVE", "message": "The Agent conversation is not active; explicit AI Service execution cannot start."})
 
-        reservation = await rpc(user, "reserve_agent_service_request", {        reservation = await rpc(user, "reserve_agent_service_request", {
+        reservation = await rpc(user, "reserve_agent_service_request", {
             "p_agent_id": str(payload.agent_id),
             "p_skill_name": payload.skill_name,
             "p_prompt": payload.prompt,
             "p_credit_cost": credit_cost,
             "p_idempotency_key": payload.idempotency_key,
-            "p_conversation_id": str(payload.conversation_id) if payload.conversation_id else None,
+            "p_conversation_id": str(conversation_id) if conversation_id else None,
             "p_source_content_id": str(payload.source_content_id) if payload.source_content_id else None,
             "p_source_context": payload.source_context | {
                 "skill_name": payload.skill_name,
