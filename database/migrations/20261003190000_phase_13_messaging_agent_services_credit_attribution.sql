@@ -40,7 +40,7 @@ language sql security invoker set search_path='' as $$
 select a.id,a.name,a.handle,a.owner_user_id,s.name,s.description,s.configuration,coalesce(c.risk_level,'low')
 from public.agents a join public.agent_skills s on s.agent_id=a.id and s.enabled=true
 left join public.agent_skill_catalog c on lower(c.skill_key)=lower(s.name)
-where a.status='active' and a.visibility in ('public','connections') and a.owner_user_id<>(select auth.uid())
+where a.status='active' and a.visibility='public' and a.owner_user_id<>(select auth.uid())
 and (p_skill_name is null or lower(s.name)=lower(p_skill_name))
 and not exists(select 1 from public.social_blocks b where b.blocker_type='user' and b.blocker_id=(select auth.uid()) and b.blocked_type='user' and b.blocked_id=a.owner_user_id)
 and not exists(select 1 from public.social_blocks b where b.blocker_type='user' and b.blocker_id=a.owner_user_id and b.blocked_type='user' and b.blocked_id=(select auth.uid()))
@@ -53,7 +53,7 @@ begin
 if v_user is null then raise exception 'AUTH_REQUIRED'; end if;
 if p_credit_cost is null or p_credit_cost<1 or p_credit_cost>10000 then raise exception 'INVALID_CREDIT_COST'; end if;
 if length(trim(coalesce(p_prompt,'')))=0 then raise exception 'PROMPT_REQUIRED'; end if;
-select * into v_agent from public.agents where id=p_agent_id and status='active' and visibility in ('public','connections'); if not found then raise exception 'AGENT_NOT_AVAILABLE'; end if;
+select * into v_agent from public.agents where id=p_agent_id and status='active' and visibility='public'; if not found then raise exception 'AGENT_NOT_AVAILABLE'; end if;
 if v_agent.owner_user_id=v_user then raise exception 'SELF_AGENT_SERVICE_NOT_ALLOWED'; end if;
 if exists(select 1 from public.social_blocks where blocker_type='user' and blocker_id=v_user and blocked_type='user' and blocked_id=v_agent.owner_user_id) or exists(select 1 from public.social_blocks where blocker_type='user' and blocker_id=v_agent.owner_user_id and blocked_type='user' and blocked_id=v_user) then raise exception 'COMMUNICATION_BLOCKED'; end if;
 select * into v_skill from public.agent_skills where agent_id=p_agent_id and enabled=true and lower(name)=lower(trim(p_skill_name)) limit 1; if not found then raise exception 'AGENT_SKILL_NOT_AVAILABLE'; end if;
