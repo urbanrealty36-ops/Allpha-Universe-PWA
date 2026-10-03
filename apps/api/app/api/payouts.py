@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from app.api.dependencies import get_auth_context
+from app.api.dependencies import get_auth_context, require_permission
 from app.core.supabase_rest import SupabaseRestError, rpc
 router = APIRouter(tags=["Payouts & Governance"])
 class PayoutAccountRequest(BaseModel):
@@ -30,14 +30,14 @@ async def request_payout(payload:PayoutRequest,context:dict=Depends(get_auth_con
     try:return await rpc(context["user"],"request_payout",{"p_amount":payload.amount,"p_currency":payload.currency})
     except SupabaseRestError as exc:raise _err(exc,"PAYOUT_REQUEST_FAILED") from exc
 @router.get("/api/v1/payouts/admin/requests")
-async def admin_payout_requests(status:str|None=None,limit:int=100,context:dict=Depends(get_auth_context))->Any:
+async def admin_payout_requests(status:str|None=None,limit:int=100,context:dict=Depends(require_permission("payout.read")))->Any:
     try:return await rpc(context["user"],"get_admin_payout_requests",{"p_status":status,"p_limit":limit})
     except SupabaseRestError as exc:raise _err(exc,"PAYOUT_ADMIN_LIST_FAILED") from exc
 @router.post("/api/v1/payouts/admin/{payout_id}/decision")
-async def admin_payout_decision(payout_id:UUID,payload:PayoutDecision,context:dict=Depends(get_auth_context))->Any:
+async def admin_payout_decision(payout_id:UUID,payload:PayoutDecision,context:dict=Depends(require_permission("payout.review")))->Any:
     try:return await rpc(context["user"],"decide_payout_request",{"p_payout_request_id":str(payout_id),"p_decision":payload.decision,"p_reason":payload.reason})
     except SupabaseRestError as exc:raise _err(exc,"PAYOUT_DECISION_FAILED") from exc
 @router.post("/api/v1/payouts/admin/{payout_id}/process")
-async def admin_payout_process(payout_id:UUID,payload:PayoutProcessing,context:dict=Depends(get_auth_context))->Any:
+async def admin_payout_process(payout_id:UUID,payload:PayoutProcessing,context:dict=Depends(require_permission("payout.process")))->Any:
     try:return await rpc(context["user"],"process_payout_request",{"p_payout_request_id":str(payout_id),"p_outcome":payload.outcome,"p_disbursement_reference":payload.disbursement_reference,"p_reason":payload.reason})
     except SupabaseRestError as exc:raise _err(exc,"PAYOUT_PROCESS_FAILED") from exc
