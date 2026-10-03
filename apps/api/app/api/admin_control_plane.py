@@ -70,3 +70,23 @@ async def publish_config_version(config_version_id: UUID, context: dict[str, Any
         return {"data": await rpc(context["user"], "publish_admin_config_version", {"p_config_version_id": str(config_version_id)})}
     except SupabaseRestError as exc:
         raise _error(exc, "ADMIN_CONFIG_VERSION_PUBLISH_FAILED") from exc
+
+@router.get("/analytics")
+async def admin_analytics(
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
+    context: dict[str, Any] = Depends(require_permission("admin.read")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_admin_analytics", {"p_from": date_from, "p_to": date_to})}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_ANALYTICS_FAILED") from exc
+
+@router.get("/master-data")
+async def admin_master_data(
+    context: dict[str, Any] = Depends(require_permission("admin.read")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_admin_master_data", {})}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_MASTER_DATA_FAILED") from exc
