@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import { apiFetch } from "../lib/api";
+import { createSupabaseBrowserClient } from "../lib/supabase/client";
 import { normalizeWorldScene, type WorldScene } from "../lib/world-engine/scene-schema";
 
 const AllphaWorldRenderer = dynamic(() => import("./world/allpha-world-renderer"), {
@@ -23,7 +24,9 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   const [worlds, setWorlds] = useState<World[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [booths, setBooths] = useState<Booth[]>([]);\n  const [content, setContent] = useState<Content[]>([]);
+  const [booths, setBooths] = useState<Booth[]>([]);
+  const [selectedBoothId, setSelectedBoothId] = useState("");
+  const [boothAssetUrls, setBoothAssetUrls] = useState<Record<string,string>>({});\n  const [content, setContent] = useState<Content[]>([]);
   const [galaxyId, setGalaxyId] = useState("");
   const [worldId, setWorldId] = useState("");
   const [districtId, setDistrictId] = useState("");
@@ -58,7 +61,17 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   }
   async function loadBooths(did: string) {
     const r = await apiFetch<{ data: Booth[] }>(`/api/v1/booths?district_id=${did}`);
-    setBooths(r.data ?? []);
+    const next = r.data ?? [];
+    setBooths(next);
+    const assets = await Promise.all(next.map(async b => {
+      try {
+        const a = await apiFetch<{ data: Array<{ signed_url?: string | null }> }>(`/api/v1/booths/${b.id}/assets/3d`);
+        return [b.id, a.data?.[0]?.signed_url ?? null] as const;
+      } catch {
+        return [b.id, null] as const;
+      }
+    }));
+    setBoothAssetUrls(Object.fromEntries(assets.filter(([,url]) => Boolean(url)) as Array<[string,string]>));
   }
 
   useEffect(() => { void Promise.all([loadGalaxies(), loadContent()]).catch(e => setError(e instanceof Error ? e.message : "SPATIAL_BOOTSTRAP_FAILED")); }, []);
@@ -172,6 +185,24 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     finally { setBusy(false); }
   }
 
+
+  async function uploadBooth3D(file: File) {
+    if (!selectedBoothId) return;
+    setBusy(true); setError(null);
+    try {
+      if (file.type !== "model/gltf-binary" && !file.name.toLowerCase().endsWith(".glb")) throw new Error("BOOTH_3D_GLB_REQUIRED");
+      const prepared = await apiFetch<{ data: { asset: { id:string; storage_bucket:string }; upload:{path:string;token:string} } }>(`/api/v1/booths/${selectedBoothId}/assets/3d/upload-url`, { method:"POST" });
+      const supabase = createSupabaseBrowserClient();
+      const uploaded = await supabase.storage.from(prepared.data.asset.storage_bucket).uploadToSignedUrl(prepared.data.upload.path, prepared.data.upload.token, file);
+      if (uploaded.error) throw new Error(uploaded.error.message);
+      const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+      const checksum = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2,"0")).join("");
+      await apiFetch(`/api/v1/booths/${selectedBoothId}/assets/${prepared.data.asset.id}/3d/finalize?checksum_sha256=${encodeURIComponent(checksum)}`, { method:"POST" });
+      await loadBooths(districtId);
+    } catch (e) { setError(e instanceof Error ? e.message : "BOOTH_3D_UPLOAD_FAILED"); }
+    finally { setBusy(false); }
+  }
+
   async function createBooth(e: FormEvent) {
     e.preventDefault(); if (!districtId || !boothName.trim()) return;
     setBusy(true); setError(null);
@@ -194,7 +225,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   const renderContent = content.slice(0, 16).map((item, i) => ({\n    id: item.id, title: item.title, position: { x: (i % 4) * 2.4 - 3.6, y: 2 + (i % 2) * 0.4, z: -1 + Math.floor(i / 4) * 2.2 },\n  }));\n\n  const renderBooths = booths.map((b, i) => ({
     id: b.id, kind: "booth" as const, label: b.name,
     position: { x: (i % 4) * 3 - 4.5, y: 0, z: Math.floor(i / 4) * 3 - 3 },
-    metadata: { booth_id: b.id, district_id: b.district_id, zone_id: b.district_zone_id ?? null, status: b.status },
+    metadata: { booth_id: b.id, district_id: b.district_id, zone_id: b.district_zone_id ?? null, status: b.status, model_url: boothAssetUrls[b.id] ?? null },
   }));
 
   return (
@@ -227,7 +258,10 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
           </FlowCard>
           <FlowCard step="05" title="Booth" selected={booths.length > 0}>
             <div className="mb-2 text-[10px] text-slate-500">{booths.length} Booth tersimpan pada District aktif.</div>
-            <form onSubmit={createBooth} className="flex gap-2"><input value={boothName} onChange={e => setBoothName(e.target.value)} placeholder="New Booth name" className={inputClass}/><button disabled={busy || !districtId || !boothName.trim()} className={buttonClass}>Create</button></form>
+            <select value={selectedBoothId} onChange={e => setSelectedBoothId(e.target.value)} disabled={!districtId} className={inputClass}><option value="">Select Booth for 3D asset</option>{booths.map(b => <option key={b.id} value={b.id}>{b.name} · {b.status}</option>)}</select>
+            {selectedBoothId && <label className="inline-flex cursor-pointer rounded-xl border border-cyan-300/40 px-3 py-2 text-[10px]">{busy ? "Uploading…" : boothAssetUrls[selectedBoothId] ? "Replace Booth GLB" : "Upload Booth GLB"}<input type="file" accept=".glb,model/gltf-binary" className="hidden" disabled={busy} onChange={e => { const f=e.target.files?.[0]; e.currentTarget.value=""; if(f) void uploadBooth3D(f); }} /></label>}
+            <p className="text-[9px] text-slate-600">{selectedBoothId && boothAssetUrls[selectedBoothId] ? "REAL BOOTH GLB ACTIVE" : "Belum ada Booth GLB active untuk Booth terpilih."}</p>
+            <form onSubmit={createBooth className="flex gap-2"><input value={boothName} onChange={e => setBoothName(e.target.value)} placeholder="New Booth name" className={inputClass}/><button disabled={busy || !districtId || !boothName.trim()} className={buttonClass}>Create</button></form>
           </FlowCard>
         </div>
           <FlowCard step="06" title="Feed / Content Universe" selected={content.length > 0}>
