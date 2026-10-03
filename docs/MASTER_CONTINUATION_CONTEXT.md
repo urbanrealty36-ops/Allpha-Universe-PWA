@@ -1,3 +1,59 @@
+
+# MASTER CONTINUATION UPDATE — 2026-10-04 — PHASE 25 ECONOMY / CREDITS / BILLING / MIDTRANS
+
+**Status: IMPLEMENTED FOUNDATION / MIDTRANS E2E CONFIGURATION PENDING**
+
+Canonical payment architecture:
+
+Allpha Web App → FastAPI Commerce/Economy Boundary → Midtrans Snap → Midtrans Notification → verified settlement → Commerce Order + existing Entitlement / existing ai_credit_ledger / Billing Subscription + Invoice
+
+Marketplace Commerce, AI Credit purchases and subscriptions all use the canonical Commerce Payment boundary with `provider_key='midtrans'`; no second payment engine was created.
+
+Implemented live:
+- economy_credit_products
+- economy_credit_purchases
+- billing_plans
+- billing_subscriptions
+- billing_invoices
+- economy_settlement_events
+- Commerce Order order_kind
+- Midtrans fields on commerce_payments
+- create_credit_purchase_order()
+- create_subscription_order()
+- get_my_economy_summary()
+- service-only process_midtrans_settlement()
+- FastAPI apps/api/app/api/economy.py
+- PWA /economy
+- PWA /payment/result
+
+Existing canonical engines reused:
+- ai_credit_ledger — credit/economy ledger
+- commerce_orders / commerce_payments / commerce_entitlements — centralized commerce boundary
+- existing Agent Service / Agent Runtime
+- existing Policy / Risk / Approval / Audit
+
+Security:
+- Midtrans Server Key is backend-only.
+- Supabase Service Role Key is backend-only and used only for the external webhook → verified internal settlement boundary.
+- Midtrans notification signature is checked with SHA-512.
+- Settlement RPC is denied to anon/authenticated and granted only to service_role.
+- Settlement event key makes repeated provider notifications idempotent.
+- No frontend callback is authoritative for paid state.
+
+No business/payment seed data exists. Live configured rows remain zero until real catalog/admin/user configuration and payment activity occur.
+
+Provider basis: Midtrans documents backend Snap token acquisition with Server Key, token/redirect URL responses, HTTPS notification handling, SHA512 signature verification, and idempotent notification handling. citeturn2search1turn0search0
+
+Next dependency gates:
+1. Configure Midtrans Sandbox credentials and notification URL.
+2. Run authenticated Marketplace payment E2E.
+3. Run Credit purchase settlement E2E.
+4. Run Subscription initial payment/invoice E2E.
+5. Add verified refund/expiry/cancel reconciliation.
+6. Continue to Phase 26 — Security, Governance & Trust after Phase 25 domain/runtime gates are reconciled.
+
+---
+
 ## 2026-10-02 — Intelligence/Context Reconciliation
 
 World Engine continuation must include the existing AI intelligence stack; do not treat spatial rendering as an isolated feature.
