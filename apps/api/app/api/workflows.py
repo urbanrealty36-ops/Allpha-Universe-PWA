@@ -23,6 +23,11 @@ class WorkflowCreate(BaseModel):
     trigger_type: Literal["manual", "event", "schedule", "webhook"] = "manual"
     metadata: dict[str, Any] = Field(default_factory=dict)
 
+class WorkflowTrigger(BaseModel):
+    trigger_type: Literal["manual", "event", "schedule", "webhook"]
+    input: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str | None = Field(default=None, max_length=200)
+
 class VersionCreate(BaseModel):
     input_schema: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -93,6 +98,13 @@ async def create_workflow(payload: WorkflowCreate, context: dict = Depends(get_a
     try:
         return await rpc(context["user"], "create_workflow", {"p_owner_type":payload.owner_type,"p_owner_id":str(owner_id),"p_name":payload.name,"p_slug":payload.slug,"p_description":payload.description,"p_trigger_type":payload.trigger_type,"p_metadata":payload.metadata})
     except SupabaseRestError as exc: raise _error(exc,"WORKFLOW_CREATE_FAILED") from exc
+
+@router.post("/{workflow_id}/trigger", status_code=201)
+async def trigger_workflow(workflow_id: UUID, payload: WorkflowTrigger, context: dict = Depends(get_auth_context)) -> Any:
+    try:
+        return await rpc(context["user"], "trigger_workflow", {"p_workflow_id": str(workflow_id), "p_trigger_type": payload.trigger_type, "p_input": payload.input, "p_idempotency_key": payload.idempotency_key})
+    except SupabaseRestError as exc:
+        raise _error(exc, "WORKFLOW_TRIGGER_FAILED") from exc
 
 @router.post("/{workflow_id}/versions", status_code=201)
 async def create_version(workflow_id: UUID, payload: VersionCreate, context: dict = Depends(get_auth_context)) -> Any:
