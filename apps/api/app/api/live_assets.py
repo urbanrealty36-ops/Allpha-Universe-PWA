@@ -42,6 +42,27 @@ def _storage_err(exc: SupabaseStorageError, code: str) -> HTTPException:
     )
 
 
+@router.get("/templates/{template_version_id}/stage/manage")
+async def stage_asset_manage_list(
+    template_version_id: UUID,
+    context: dict[str, Any] = Depends(get_auth_context),
+):
+    try:
+        rows = await select(
+            context["user"],
+            "live_experience_stage_assets",
+            {
+                "select": "*",
+                "template_version_id": f"eq.{template_version_id}",
+                "asset_type": "eq.3d_stage",
+                "order": "created_at.desc",
+            },
+        )
+        return {"data": {"assets": rows}}
+    except SupabaseRestError as exc:
+        raise _err(exc, "LIVE_STAGE_ASSET_MANAGE_LOAD_FAILED") from exc
+
+
 @router.get("/templates/{template_version_id}/stage")
 async def stage_asset_manifest(
     template_version_id: UUID,
@@ -205,3 +226,65 @@ async def finalize_character_upload(
         return {"data": asset}
     except SupabaseRestError as exc:
         raise _err(exc, "AGENT_CHARACTER_UPLOAD_FINALIZE_FAILED") from exc
+
+
+class ModerationRequest(BaseModel):
+    decision: str = Field(pattern=r"^(approved|restricted|rejected)$")
+
+
+@router.post("/stage/{asset_id}/moderation")
+async def moderate_stage_asset(
+    asset_id: UUID,
+    payload: ModerationRequest,
+    context: dict[str, Any] = Depends(get_auth_context),
+):
+    try:
+        asset = await rpc(
+            context["user"],
+            "moderate_live_stage_3d_asset",
+            {"p_asset_id": str(asset_id), "p_decision": payload.decision},
+        )
+        return {"data": asset}
+    except SupabaseRestError as exc:
+        raise _err(exc, "LIVE_STAGE_MODERATION_FAILED") from exc
+
+
+@router.get("/agents/{agent_id}/character/manage")
+async def agent_character_manage_list(
+    agent_id: UUID,
+    context: dict[str, Any] = Depends(get_auth_context),
+):
+    try:
+        rows = await select(
+            context["user"],
+            "live_character_assets",
+            {
+                "select": "*",
+                "agent_id": f"eq.{agent_id}",
+                "asset_type": "eq.character",
+                "order": "created_at.desc",
+            },
+        )
+        return {"data": {"assets": rows}}
+    except SupabaseRestError as exc:
+        raise _err(exc, "AGENT_CHARACTER_ASSET_MANAGE_LOAD_FAILED") from exc
+
+
+@router.post("/agents/{agent_id}/character/{asset_id}/moderation")
+async def moderate_agent_character_asset(
+    agent_id: UUID,
+    asset_id: UUID,
+    payload: ModerationRequest,
+    context: dict[str, Any] = Depends(get_auth_context),
+):
+    try:
+        asset = await rpc(
+            context["user"],
+            "moderate_agent_character_3d_asset",
+            {"p_asset_id": str(asset_id), "p_decision": payload.decision},
+        )
+        if str(asset.get("agent_id")) != str(agent_id):
+            raise HTTPException(409, detail={"code": "AGENT_CHARACTER_ASSET_SCOPE_MISMATCH"})
+        return {"data": asset}
+    except SupabaseRestError as exc:
+        raise _err(exc, "AGENT_CHARACTER_MODERATION_FAILED") from exc
