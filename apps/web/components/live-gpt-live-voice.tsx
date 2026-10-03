@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { applyVoiceEvent, normalizeAnimationSignal, type CharacterAnimationSignal } from "../lib/live-character-animation";
 
-type VoicePerformance = { state: "idle" | "listening" | "thinking" | "speaking"; speaking: boolean; level: number; userSpeaking: boolean };
+type VoicePerformance = CharacterAnimationSignal;
 
 type Props = {
   sessionId: string;
@@ -40,7 +41,8 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
   const bindingIdRef = useRef<string | null>(null);
   const liveSessionIdRef = useRef<string | null>(null);
   const transcriptRef = useRef("");
-  const performanceStateRef = useRef<"idle" | "listening" | "thinking" | "speaking">("idle");
+  const performanceStateRef = useRef<CharacterAnimationSignal>(normalizeAnimationSignal({ state: "idle", level: 0, speaking: false, userSpeaking: false }));
+  const reconnectAttemptRef = useRef(0);
   const [status, setStatus] = useState<"idle" | "connecting" | "connected" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -68,9 +70,9 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
         }
         const level = Math.min(1, Math.sqrt(sum / data.length) * 5);
         const speaking = level > 0.035;
-        if (speaking) performanceStateRef.current = "speaking";
-        else if (performanceStateRef.current === "speaking") performanceStateRef.current = "idle";
-        onPerformance?.({ state: performanceStateRef.current, speaking, level, userSpeaking: performanceStateRef.current === "listening" });
+        if (speaking) performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, "response.audio.delta", level);
+        else if (performanceStateRef.current.state === "speaking") performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, "response.audio.done", 0);
+        onPerformance?.(performanceStateRef.current);
         rafRef.current = requestAnimationFrame(tick);
       };
       rafRef.current = requestAnimationFrame(tick);
@@ -114,6 +116,7 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
   async function start() {
     if (!sessionId || !collaborationId) return;
     setStatus("connecting"); setError(null); transcriptRef.current = "";
+    reconnectAttemptRef.current = 0;
     try {
       const pc = new RTCPeerConnection();
       pcRef.current = pc;
@@ -139,27 +142,50 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
           const type = String(message?.type ?? "");
           if (type === "session.started") {
             setStatus("connected");
-            performanceStateRef.current = "idle";
-            onPerformance?.({ state: "idle", speaking: false, level: 0, userSpeaking: false });
+            performanceStateRef.current = normalizeAnimationSignal({ state: "idle", level: 0, speaking: false, userSpeaking: false });
+            onPerformance?.(performanceStateRef.current);
             liveSessionIdRef.current = message?.session?.id ?? null;
             void apiFetch("/api/v1/live/sessions/" + sessionId + "/voice/state", {
               method: "POST",
               body: JSON.stringify({ binding_id: bindingIdRef.current, target: "active" }),
             }).catch(() => {});
           }
-          if (type === "session.input_transcript.delta") transcriptRef.current += String(message?.delta ?? "");
+          if (type === "session.input_transcript.delta" || type === "conversation.item.input_audio_transcription.delta" || type === "input_audio_transcription.delta") transcriptRef.current += String(message?.delta ?? message?.text ?? "");
+          if (type === "response.created" || type === "response.started" || type === "response.output_audio.started" || type === "output_audio.started") {
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, type, performanceStateRef.current.level);
+            onPerformance?.(performanceStateRef.current);
+          }
+          if (type === "response.audio.delta" || type === "response.output_audio.delta" || type === "response.audio_transcript.delta" || type === "response.delta") {
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, type, performanceStateRef.current.level);
+            onPerformance?.(performanceStateRef.current);
+          }
+          if (type === "response.done" || type === "response.audio.done" || type === "response.output_audio.done") {
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, type, 0);
+            onPerformance?.(performanceStateRef.current);
+          }
           if (type === "session.delegation.created" && message?.delegation?.target === "client") {
             void delegateToAllpha(String(message.delegation.id));
           }
           if (type === "input_audio_buffer.speech_started" || type === "session.input_audio.speech_started") {
-            performanceStateRef.current = "listening";
-            onPerformance?.({ state: "listening", speaking: false, level: 0, userSpeaking: true });
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, type, 0);
+            onPerformance?.(performanceStateRef.current);
           }
           if (type === "input_audio_buffer.speech_stopped" || type === "session.input_audio.speech_stopped") {
-            performanceStateRef.current = "thinking";
-            onPerformance?.({ state: "thinking", speaking: false, level: 0, userSpeaking: false });
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, type, 0);
+            onPerformance?.(performanceStateRef.current);
+          }
+          if (type === "conversation.interrupted" || type === "response.cancelled" || type === "response.canceled") {
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, type, 0);
+            onPerformance?.(performanceStateRef.current);
+          }
+          if (type === "error" || type === "session.error") {
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, "error", 0);
+            onPerformance?.(performanceStateRef.current);
+            setError(String(message?.error?.message ?? "GPT-Live realtime error."));
           }
           if (type === "session.closed") {
+            performanceStateRef.current = applyVoiceEvent(performanceStateRef.current, type, 0);
+            onPerformance?.(performanceStateRef.current);
             void stop();
           }
         } catch {}
@@ -216,8 +242,8 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
     remoteAudioRef.current = null;
     liveSessionIdRef.current = null;
     transcriptRef.current = "";
-    performanceStateRef.current = "idle";
-    onPerformance?.({ state: "idle", speaking: false, level: 0, userSpeaking: false });
+    performanceStateRef.current = normalizeAnimationSignal({ state: "idle", level: 0, speaking: false, userSpeaking: false });
+    onPerformance?.(performanceStateRef.current);
     setStatus("idle");
   }
 
@@ -236,7 +262,7 @@ export default function LiveRealtimeVoice({ sessionId, collaborationId, onPerfor
           </button>
         )}
       </div>
-      <div className="mt-3 text-xs text-white/50">Status: <b>{status}</b></div>
+      <div className="mt-3 text-xs text-white/50">Status: <b>{status}</b> · Animation: <b>{performanceStateRef.current.state}</b> · {performanceStateRef.current.interrupted ? "interrupted" : "synced"}</div>
       {error && <div className="mt-2 rounded-lg border border-red-300/20 bg-red-300/10 p-2 text-xs text-red-200">{error}</div>}
     </div>
   );
