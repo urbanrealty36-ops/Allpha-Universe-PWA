@@ -48,13 +48,49 @@ async def runtime_catalog(context:dict=Depends(get_auth_context)):
 
 @router.get("/themes/{theme_id}/asset-manifest")
 async def theme_asset_manifest(theme_id:str,context:dict=Depends(get_auth_context)):
-    """Read-only asset manifest. Storage paths are authoritative; URLs are never fabricated."""
+    """Return the authoritative platform Theme asset manifest with signed URLs only for verified active assets."""
     try:
-        themes=await select(context["user"],"themes",{"select":"id,name,source,status","id":f"eq.{theme_id}","limit":"1"})
+        themes=await select(context["user"],"themes",{"select":"id,name,slug,source,status,moderation_status,catalog_key","id":f"eq.{theme_id}","limit":"1"})
         if not themes:
             raise HTTPException(404,detail={"code":"THEME_NOT_FOUND"})
-        assets=await select(context["user"],"theme_assets",{"select":"id,theme_id,theme_version_id,asset_type,storage_path,mime_type,metadata,sort_order,status,moderation_status,safety_status,performance_status","theme_id":f"eq.{theme_id}","order":"sort_order.asc"})
-        return {"data":{"theme":themes[0],"storage_bucket":WORLD_ASSET_BUCKET,"assets":assets}}
+        assets=await select(
+            context["user"],
+            "theme_assets",
+            {
+                "select":"id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,metadata,sort_order,status,moderation_status,safety_status,performance_status,content_size_bytes,checksum_sha256,uploaded_at",
+                "theme_id":f"eq.{theme_id}",
+                "order":"sort_order.asc",
+            },
+        )
+        manifest=[]
+        for asset in assets:
+            item={**asset,"signed_url":None}
+            if (
+                asset.get("status")=="active"
+                and asset.get("moderation_status")=="approved"
+                and asset.get("safety_status")=="passed"
+                and asset.get("performance_status")=="passed"
+                and asset.get("storage_bucket")
+                and asset.get("storage_path")
+            ):
+                try:
+                    item["signed_url"]=await create_signed_download_url(
+                        context["user"],asset["storage_bucket"],asset["storage_path"],900
+                    )
+                except SupabaseStorageError:
+                    item["signed_url"]=None
+            manifest.append(item)
+        binary_3d=[a for a in manifest if a.get("asset_type") in {"3d_scene","model"} and a.get("status")=="active" and a.get("signed_url")]
+        return {
+            "data":{
+                "theme":themes[0],
+                "storage_bucket":WORLD_ASSET_BUCKET,
+                "assets":manifest,
+                "binary_3d_assets":binary_3d,
+                "has_binary_3d_pack":bool(binary_3d),
+                "presentation_only":True,
+            }
+        }
     except SupabaseRestError as e:
         raise err(e,"WORLD_RUNTIME_THEME_ASSET_MANIFEST_FAILED")
 
