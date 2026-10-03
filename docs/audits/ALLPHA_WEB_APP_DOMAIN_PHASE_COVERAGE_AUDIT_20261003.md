@@ -27,7 +27,7 @@ This audit measures **what a user can actually see/use in the Web PWA**. A migra
 | 06 Identity / Agent | IMPLEMENTED | Agents + Agent Factory + catalog/context/policy setup |
 | 07 Memory / Knowledge | IMPLEMENTED | **new Agent Memory & Knowledge PWA vertical slice** |
 | 08 Personalization | IMPLEMENTED | Personalization Graph surface; Interest/Goal mutation and derived Passion/Habit views |
-| 09 Social Graph | FOUNDATION | backend/domain foundation; no complete dedicated social graph UX |
+| 09 Social Graph | IMPLEMENTED | dedicated `/social` discovery + relationship management over canonical Social Graph API; authenticated multi-user E2E remains deferred |
 | 10 Content | PARTIAL | Content/creation/discovery exists; Storage/moderation lifecycle remains |
 | 11 Feed/Reels/Discovery | IMPLEMENTED | Discovery surface + Feed/Reels/Explore APIs; richer Universe discovery remains |
 | 11A Universe Discovery | PARTIAL | immersive Universe + Ask Content/Gravity foundations; full discovery choreography remains |
@@ -76,8 +76,8 @@ This audit measures **what a user can actually see/use in the Web PWA**. A migra
 | 11 | Habit Graph | PARTIAL | longitudinal runtime depth |
 | 12 | Goal Graph | IMPLEMENTED | execution linkage remains |
 | 13 | Context Graph | IMPLEMENTED | richer context lifecycle |
-| 14 | Social Graph | FOUNDATION | dedicated graph UX |
-| 15 | Relationship Graph | FOUNDATION | richer relationship management |
+| 14 | Social Graph | IMPLEMENTED | dedicated `/social` Web surface with discovery, follow/unfollow, requests, blocking and notifications |
+| 15 | Relationship Graph | IMPLEMENTED | relationship lifecycle management is exposed in the Social Graph surface |
 | 16 | Community Graph | IMPLEMENTED | advanced graph/discovery |
 | 17 | Content Graph | PARTIAL | deeper graph projections |
 | 18 | Knowledge Graph | IMPLEMENTED | embeddings/retrieval runtime |
@@ -174,8 +174,8 @@ The project is **not Green**. The Web application now has substantially more dom
 ### Next Phase A — Phase 06/07/08 completion
 Complete Agent Passport + Capability UI, then deepen Memory/Knowledge retrieval and connect Personalization signals to Agent/Discovery context.
 
-### Next Phase B — Phase 09/10/11 completion
-Complete Social Graph UX, Content media/moderation lifecycle, and Universe Discovery experience (Universe Scroll, Content Gravity, contextual navigation) without creating duplicate engines.
+### Next Phase B — Phase 10/11 completion
+Complete Content media/moderation lifecycle and deepen Universe Discovery experience (Universe Scroll, Content Gravity, contextual navigation) without creating duplicate engines. Phase 09 Social Graph Web activation is implemented; authenticated multi-user E2E remains a later deployment gate.
 
 ### Next Phase C — Phase 16/19/20/22/23 completion
 Finish Mission UX, District/Booth activation, Live audience/media runtime surfaces and Collaboration 23E.
