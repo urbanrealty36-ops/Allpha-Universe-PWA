@@ -3247,3 +3247,26 @@ Still pending as separate runtime/production gates:
 
 Phase 22 remains **IMPLEMENTED FOUNDATION / NOT GREEN**.
 
+### Phase 22F completion hardening
+
+Added server-authoritative Live transport lifecycle:
+- `start_live_session(session_id, stream_provider, stream_reference)`
+- `end_live_session(session_id)`
+
+These lifecycle RPCs:
+- require authenticated ownership of the Live Session
+- require a real external stream provider/reference supplied by the caller
+- require a valid Live Experience Template + Version
+- transition `draft/scheduled → live → ended`
+- record `started_at/ended_at`
+- keep provider/media transport external; no fake stream URL/provider is generated
+
+FastAPI:
+- `POST /api/v1/live/sessions/{session_id}/start`
+- `POST /api/v1/live/sessions/{session_id}/end`
+
+Phase 22F invariant test was expanded to **20/20 passed** after adding lifecycle security coverage.
+
+No real Live Session, Agent, Collaboration, Character Binding, Viewer, Message, or Audience Interaction was inserted during implementation.
+
+
