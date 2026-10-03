@@ -1,0 +1,15 @@
+begin;
+select plan(12);
+select ok(to_regprocedure('public.discover_public_agent_accounts(text,integer,integer)') is not null,'canonical Agent discovery RPC exists');
+select ok(to_regprocedure('public.get_public_agent_account(uuid)') is not null,'canonical Agent Account RPC exists');
+select ok(to_regprocedure('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)') is not null,'canonical Agent conversation entry RPC exists');
+select ok(pg_get_functiondef('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure) like '%source_surface%','source surface provenance supported');
+select ok(pg_get_functiondef('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure) like '%district_id%','District provenance supported');
+select ok(pg_get_functiondef('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure) like '%booth_id%','Booth provenance supported');
+select ok(pg_get_functiondef('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure) like '%live_session_id%','Live provenance supported');
+select ok(pg_get_functiondef('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure) like '%content_id%','Content provenance supported');
+select ok(pg_get_functiondef('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure) like '%moment_id%','Moment provenance supported');
+select ok(to_regclass('public.skill_challenge_engine') is null,'no duplicate Skill Challenge engine');
+select ok(to_regclass('public.skill_reward_engine') is null,'no duplicate Skill Reward engine');
+select * from finish();
+rollback;
