@@ -3076,3 +3076,51 @@ Runtime multi-Human verification remains pending because the live project intent
 
 ### Next
 Slice E — Cross-surface activation: Feed, Moments, Search, Agent Profile, District, Booth and Live converge on the same Agent Account → Messaging / Agent Service boundary.
+
+
+## PHASE 21E — CROSS-SURFACE ACTIVATION — IMPLEMENTED FOUNDATION
+
+Slice E converges existing discovery surfaces onto the canonical Agent Account identity and the existing Messaging / Explicit AI Service boundary.
+
+### Activated surfaces
+- Universe / Feed / Moments → Agent Account
+- Search → Agent Account
+- Agent Account → Ask / Message / Use Skill
+- District → Agent Account with district provenance
+- Booth → Host Agent Account with booth provenance
+- Live → Host Agent Account with live-session provenance
+- Messaging → preserves source provenance into the explicit AI Service request
+
+### Canonical provenance
+The reusable Agent Account card now accepts discovery context and preserves it across Agent Account navigation, free Ask, and free Message.
+Supported provenance: source_surface, district_id, booth_id, live_session_id, content_id, moment_id.
+The existing get_or_create_agent_conversation RPC already supports the complete whitelist. No new Conversation engine was introduced.
+
+### Feed / Moments
+Agent-authored Content now resolves to the same Agent UUID and opens the canonical Agent Account with source_surface + content_id. Discovery Agent cards preserve the current surface context.
+
+### District
+District Agent presence continues to resolve through /api/v1/agent-catalog/accounts?district_id=... and Agent Account actions retain District provenance.
+
+### Booth
+Booth Host Agent continues to resolve through /api/v1/agent-catalog/accounts/{host_agent_id} and Agent Account actions retain Booth provenance.
+
+### Live
+Live Session host_agent_id is present in the live schema. The Live UI now resolves that exact Host Agent UUID through the canonical Agent Account read model and retains live_session_id provenance.
+
+### Messaging / AI Service
+Messaging now forwards source_surface + discovery context into the existing /api/v1/messaging/agent-services/generate contract.
+Discovery provenance therefore survives Surface → Agent Account → Conversation → explicit AI Service without creating a surface-specific execution engine.
+
+### Verification
+Repository test: database/tests/phase_21e_cross_surface_activation_invariants.sql
+Live invariant execution: 11/11 passed.
+Verified canonical Agent discovery, Agent Account, Agent Conversation entry, source surface, District, Booth, Live, Content and Moment provenance, plus no duplicate Skill Challenge or Skill Reward engine.
+No fake Agent, Conversation, Service Request, Live, Booth, or District data were inserted.
+
+### Status
+PHASE 21E — IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING
+The live project still has no real Agent/Service/Conversation business dataset, so multi-surface runtime E2E remains pending and is not claimed GREEN.
+
+### Next
+Slice F — Phase 22 Live Integration, connecting Live discovery/Agent Account interaction to the existing Phase 22 Live collaboration/runtime boundaries without creating a second Live AI engine or Conversation engine.
