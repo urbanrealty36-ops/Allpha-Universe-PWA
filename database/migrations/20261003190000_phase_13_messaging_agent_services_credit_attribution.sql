@@ -58,6 +58,7 @@ select * into v_agent from public.agents where id=p_agent_id and status='active'
 if v_agent.owner_user_id=v_user then raise exception 'SELF_AGENT_SERVICE_NOT_ALLOWED'; end if;
 if exists(select 1 from public.social_blocks where blocker_type='user' and blocker_id=v_user and blocked_type='user' and blocked_id=v_agent.owner_user_id) or exists(select 1 from public.social_blocks where blocker_type='user' and blocker_id=v_agent.owner_user_id and blocked_type='user' and blocked_id=v_user) then raise exception 'COMMUNICATION_BLOCKED'; end if;
 select * into v_skill from public.agent_skills where agent_id=p_agent_id and enabled=true and lower(name)=lower(trim(p_skill_name)) limit 1; if not found then raise exception 'AGENT_SKILL_NOT_AVAILABLE'; end if;
+if not exists(select 1 from public.agent_capabilities where agent_id=p_agent_id and capability='ai.generate' and enabled=true) then raise exception 'AGENT_GENERATION_CAPABILITY_NOT_GRANTED'; end if;
 if p_idempotency_key is not null then select id into v_request from public.agent_service_requests where requester_user_id=v_user and idempotency_key=p_idempotency_key limit 1; if v_request is not null then return jsonb_build_object('id',v_request,'reused',true); end if; end if;
 select public.get_ai_credit_balance() into v_balance; if v_balance<p_credit_cost then raise exception 'INSUFFICIENT_AI_CREDITS'; end if;
 insert into public.agent_service_requests(requester_user_id,agent_id,agent_owner_user_id,skill_name,prompt,credit_cost,idempotency_key,conversation_id,source_content_id,source_context,status)
