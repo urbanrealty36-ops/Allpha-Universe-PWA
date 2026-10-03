@@ -530,12 +530,14 @@ Live reconciliation:
 
 Phase 16 is **IMPLEMENTED / NOT GREEN**. The feature/domain/engine integration is now implemented at repository + live-schema level. Final gates remain authenticated real Workflow/Mission execution, real AI provider execution, approval propagation, conditional/retry runtime evidence, multi-participant Mission E2E, failure/recovery, realtime, API/PWA/Admin build/CI, deployment and production Green.
 
-### PHASE 17 — AI Universe — IMPLEMENTED FOUNDATION / VERIFIED DATABASE
+### PHASE 17 — AI Universe — WEB/UI ACTIVATED / IMPLEMENTED / RUNTIME E2E PENDING
 Implemented Galaxy → World → Interest / Content / Community / Agent / Portal / Presence with RLS, ownership RPCs, FastAPI /api/v1/universe and User PWA /universe. Migration 20261002110000_phase_17_ai_universe is applied to AllphaDb-Universe and the 32 Phase 17 invariant assertions pass live. No business seed data exists.
 
-Final GREEN remains gated by authenticated Galaxy/World E2E, Agent ownership/presence E2E, portal/visibility E2E, realtime/spatial runtime verification and CI/build.
+Phase 17 UI/UX was reconciled against the Project Universe references: /universe is spatial-first, full-bleed and 3D-oriented rather than a dashboard. Real Galaxies are rendered from the authoritative Universe API; the 25 platform Themes remain explicitly separated as 3D Theme Templates/configuration. The bottom dashboard-like Quick List grid was replaced by a compact floating spatial command dock.
 
-### PHASE 17.1 — Living Universe 3D Experience — IMPLEMENTED FOUNDATION / NOT GREEN
+Runtime E2E remains gated by authenticated Galaxy/World traversal, Agent ownership/presence, portal/visibility, realtime/spatial runtime, CI/build and deployment.
+
+### PHASE 17.1 — Living Universe 3D Experience — WEB/UI ACTIVATED / RUNTIME E2E PENDING
 
 Implemented the first immersive spatial realization of Phase 17 over the existing Universe, Theme/World Runtime and Phase 18 spatial foundations. No second World/Spatial/Agent engine was introduced.
 
