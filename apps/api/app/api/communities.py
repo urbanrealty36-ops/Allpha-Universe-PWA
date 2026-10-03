@@ -86,7 +86,7 @@ class WorldLink(BaseModel):
 
 
 class ModerationDecision(BaseModel):
-    decision: Literal["dismissed", "resolved", "remove", "suspend_member", "ban_member", "escalated"]
+    decision: Literal["allow", "remove", "restrict", "suspend", "ban"]
     notes: str | None = Field(default=None, max_length=5000)
 
 
@@ -222,7 +222,6 @@ async def link_world(
 @router.get("/{community_id:uuid}/moderation/cases")
 async def list_moderation_cases(
     community_id: UUID,
-    status: Literal["open", "resolved", "dismissed"] | None = None,
     limit: int = Query(default=100, ge=1, le=200),
     context: dict = Depends(get_auth_context),
 ) -> dict[str, Any]:
@@ -231,8 +230,6 @@ async def list_moderation_cases(
         "order": "created_at.desc",
         "limit": str(limit),
     }
-    if status:
-        filters["decision"] = f"eq.{status}"
     return {
         "data": await select(
             context["user"],
