@@ -493,29 +493,28 @@ Phase 15 is **IMPLEMENTED / NOT GREEN**. The feature/domain/engine integration i
 ### PHASE 16 — Workflow & Mission Engine — IMPLEMENTED FOUNDATION
 Workflow/version/step definitions, workflow runs, mission/participant/mission-run orchestration, API/PWA surfaces, RLS and secured RPCs. Workflow execution delegates to the Phase 15 Agent Runtime; no second executor is created. Final authenticated E2E, real AI runtime, approvals, retry/trigger runtime, CI/build and final Green remain separate gates.
 
-### PHASE 16 — Workflow & Mission Engine v3 — IMPLEMENTED FOUNDATION
+### PHASE 16 — Workflow & Mission Engine v3 — ✅ WEB ACTIVATED / IMPLEMENTED / NOT GREEN
 
-Reconciled against the existing Phase 16 schema/RPC/API foundation and hardened in place. No second workflow executor or mission executor was introduced.
+Reconciled and completed the existing Phase 16 Workflow/Mission foundation without creating a second executor. Workflow remains an orchestration layer above the canonical Phase 15 Agent Runtime.
 
 Canonical orchestration boundary:
 **Workflow Definition → Version → Steps → Run → Mission → Agent Runtime → Tool / AI Gateway**
 
 Implemented/verified:
-- Workflow, version and step lifecycle.
-- Declarative step tool binding, arguments, conditions, retry policy and risk/approval metadata.
-- Published workflow version gating.
-- Workflow Run creation and authoritative preparation.
-- Workflow preparation delegates command creation and plan materialization to Phase 15 Agent Runtime.
-- Agent ownership is revalidated at run creation.
-- Workflow Run synchronization from Agent Command state.
-- Mission lifecycle, participant join/decision and published-workflow binding.
-- Mission Run delegates shared workflow execution to the canonical Workflow Engine.
-- Mission Run synchronization from Workflow Run state.
-- Owner-authoritative workflow cancellation.
-- Mission cancellation delegates to Workflow cancellation and therefore Agent Runtime command cancellation.
-- Anonymous execution/mutation RPC access remains denied.
-- Added authoritative cancellation API endpoints for Workflow Runs and Mission Runs.
-- Added 41 live Phase 16 invariants covering RLS, RPC existence/access, runtime delegation, cancellation authority and absence of synthetic business data.
+- Workflow, version and step lifecycle with published-version gating.
+- Declarative tool binding, input arguments, conditions, bounded retry policy and risk/approval metadata.
+- Workflow Run preparation creates the authoritative Agent Command and materializes its plan through Phase 15 Agent Runtime.
+- Workflow preparation now carries the _workflow_control metadata into Runtime steps so conditions/retry policies are executable without a second executor.
+- Canonical Agent Runtime now evaluates declarative all/any/path conditions and supports bounded retries only for explicitly listed retryable error codes.
+- Condition-false steps are recorded as skipped and reconciled back into Workflow Run steps; no tool execution occurs for skipped steps.
+- Workflow Run synchronization now links workflow_run_steps to authoritative Agent task/task-step records.
+- Workflow trigger boundary supports manual/event/schedule/webhook invocation through authenticated ownership checks and 24-hour idempotency keys; execution still proceeds through Agent Runtime.
+- Mission lifecycle, visibility, participant join/approval decision and published-workflow binding.
+- Mission Run delegates to the canonical Workflow Engine and synchronizes from Workflow Run state.
+- Workflow and Mission cancellation remain owner-authoritative and propagate to Agent Runtime command cancellation.
+- Anonymous trigger/prepare/sync/tool-result execution remains denied; authenticated execution is explicitly granted.
+- Web /workflows now uses the real owned-Agent selector and exposes trigger execution plus condition/retry configuration; empty states remain authoritative.
+- No synthetic Workflow, Mission, Agent, Run or Tool records were seeded.
 
 Live reconciliation:
 - Workflows: 0
@@ -527,8 +526,9 @@ Live reconciliation:
 - Missions: 0
 - Mission Participants: 0
 - Mission Runs: 0
+- Skipped Tool Runs: 0
 
-Phase 16 remains **IMPLEMENTED FOUNDATION / NOT GREEN** because no real authenticated Workflow/Mission has been executed against a real owned Agent. Runtime AI Gateway/provider execution, conditional/retry behavior, multi-participant Mission E2E, approval propagation, failure/recovery, API/PWA/Admin build/CI and production runtime remain final gates.
+Phase 16 is **IMPLEMENTED / NOT GREEN**. The feature/domain/engine integration is now implemented at repository + live-schema level. Final gates remain authenticated real Workflow/Mission execution, real AI provider execution, approval propagation, conditional/retry runtime evidence, multi-participant Mission E2E, failure/recovery, realtime, API/PWA/Admin build/CI, deployment and production Green.
 
 ### PHASE 17 — AI Universe — IMPLEMENTED FOUNDATION / VERIFIED DATABASE
 Implemented Galaxy → World → Interest / Content / Community / Agent / Portal / Presence with RLS, ownership RPCs, FastAPI /api/v1/universe and User PWA /universe. Migration 20261002110000_phase_17_ai_universe is applied to AllphaDb-Universe and the 32 Phase 17 invariant assertions pass live. No business seed data exists.
