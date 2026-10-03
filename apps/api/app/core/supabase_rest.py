@@ -106,3 +106,55 @@ async def rpc(
     if response.status_code >= 400:
         raise SupabaseRestError(response.status_code, "Supabase RPC failed.")
     return response.json()
+
+
+async def service_select(table: str, query: dict[str, str]) -> list[dict[str, Any]]:
+    settings = get_settings()
+    if not settings.supabase_service_role_key:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for server-side service operations.")
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "Accept": "application/json",
+    }
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        response = await client.get(_url(table), params=list(query.items()), headers=headers)
+    if response.status_code >= 400:
+        raise SupabaseRestError(response.status_code, "Supabase service data request failed.")
+    data = response.json()
+    return data if isinstance(data, list) else []
+
+
+async def service_update(table: str, filters: dict[str, str], payload: dict[str, Any]) -> list[dict[str, Any]]:
+    settings = get_settings()
+    if not settings.supabase_service_role_key:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for server-side service operations.")
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "Accept": "application/json",
+        "Prefer": "return=representation",
+    }
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        response = await client.patch(_url(table), params=list(filters.items()), json=payload, headers=headers)
+    if response.status_code >= 400:
+        raise SupabaseRestError(response.status_code, "Supabase service update failed.")
+    data = response.json() if response.content else []
+    return data if isinstance(data, list) else []
+
+
+async def service_rpc(function: str, payload: dict[str, Any]) -> Any:
+    settings = get_settings()
+    if not settings.supabase_service_role_key:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for server-side service operations.")
+    url = f"{settings.supabase_url.rstrip('/')}/rest/v1/rpc/{quote(function, safe='._-')}"
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "Accept": "application/json",
+    }
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        response = await client.post(url, json=payload, headers=headers)
+    if response.status_code >= 400:
+        raise SupabaseRestError(response.status_code, "Supabase service RPC failed.")
+    return response.json()
