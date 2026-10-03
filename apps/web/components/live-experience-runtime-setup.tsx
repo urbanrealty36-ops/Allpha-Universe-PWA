@@ -327,6 +327,9 @@ export default function LiveExperienceRuntimeSetup() {
   });
   const customOptions = costumes.custom_costumes.map((x) => ({ id: x.id, name: x.name, type: "custom" }));
 
+  const selectedRuntimeTheme = useMemo(() => themes.find((theme) => theme.id === themeId) ?? null, [themes, themeId]);
+  const renderScene = useMemo<WorldScene | null>(() => selectedRuntimeTheme?.world_schema ? normalizeWorldScene(selectedRuntimeTheme.world_schema) : null, [selectedRuntimeTheme]);
+
   return (
     <section className="mx-auto w-full max-w-6xl px-4 pb-10 pt-4">
       <div className={card + " p-5"}>
