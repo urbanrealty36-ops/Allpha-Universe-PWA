@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { normalizeWorldScene, type WorldScene } from "../lib/world-engine/scene-schema";
 import ThemeSpatialSlice from "./theme-spatial-slice";\nimport LiveExperienceVerticalSlice from "./live-experience-vertical-slice";
+import AvatarStudioSurface from "./avatar-studio-surface";
 
 const AllphaWorldRenderer = dynamic(() => import("./world/allpha-world-renderer"), {
   ssr: false,
