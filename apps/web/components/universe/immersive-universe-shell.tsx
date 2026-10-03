@@ -433,6 +433,7 @@ export default function ImmersiveUniverseShell() {
               </div>
             </div>
             <div className="flex gap-2">
+              <a href="/theme-studio" className="pointer-events-auto rounded-full border border-cyan-300/20 bg-cyan-300/5 px-3 py-2 text-[10px] text-cyan-100 backdrop-blur-xl hover:border-cyan-300/40">Theme Studio</a>
               {level !== "galaxy" && (
                 <button onClick={goBack} className="pointer-events-auto rounded-full border border-white/10 bg-black/35 px-3 py-2 text-[10px] text-white/65 backdrop-blur-xl hover:text-white">← Back</button>
               )}
