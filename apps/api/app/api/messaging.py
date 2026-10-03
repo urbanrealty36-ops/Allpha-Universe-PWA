@@ -116,6 +116,37 @@ async def conversations(limit:int=Query(default=50,ge=1,le=100),context:dict=Dep
     return {"data":rows}
 
 
+class AgentConversationCreate(BaseModel):
+    agent_id: UUID
+    interaction_mode: Literal["message", "ask"] = "message"
+    message: str | None = Field(default=None, max_length=20000)
+    client_message_id: str | None = Field(default=None, max_length=255)
+    source_context: dict[str, Any] = Field(default_factory=dict)
+
+
+@router.post("/conversations/agent", status_code=201)
+async def create_or_reuse_agent_conversation(
+    payload: AgentConversationCreate,
+    context: dict = Depends(get_auth_context),
+) -> Any:
+    if len(payload.source_context) > 32:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_SOURCE_CONTEXT", "message": "source_context is too large."})
+    try:
+        return await rpc(
+            context["user"],
+            "get_or_create_agent_conversation",
+            {
+                "p_agent_id": str(payload.agent_id),
+                "p_interaction_mode": payload.interaction_mode,
+                "p_source_context": payload.source_context,
+                "p_initial_message": payload.message,
+                "p_client_message_id": payload.client_message_id,
+            },
+        )
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
+
+
 @router.post("/conversations/direct",status_code=201)
 async def create_direct(payload:DirectCreate,context:dict=Depends(get_auth_context))->Any:
     source_type,source_id=await _subject(context["user"],payload.source_type,payload.source_id)
