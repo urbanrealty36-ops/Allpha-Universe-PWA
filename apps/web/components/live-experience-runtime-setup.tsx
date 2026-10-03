@@ -63,6 +63,19 @@ type PresenceCheck = {
   expires_at: string | null;
 };
 
+type CharacterRuntimeAsset = {
+  asset_id: string;
+  character_id: string | null;
+  character_key: string | null;
+  character_name: string | null;
+  archetype: string | null;
+  asset_type: string;
+  asset_source: string;
+  metadata: Record<string, unknown>;
+  contract: Record<string, unknown> | null;
+  signed_url?: string | null;
+};
+
 type Costume = {
   id: string;
   name: string;
@@ -84,6 +97,8 @@ export default function LiveExperienceRuntimeSetup() {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [themePackUrl, setThemePackUrl] = useState<string | null>(null);
   const [agentCharacterUrl, setAgentCharacterUrl] = useState<string | null>(null);
+  const [characterAssets, setCharacterAssets] = useState<CharacterRuntimeAsset[]>([]);
+  const [selectedCharacterAssetId, setSelectedCharacterAssetId] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [themeId, setThemeId] = useState("");
   const [stage, setStage] = useState<StageRuntime | null>(null);
@@ -100,7 +115,7 @@ export default function LiveExperienceRuntimeSetup() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [voicePerformance, setVoicePerformance] = useState({ speaking: false, level: 0, userSpeaking: false });
+  const [voicePerformance, setVoicePerformance] = useState<{ state: "idle" | "listening" | "thinking" | "speaking"; speaking: boolean; level: number; userSpeaking: boolean }>({ state: "idle", speaking: false, level: 0, userSpeaking: false });
 
   const selectedSession = useMemo(() => sessions.find((s) => s.id === sessionId) ?? null, [sessions, sessionId]);
   const activeCollaboration = collaborations.find((c) => c.status === "active" && c.consent_status === "approved" && c.risk_decision === "allow");
@@ -158,15 +173,16 @@ export default function LiveExperienceRuntimeSetup() {
       setCollaborations(collabResponse.data ?? []);
       const active = (collabResponse.data ?? []).find((c) => c.status === "active" && c.consent_status === "approved" && c.risk_decision === "allow");
       setCollaborationId(active?.id ?? "");
-      setAgentCharacterUrl(null);
+      const catalogResponse = await apiFetch<{ data: CharacterRuntimeAsset[] }>(
+        `/api/v1/live/character-runtime-catalog${active?.agent_id ? `?agent_id=${encodeURIComponent(active.agent_id)}` : ""}`
+      );
+      const catalog = catalogResponse.data ?? [];
+      setCharacterAssets(catalog);
       const selectedCharacter = (characterResponse.data ?? []).find((x: any) => x.status === "active" && x.asset_id);
-      if (selectedCharacter?.asset_id) {
-        try {
-          const assets = await apiFetch<{ data: any[] }>(`/api/v1/live/character-assets?agent_id=${encodeURIComponent(active?.agent_id ?? "")}`);
-          const asset = (assets.data ?? []).find((x: any) => x.id === selectedCharacter.asset_id && x.signed_url);
-          setAgentCharacterUrl(asset?.signed_url ?? null);
-        } catch { setAgentCharacterUrl(null); }
-      }
+      const selectedAssetId = selectedCharacter?.asset_id ?? catalog[0]?.asset_id ?? "";
+      setSelectedCharacterAssetId(selectedAssetId);
+      const selectedAsset = catalog.find((x) => x.asset_id === selectedAssetId);
+      setAgentCharacterUrl(selectedAsset?.signed_url ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "LIVE_22G_RUNTIME_LOAD_FAILED");
     }
@@ -281,6 +297,29 @@ export default function LiveExperienceRuntimeSetup() {
         ? "Face/body presence check lulus untuk presentation runtime. Ini bukan verifikasi identitas legal/KYC."
         : "Presence check belum lulus.");
     } catch (e) { setError(e instanceof Error ? e.message : "LIVE_PRESENCE_CHECK_FAILED"); }
+    finally { setBusy(false); }
+  }
+
+  async function selectCharacter() {
+    if (!sessionId || !selectedCharacterAssetId) return;
+    setBusy(true); setError(null); setMessage(null);
+    try {
+      await apiFetch(`/api/v1/live/sessions/${sessionId}/characters`, {
+        method: "POST",
+        body: JSON.stringify({
+          asset_id: selectedCharacterAssetId,
+          collaboration_id: collaborationId || null,
+          metadata: {
+            animation_contract: "ai-character-animation-v1",
+            presentation_mode: "live_voice_full_body_v1",
+          },
+        }),
+      });
+      const selectedAsset = characterAssets.find((x) => x.asset_id === selectedCharacterAssetId);
+      setAgentCharacterUrl(selectedAsset?.signed_url ?? null);
+      setMessage(`AI Character ${selectedAsset?.character_name ?? "platform character"} aktif dengan Animation Contract v1.`);
+      await loadSessionRuntime(sessionId);
+    } catch (e) { setError(e instanceof Error ? e.message : "LIVE_CHARACTER_SELECT_FAILED"); }
     finally { setBusy(false); }
   }
 
@@ -416,6 +455,7 @@ export default function LiveExperienceRuntimeSetup() {
                       themePackUrl={themePackUrl}
                       liveStageUrl={stage.stage?.signed_url ?? null}
                       agentCharacterUrl={agentCharacterUrl}
+                      agentCharacterAsset={(() => { const a = characterAssets.find((x) => x.asset_id === selectedCharacterAssetId); return a ? { source: a.asset_source, characterKey: a.character_key, contract: a.contract } : undefined; })()}
                       agentCharacterPerformance={voicePerformance}
                     />
                   </div>
@@ -516,7 +556,7 @@ export default function LiveExperienceRuntimeSetup() {
             {collaborationId && (
               <div className="mt-3">
                 <LiveGptLiveVoice sessionId={sessionId} collaborationId={collaborationId} onPerformance={setVoicePerformance} />
-                <div className="mt-2 text-[10px] text-white/35">Character performance signal · voice level {voicePerformance.level.toFixed(2)} · {voicePerformance.speaking ? "Agent speaking" : voicePerformance.userSpeaking ? "Human speaking" : "idle"}</div>
+                <div className="mt-2 text-[10px] text-white/35">Character animation signal · {voicePerformance.state} · voice level {voicePerformance.level.toFixed(2)}</div>
               </div>
             )}
           </div>
