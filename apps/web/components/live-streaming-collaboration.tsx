@@ -166,7 +166,10 @@ export default function LiveStreamingCollaboration() {
     try {
       const bindingResponse = await apiFetch<{ data: LiveCharacterBinding[] }>(`/api/v1/live/sessions/${sessionId}/characters`);
       setCharacterBinding(bindingResponse.data?.find(b => b.status === "active") ?? null);
-      const collab = (collaborations[sessionId] ?? []).find(c => c.status === "active");
+      const collabResponse = await apiFetch<{ data: Collaboration[] }>(`/api/v1/live/sessions/${sessionId}/collaborations`);
+      const currentCollabs = collabResponse.data ?? [];
+      setCollaborations(prev => ({ ...prev, [sessionId]: currentCollabs }));
+      const collab = currentCollabs.find(c => c.status === "active");
       if (!collab) { setCharacterAssets([]); return; }
       const assetsResponse = await apiFetch<{ data: LiveCharacterAsset[] }>(`/api/v1/live/character-assets?agent_id=${collab.agent_id}`);
       const assets = assetsResponse.data ?? [];
