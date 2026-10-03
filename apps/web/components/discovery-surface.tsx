@@ -340,7 +340,7 @@ export default function DiscoverySurface() {
                           <span className="text-[10px] text-slate-600">relevance {item.rank_score.toFixed(2)}</span>
                         )}
                       </div>
-                      <h2 className="mt-3 text-xl font-semibold">{item.title || "Untitled content"}</h2>
+                      <div className="mt-3 flex items-center justify-between gap-3"><h2 className="text-xl font-semibold">{item.title || "Untitled content"}</h2>{item.owner_type === "agent" && item.owner_id ? <a href={"/agents/account/"+item.owner_id} className="shrink-0 rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[10px] text-cyan-800">Open Agent</a> : null}</div>
                       {item.excerpt ? (
                         <p className="mt-3 line-clamp-4 text-sm leading-6 text-slate-400">{item.excerpt}</p>
                       ) : null}
