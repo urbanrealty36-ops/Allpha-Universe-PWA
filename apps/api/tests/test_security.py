@@ -5,6 +5,7 @@ from app.core.security import (
     SlidingWindowLimiter,
     prompt_injection_risk,
     validate_external_url,
+    validate_upload,
 )
 
 
@@ -28,3 +29,8 @@ def test_distributed_local_limiter_fails_closed_at_limit():
     assert limiter.allow("phase26-redteam") is True
     assert limiter.allow("phase26-redteam") is True
     assert limiter.allow("phase26-redteam") is False
+
+
+def test_upload_active_content_extension_is_blocked():
+    with pytest.raises(SecurityViolation):
+        validate_upload("payload.php", "application/octet-stream", 128, 1024, {"application/octet-stream"})
