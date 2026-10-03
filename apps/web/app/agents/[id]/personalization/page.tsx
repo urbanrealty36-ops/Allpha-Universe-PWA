@@ -1,0 +1,2 @@
+import AgentPersonalizationSurface from "../../../../components/agent-personalization-surface";
+export default async function AgentPersonalizationPage({params}:{params:Promise<{id:string}>}){const{id}=await params;return <AgentPersonalizationSurface agentId={id}/>;}
