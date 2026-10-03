@@ -30,7 +30,7 @@ export default function Page() {
       setTemplates(list);
       const rows = await Promise.all(list.map(async t => {
         const v = await Promise.all((await apiFetch<{ data: Version[] }>(`/api/v1/live/templates/${t.id}/versions`)).data.map(async x => {
-          const a = await apiFetch<{ data: { assets: any[] } }>(`/api/v1/live-assets/templates/${x.id}/stage`);
+          const a = await apiFetch<{ data: { assets: any[] } }>(`/api/v1/live-assets/templates/${x.id}/stage/manage`);
           return [x, a.data.assets ?? []] as const;
         }));
         return [t.id, v] as const;
