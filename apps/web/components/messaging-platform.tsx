@@ -83,7 +83,7 @@ export default function MessagingSurface(){
   const mode=params.get("interaction")==="ask" ? "ask" : "message";
   const requestedSkill=params.get("skill");
   const context:Record<string,unknown>={};
-  for(const key of ["district_id","booth_id","live_session_id","content_id","moment_id"]){
+  for(const key of ["source_surface","district_id","booth_id","live_session_id","content_id","moment_id"]){
    const value=params.get(key);
    if(value) context[key]=value;
   }
