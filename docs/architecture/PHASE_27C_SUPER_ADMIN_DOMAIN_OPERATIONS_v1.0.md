@@ -29,6 +29,7 @@ Migration files:
 - database/migrations/phase_27c_transaction_explorer.sql
 - database/migrations/phase_27c_domain_explorer.sql
 - database/migrations/phase_27c_master_data_and_domain_operations.sql
+- database/migrations/20261004123000_phase_27c_master_data_history_rollback.sql
 
 Canonical public API functions:
 - get_admin_transaction_explorer
