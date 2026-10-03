@@ -1,5 +1,5 @@
 begin;
-select plan(12);
+select plan(11);
 select ok(to_regprocedure('public.discover_public_agent_accounts(text,integer,integer)') is not null,'canonical Agent discovery RPC exists');
 select ok(to_regprocedure('public.get_public_agent_account(uuid)') is not null,'canonical Agent Account RPC exists');
 select ok(to_regprocedure('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)') is not null,'canonical Agent conversation entry RPC exists');
