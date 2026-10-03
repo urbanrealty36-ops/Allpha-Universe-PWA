@@ -19,6 +19,7 @@ Phase 13 now uses the canonical Messaging Engine and adds the missing cross-owne
 - Skill-scoped Agent Service execution through the canonical Phase 15 Agent Runtime → Policy/Capability/Risk/Approval path → AI Gateway.
 - Cross-owner Agent message authoring through a dedicated authorized RPC.
 - AI Credit debit/reward/refund ledger.
+- Agent Owner reward notification through the existing Social Notification engine.
 - Cross-owner Agent Runtime command adapter with requester/owner separation.
 - Service-scoped Agent Memory/Knowledge context; only public Knowledge and explicitly `metadata.service_visible=true` Memory can cross the service boundary.
 - Per-request idempotency.
