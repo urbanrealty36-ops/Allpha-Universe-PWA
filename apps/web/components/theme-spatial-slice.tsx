@@ -230,6 +230,14 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
             <form onSubmit={createBooth} className="flex gap-2"><input value={boothName} onChange={e => setBoothName(e.target.value)} placeholder="New Booth name" className={inputClass}/><button disabled={busy || !districtId || !boothName.trim()} className={buttonClass}>Create</button></form>
           </FlowCard>
         </div>
+          <FlowCard step="06" title="Feed / Content Universe" selected={content.length > 0}>
+            <div className="mb-2 text-[10px] text-slate-500">{content.length} content milik user tersedia. Create akan mencoba menempatkan Content ke World sebagai spatial discovery.</div>
+            <form onSubmit={createContent} className="space-y-2">
+              <input value={contentTitle} onChange={e => setContentTitle(e.target.value)} placeholder="Content title" className={inputClass}/>
+              <textarea value={contentBody} onChange={e => setContentBody(e.target.value)} placeholder="Content body (optional)" rows={3} className={inputClass}/>
+              <button disabled={busy || !worldId || !contentTitle.trim()} className={buttonClass}>Create & Link to World</button>
+            </form>
+          </FlowCard>
         <div className="min-h-[520px] overflow-hidden rounded-3xl border border-white/10 bg-black">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div><p className="text-[9px] uppercase tracking-[0.2em] text-violet-300">Canonical Renderer</p><p className="mt-1 text-xs text-white/70">{theme?.name ?? "Theme"} · {worldId ? "World selected" : "Select World"}</p></div>
