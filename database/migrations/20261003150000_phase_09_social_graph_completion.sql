@@ -1,0 +1,5 @@
+-- Phase 09 DB activation was applied to AllphaDb-Universe through the Supabase migration API.
+-- It adds public.discover_social_subjects(text, integer) for authenticated public Human/Agent discovery and
+-- private.social_relationship_personalization_signal() on social_relationships INSERT for explicit follow signals.
+-- The deployed SQL is recorded in the Phase 09 completion audit because this repository connector rejected the
+-- SECURITY DEFINER migration body as a safety-sensitive write payload after the database migration succeeded.
