@@ -24,3 +24,7 @@ select count(*)=0 as no_fabricated_invoices from public.billing_invoices;
 select count(*)=0 as no_fabricated_settlements from public.economy_settlement_events;
 select count(*)=0 as no_midtrans_transactions from public.commerce_payments where provider_key='midtrans';
 select count(*)=0 as no_checkout_urls_without_midtrans_payment from public.commerce_payments where checkout_url is not null and provider_key<>'midtrans';
+select has_function_privilege('anon','public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb)','execute')=false as settlement_not_anon;
+select has_function_privilege('authenticated','public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb)','execute')=false as settlement_not_authenticated;
+select has_function_privilege('service_role','public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb)','execute') as settlement_service_only;
+select position('unsupported_payment_provider' in pg_get_functiondef((select p.oid from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='create_commerce_payment_intent' limit 1)))>0 as midtrans_only_enforced;
