@@ -14,6 +14,8 @@ class Settings:
     allpha_public_web_url: str = "http://localhost:3000"
     security_pepper: str = ""
     trusted_proxy_ips: str = ""
+    security_pepper: str = ""
+    trusted_proxy_ips: str = ""
 
     @property
     def supabase_auth_issuer(self) -> str:
@@ -39,6 +41,8 @@ def get_settings() -> Settings:
         midtrans_client_key=os.getenv("MIDTRANS_CLIENT_KEY", "").strip(),
         midtrans_environment=os.getenv("MIDTRANS_ENVIRONMENT", "sandbox").strip() or "sandbox",
         allpha_public_web_url=os.getenv("ALLPHA_PUBLIC_WEB_URL", "http://localhost:3000").strip().rstrip("/"),
+        security_pepper=os.getenv("ALLPHA_SECURITY_PEPPER", "").strip(),
+        trusted_proxy_ips=os.getenv("TRUSTED_PROXY_IPS", "").strip(),
         security_pepper=os.getenv("ALLPHA_SECURITY_PEPPER", "").strip(),
         trusted_proxy_ips=os.getenv("TRUSTED_PROXY_IPS", "").strip(),
         supabase_jwt_audience=os.getenv("SUPABASE_JWT_AUDIENCE", "authenticated").strip()
