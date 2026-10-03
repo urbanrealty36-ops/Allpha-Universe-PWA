@@ -33,3 +33,7 @@ select 1 as assertion where exists(select 1 from public.theme_assets where live_
 select 1 as assertion where exists(select 1 from pg_proc where pronamespace='public'::regnamespace and proname='moderate_live_custom_costume');
 select 1 as assertion where has_function_privilege('anon','public.moderate_live_custom_costume(uuid,text)','execute')=false;
 select 1 as assertion where has_function_privilege('authenticated','public.moderate_live_custom_costume(uuid,text)','execute');
+
+select 1 as assertion where exists(select 1 from pg_proc where pronamespace='public'::regnamespace and proname='get_public_live_human_presentation');
+select 1 as assertion where has_function_privilege('anon','public.get_public_live_human_presentation(uuid)','execute')=false;
+select 1 as assertion where has_function_privilege('authenticated','public.get_public_live_human_presentation(uuid)','execute');
