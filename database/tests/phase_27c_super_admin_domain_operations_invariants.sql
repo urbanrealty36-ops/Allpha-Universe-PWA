@@ -1,5 +1,5 @@
 -- Phase 27C invariants: no business fixtures are created.
-select plan(10);
+select plan(9);
 select ok(not has_function_privilege('anon','public.get_admin_transaction_explorer(text,text,text,text,text,timestamptz,timestamptz,integer,integer)','execute'),'anon cannot execute transaction explorer');
 select ok(has_function_privilege('authenticated','public.get_admin_transaction_explorer(text,text,text,text,text,timestamptz,timestamptz,integer,integer)','execute'),'authenticated can reach transaction explorer boundary');
 select ok(not has_function_privilege('anon','public.get_admin_transaction_detail(uuid)','execute'),'anon cannot execute transaction detail');
