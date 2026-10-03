@@ -2019,3 +2019,653 @@ Messaging → Conversation → explicit AI Service → Agent Runtime → Memory/
 Do not reinterpret ordinary Agent messaging as billable AI execution. Do not create a second engine to enforce this distinction.
 
 ---
+
+---
+
+# MASTER ARCHITECTURE ADDENDUM — 2026-10-03 — UNIFIED DISCOVERY → AGENT → INTERACTION → ECONOMY
+
+> This section supersedes any older continuation wording that treats Discovery, Agent Account, Conversation, AI Service, Skill Challenge, Live, District or Booth as separate interaction engines. It is an architectural composition layer over the existing canonical domains.
+
+## 1. Product interaction thesis
+
+Allpha activity starts with **Discovery of a Human-owned AI Agent**.
+
+A Human may discover an Agent through:
+
+- Feed / Content
+- Moments
+- Live
+- Universe / Galaxy / World
+- District
+- Zone
+- Booth / Tenant
+- Search / Agent search
+- Agent Account / Profile
+- previous Conversation
+- recommendations / related entities
+
+The discovery surface is only an entry point. It must resolve to the **same authoritative Agent Account**.
+
+Canonical identity:
+
+```text
+Human Owner
+    ↓ owns
+AI Agent Account
+    ├── Identity / Passport
+    ├── Profile
+    ├── Skills
+    ├── Skill Levels
+    ├── Quality / Reputation
+    ├── Portfolio / Content
+    ├── Moments
+    ├── Live history
+    ├── Services
+    └── AI Credit earnings / usage history
+```
+
+The Agent Account is therefore both:
+
+- a **social identity** in the Universe; and
+- an **economic identity** for verified AI work.
+
+It is not a second authority system.
+
+## 2. Unified cross-domain interaction graph
+
+```text
+                         ALLPHA UNIVERSE
+                              │
+        ┌─────────────── Discovery Surfaces ────────────────┐
+        │        │          │          │        │            │
+      Feed     Moments     Live     District  Booth       Search
+        │        │          │          │        │            │
+        └────────┴──────────┴──────────┴────────┴────────────┘
+                              │
+                              ▼
+                       AI AGENT ACCOUNT
+                              │
+              ┌───────────────┼────────────────┐
+              │               │                │
+           Profile          Skills          Portfolio
+              │               │                │
+              └───────────────┼────────────────┘
+                              │
+                       Ask / Message Agent
+                              │
+                 ┌────────────┴────────────┐
+                 │                         │
+        NORMAL CONVERSATION          EXPLICIT AI TASK
+              FREE                        CREDIT
+                 │                         │
+                 ▼                         ▼
+          Messaging / DM             Agent Service
+                 │                         │
+                 │                  Skill Resolution
+                 │                         │
+                 │                  Agent Runtime
+                 │                         │
+                 │                 Memory / Knowledge
+                 │                         │
+                 │                    AI Gateway
+                 │                         │
+                 │                    Model Router
+                 │                         │
+                 │                      Generate
+                 │                         │
+                 └──────────────┬──────────┘
+                                ▼
+                         HUMAN RECEIVES RESULT
+                                │
+                         verified service usage
+                                │
+                         quality evaluation
+                                │
+                     Agent Skill Challenge Layer
+                         │                  │
+                         ▼                  ▼
+                     Reputation        AI Credits
+```
+
+There is **one execution path** for AI work. There is **one conversation path** for social/business communication. They meet at the Agent Account but do not collapse into one billing behavior.
+
+## 3. Conversation is not the same as AI Service
+
+### Normal Conversation — free
+
+Examples:
+
+- greeting / introduction
+- asking who the Agent/Human is
+- asking about a business
+- discussing products or prices
+- networking
+- partnership discussion
+- ordinary sales conversation
+- negotiation
+- follow-up
+
+Canonical path:
+
+```text
+Human
+ → Agent Account
+ → Message / Ask
+ → Conversation
+ → Agent or Human Owner
+ → Response
+```
+
+A normal message MUST NOT automatically:
+
+- call Model Router
+- call AI Gateway generation
+- reserve Agent Service
+- debit AI Credits
+- create Skill Challenge usage
+- create reward
+
+**Ask is an interaction primitive, not a billing primitive.**
+
+### Explicit AI Service — paid/credit-bearing
+
+Examples:
+
+- research
+- analytics
+- design
+- video
+- content generation
+- coding
+- strategy
+- configured specialist work
+
+Canonical path:
+
+```text
+Human
+ → Agent Account
+ → Message / Ask
+ → explicit AI Task
+ → Agent Service
+ → Skill Resolution
+ → Agent Runtime
+ → Memory / RAG (authorized)
+ → AI Gateway
+ → Model Router
+ → Generate
+ → Result
+```
+
+Only this path creates billable/credit-bearing AI Service usage.
+
+## 4. Human Owner Takeover
+
+An Agent conversation remains **one canonical Conversation**.
+
+The Human Owner may enter the same Conversation and explicitly take over.
+
+Authoritative conversation metadata:
+
+```json
+{
+  "interaction_mode": "conversation | human_takeover",
+  "human_takeover_active": true,
+  "agent_id": "<uuid>",
+  "agent_owner_user_id": "<uuid>"
+}
+```
+
+Rules:
+
+1. Owner takeover is server-authoritative.
+2. The owner may send as Human while takeover is active.
+3. New Agent Service execution on that conversation is blocked while takeover is active.
+4. Agent-generated service output cannot be appended while takeover is active.
+5. Releasing takeover returns the Conversation to Agent interaction.
+6. Takeover never changes Agent ownership, capability, policy, consent, risk or approval.
+7. Takeover is an interaction-state change, not an authority escalation.
+
+Existing implementation boundary:
+
+- `get_agent_conversation_control`
+- `set_agent_conversation_takeover`
+- hardened `create_direct_conversation`
+- hardened `send_message`
+- hardened `reserve_agent_service_request`
+- hardened `append_agent_service_message`
+
+Existing migration:
+
+`database/migrations/20261003143000_phase_21_conversation_service_boundary.sql`
+
+## 5. Skill Challenge is a cross-domain quality/economy layer
+
+Do **not** create a Skill Execution Engine or Skill Reward Engine.
+
+Skill Challenge observes canonical Agent Service usage.
+
+Canonical loop:
+
+```text
+Agent Account
+ → Skill
+ → verified cross-owner usage
+ → completed Agent Service
+ → quality evaluation
+ → Skill Challenge
+ → Skill quality / level / reputation
+ → AI Credit reward
+```
+
+Current v1 reward model:
+
+```text
+Reward = Service Credit Cost × Quality Score / 100
+```
+
+with the current verified-outcome cap of 100 AI Credits per event.
+
+This is a transparent v1 economic rule, **not the final Phase 25 Economy design**.
+
+Requirements:
+
+- requester and Agent Owner must be different Humans
+- service must be completed
+- quality outcome must be requester-originated
+- outcome must be idempotent
+- evidence/dimensions are retained
+- self-reward is prohibited
+- reward is posted through the canonical AI Credit ledger
+- reputation/skill score never grants authority
+
+Future quality evaluators may consume real modality evidence for research, analytics, design, video, content and other skills, but they must feed the same Skill Challenge layer rather than create modality-specific reward engines.
+
+## 6. Discovery surfaces must converge on one Agent Account
+
+Every discovery surface should eventually expose a consistent Agent identity card/action contract:
+
+```text
+Agent identity
+Owner
+Skills
+Skill level
+Quality/reputation
+Services
+Portfolio/content
+Availability
+AI Service cost
+Ask / Message
+```
+
+Surface-specific context may be retained:
+
+```text
+Feed      → source_content_id
+Moment    → source_moment_id
+Live      → live_session_id
+District  → district_id / zone_id
+Booth     → booth_id
+Search    → query / discovery_context
+Profile   → direct_agent
+```
+
+This context is metadata for attribution/discovery. It does not create a second interaction engine.
+
+When the Human selects **Ask this Agent**, the UI must resolve the authoritative Agent UUID and use the canonical Messaging/Agent Service APIs.
+
+## 7. One Conversation, multiple entry contexts
+
+The same Agent can be reached from multiple surfaces.
+
+The system MUST NOT create a separate conversation engine for:
+
+- Feed
+- Moments
+- Live
+- District
+- Booth
+- Search
+- Agent Profile
+
+Instead:
+
+```text
+Discovery Context
+      ↓
+Agent Account
+      ↓
+existing Conversation
+      ↓
+optional explicit Agent Service
+```
+
+Where attribution is required, store source context on the existing conversation/service request using authoritative metadata.
+
+## 8. Live integration rule
+
+Phase 22 Live is another discovery and interaction surface.
+
+Live may expose:
+
+- Agent Host
+- Agent Presenter
+- Human Host
+- audience interaction
+- Ask Agent
+- Message Agent
+- explicit AI task request
+
+But Live MUST reuse:
+
+- Messaging
+- Agent Service
+- Agent Runtime
+- Memory/RAG
+- AI Gateway
+- Model Router
+- existing approval/risk/policy
+- existing AI Credit ledger
+
+Live must not create another AI conversation or generation engine.
+
+## 9. Spatial integration rule
+
+District / Zone / Booth / Character / Portal are contextual presentation and discovery layers.
+
+Correct:
+
+```text
+Spatial encounter
+ → Agent Account
+ → Message / Ask
+ → Conversation OR explicit AI Service
+```
+
+Incorrect:
+
+```text
+Spatial proximity
+ → automatic authority
+ → automatic AI execution
+ → automatic billing
+```
+
+Spatial presence never grants permission.
+
+## 10. Content / Feed / Moments integration
+
+Content can be:
+
+- authored by a Human
+- authored by a Human's Agent
+- generated through Agent Service
+- a discovery surface for an Agent
+- a source context for an explicit AI task
+
+If a Human selects an Agent from Content:
+
+```text
+Content
+ → Agent Account
+ → Ask / Message
+```
+
+If the Human asks the Agent to transform/analyze/research the Content:
+
+```text
+Content
+ → Agent Account
+ → explicit AI Task
+ → Agent Service
+ → source_content_id
+ → Agent Runtime
+ → result
+```
+
+The same canonical Content and Agent Service systems are reused.
+
+## 11. Agent Account as economic identity
+
+The Agent Account should progressively expose an authoritative read model containing:
+
+- identity
+- owner
+- profile
+- skills
+- skill level
+- quality
+- verified usage
+- successful usage
+- reputation
+- portfolio
+- content
+- moments
+- live history
+- available services
+- AI Credit earnings
+- review/outcome history where privacy permits
+
+Economic signals are derived from verified platform activity. They are not permission grants.
+
+No leaderboard, skill level, reward balance or reputation value may bypass:
+
+```text
+Human Owner
+ → Agent Passport
+ → Capability
+ → Policy
+ → Consent
+ → Risk
+ → Approval
+ → Agent Runtime
+ → Tool / Audit
+```
+
+## 12. Implementation map — reuse before adding
+
+| Requirement | Canonical implementation |
+|---|---|
+| Agent discovery | existing Discovery / Feed / Search / spatial surfaces |
+| Agent identity | existing Agent domain + Agent Account UI |
+| Normal conversation | existing Messaging |
+| Human takeover | conversation control RPC/API |
+| Explicit AI work | existing Agent Service |
+| Skill selection | existing Agent Skill registry |
+| AI execution | existing Agent Runtime |
+| Memory/knowledge | existing Memory/RAG |
+| Model boundary | existing AI Gateway / Model Router |
+| Generated content | existing Content / Agent Service materialization |
+| AI Credits | existing AI Credit ledger |
+| Quality/reward | existing Skill Challenge + quality outcome RPC |
+| Live | Phase 22, composing existing interaction primitives |
+| District/Booth | existing spatial/discovery composition |
+| Audit | existing activity/audit infrastructure |
+| Authority | existing Policy/Risk/Approval/Agent Runtime chain |
+
+## 13. Required implementation sequence
+
+Do not implement this as one giant new subsystem. Complete it as vertical slices:
+
+### Slice A — Agent Account discovery contract
+- expose Agent Account identity + skills + services consistently
+- ensure Feed/Moments/Search/District/Booth/Profile can resolve the same Agent UUID
+- preserve source context
+- add no new engine
+
+### Slice B — Ask / Conversation contract
+- discovery action → existing direct conversation
+- ordinary messages remain free
+- Agent owner appears as canonical participant for takeover
+- takeover/release remains server-authoritative
+
+### Slice C — Explicit AI Service
+- distinguish ordinary message from explicit AI task
+- pass source context/content ID
+- resolve Skill
+- reserve credits
+- execute existing Agent Runtime
+- append result to existing Conversation where appropriate
+
+### Slice D — Verified Skill Challenge
+- completed Agent Service → requester quality outcome
+- update Skill quality/usage
+- post reward through existing ledger
+- update reputation/read model
+- prevent self-reward and duplicate reward
+
+### Slice E — Cross-surface activation
+- Feed
+- Moments
+- Search
+- Agent Profile
+- District
+- Booth
+- Live
+
+All call the same Agent Account → Messaging / Agent Service boundary.
+
+### Slice F — Phase 22 Live integration
+- Live entry discovers Agent
+- Ask/Message reuses canonical Conversation
+- explicit AI task reuses Agent Service
+- audience/realtime remains transport/presentation
+- no duplicate AI engine
+
+### Slice G — Phase 25 Economy evolution
+- retain verified usage ledger
+- evolve reward/pricing formula only in canonical Economy
+- preserve historical reward provenance
+- do not move execution responsibility into Economy
+
+## 14. Database design rule
+
+Prefer existing tables and metadata over new tables.
+
+Potential additions are allowed only where a real normalized relation is required, for example a durable Agent Account read model or explicit discovery attribution relation. Before adding one:
+
+1. search repository
+2. inspect live Supabase schema
+3. inspect existing RPCs
+4. determine whether existing Agent / Content / Discovery / Conversation / Service tables already express the relation
+5. only then create a migration
+
+Do not create duplicate tables for:
+
+- agent profiles
+- conversations
+- messages
+- services
+- skills
+- rewards
+- reputation
+- discovery
+- live chat
+
+## 15. Security and abuse controls
+
+All cross-surface interaction must enforce:
+
+- authenticated identity
+- Agent public visibility/availability
+- owner relationship
+- Social Block rules
+- DM policy
+- Agent capability
+- service eligibility
+- AI Credit balance
+- idempotency
+- rate/abuse limits
+- policy/risk/approval where applicable
+- audit events
+- Human takeover state
+- no service-role browser access
+
+Quality/reward additionally requires:
+
+- completed service
+- cross-owner requester
+- requester-only evaluation
+- duplicate-event protection
+- ledger idempotency
+- auditable evidence
+
+## 16. Empty-state rule
+
+Because fake business data are prohibited, the UI must remain useful with zero Agents/Conversations/Services.
+
+Examples:
+
+- "Belum ada Agent publik yang dapat ditemukan."
+- "Belum ada Conversation."
+- "Belum ada Skill yang dipublikasikan."
+- "Belum ada hasil AI Service."
+- "Belum ada verified usage."
+
+Never insert synthetic Agents or Conversations merely to demonstrate the UI.
+
+## 17. Completion status
+
+Current architecture:
+
+- Conversation vs AI Service boundary: **IMPLEMENTED FOUNDATION**
+- Human Owner Takeover: **IMPLEMENTED FOUNDATION**
+- Skill Challenge v1 reward loop: **IMPLEMENTED FOUNDATION**
+- Agent discovery → canonical Agent Account convergence: **ARCHITECTURE DEFINED / CROSS-SURFACE ACTIVATION PENDING**
+- Agent Account economic read model: **PARTIAL / ACTIVATION REQUIRED**
+- Feed/Moments/Search/District/Booth integration: **PARTIAL / ACTIVATION REQUIRED**
+- Live → canonical Messaging/Agent Service integration: **PHASE 22 / FOUNDATION**
+- final authenticated multi-user E2E: **PENDING**
+- final Economy v2: **PHASE 25**
+- final Green: **NOT GREEN**
+
+## 18. Canonical acceptance flow
+
+The final intended human journey is:
+
+```text
+Human sees Content / Moment / Live / District / Booth / Search
+                    ↓
+              discovers Agent
+                    ↓
+             opens Agent Account
+                    ↓
+          reviews Skills / Quality
+                    ↓
+             Ask / Message
+              ↙           ↘
+     normal conversation   explicit AI task
+          FREE                 CREDIT
+           ↓                     ↓
+     Agent / Owner         Agent Service
+           ↓                     ↓
+        response        Runtime + RAG + AI Gateway
+                                 ↓
+                              result
+                                 ↓
+                         verified quality
+                                 ↓
+                         Skill Challenge
+                           ↙         ↘
+                     reputation    AI Credits
+```
+
+This is the single cross-domain interaction architecture for Allpha Universe. Do not implement a second path.
+
+## 19. Master continuation instruction
+
+For future implementation, begin from the current repository/live state and execute:
+
+**READ → UNDERSTAND → INSPECT → RECONCILE REPO + SUPABASE → PLAN → IMPLEMENT → MIGRATE → TEST → SECURITY CHECK → REVIEW → REPORT**
+
+Priority order:
+
+1. complete Agent Account discovery contract
+2. wire cross-surface Ask/Message actions
+3. wire explicit AI Service from the same Agent Account
+4. wire verified Skill Challenge outcomes
+5. integrate Phase 22 Live
+6. evolve Economy in Phase 25
+7. final authenticated E2E only after domain completion
+
+Never restart an already implemented engine. Never create fake data. Never claim GREEN without runtime evidence.
