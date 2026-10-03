@@ -547,7 +547,7 @@ Implemented:
 - AI Capsule presented as contextual/spatial insight over the existing Content → AI Capsule lifecycle.
 - Mobile gesture/HUD behavior: touch drag/orbit, swipe up/down HUD, compact contextual controls and low-power/reduced-motion rendering.
 - Extended the canonical World renderer to accept Booth, Portal, Content and Presence spatial objects without creating a second 3D renderer.
-- Performance guardrails use low-power DPR, reduced density and R3F performance bounds; R3F guidance favors shared rendering and avoiding unnecessary remounting. citeturn0search0turn0search1
+- Performance guardrails use low-power DPR, reduced density and R3F performance bounds; R3F guidance favors shared rendering and avoiding unnecessary remounting.
 
 Files:
 - `apps/web/components/universe/immersive-universe-shell.tsx`
