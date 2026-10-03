@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, type ReactNode } from "react";
 import { apiFetch } from "../lib/api";
 
 type Character={id:string;character_key:string;name:string;archetype:string;description?:string|null;visual_profile?:Record<string,unknown>};
@@ -86,7 +86,7 @@ export default function AvatarStudioSurface(){
     </div>
   </main>;
 }
-function Panel({title,children}:{title:string;children:React.ReactNode}){return <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-5"><h2 className="text-lg font-semibold">{title}</h2><div className="mt-4">{children}</div></section>}
+function Panel({title,children}:{title:string;children:ReactNode}){return <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-5"><h2 className="text-lg font-semibold">{title}</h2><div className="mt-4">{children}</div></section>}
 function CatalogState({items,empty}:{items:Catalog[];empty:string}){return items.length===0?<Empty text={empty}/>:<div className="space-y-2">{items.map(x=><div key={x.id} className="rounded-xl border border-white/10 p-3"><p className="text-xs font-medium">{x.name}</p><p className="mt-1 text-[10px] text-slate-500">{x.status} · {x.moderation_status}</p></div>)}</div>}
 function Empty({text}:{text:string}){return <div className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-slate-500">{text}</div>}
 const input="w-full rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white outline-none";
