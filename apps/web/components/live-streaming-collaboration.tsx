@@ -31,7 +31,7 @@ type LiveInteraction = {
 type Session = {
   id: string; title: string; status: "draft" | "scheduled" | "live" | "ended" | "cancelled";
   visibility: string; source_type: string; scheduled_at: string | null;
-  experience_template_id: string; experience_template_version_id: string;
+  experience_template_id: string; experience_template_version_id: string; host_agent_id?: string | null;
   live_experience_templates?: { name: string; slug: string; category: string } | null;
   live_experience_template_versions?: { version: number } | null;
 };
@@ -104,6 +104,18 @@ export default function LiveStreamingCollaboration() {
   const [audiencePresence, setAudiencePresence] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState("disconnected");\n  const [liveHostAgent, setLiveHostAgent] = useState<AgentAccount|null>(null);
 
+  useEffect(() => {
+    const session = sessions.find(s => s.id === selectedLiveSessionId);
+    const hostId = session?.host_agent_id;
+    if (!hostId) { setLiveHostAgent(null); return; }
+    void (async () => {
+      try {
+        const r = await apiFetch<{ data: { agent: { id: string; name: string; handle: string | null; description: string | null; avatar_path: string | null; status: string; runtime_state: string; is_owned_by_viewer: boolean }; skills: AgentAccount["skills"]; reputation: { quality_score: number; verified_usage_count: number; successful_usage_count: number; reward_credits_earned: number; challenge_level: number } } }>("/api/v1/agent-catalog/accounts/" + hostId);
+        const x=r.data;
+        setLiveHostAgent({agent_id:x.agent.id,name:x.agent.name,handle:x.agent.handle,description:x.agent.description,avatar_path:x.agent.avatar_path,status:x.agent.status,runtime_state:x.agent.runtime_state,is_owned_by_viewer:x.agent.is_owned_by_viewer,skills:x.skills,quality_score:x.reputation.quality_score,verified_usage_count:x.reputation.verified_usage_count,successful_usage_count:x.reputation.successful_usage_count,reward_credits_earned:x.reputation.reward_credits_earned,challenge_level:x.reputation.challenge_level});
+      } catch { setLiveHostAgent(null); }
+    })();
+  }, [selectedLiveSessionId, sessions]);
   async function loadCatalog() {
     setLoading(true); setError(null);
     try {
@@ -515,6 +527,7 @@ export default function LiveStreamingCollaboration() {
                   {sessions.filter(s => s.status === "live").map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                 </select>
               </label>
+              {selectedLiveSessionId && liveHostAgent ? <div className="mb-3"><p className="mb-2 text-[10px] uppercase tracking-[.18em] text-[var(--allpha-cyan)]">Live Host → Agent Account</p><AgentAccountCard agent={liveHostAgent} compact discoveryContext={{source_surface:"live",live_session_id:selectedLiveSessionId}} /></div> : null}
               {selectedLiveSessionId && (
                 <div className="mt-3 space-y-2">
                   <button disabled={sessionLoading || !sessions.find(s => s.id === selectedLiveSessionId)?.visibility || !!viewerId} onClick={() => void joinAudience(selectedLiveSessionId)} className="w-full rounded-md border border-white/10 px-3 py-2 text-xs disabled:opacity-40">Join Audience</button>
