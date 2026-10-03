@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
+import LiveRealtimeVoice from "./live-realtime-voice";
 import { normalizeWorldScene } from "../lib/world-engine/scene-schema";
 import type { WorldScene } from "../lib/world-engine/scene-schema";
 
@@ -98,6 +99,7 @@ export default function LiveExperienceRuntimeSetup() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [voicePerformance, setVoicePerformance] = useState({ speaking: false, level: 0, userSpeaking: false });
 
   const selectedSession = useMemo(() => sessions.find((s) => s.id === sessionId) ?? null, [sessions, sessionId]);
   const activeCollaboration = collaborations.find((c) => c.status === "active" && c.consent_status === "approved" && c.risk_decision === "allow");
@@ -304,6 +306,32 @@ export default function LiveExperienceRuntimeSetup() {
     finally { setBusy(false); }
   }
 
+  async function claimPlatformUniform(uniform: Costume) {
+    setBusy(true); setError(null); setMessage(null);
+    try {
+      const r = await apiFetch<{ data: { ownership_id: string; uniform_id: string; name: string; uniform_key: string; acquired_via: string; status: string } }>(
+        "/api/v1/avatar/uniforms/" + uniform.id + "/claim",
+        { method: "POST" },
+      );
+      const owned = {
+        id: r.data.ownership_id,
+        user_id: null,
+        uniform_id: r.data.uniform_id,
+        acquired_via: r.data.acquired_via,
+        status: r.data.status,
+        equipped: false,
+      };
+      setCostumes((x) => ({
+        ...x,
+        owned_uniforms: [owned, ...x.owned_uniforms.filter((item: any) => item.id !== owned.id)],
+      }));
+      setCostumeKind("uniform");
+      setSelectedCostume(owned.id);
+      setMessage("Uniform platform siap dipakai pada Human Presentation.");
+    } catch (e) { setError(e instanceof Error ? e.message : "PLATFORM_UNIFORM_CLAIM_FAILED"); }
+    finally { setBusy(false); }
+  }
+
   async function createCustomCostume(file: File) {
     setBusy(true); setError(null); setMessage(null);
     try {
@@ -425,11 +453,24 @@ export default function LiveExperienceRuntimeSetup() {
 
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
           <div className={card + " p-4"}>
-            <div className="mb-3 font-medium">3 · Human Custom Uniform / Costume</div>
-            <div className="flex flex-wrap gap-2">
-              {["superhero","business_shirt","suit_tie","formal","nusantara","traditional","cultural","uniform","fantasy","sci_fi","creator","custom"].map((category) => (
-                <span key={category} className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-white/50">{category}</span>
-              ))}
+            <div className="mb-3 font-medium">3 · Uniform Ready Allpha + Custom Costume</div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {costumes.platform_uniforms.map((uniform) => {
+                const meta = uniform.metadata ?? {};
+                const palette = Array.isArray(meta.palette) ? meta.palette : [];
+                return (
+                  <button key={uniform.id} type="button" className={"rounded-xl border p-3 text-left transition " + (selectedCostume && costumeKind === "uniform" && costumes.owned_uniforms.some((x:any) => x.id === selectedCostume && x.uniform_id === uniform.id) ? "border-[var(--allpha-cyan)] bg-white/5" : "border-white/10 bg-black/10 hover:border-white/25")} onClick={() => void claimPlatformUniform(uniform)} disabled={busy}>
+                    <div className="flex items-center gap-2">
+                      <span className="h-7 w-7 rounded-lg border border-white/10" style={{ background: "linear-gradient(135deg," + (palette[0] ?? "#334155") + "," + (palette[1] ?? palette[0] ?? "#111827") + ")" }} />
+                      <div>
+                        <div className="text-sm font-medium">{uniform.name}</div>
+                        <div className="text-[10px] uppercase tracking-wider text-white/35">Ready · Platform</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-white/45">{uniform.description}</div>
+                  </button>
+                );
+              })}
             </div>
             <div className="mt-3 flex gap-2">
               <select className={input} value={costumeKind + ":" + selectedCostume} onChange={(e) => {
@@ -437,15 +478,15 @@ export default function LiveExperienceRuntimeSetup() {
                 setCostumeKind(kind as "uniform" | "custom"); setSelectedCostume(id);
               }}>
                 <option value="uniform:">No costume / default Human</option>
-                {ownedOptions.map((x) => <option key={"o"+x.id} value={"uniform:"+x.id}>Owned · {x.name}</option>)}
-                {customOptions.map((x) => <option key={"c"+x.id} value={"custom:"+x.id}>Custom · {x.name}</option>)}
+                {ownedOptions.map((x) => <option key={"o"+x.id} value={"uniform:"+x.id}>Ready/Owned · {x.name}</option>)}
+                {customOptions.map((x) => <option key={"c"+x.id} value={"custom:"+x.id}>Custom GLB · {x.name}</option>)}
               </select>
-              <label className={button + " cursor-pointer whitespace-nowrap"}>
+              <label className={button + " cursor-pointer whitespace-nowrap">
                 Upload Custom
                 <input type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" className="hidden" onChange={(e) => e.target.files?.[0] && void createCustomCostume(e.target.files[0])} />
               </label>
             </div>
-            <p className="mt-2 text-xs text-white/40">Kategori global dapat diperluas. Kostum berlisensi seperti Avengers hanya boleh digunakan bila Human memiliki hak/lisensi yang sesuai.</p>
+            <p className="mt-2 text-xs text-white/40">Ready Uniform memakai platform preset contract; Custom GLB tetap memakai asset ownership + moderation. Uniform berlisensi seperti Avengers hanya dapat dipakai bila Human memiliki hak/lisensi.</p>
           </div>
 
           <div className={card + " p-4"}>
@@ -458,7 +499,13 @@ export default function LiveExperienceRuntimeSetup() {
               {collaborations.map((c) => <option key={c.id} value={c.id}>{c.mode} · {c.status} · {c.risk_decision}</option>)}
             </select>
             <button className={button + " mt-3 w-full"} disabled={!camera || !presence || presence.verification_status !== "verified" || busy} onClick={bindPresentation}>Bind Human Presentation</button>
-            <button className="mt-2 w-full rounded-[var(--allpha-radius-md)] bg-[var(--allpha-cyan)] px-3 py-2 text-sm font-semibold text-black disabled:opacity-40" disabled={!stage?.active || !camera || !presence || presence.verification_status !== "verified" || !collaborationId || busy} onClick={activate}>Activate Live Experience</button>
+            <button className="mt-2 w-full rounded-[var(--allpha-radius-md)] bg-[var(--allpha-cyan)] px-3 py-2 text-sm font-semibold text-black disabled={!stage?.active || !camera || !presence || presence.verification_status !== "verified" || !collaborationId || busy} onClick={activate}>Activate Live Experience</button>
+            {collaborationId && (
+              <div className="mt-3">
+                <LiveRealtimeVoice sessionId={sessionId} collaborationId={collaborationId} onPerformance={setVoicePerformance} />
+                <div className="mt-2 text-[10px] text-white/35">Character performance signal · voice level {voicePerformance.level.toFixed(2)} · {voicePerformance.speaking ? "Agent speaking" : voicePerformance.userSpeaking ? "Human speaking" : "idle"}</div>
+              </div>
+            )}
           </div>
         </div>
 
