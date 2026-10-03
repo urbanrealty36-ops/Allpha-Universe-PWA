@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
-type Command = {
+type Agent = { id: string; name: string; status: string; runtime_state?: string };\n\ntype Command = {
   id: string;
   agent_id: string;
   command_text: string;
@@ -104,7 +104,7 @@ export default function AgentRuntimeSurface() {
         <section className="mt-6 rounded-2xl border border-white/10 bg-white/[.03] p-5">
           <h2 className="font-semibold">Issue Agent Command</h2>
           <form onSubmit={submit} className="mt-4 grid gap-3">
-            <input value={agentId} onChange={(e) => setAgentId(e.target.value)} className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm" placeholder="Agent UUID" />
+            <select value={agentId} onChange={(e) => setAgentId(e.target.value)} className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm" disabled={!agents.length}>\n              {!agents.length && <option value="">No owned Agent available</option>}\n              {agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name} · {agent.status}</option>)}\n            </select>
             <textarea value={command} onChange={(e) => setCommand(e.target.value)} className="min-h-28 rounded-xl border border-white/10 bg-black/20 p-4 text-sm" placeholder="Describe the task you want the Agent to perform…" />
             <div className="flex justify-end"><button disabled={busy || !agentId.trim() || !command.trim()} className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black disabled:opacity-40">{busy ? "Working…" : "Create Command"}</button></div>
           </form>
