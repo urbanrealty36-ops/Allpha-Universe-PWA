@@ -83,6 +83,7 @@ export default function LiveExperienceRuntimeSetup() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
   const [themePackUrl, setThemePackUrl] = useState<string | null>(null);
+  const [agentCharacterUrl, setAgentCharacterUrl] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [themeId, setThemeId] = useState("");
   const [stage, setStage] = useState<StageRuntime | null>(null);
@@ -133,11 +134,12 @@ export default function LiveExperienceRuntimeSetup() {
   async function loadSessionRuntime(id: string) {
     setError(null);
     try {
-      const [stageResponse, cameraResponse, presenceResponse, collabResponse] = await Promise.all([
+      const [stageResponse, cameraResponse, presenceResponse, collabResponse, characterResponse] = await Promise.all([
         apiFetch<{ data: StageRuntime }>(`/api/v1/live/sessions/${id}/stage-runtime`),
         apiFetch<{ data: CameraSource | null }>(`/api/v1/live/sessions/${id}/camera`),
         apiFetch<{ data: PresenceCheck | null }>(`/api/v1/live/sessions/${id}/presence-check`),
         apiFetch<{ data: Collaboration[] }>(`/api/v1/live/sessions/${id}/collaborations`),
+        apiFetch<{ data: any[] }>(`/api/v1/live/sessions/${id}/characters`),
       ]);
       setStage(stageResponse.data ?? null);
       setCamera(cameraResponse.data ?? null);
@@ -156,6 +158,15 @@ export default function LiveExperienceRuntimeSetup() {
       setCollaborations(collabResponse.data ?? []);
       const active = (collabResponse.data ?? []).find((c) => c.status === "active" && c.consent_status === "approved" && c.risk_decision === "allow");
       setCollaborationId(active?.id ?? "");
+      setAgentCharacterUrl(null);
+      const selectedCharacter = (characterResponse.data ?? []).find((x: any) => x.status === "active" && x.asset_id);
+      if (selectedCharacter?.asset_id) {
+        try {
+          const assets = await apiFetch<{ data: any[] }>(`/api/v1/live/character-assets?agent_id=${encodeURIComponent(active?.agent_id ?? "")}`);
+          const asset = (assets.data ?? []).find((x: any) => x.id === selectedCharacter.asset_id && x.signed_url);
+          setAgentCharacterUrl(asset?.signed_url ?? null);
+        } catch { setAgentCharacterUrl(null); }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "LIVE_22G_RUNTIME_LOAD_FAILED");
     }
@@ -404,6 +415,8 @@ export default function LiveExperienceRuntimeSetup() {
                       lowPower={false}
                       themePackUrl={themePackUrl}
                       liveStageUrl={stage.stage?.signed_url ?? null}
+                      agentCharacterUrl={agentCharacterUrl}
+                      agentCharacterPerformance={voicePerformance}
                     />
                   </div>
                 ) : (
