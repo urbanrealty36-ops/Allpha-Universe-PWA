@@ -1564,3 +1564,46 @@ Runtime/cross-Agent E2E remains pending because the canonical database currently
 ### Next Phase
 **PHASE 27 — Super Admin Control Plane**
 Overview: Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
+
+
+### PHASE 27C — Super Admin Domain Operations, Transaction Explorer & Master Data Management
+
+Status: **IMPLEMENTED FOUNDATION / NOT GREEN**
+
+Implemented:
+- Server-authoritative Transaction Explorer for Commerce Orders, payment attempts, Midtrans provider references/status, buyer/seller/item summaries, billing invoice linkage, credit-purchase linkage, Commerce Events and audit drill-down.
+- Search, pagination, order-kind/status and payment/provider-status filtering.
+- Super Admin Domain Operations explorer across Users, Agents, Content, Moderation, Galaxy, World, District, Zone, Booth, Marketplace, Billing, Economy, Subscription, Invoice, Payout, Approval, Risk, Feature Flag, Configuration Version and Theme domains.
+- Controlled high-risk operations delegate to the existing canonical engines: Content Moderation, Payout/Approval, Marketplace Listing publication and Theme publication/moderation.
+- Controlled Master Data Management for Billing Plans, Credit Products and platform World Templates.
+- Existing Feature Flag and Configuration Version lifecycle remains canonical and is exposed through the Phase 27A control plane.
+- AI Provider/Model master data remains read-only and credential values are excluded.
+- All Phase 27C mutations require admin.manage, explicit operator reason, server-side validation and audit evidence.
+- Anonymous/public execution is revoked for the new admin wrappers.
+- No fake users, Agents, transactions, payments, payouts, marketplace records or business fixtures were seeded.
+
+Database:
+- database/migrations/202610041phase_27c_super_admin_domain_operations.sql
+- database/tests/phase_27c_super_admin_domain_operations_invariants.sql
+- docs/architecture/PHASE_27C_SUPER_ADMIN_DOMAIN_OPERATIONS_v1.0.md
+
+Admin:
+- /transactions
+- /operations
+- /master-data
+- /overview updated with Phase 27C navigation.
+
+Verification:
+- Live authenticated temporary Super Admin context exercised transaction and domain explorers; temporary role assignment was rolled back.
+- New public wrappers are not executable by anon and are executable by authenticated.
+- Provider secret payloads are not exposed by Transaction Explorer.
+- No persistent business test data was created.
+
+Not GREEN:
+- Browser authenticated E2E remains pending.
+- API/Admin typecheck/build/CI remains pending.
+- Real Marketplace → Midtrans → settlement → payout lifecycle remains pending.
+- Phase 26 leaked-password protection remains intentionally pending until production.
+- Final QA/CI/CD/runtime/production gates remain later phases.
+
+Next: **PHASE 27D — Super Admin Governance Actions, Detail Views & Cross-Domain Operational Workflows**.
