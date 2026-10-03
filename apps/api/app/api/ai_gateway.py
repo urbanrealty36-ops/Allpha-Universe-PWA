@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
 from app.core.supabase_rest import select
+from app.core.security import SecurityViolation, require_safe_prompt
 
 router = APIRouter(prefix="/api/v1/ai", tags=["AI Gateway & Model Router"])
 
