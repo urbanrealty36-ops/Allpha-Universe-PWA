@@ -1,15 +1,6 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Identity</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Agents</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Agent administration</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
-}
+"use client";
+import { useEffect,useState } from "react";
+import { apiFetch } from "../../lib/api";
+export default function Page(){const [data,setData]=useState<any>(null);const [error,setError]=useState<string|null>(null);
+useEffect(()=>{void apiFetch<{data:any}>("/api/v1/admin/agent-authority/overview").then(r=>setData(r.data)).catch(e=>setError(e instanceof Error?e.message:"ADMIN_LOAD_FAILED"))},[]);
+return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl"><p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Authority Control Plane</p><h1 className="mt-3 text-4xl font-semibold">Agents</h1><p className="mt-4 max-w-3xl text-slate-300">Authoritative Agent identity, runtime state, risk and approval overview. No synthetic records.</p>{error&&<div className="mt-6 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>}<div className="mt-10 grid gap-5 lg:grid-cols-2">{(data?.agents??[]).map((a:any)=><article key={a.id} className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><h2 className="text-lg font-semibold">{a.name}</h2><p className="mt-1 text-xs text-slate-500">{a.handle||a.id}</p><div className="mt-4 grid grid-cols-2 gap-3 text-xs"><span>Status: {a.status}</span><span>Runtime: {a.runtime_state}</span><span>Authority v{a.authority_policy_version}</span><span>Visibility: {a.visibility}</span></div></article>)}{data&&!(data.agents??[]).length&&<p className="text-sm text-slate-500">No Agent records returned.</p>}</div></div></main>}
