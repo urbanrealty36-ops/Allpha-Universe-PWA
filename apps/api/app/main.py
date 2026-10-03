@@ -32,6 +32,7 @@ from app.api.memory_knowledge import router as memory_knowledge_router
 from app.api.messaging import router as messaging_router
 from app.api.agent_collaboration import router as agent_collaboration_router
 from app.api.marketplace import router as marketplace_router
+from app.api.economy import router as economy_router
 from app.api.personalization import router as personalization_router
 from app.api.social import router as social_router
 from app.api.avatar import router as avatar_router
@@ -70,6 +71,7 @@ app.include_router(memory_knowledge_router)
 app.include_router(messaging_router)
 app.include_router(agent_collaboration_router)
 app.include_router(marketplace_router)
+app.include_router(economy_router)
 app.include_router(personalization_router)
 app.include_router(social_router)
 app.include_router(avatar_router)
