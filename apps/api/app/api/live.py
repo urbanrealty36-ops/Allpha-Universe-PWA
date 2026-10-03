@@ -986,3 +986,20 @@ async def get_live_human_presentation_runtime(session_id: UUID, context: dict = 
         }}
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_HUMAN_PRESENTATION_RUNTIME_LOAD_FAILED") from exc
+
+
+
+class LiveCustomCostumeModerate(BaseModel):
+    decision: Literal["approved", "restricted", "removed"]
+
+
+@router.post("/costumes/custom/{costume_id}/moderate")
+async def moderate_live_custom_costume(costume_id: UUID, payload: LiveCustomCostumeModerate, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "moderate_live_custom_costume", {
+            "p_costume_id": str(costume_id),
+            "p_decision": payload.decision,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COSTUME_MODERATION_FAILED") from exc
