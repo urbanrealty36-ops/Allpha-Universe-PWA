@@ -682,6 +682,7 @@ function ImmersiveStage({
     <div className={`h-screen w-full transition-all duration-500 ${transitioning ? "scale-[1.06] opacity-45 blur-[1px]" : "scale-100 opacity-100"}`}>
       <AllphaWorldRenderer
         scene={activeTheme?.world_schema}
+        themePackUrl={themePackUrl}
         tokens={activeTheme?.tokens}
         lowPower={lowPower}
         booths={booths}
