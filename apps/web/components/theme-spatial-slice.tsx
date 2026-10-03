@@ -15,7 +15,7 @@ type Galaxy = { id: string; name: string; slug: string; status: string };
 type World = { id: string; galaxy_id: string; name: string; slug: string; status: string; theme_key?: string | null; world_type?: string };
 type District = { id: string; world_id: string; name: string; slug: string; status: string; theme_key?: string | null };
 type Zone = { id: string; district_id: string; zone_key: string; name: string; zone_type: string; status: string };
-type Booth = { id: string; district_id: string; district_zone_id?: string | null; name: string; slug: string; status: string; theme_key?: string | null; booth_type: string };
+type Booth = { id: string; district_id: string; district_zone_id?: string | null; name: string; slug: string; status: string; theme_key?: string | null; booth_type: string };\ntype Content = { id: string; title: string | null; content_type: string; status: string };
 type Manifest = { binary_3d_assets?: Array<{ id: string; signed_url?: string | null }> };
 
 export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
@@ -23,7 +23,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   const [worlds, setWorlds] = useState<World[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [booths, setBooths] = useState<Booth[]>([]);
+  const [booths, setBooths] = useState<Booth[]>([]);\n  const [content, setContent] = useState<Content[]>([]);
   const [galaxyId, setGalaxyId] = useState("");
   const [worldId, setWorldId] = useState("");
   const [districtId, setDistrictId] = useState("");
@@ -36,7 +36,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   const [worldName, setWorldName] = useState("");
   const [districtName, setDistrictName] = useState("");
   const [zoneName, setZoneName] = useState("");
-  const [boothName, setBoothName] = useState("");
+  const [boothName, setBoothName] = useState("");\n  const [contentTitle, setContentTitle] = useState("");\n  const [contentBody, setContentBody] = useState("");
 
   const scene = useMemo<WorldScene | null>(() => theme ? normalizeWorldScene(theme.world_schema) : null, [theme]);
 
@@ -61,7 +61,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     setBooths(r.data ?? []);
   }
 
-  useEffect(() => { void loadGalaxies().catch(e => setError(e instanceof Error ? e.message : "GALAXY_LOAD_FAILED")); }, []);
+  useEffect(() => { void Promise.all([loadGalaxies(), loadContent()]).catch(e => setError(e instanceof Error ? e.message : "SPATIAL_BOOTSTRAP_FAILED")); }, []);
   useEffect(() => {
     if (!galaxyId) return;
     void loadWorlds(galaxyId).catch(e => setError(e instanceof Error ? e.message : "WORLD_LOAD_FAILED"));
@@ -146,6 +146,32 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     finally { setBusy(false); }
   }
 
+  async function createContent(e: FormEvent) {
+    e.preventDefault(); if (!worldId || !contentTitle.trim()) return;
+    setBusy(true); setError(null);
+    try {
+      await apiFetch("/api/v1/content", {
+        method: "POST",
+        body: JSON.stringify({
+          content_type: "post", title: contentTitle.trim(), body: contentBody.trim() || null,
+          visibility: "public", metadata: { presentation_only: true, theme_id: theme?.id ?? null, created_from: "theme-studio" },
+        }),
+      });
+      const createdTitle = contentTitle.trim();
+      setContentTitle(""); setContentBody("");
+      const r = await apiFetch<{ data: Content[] }>("/api/v1/content?mine=true&limit=100");
+      setContent(r.data ?? []);
+      const created = (r.data ?? []).find(x => x.title === createdTitle && x.status === "draft");
+      if (created) {
+        await apiFetch(`/api/v1/universe/worlds/${worldId}/content`, {
+          method: "POST",
+          body: JSON.stringify({ content_id: created.id, placement: "spatial", sort_order: r.data?.length ?? 0 }),
+        });
+      }
+    } catch (e) { setError(e instanceof Error ? e.message : "CONTENT_CREATE_OR_LINK_FAILED"); }
+    finally { setBusy(false); }
+  }
+
   async function createBooth(e: FormEvent) {
     e.preventDefault(); if (!districtId || !boothName.trim()) return;
     setBusy(true); setError(null);
@@ -165,7 +191,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     finally { setBusy(false); }
   }
 
-  const renderBooths = booths.map((b, i) => ({
+  const renderContent = content.slice(0, 16).map((item, i) => ({\n    id: item.id, title: item.title, position: { x: (i % 4) * 2.4 - 3.6, y: 2 + (i % 2) * 0.4, z: -1 + Math.floor(i / 4) * 2.2 },\n  }));\n\n  const renderBooths = booths.map((b, i) => ({
     id: b.id, kind: "booth" as const, label: b.name,
     position: { x: (i % 4) * 3 - 4.5, y: 0, z: Math.floor(i / 4) * 3 - 3 },
     metadata: { booth_id: b.id, district_id: b.district_id, zone_id: b.district_zone_id ?? null, status: b.status },
@@ -210,13 +236,13 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
             <span className={binaryUrl ? "rounded-full border border-emerald-300/20 px-2 py-1 text-[9px] text-emerald-200" : "rounded-full border border-amber-300/20 px-2 py-1 text-[9px] text-amber-200"}>{binaryUrl ? "REAL GLB" : "PROCEDURAL"}</span>
           </div>
           <div className="h-[470px]">
-            {scene && worldId ? <AllphaWorldRenderer scene={scene} tokens={theme?.tokens} themePackUrl={binaryUrl} booths={renderBooths} selectedDistrictId={districtId} /> : <div className="flex h-full items-center justify-center px-8 text-center text-sm text-slate-500">Buat/pilih World untuk mengaktifkan spatial vertical slice.</div>}
+            {scene && worldId ? <AllphaWorldRenderer scene={scene} tokens={theme?.tokens} themePackUrl={binaryUrl} booths={renderBooths} content={renderContent} selectedDistrictId={districtId} /> : <div className="flex h-full items-center justify-center px-8 text-center text-sm text-slate-500">Buat/pilih World untuk mengaktifkan spatial vertical slice.</div>}
           </div>
           <div className="grid grid-cols-2 gap-2 border-t border-white/10 p-3 text-[9px] text-slate-500 sm:grid-cols-4">
             <Stat label="World" value={worldId ? "1" : "0"} />
             <Stat label="District" value={districtId ? "1" : "0"} />
             <Stat label="Zone" value={zones.length.toString()} />
-            <Stat label="Booth" value={booths.length.toString()} />
+            <Stat label="Booth" value={booths.length.toString()} />\n            <Stat label="Content" value={content.length.toString()} />
           </div>
         </div>
       </div>
