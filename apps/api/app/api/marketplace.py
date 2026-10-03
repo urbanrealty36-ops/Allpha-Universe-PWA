@@ -2,7 +2,7 @@ from typing import Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from app.api.dependencies import get_auth_context
+from app.api.dependencies import get_auth_context, require_owned_order
 from app.core.supabase_rest import SupabaseRestError, rpc, select
 
 router=APIRouter(prefix="/api/v1/marketplace",tags=["Marketplace & Commerce"])
@@ -91,8 +91,10 @@ async def create_payment_intent(order_id:UUID,payload:PaymentIntentCreate,contex
 
 @router.get("/orders/{order_id}/items")
 async def order_items(order_id:UUID,context:dict=Depends(get_auth_context))->dict[str,Any]:
+    await require_owned_order(context, order_id)
     return {"data":await select(context["user"],"commerce_order_items",{"select":"id,listing_id,title_snapshot,listing_type,quantity,unit_amount,total_amount,currency,agent_id,booth_id","order_id":f"eq.{order_id}","limit":"100"})}
 
 @router.get("/orders/{order_id}/payments")
 async def order_payments(order_id:UUID,context:dict=Depends(get_auth_context))->dict[str,Any]:
+    await require_owned_order(context, order_id)
     return {"data":await select(context["user"],"commerce_payments",{"select":"id,provider_key,status,amount,currency,external_reference,checkout_url,created_at,captured_at","order_id":f"eq.{order_id}","order":"created_at.desc","limit":"20"})}
