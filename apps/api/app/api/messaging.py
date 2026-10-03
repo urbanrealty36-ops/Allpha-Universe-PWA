@@ -335,7 +335,7 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             conversation_id = UUID(str(conversation["conversation_id"]))
 
         service_context = await rpc(user, "get_agent_service_context", {"p_service_request_id": request_id, "p_limit": 8})
-                system_scope = (
+        system_scope = (
             f"You are the Allpha AI Agent {service.get('agent_name')}. "
             f"Your published Skill for this service is {payload.skill_name}. "
             "Stay within this Skill and the Agent's configured capabilities and policy. "
@@ -351,7 +351,7 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             f"Agent Service request. Published Skill: {payload.skill_name}. Mode: {payload.mode}. "
             "Use the canonical ai.generate tool only. "
             "The final output must be the direct answer/generation requested by the Human. "
-            f"SYSTEM SCOPE:\n{system_scope}\n\nUSER REQUEST:\n{user_prompt}"
+            f"SYSTEM SCOPE:\n{system_scope}\n\nAUTHORIZED AGENT SERVICE CONTEXT (public knowledge + explicitly service-visible memory only):\n{service_context}\n\nUSER REQUEST:\n{user_prompt}"
         )
         command = await rpc(user, "create_agent_service_command", {
             "p_service_request_id": request_id,
