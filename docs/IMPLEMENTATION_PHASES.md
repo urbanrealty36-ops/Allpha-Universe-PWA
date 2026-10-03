@@ -1021,30 +1021,32 @@ Implemented authoritative messaging foundation for Human↔Human, Human↔Agent 
 Final authenticated multi-user E2E, realtime subscription verification, abuse/moderation runtime, notification delivery runtime, CI/build and final Green remain separate gates.
 
 
-## PHASE 19 — Districts — IMPLEMENTED FOUNDATION
+## PHASE 19 — Districts — IMPLEMENTED FOUNDATION / SPATIAL LAYER ACTIVATED
 
 Implemented on main. Depends on Phase 17 AI Universe and Phase 18 Agent Simulation & Spatial Runtime.
 
 ### Database
-Migration: 20261002020000_phase_19_districts.sql
-Tables: districts, district_memberships, district_entitlements, district_zones, district_access_requests, district_activity_events.
-Existing district_access_policies and district_access_grants are now FK-bound to districts.
+Base migration: 20261002020000_phase_19_districts.sql.
+Completion migration: 20261003150127 phase_19_district_spatial_objects.
+Existing tables: districts, district_memberships, district_entitlements, district_zones, district_access_requests, district_activity_events, district_spatial_objects.
+District spatial objects cover building, road, coworking, meeting_room, event, marketplace, agent_zone and community_zone.
 
 ### Authorization
-District access is server-side and fail-closed. Enterprise access requires active enterprise entitlement; organization context is enforced and allowlisted enterprise access requires an explicit active grant. Client flags are never trusted.
+District access remains server-side and fail-closed. Spatial objects inherit District owner/access boundaries; object creation/activation is server-authorized. Client flags are never trusted.
 
 ### API/PWA
 FastAPI: apps/api/app/api/districts.py, prefix /api/v1/districts.
 PWA: /districts via apps/web/components/districts-surface.tsx.
+Canonical AllphaWorldRenderer now supports District spatial-object presentation without creating a second renderer.
 
-### Verification
-Live invariant suite: 26/26 passed. No synthetic District, membership, entitlement, access request, zone or activity records exist.
+### Realtime
+district_spatial_objects is published through Supabase Realtime. No synthetic District, Zone or spatial-object records were seeded.
 
 ### Not GREEN
-Authenticated multi-user E2E, enterprise ABAC runtime E2E, organization/grant combinations, realtime runtime verification, API/PWA build, CI and production Green gates remain pending.
+Authenticated multi-user E2E, enterprise ABAC runtime E2E, organization/grant combinations, realtime browser verification, API/PWA build, CI, performance/accessibility and production Green gates remain pending.
 
 ### Next
-PHASE 20 — Booth / Tenant Platform.
+PHASE 20 — Booth / Tenant Platform, after remaining Phase 19 dependency reconciliation.
 
 
 ## PHASE 20 — Booth / Tenant Platform — IMPLEMENTED FOUNDATION
