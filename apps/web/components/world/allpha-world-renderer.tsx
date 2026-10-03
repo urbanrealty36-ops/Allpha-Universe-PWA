@@ -55,7 +55,7 @@ type Props = {
   liveStageUrl?: string | null;
   agentCharacterUrl?: string | null;
   agentCharacterAsset?: { source?: string | null; characterKey?: string | null; contract?: Record<string, unknown> | null };
-  agentCharacterPerformance?: { state?: string; speaking: boolean; level: number; userSpeaking: boolean };
+  agentCharacterPerformance?: CharacterAnimationSignal;
 };
 
 function Structure({ kind, color, accent, position, scale = 1 }: {
@@ -110,12 +110,12 @@ function LiveStage3DAsset({ url }: { url:string }) {
 function PlatformAgentCharacter3D({position,characterKey,performance}:{position:[number,number,number];characterKey?:string|null;performance?:{state?:string;speaking:boolean;level:number;userSpeaking:boolean}}){
   const root=useRef<Group>(null),head=useRef<Group>(null),torso=useRef<Group>(null),la=useRef<Group>(null),ra=useRef<Group>(null),lf=useRef<Group>(null),rf=useRef<Group>(null),ll=useRef<Group>(null),rl=useRef<Group>(null),le=useRef<Group>(null),re=useRef<Group>(null),mouth=useRef<Group>(null);
   const [primary,secondary,accent]=useMemo(()=>{const p:Record<string,[string,string,string]>={sage:["#334155","#e2e8f0","#38bdf8"],navigator:["#0f766e","#ccfbf1","#14b8a6"],strategist:["#312e81","#e0e7ff","#818cf8"],builder:["#7c2d12","#ffedd5","#f97316"],analyst:["#1f2937","#f3f4f6","#60a5fa"],mentor:["#78350f","#fef3c7","#f59e0b"],creator:["#581c87","#f3e8ff","#d946ef"],host:["#0f172a","#f8fafc","#38bdf8"],guardian:["#1e293b","#e2e8f0","#94a3b8"],presenter:["#172554","#eff6ff","#60a5fa"],streamer:["#172554","#dbeafe","#3b82f6"],world_guide:["#164e63","#cffafe","#67e8f9"]};return p[characterKey||""]??["#111827","#e5e7eb","#22d3ee"]},[characterKey]);
-  useFrame(({clock})=>{const t=clock.getElapsedTime(),v=Math.max(0,Math.min(1,performance?.level??0)),s=performance?.state??(performance?.speaking?"speaking":performance?.userSpeaking?"listening":"idle"),talk=s==="speaking",listen=s==="listening",think=s==="thinking";
+  useFrame(({clock})=>{const t=clock.getElapsedTime(),v=Math.max(0,Math.min(1,performance?.level??0)),s=performance?.state??(performance?.speaking?"speaking":performance?.userSpeaking?"listening":"idle"),talk=s==="speaking",listen=s==="listening",think=s==="thinking",facial=performance?.facial??"neutral",gaze=performance?.gaze??"camera";
     if(root.current){root.current.position.y=.02+Math.sin(t*(talk?3:1.8))*(talk?.04+v*.05:.018);root.current.rotation.y=Math.sin(t*.45)*.035}
     if(torso.current){torso.current.rotation.z=Math.sin(t*1.15)*(talk?.025+v*.045:.012);torso.current.rotation.x=think?-.05:listen?.02:0}
-    if(head.current){head.current.rotation.y=Math.sin(t*.55)*.08;head.current.rotation.x=listen?.08:think?-.09:.02}
-    if(mouth.current){mouth.current.scale.y=.15+(talk?v*1.15:0);mouth.current.scale.x=.75+(talk?v*.25:0)}
-    if(le.current&&re.current){const blink=Math.sin(t*1.7)>.994?.12:1;le.current.scale.y=blink;re.current.scale.y=blink}
+    if(head.current){const gazeTurn=gaze==="human"?-.08:gaze==="agent"?.08:gaze==="attention"?.04:0;head.current.rotation.y=gazeTurn+Math.sin(t*.55)*.08;head.current.rotation.x=listen?.08:think?-.09:facial==="surprised"?.04:.02}
+    if(mouth.current){const smile=facial==="smile"||facial==="happy"?.08:0;const concern=facial==="concerned"||facial==="serious"?-.02:0;mouth.current.scale.y=.15+(talk?v*1.15:0)+smile+concern;mouth.current.scale.x=.75+(talk?v*.25:0)}
+    if(le.current&&re.current){const blink=Math.sin(t*1.7)>.994?.12:1;const gazeShift=gaze==="human"?-.035:gaze==="agent"?.035:gaze==="attention"?.06:0;le.current.scale.y=blink;re.current.scale.y=blink;le.current.position.x=-.18+gazeShift;re.current.position.x=.18+gazeShift}
     if(la.current&&ra.current&&lf.current&&rf.current){const g=talk?.12+v*.2:.035;la.current.rotation.z=-g;ra.current.rotation.z=g;if(think){ra.current.rotation.x=-.45;rf.current.rotation.x=-1}else if(s==="greeting"||s==="farewell"){ra.current.rotation.x=-.55;rf.current.rotation.z=Math.sin(t*4)*.55}else{ra.current.rotation.x=0;rf.current.rotation.x=talk?Math.sin(t*2.2)*(.05+v*.08):0}lf.current.rotation.x=talk?Math.sin(t*2+1)*(.04+v*.07):0}
     if(ll.current&&rl.current){const q=talk?Math.sin(t*1.9)*(.02+v*.025):Math.sin(t*.9)*.01;ll.current.rotation.x=q;rl.current.rotation.x=-q}
   });
