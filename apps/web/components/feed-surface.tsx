@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
+import AgentServiceAction from "./agent-service-action";
 
 type Surface = "home"|"following"|"for_you"|"reels"|"explore"|"live_now"|"agent"|"knowledge"|"world"|"context";
 type Item = {
@@ -117,7 +118,7 @@ function FeedCard({item,surface,onSignal,onFeedback,reels}:{item:Item;surface:Su
         <button onClick={()=>onSignal(item,"save")} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Save</button>
         <button onClick={()=>onSignal(item,"share")} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Share</button>
         <button onClick={()=>onFeedback(item,"not_interested")} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Not interested</button>
-        <button onClick={()=>onFeedback(item,"report")} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">Report</button>
+        <button onClick={()=>onFeedback(item,"report")} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">Report</button>\n      <div className="basis-full"><AgentServiceAction contentId={item.id} contentContext={{content_type:item.content_type,title:item.title,excerpt:item.excerpt,surface}}/></div>
       </div>
     </div>
   </article>;
