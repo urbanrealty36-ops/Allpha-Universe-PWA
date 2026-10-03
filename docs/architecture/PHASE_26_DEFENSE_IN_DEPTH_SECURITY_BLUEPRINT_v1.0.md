@@ -135,3 +135,40 @@ Phase 26 is not GREEN until:
 8. authenticated security E2E is executed
 9. device registration/revocation E2E is executed
 10. final Security Advisor + RLS + API security review is clean or explicitly accepted with documented exceptions
+
+
+## Live security audit — 2026-10-04
+- Security Advisor: 3 INFO RLS-without-policy findings; security_events is intentionally fail-closed and must remain inaccessible to ordinary users.
+- Security Advisor: 217 authenticated and 4 anonymous SECURITY DEFINER warnings across existing domain functions. These are not automatically vulnerabilities; each function must be reviewed for caller, ownership, permission, risk and execute-grant boundaries before privilege changes.
+- Security Advisor: 1 external Auth warning — leaked-password protection is disabled.
+
+### Required remediation before GREEN
+1. Enable Supabase leaked-password protection in Auth security configuration.
+2. Inventory SECURITY DEFINER functions by public read, authenticated owner, privileged admin/service, and internal-only classification.
+3. Revoke anonymous EXECUTE where public access is not intentional.
+4. Verify authenticated SECURITY DEFINER functions enforce caller/ownership/permission checks and locked search_path.
+5. Move internal privileged functions to a non-exposed schema where practical.
+6. Re-run Security Advisor and RLS tests after each batch.
+7. Do not mass-revoke functions without route/feature impact analysis.
+
+### Threat-control matrix
+| Threat | Primary control | Secondary control |
+|---|---|---|
+| XSS | CSP + output encoding | sanitization/moderation |
+| Clickjacking | frame-ancestors DENY | X-Frame-Options |
+| CSRF/XSRF | Bearer auth + Origin validation | CSRF token if cookies are introduced |
+| SSRF | URL validator + allowlist | egress firewall/DNS rebinding defense |
+| Upload malware | MIME/extension/size validation | magic bytes + AV scanning |
+| Brute force | route-aware rate limit | WAF/distributed limiter |
+| Credential theft | server-side secrets | rotation + scanning |
+| IDOR/BOLA | backend authorization + RLS | ownership constraints |
+| Prompt injection | AI Gateway policy gate | tool isolation + approval |
+| Tool abuse | Agent Runtime capability/policy | risk + HITL |
+| Payment fraud | Midtrans signature + idempotency | reconciliation |
+| Payout fraud | risk + approval + audit | velocity/device anomaly detection |
+| Session theft | JWT verification | session revocation |
+| Device abuse | hashed device/IP registry | anomaly/risk rules |
+| Supply chain | lockfiles/scanning | SBOM/dependency policy |
+| DDoS | edge/WAF | application rate limit |
+
+No software architecture can honestly guarantee zero vulnerabilities. The target is defense-in-depth, fail-closed authority boundaries, rapid detection, and a release gate that blocks deployment when critical controls are missing.
