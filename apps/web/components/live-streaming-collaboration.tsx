@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
+import AgentAccountCard, { AgentAccount } from "./agent-account-card";
 
 type Template = {
   id: string; name: string; slug: string; category: string; description: string | null;
@@ -101,7 +102,7 @@ export default function LiveStreamingCollaboration() {
   const [conversationText, setConversationText] = useState("");
   const [viewerId, setViewerId] = useState("");
   const [audiencePresence, setAudiencePresence] = useState(0);
-  const [realtimeStatus, setRealtimeStatus] = useState("disconnected");
+  const [realtimeStatus, setRealtimeStatus] = useState("disconnected");\n  const [liveHostAgent, setLiveHostAgent] = useState<AgentAccount|null>(null);
 
   async function loadCatalog() {
     setLoading(true); setError(null);
