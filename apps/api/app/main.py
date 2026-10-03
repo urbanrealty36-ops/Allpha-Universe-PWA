@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.security import SecurityHeadersMiddleware
 
 from app.api.agents import router as agents_router
 from app.api.agent_catalog import router as agent_catalog_router
@@ -34,6 +35,7 @@ from app.api.agent_collaboration import router as agent_collaboration_router
 from app.api.marketplace import router as marketplace_router
 from app.api.economy import router as economy_router
 from app.api.payouts import router as payouts_router
+from app.api.security import router as security_router
 from app.api.personalization import router as personalization_router
 from app.api.social import router as social_router
 from app.api.avatar import router as avatar_router
@@ -51,8 +53,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Request-ID", "X-CSRF-Token"],
 )
 
 app.include_router(health_router)
@@ -74,6 +76,7 @@ app.include_router(agent_collaboration_router)
 app.include_router(marketplace_router)
 app.include_router(economy_router)
 app.include_router(payouts_router)
+app.include_router(security_router)
 app.include_router(personalization_router)
 app.include_router(social_router)
 app.include_router(avatar_router)
