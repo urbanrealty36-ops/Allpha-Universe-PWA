@@ -7,6 +7,11 @@ class Settings:
     supabase_url: str
     supabase_publishable_key: str
     supabase_jwt_audience: str = "authenticated"
+    supabase_service_role_key: str = ""
+    midtrans_server_key: str = ""
+    midtrans_client_key: str = ""
+    midtrans_environment: str = "sandbox"
+    allpha_public_web_url: str = "http://localhost:3000"
 
     @property
     def supabase_auth_issuer(self) -> str:
@@ -27,6 +32,11 @@ def get_settings() -> Settings:
     return Settings(
         supabase_url=url,
         supabase_publishable_key=publishable_key,
+        supabase_service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
+        midtrans_server_key=os.getenv("MIDTRANS_SERVER_KEY", "").strip(),
+        midtrans_client_key=os.getenv("MIDTRANS_CLIENT_KEY", "").strip(),
+        midtrans_environment=os.getenv("MIDTRANS_ENVIRONMENT", "sandbox").strip() or "sandbox",
+        allpha_public_web_url=os.getenv("ALLPHA_PUBLIC_WEB_URL", "http://localhost:3000").strip().rstrip("/"),
         supabase_jwt_audience=os.getenv("SUPABASE_JWT_AUDIENCE", "authenticated").strip()
         or "authenticated",
     )
