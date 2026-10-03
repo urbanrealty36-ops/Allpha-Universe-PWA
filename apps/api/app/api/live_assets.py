@@ -28,6 +28,10 @@ class CharacterAssetFinalize(BaseModel):
     checksum_sha256: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]{64}$")
 
 
+class ModerationRequest(BaseModel):
+    decision: str = Field(pattern=r"^(approved|restricted|rejected)$")
+
+
 def _err(exc: SupabaseRestError, code: str) -> HTTPException:
     return HTTPException(
         status_code=exc.status_code if exc.status_code in {400, 401, 403, 404, 409, 422} else 500,
@@ -260,10 +264,6 @@ async def finalize_character_upload(
         return {"data": asset}
     except SupabaseRestError as exc:
         raise _err(exc, "AGENT_CHARACTER_UPLOAD_FINALIZE_FAILED") from exc
-
-
-class ModerationRequest(BaseModel):
-    decision: str = Field(pattern=r"^(approved|restricted|rejected)$")
 
 
 @router.post("/stage/{asset_id}/moderation")
