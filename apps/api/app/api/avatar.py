@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.api.dependencies import get_auth_context
-from app.core.supabase_rest import SupabaseRestError, insert, select, update
+from app.core.supabase_rest import SupabaseRestError, insert, select, update, rpc
 
 router = APIRouter(prefix="/api/v1/avatar", tags=["User Character, Uniform, Sticker & Cosmetics"])
 
@@ -67,6 +67,13 @@ async def uniform_catalog(context: dict[str, Any] = Depends(get_auth_context)):
         "select":"id,uniform_key,name,description,asset_type,storage_bucket,storage_path,mime_type,checksum_sha256,theme_compatibility,metadata,status,moderation_status",
         "status":"eq.published", "moderation_status":"eq.approved", "order":"name.asc"
     })}
+
+@router.post("/uniforms/{uniform_id}/claim", status_code=201)
+async def claim_platform_uniform(uniform_id: UUID, context: dict[str, Any] = Depends(get_auth_context)):
+    try:
+        return {"data": await rpc(context["user"], "claim_platform_uniform", {"p_uniform_id": str(uniform_id)})}
+    except SupabaseRestError as exc:
+        raise _err(exc, "PLATFORM_UNIFORM_CLAIM_FAILED") from exc
 
 @router.get("/uniforms/owned")
 async def owned_uniforms(context: dict[str, Any] = Depends(get_auth_context)):
