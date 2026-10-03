@@ -1091,7 +1091,7 @@ Remaining Phase 24 gates:
 Plans, subscriptions, features, entitlements, feature gates, usage, invoices, billing events, AI credits, consumption, pricing/revenue rules and district pricing.
 
 ### PHASE 26 — Security, Governance & Trust
-Zero Trust path, authentication, authorization, policy/risk/approval engines, audit ledger, moderation, anti-impersonation, anti-scam, prompt-injection defense, reputation protection, rate limits, data access, kill switch and secret handling.
+Defense-in-depth security across frontend, backend/API, Auth/session, database/RLS, storage/upload, URL/SSRF, CSRF/XSRF, rate limiting, IP/device security, AI prompt injection/tool safety, Commerce/Payment/Payout, Admin, audit, moderation and security operations. Includes live Security Advisor reconciliation and function-by-function SECURITY DEFINER hardening gate.
 
 ### PHASE 27 — Super Admin Control Plane
 Overview, Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
