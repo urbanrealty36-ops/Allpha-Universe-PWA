@@ -1368,3 +1368,20 @@ Therefore Phase 11A.14 is **IMPLEMENTED FOUNDATION / NOT GREEN**. It becomes run
 - Existing 8 published/approved Allpha platform uniforms remain selectable through the existing claim flow.
 - No per-frame animation state is persisted in Supabase.
 - Final runtime E2E still requires a real authenticated Live Session + approved Collaboration + device microphone/camera and browser execution; no fake business data was inserted.
+
+
+## Phase 22I — Runtime Orchestration Completion Update
+
+**Status: IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING**
+
+Continuation completed without replacing the existing Phase 22I architecture:
+- Added canonical client-side AI Character Animation Contract reducer in `apps/web/lib/live-character-animation.ts`.
+- Realtime voice lifecycle now maps transcript/audio/interruption/error events into the existing animation state contract.
+- Canonical `AllphaWorldRenderer` now consumes facial and gaze presentation signals in addition to body/lip state.
+- Removed the duplicate `/sessions/{session_id}/start` route override by separating the transport start endpoint from the canonical Live Session lifecycle endpoint.
+- Added Phase 22I runtime contract invariant suite: **10/10 passed** on the canonical AllphaDb-Universe project.
+- No per-frame animation persistence, duplicate event bus, duplicate renderer, duplicate AI Gateway, duplicate Agent Runtime, fake users, fake Agents, fake Live Sessions, or fake business data were introduced.
+
+External provider verification remains a runtime gate. OpenAI's current public pricing confirms `gpt-live-1` as a GPT-Live voice session model; the repository's authenticated WebRTC/provider execution still requires a real configured credential and real Live Session/Collaboration/device runtime before E2E can be marked complete. citeturn2search0
+
+**Next implementation phase:** **Phase 23 — AI-to-AI Collaboration**, continuing at **23E — Review + Reputation + History** after reconciling the existing 23A–23D foundation. Do not restart 23A–23D.
