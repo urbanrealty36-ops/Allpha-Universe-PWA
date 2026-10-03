@@ -42,6 +42,40 @@ def _storage_err(exc: SupabaseStorageError, code: str) -> HTTPException:
     )
 
 
+@router.get("/characters/manage")
+async def character_assets_manage_list(context: dict[str, Any] = Depends(get_auth_context)):
+    try:
+        rows = await select(
+            context["user"],
+            "live_character_assets",
+            {
+                "select": "*,agents(id,name,handle,status)",
+                "asset_type": "eq.character",
+                "order": "created_at.desc",
+            },
+        )
+        return {"data": {"assets": rows}}
+    except SupabaseRestError as exc:
+        raise _err(exc, "AGENT_CHARACTER_ASSET_MANAGE_LOAD_FAILED") from exc
+
+
+@router.post("/characters/{asset_id}/moderation")
+async def moderate_character_asset(
+    asset_id: UUID,
+    payload: ModerationRequest,
+    context: dict[str, Any] = Depends(get_auth_context),
+):
+    try:
+        asset = await rpc(
+            context["user"],
+            "moderate_agent_character_3d_asset",
+            {"p_asset_id": str(asset_id), "p_decision": payload.decision},
+        )
+        return {"data": asset}
+    except SupabaseRestError as exc:
+        raise _err(exc, "AGENT_CHARACTER_MODERATION_FAILED") from exc
+
+
 @router.get("/templates/{template_version_id}/stage/manage")
 async def stage_asset_manage_list(
     template_version_id: UUID,
