@@ -82,5 +82,5 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
   response=await call_next(request)
   response.headers["X-Request-ID"]=request.headers.get("X-Request-ID",secrets.token_hex(16))
   for k,v in {"X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Referrer-Policy":"strict-origin-when-cross-origin","Permissions-Policy":"camera=(),microphone=(),geolocation=(),payment=()","Cross-Origin-Opener-Policy":"same-origin","Cross-Origin-Resource-Policy":"same-site"}.items():response.headers[k]=v
-  response.headers["Content-Security-Policy"]="default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  response.headers["Content-Security-Policy"]="default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
   return response
