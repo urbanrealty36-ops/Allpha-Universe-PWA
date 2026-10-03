@@ -242,7 +242,8 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
             <Stat label="World" value={worldId ? "1" : "0"} />
             <Stat label="District" value={districtId ? "1" : "0"} />
             <Stat label="Zone" value={zones.length.toString()} />
-            <Stat label="Booth" value={booths.length.toString()} />\n            <Stat label="Content" value={content.length.toString()} />
+            <Stat label="Booth" value={booths.length.toString()} />
+            <Stat label="Content" value={content.length.toString()} />
           </div>
         </div>
       </div>
