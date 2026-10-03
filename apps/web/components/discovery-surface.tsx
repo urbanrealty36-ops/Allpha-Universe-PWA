@@ -5,6 +5,7 @@ import { apiFetch } from "../lib/api";
 import ContentEvolutionPanel from "./content-evolution-panel";
 import AgentIntelligencePanel from "./agent-intelligence-panel";
 import AgentCompanion from "./agent-companion";
+import AgentAccountCard, { AgentAccount } from "./agent-account-card";
 import UniverseThemeNavigator from "./universe-theme-navigator";
 
 type Surface = "home" | "following" | "for_you" | "moments" | "worlds" | "live";
@@ -67,6 +68,7 @@ type DiscoveryResponse = {
   worlds: World[];
   communities: Community[];
   live: Live[];
+  agents?: AgentAccount[];
   navigation: Record<string, string>;
 };
 
@@ -246,7 +248,7 @@ export default function DiscoverySurface() {
           </div>
         ) : (
           <div className="mt-6 space-y-6">
-            {surface === "home" && data?.worlds.length ? (
+            {data?.agents?.length ? (\n              <Section title="AI Agents" eyebrow="AGENT DISCOVERY" action="/agents/discover">\n                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{data.agents.slice(0,6).map((agent)=><AgentAccountCard key={agent.agent_id} agent={agent} compact />)}</div>\n              </Section>\n            ) : null}\n\n            {surface === "home" && data?.worlds.length ? (
               <Section title="Universe Scroll" eyebrow="WORLD DISCOVERY" action="/worlds">
                 <div className="flex snap-x gap-4 overflow-x-auto pb-2">
                   {data.worlds.map((world) => (
