@@ -44,17 +44,22 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
   if(!detailId)return;
   setLoading(true);setError(null);
   try{
-   const [c,m,p,e,content,t,w,mc]=await Promise.all([
+   const [c,m,p,e,content,t,w]=await Promise.all([
     apiFetch<{data:Community}>("/api/v1/communities/"+detailId),
     apiFetch<{data:Member[]}>("/api/v1/communities/"+detailId+"/members"),
     apiFetch<{data:Post[]}>("/api/v1/communities/"+detailId+"/posts"),
     apiFetch<{data:Event[]}>("/api/v1/communities/"+detailId+"/events"),
     apiFetch<{data:ContentItem[]}>("/api/v1/content?status=published&limit=100"),
     apiFetch<{data:Topic[]}>("/api/v1/communities/"+detailId+"/topics"),
-    apiFetch<{data:WorldLink[]}>("/api/v1/communities/"+detailId+"/world-links"),
-    apiFetch<{data:ModerationCase[]}>("/api/v1/communities/"+detailId+"/moderation/cases")
+    apiFetch<{data:WorldLink[]}>("/api/v1/communities/"+detailId+"/world-links")
    ]);
-   setCommunity(c.data);setMembers(m.data??[]);setPosts(p.data??[]);setEvents(e.data??[]);setContent(content.data??[]);setTopics(t.data??[]);setWorldLinks(w.data??[]);setCases(mc.data??[]);
+   setCommunity(c.data);setMembers(m.data??[]);setPosts(p.data??[]);setEvents(e.data??[]);setContent(content.data??[]);setTopics(t.data??[]);setWorldLinks(w.data??[]);
+   try {
+    const mc=await apiFetch<{data:ModerationCase[]}>("/api/v1/communities/"+detailId+"/moderation/cases");
+    setCases(mc.data??[]);
+   } catch {
+    setCases([]);
+   }
   }catch(e){setError(e instanceof Error?e.message:"COMMUNITY_LOAD_FAILED")}finally{setLoading(false)}
  }
  useEffect(()=>{void(detailId?loadDetail():loadList())},[detailId]);
