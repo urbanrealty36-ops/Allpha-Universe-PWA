@@ -1488,4 +1488,5 @@ Runtime/cross-Agent E2E remains pending because the canonical database currently
 - No payout business data seeded.
 
 ### Next Phase
-**PHASE 27 — Subscription/Billing & Entitlement hardening / Economy activation continuation** (reconcile existing Phase 25 Billing/Economy and complete missing entitlement/commercial governance before final runtime gates).
+**PHASE 27 — Super Admin Control Plane**
+Overview: Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
