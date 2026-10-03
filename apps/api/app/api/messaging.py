@@ -134,6 +134,34 @@ async def respond(request_id:UUID,payload:RequestResponse,context:dict=Depends(g
     except SupabaseRestError as exc: raise _error(exc) from exc
 
 
+@router.get("/conversations/{conversation_id:uuid}/control")
+async def conversation_control(conversation_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_agent_conversation_control", {"p_conversation_id": str(conversation_id)})}
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
+
+
+class TakeoverUpdate(BaseModel):
+    active: bool
+
+
+@router.post("/conversations/{conversation_id:uuid}/takeover")
+async def set_conversation_takeover(
+    conversation_id: UUID,
+    payload: TakeoverUpdate,
+    context: dict = Depends(get_auth_context),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(
+            context["user"],
+            "set_agent_conversation_takeover",
+            {"p_conversation_id": str(conversation_id), "p_active": payload.active},
+        )}
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
+
+
 @router.get("/conversations/{conversation_id:uuid}/participants")
 async def participants(conversation_id:UUID,context:dict=Depends(get_auth_context))->dict[str,Any]:
     return {"data":await select(context["user"],"conversation_participants",{"select":"id,conversation_id,subject_type,subject_id,role,status,joined_at,last_read_at,notification_mode,created_at,updated_at","conversation_id":f"eq.{conversation_id}"})}
