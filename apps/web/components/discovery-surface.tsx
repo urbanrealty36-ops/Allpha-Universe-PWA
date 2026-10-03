@@ -52,10 +52,20 @@ type Live = {
   booth_id?: string | null;
 };
 
+type Community = {
+  id: string;
+  name: string;
+  handle: string;
+  description?: string | null;
+  visibility: string;
+  join_policy: string;
+};
+
 type DiscoveryResponse = {
   surface: Surface;
   content: ContentItem[] | { data?: ContentItem[] };
   worlds: World[];
+  communities: Community[];
   live: Live[];
   navigation: Record<string, string>;
 };
@@ -251,6 +261,27 @@ export default function DiscoverySurface() {
                         {world.description || "Published World available for exploration."}
                       </p>
                       <p className="mt-5 text-xs text-slate-500">{world.theme_key || "Theme configured by World"}</p>
+                    </a>
+                  ))}
+                </div>
+              </Section>
+            ) : null}
+
+            {surface === "home" && data?.communities?.length ? (
+              <Section title="Communities" eyebrow="COMMUNITY GRAPH" action="/communities">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {data.communities.map((community) => (
+                    <a
+                      key={community.id}
+                      href={"/communities/" + community.id}
+                      className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm hover:border-slate-300"
+                    >
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-700">@{community.handle}</p>
+                      <h2 className="mt-3 text-xl font-semibold">{community.name}</h2>
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
+                        {community.description || "Authoritative Community available for participation."}
+                      </p>
+                      <p className="mt-5 text-xs text-slate-500">{community.visibility} · {community.join_policy}</p>
                     </a>
                   ))}
                 </div>
