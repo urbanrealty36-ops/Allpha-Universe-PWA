@@ -238,7 +238,8 @@ async def execute_mission(mission_run_id:UUID,context:dict=Depends(get_auth_cont
         synced=await rpc(context["user"],"sync_mission_run",{"p_mission_run_id":str(mission_run_id)})
         return {"data":synced,"workflow":result}
     except HTTPException: raise
-    except SupabaseRestError as exc:raise _error(exc,"MISSION_RUN_EXECUTION_FAILED") from exc
+    except AgentRuntimeError as exc: raise _runtime_error(exc) from exc
+    except SupabaseRestError as exc: raise _error(exc,"MISSION_RUN_EXECUTION_FAILED") from exc
 
 @router.get("/missions/runs")
 async def list_mission_runs(limit:int=Query(50,ge=1,le=100),context:dict=Depends(get_auth_context))->dict[str,Any]:
