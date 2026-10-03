@@ -1,15 +1,12 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Platform</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Feature Flags</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Feature flag configuration</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
+"use client";
+import { useEffect, useState } from "react";
+import { apiFetch } from "../../lib/api";
+type Flag={id:string;key:string;description:string|null;enabled:boolean;rollout_percent:number};
+export default function FeatureFlagsPage(){
+ const [flags,setFlags]=useState<Flag[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[busy,setBusy]=useState(false);
+ const [key,setKey]=useState(""),[description,setDescription]=useState(""),[enabled,setEnabled]=useState(false),[rollout,setRollout]=useState(0);
+ async function load(){setLoading(true);setError(null);try{const r=await apiFetch<{data:Flag[]}>("/api/v1/admin/control-plane/feature-flags");setFlags(r.data??[])}catch(e){setError(e instanceof Error?e.message:"FEATURE_FLAGS_LOAD_FAILED")}finally{setLoading(false)}}
+ useEffect(()=>{void load()},[]);
+ async function save(){setBusy(true);setError(null);try{await apiFetch("/api/v1/admin/control-plane/feature-flags/"+encodeURIComponent(key),{method:"PUT",body:JSON.stringify({key,description:description||null,enabled,rollout_percent:rollout,targeting:{},metadata:{}})});setKey("");setDescription("");setEnabled(false);setRollout(0);await load()}catch(e){setError(e instanceof Error?e.message:"FEATURE_FLAG_SAVE_FAILED")}finally{setBusy(false)}}
+ return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl"><p className="text-xs font-medium uppercase tracking-[0.24em] text-cyan-300">Phase 27A · Governance</p><h1 className="mt-3 text-4xl font-semibold tracking-tight">Feature Flags</h1><p className="mt-3 max-w-3xl text-slate-400">Server-authoritative rollout controls. Empty state is valid; no flags are seeded by this phase.</p>{error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm">{error}</div>:null}<section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-5"><h2 className="font-semibold">Create / update flag</h2><div className="mt-4 grid gap-4 md:grid-cols-2"><input value={key} onChange={e=>setKey(e.target.value)} placeholder="feature.key" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3"/><input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Description" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3"/><label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/>Enabled</label><label className="rounded-xl border border-white/10 bg-white/5 px-4 py-3"><span className="text-sm text-slate-400">Rollout: {rollout}%</span><input type="range" min={0} max={100} value={rollout} onChange={e=>setRollout(Number(e.target.value))} className="mt-2 w-full"/></label></div><button disabled={!key||busy} onClick={()=>void save()} className="mt-4 rounded-xl bg-cyan-300 px-4 py-3 font-semibold text-slate-950 disabled:opacity-40">{busy?"Saving…":"Save flag"}</button></section><section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">{loading?<p className="p-6 text-sm text-slate-400">Loading authoritative flags…</p>:flags.length===0?<p className="p-6 text-sm text-slate-400">No feature flags configured.</p>:<div className="divide-y divide-white/10">{flags.map(flag=><div key={flag.id} className="flex flex-wrap items-center justify-between gap-4 p-5"><div><p className="font-medium">{flag.key}</p><p className="mt-1 text-sm text-slate-400">{flag.description||"No description"}</p></div><div className="text-right text-sm"><p>{flag.enabled?"Enabled":"Disabled"}</p><p className="text-slate-400">{flag.rollout_percent}% rollout</p></div></div>)}</div>}</section></div></main>;
 }
