@@ -28,6 +28,16 @@ type SpatialContent = {
   position?: { x: number; y: number; z: number };
 };
 
+type DistrictSpatialObject = {
+  id: string;
+  object_type: string;
+  name: string;
+  status: string;
+  capacity?: number | null;
+  availability?: string;
+  spatial_config?: Record<string, unknown>;
+};
+
 type Props = {
   scene?: WorldScene | null;
   tokens?: Record<string, unknown>;
@@ -37,6 +47,7 @@ type Props = {
   presence?: SpatialPresence[];
   portals?: SpatialPortal[];
   content?: SpatialContent[];
+  spatialObjects?: DistrictSpatialObject[];
   selectedBoothId?: string;
   selectedDistrictId?: string;
   themePackUrl?: string | null;
@@ -84,10 +95,11 @@ function AgentCharacter3DAsset({ url, position }: { url:string; position:[number
 }
 
 function WorldObjects({
-  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,selectedBoothId,themePackUrl,liveStageUrl,agentCharacterUrl
+  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,themePackUrl,liveStageUrl,agentCharacterUrl
 }: {
   scene:WorldScene; tokens?:Record<string,unknown>; onHotspot?:Props["onHotspot"]; lowPower:boolean;
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
+  spatialObjects:DistrictSpatialObject[];
   selectedBoothId?:string; themePackUrl?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null;
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
@@ -138,6 +150,26 @@ function WorldObjects({
       return <group key={portal.id} position={[p.x,p.y,p.z]} onClick={()=>onHotspot?.({id:portal.id,kind:"portal",position:p,metadata:{target_world_id:portal.target,presentation_only:true}})}><mesh rotation={[0,Math.PI/2,0]}><torusGeometry args={[.9,.11,12,48]}/><meshStandardMaterial color="#d946ef" emissive="#d946ef" emissiveIntensity={1.8}/></mesh><mesh><sphereGeometry args={[.56,20,20]}/><meshStandardMaterial color="#160d2a" emissive="#7e22ce" emissiveIntensity={.75} transparent opacity={.72}/></mesh></group>;
     })}
 
+    {spatialObjects.map((object,i)=>{
+      const angle=(i/Math.max(1,spatialObjects.length))*Math.PI*2;
+      const radius=4.2+(i%3)*1.15;
+      const p=object.spatial_config?.position as {x?:number;y?:number;z?:number}|undefined;
+      const x=typeof p?.x==="number"?p.x:Math.cos(angle)*radius;
+      const y=typeof p?.y==="number"?p.y:0;
+      const z=typeof p?.z==="number"?p.z:Math.sin(angle)*radius;
+      const kind=object.object_type;
+      const height=kind==="building"?2.4:kind==="meeting_room"||kind==="coworking"?1.7:kind==="road"?0.12:1.05;
+      const width=kind==="road"?4.2:kind==="building"?1.8:1.45;
+      const depth=kind==="road"?0.55:kind==="building"?1.8:1.45;
+      return <group key={object.id} position={[x,y,z]} onClick={()=>onHotspot?.({id:object.id,kind:"district_object",position:{x,y,z},metadata:{object_type:kind,name:object.name,availability:object.availability,capacity:object.capacity??null}})}>
+        <mesh castShadow rotation={kind==="road"?[0,0,0]:[0,(i%4)*0.35,0]}>
+          <boxGeometry args={[width,height,depth]}/>
+          <meshStandardMaterial color={object.status==="active"?accent:secondary} transparent opacity={object.status==="active"?.9:.45}/>
+        </mesh>
+        {kind!=="road"&&<mesh position={[0,height/2+.12,0]}><sphereGeometry args={[.12,10,10]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.7}/></mesh>}
+      </group>;
+    })}
+
     {content.slice(0,16).map((item,i)=>{
       const p=item.position??{x:(i%4)*2.4-3.6,y:2+(i%2)*.4,z:-1+Math.floor(i/4)*2.2};
       return <group key={item.id} position={[p.x,p.y,p.z]} onClick={()=>onHotspot?.({id:item.id,kind:"content",position:p,metadata:{title:item.title??null,presentation_only:true}})}><mesh><octahedronGeometry args={[.24,0]}/><meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={1.4}/></mesh></group>;
@@ -151,7 +183,7 @@ function WorldObjects({
 }
 
 export default function AllphaWorldRenderer({
-  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null
+  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null
 }: Props) {
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
@@ -161,7 +193,7 @@ export default function AllphaWorldRenderer({
       <PerspectiveCamera makeDefault position={[14,11,14]} fov={58}/>
       <ambientLight intensity={.8}/>
       <directionalLight position={[8,14,6]} intensity={2} castShadow={shadows}/>
-      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl}/>
+      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
     </Canvas>
   </div>;
