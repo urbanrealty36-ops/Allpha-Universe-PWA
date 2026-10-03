@@ -226,7 +226,7 @@ async def credits(context: dict = Depends(get_auth_context)) -> dict[str, Any]:
 async def resume_agent_service(service_request_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     user = context["user"]
     rows = await select(user, "agent_service_requests", {
-        "select": "id,status,conversation_id,skill_name,service_type,credit_cost,source_content_id,agent_id",
+        "select": "id,status,conversation_id,skill_name,service_type,credit_cost,source_content_id,agent_id,generated_content_id",
         "id": f"eq.{service_request_id}", "limit": "1"
     })
     if not rows:
@@ -269,9 +269,26 @@ async def resume_agent_service(service_request_id: UUID, context: dict = Depends
             "p_request_id": str(service_request_id),
             "p_ai_gateway_request_id": gateway_request_id,
             "p_result_message_id": message.get("id") if isinstance(message, dict) else None,
-            "p_metadata": {"agent_runtime_command_id": str(command_id), "resumed_after_approval": True}
+            "p_metadata": {
+                "agent_runtime_command_id": str(command_id),
+                "resumed_after_approval": True,
+                "generated_content": {
+                    "enabled": request.get("service_type") == "generate_content",
+                    "content_type": "article",
+                    "title": f"AI-generated {request['skill_name']}",
+                    "body": result_text,
+                    "excerpt": result_text[:500],
+                    "visibility": "public",
+                    "metadata": {
+                        "mode": "generate_content",
+                        "resumed_after_approval": True,
+                    },
+                } if request.get("service_type") == "generate_content" else {"enabled": False},
+            }
         })
-        return {"data": {"request_id": str(service_request_id), "command_id": str(command_id), "status": "completed", "message": message, "generation": {"text": result_text}, "settlement": settlement}}
+        return {"data": {"request_id": str(service_request_id), "command_id": str(command_id), "status": "completed", "message": message, "generation": {"text": result_text}, "settlement": settlement,
+            "content": {"id": settlement.get("generated_content_id"), "status": "draft"} if request.get("service_type") == "generate_content" and settlement.get("generated_content_id") else None,
+        }}}
     except (SupabaseRestError, AIGatewayError, AgentRuntimeError) as exc:
         try:
             await rpc(user, "release_agent_service_request", {"p_request_id": str(service_request_id), "p_reason": getattr(exc, "code", "agent_service_resume_failed")})
@@ -311,7 +328,7 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
         request_id = str(reservation["id"])
         if reservation.get("reused"):
             existing = await select(user, "agent_service_requests", {
-                "select": "id,status,conversation_id,result_message_id,credit_cost,service_type,skill_name,agent_id,agent_owner_user_id",
+                "select": "id,status,conversation_id,result_message_id,generated_content_id,credit_cost,service_type,skill_name,agent_id,agent_owner_user_id",
                 "id": f"eq.{request_id}", "limit": "1"
             })
             return {"data": {"request": existing[0] if existing else reservation, "reused": True}}
@@ -429,6 +446,7 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             "message": message,
             "generation": {"text": result_text},
             "settlement": settlement,
+            "content": {"id": settlement.get("generated_content_id"), "status": "draft"} if payload.mode == "generate_content" and settlement.get("generated_content_id") else None,
         }}
     except (SupabaseRestError, AIGatewayError, AgentRuntimeError) as exc:
         if request_id:
