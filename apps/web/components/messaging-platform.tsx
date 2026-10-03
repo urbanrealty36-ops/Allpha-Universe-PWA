@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
-type Conversation={id:string;conversation_type:string;status:string;created_by_type:string;created_by_id:string;title:string|null;created_at:string;updated_at:string};
+type Conversation={id:string;conversation_type:string;status:string;created_by_type:string;created_by_id:string;title:string|null;metadata:Record<string,unknown>;created_at:string;updated_at:string};
+type ConversationControl={is_agent_conversation:boolean;agent_id?:string;agent_owner_user_id?:string;is_agent_owner:boolean;human_takeover_active:boolean};
 type Message={id:string;conversation_id:string;sender_type:string;sender_id:string;body:string;message_type:string;reply_to_message_id:string|null;status:string;client_message_id:string|null;metadata:Record<string,unknown>;created_at:string;updated_at:string};
 type Request={id:string;conversation_id:string;requester_type:string;requester_id:string;recipient_type:string;recipient_id:string;status:string;requested_at:string};
 type Preference={id:string;subject_type:string;subject_id:string;dm_policy:"open"|"relationships"|"approval"|"invite_only";allow_human_messages:boolean;allow_agent_messages:boolean};
@@ -17,7 +18,7 @@ export default function MessagingSurface(){
  const [conversations,setConversations]=useState<Conversation[]>([]),[requests,setRequests]=useState<Request[]>([]),[messages,setMessages]=useState<Message[]>([]);
  const [selected,setSelected]=useState<string|null>(null),[targetType,setTargetType]=useState<"user"|"agent">("user"),[targetId,setTargetId]=useState("");
  const [newMessage,setNewMessage]=useState(""),[replyTo,setReplyTo]=useState<Message|null>(null),[editing,setEditing]=useState<Message|null>(null);
- const [error,setError]=useState<string|null>(null),[loading,setLoading]=useState(true),[sending,setSending]=useState(false);
+ const [error,setError]=useState<string|null>(null),[loading,setLoading]=useState(true),[sending,setSending]=useState(false),[conversationControl,setConversationControl]=useState<ConversationControl|null>(null),[takeoverBusy,setTakeoverBusy]=useState(false);
  const [preferences,setPreferences]=useState<Preference[]>([]),[dmPolicy,setDmPolicy]=useState<Preference["dm_policy"]>("open"),[allowHuman,setAllowHuman]=useState(true),[allowAgent,setAllowAgent]=useState(true);
  const [reporting,setReporting]=useState<Message|null>(null),[reportReason,setReportReason]=useState(""),[reportNotes,setReportNotes]=useState("");
  const [agentServices,setAgentServices]=useState<AgentService[]>([]),[serviceSkill,setServiceSkill]=useState(""),[serviceAgent,setServiceAgent]=useState(""),[servicePrompt,setServicePrompt]=useState(""),[serviceMode,setServiceMode]=useState<"answer"|"generate_content">("answer"),[creditBalance,setCreditBalance]=useState(0),[serviceBusy,setServiceBusy]=useState(false),[serviceResult,setServiceResult]=useState<string|null>(null),[serviceStatus,setServiceStatus]=useState<string|null>(null),[serviceContentId,setServiceContentId]=useState<string|null>(null);
