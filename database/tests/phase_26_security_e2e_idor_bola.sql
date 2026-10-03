@@ -19,6 +19,21 @@ begin
   end if;
 
   if exists (
+    select 1
+    from pg_proc f join pg_namespace n on n.oid=f.pronamespace
+    where n.nspname='private'
+      and has_function_privilege('anon',f.oid,'EXECUTE')
+      and f.proname not in (
+        'discover_public_agent_accounts__allpha_sd',
+        'discover_social_subjects__allpha_sd',
+        'get_public_agent_account__allpha_sd',
+        'get_public_live_human_presentation__allpha_sd'
+      )
+  ) then
+    raise exception 'PHASE26_PRIVATE_ANON_EXECUTE_GATE_FAILED';
+  end if;
+
+  if exists (
     select 1 from pg_policies
     where schemaname='public'
       and tablename in ('approval_requests','audit_logs','payout_accounts','payout_events','payout_requests','risk_assessments')
