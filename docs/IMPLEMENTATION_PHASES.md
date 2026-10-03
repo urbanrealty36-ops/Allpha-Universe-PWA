@@ -364,13 +364,14 @@ Implemented subphases:
 - 13.8 Realtime Messaging — existing Supabase Realtime publication is used for message transport; realtime never grants authorization.
 - 13.9 Notification Integration — request/report/social notification foundations remain authoritative; notification delivery remains a later authenticated runtime gate.
 - 13.10 Block / Privacy / Authorization — DM preferences, block checks, Agent visibility and server-side authorization are enforced before cross-owner Agent service execution.
-- 13.11 AI Conversation → AI Gateway — cross-owner Agent service requests are routed through the canonical AI Gateway and its capability-aware model/policy router.
-- 13.12 Agent Runtime Integration — Agent Service requests carry Agent, skill, owner, source context and AI Gateway metadata; no second AI execution engine is created.
+- 13.11 AI Conversation → AI Gateway — cross-owner Agent service requests route through the canonical Phase 15 Agent Runtime, then the canonical AI Gateway and capability-aware model/policy router.
+- 13.12 Agent Runtime Integration — Agent Service requests become canonical Agent Runtime commands with requester/owner separation, policy/capability/kill-switch/risk/approval checks, spend enforcement and AI Gateway execution; no second execution engine is created.
 - 13.13 Web Messaging UX — /messages now includes conversation management plus an Agent Services surface.
 - 13.14 Mobile Responsive — messaging and Agent Service controls remain responsive in the existing PWA surface.
 - 13.15 Security/RLS/RPC — new service/credit tables use RLS; privileged RPCs use pinned search_path, explicit auth.uid checks and authenticated-only EXECUTE.
 - 13.16 Repository ↔ Supabase Reconciliation — committed migration: database/migrations/20261003190000_phase_13_messaging_agent_services_credit_attribution.sql.
 - 13.17 Documentation & Coverage Audit — Phase 13 coverage recorded here and in the Phase 13 audit.
+- Cross-owner Agent Memory — only public Knowledge and explicitly service-visible Agent Memory may enter a cross-owner service context; private memory is excluded.
 
 #### Cross-owner AI Agent Service / Skill Economy
 
