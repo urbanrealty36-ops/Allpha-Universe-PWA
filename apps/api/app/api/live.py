@@ -870,3 +870,63 @@ async def activate_live_experience(session_id: UUID, collaboration_id: UUID | No
         return {"data": result}
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_EXPERIENCE_ACTIVATION_FAILED") from exc
+
+
+
+class LiveStageAssetPrepare(BaseModel):
+    mime_type: str = "model/gltf-binary"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class LiveStageAssetFinalize(BaseModel):
+    checksum_sha256: str | None = None
+
+
+@router.post("/templates/{template_version_id}/stage-assets/upload-url", status_code=201)
+async def prepare_live_stage_asset(template_version_id: UUID, payload: LiveStageAssetPrepare, context: dict = Depends(get_auth_context)):
+    try:
+        record = await rpc(context["user"], "prepare_live_stage_3d_asset", {
+            "p_template_version_id": str(template_version_id),
+            "p_mime_type": payload.mime_type,
+            "p_metadata": payload.metadata,
+        })
+        upload = await create_signed_upload_url(context["user"], record["storage_bucket"], record["storage_path"])
+        return {"data": {**record, "upload": upload}}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_STAGE_ASSET_PREPARE_FAILED") from exc
+    except SupabaseStorageError as exc:
+        raise HTTPException(status_code=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 502, detail={"code": "LIVE_STAGE_ASSET_UPLOAD_URL_FAILED", "message": exc.message})
+
+
+@router.post("/stage-assets/{asset_id}/finalize")
+async def finalize_live_stage_asset(asset_id: UUID, payload: LiveStageAssetFinalize, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "finalize_live_stage_3d_asset", {
+            "p_asset_id": str(asset_id),
+            "p_checksum_sha256": payload.checksum_sha256,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_STAGE_ASSET_FINALIZE_FAILED") from exc
+
+
+@router.get("/templates/{template_version_id}/stage-assets")
+async def list_live_stage_assets(template_version_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        rows = await select(context["user"], "live_experience_stage_assets", {
+            "select": "id,template_version_id,asset_type,storage_bucket,storage_path,mime_type,metadata,status,moderation_status,content_size_bytes,checksum_sha256,uploaded_at,created_at,updated_at",
+            "template_version_id": f"eq.{template_version_id}",
+            "status": "eq.active", "moderation_status": "eq.approved",
+            "order": "updated_at.desc",
+        })
+        result = []
+        for row in rows:
+            item = dict(row)
+            try:
+                item["signed_url"] = await create_signed_download_url(context["user"], row["storage_bucket"], row["storage_path"], 900)
+            except SupabaseStorageError:
+                item["signed_url"] = None
+            result.append(item)
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_STAGE_ASSET_LIST_FAILED") from exc
