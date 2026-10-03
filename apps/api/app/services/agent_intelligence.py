@@ -13,6 +13,7 @@ from typing import Any
 from uuid import UUID
 
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
+from app.core.agent_context_retrieval import retrieve_agent_context
 from app.core.auth import AuthenticatedUser
 from app.core.supabase_rest import SupabaseRestError, rpc, select
 
@@ -148,41 +149,26 @@ async def _retrieve_rag(
     agent_id: UUID,
     query_embedding: str | None,
     limit: int,
+    query: str | None,
 ) -> dict[str, Any]:
-    if not query_embedding:
-        return {
-            "status": "embedding_required",
-            "memory": [],
-            "knowledge": [],
-            "message": "Vector RAG was not run because no real query embedding was supplied.",
-        }
-
+    vector = None
+    if query_embedding:
+        try:
+            raw = query_embedding.strip().strip("[]")
+            vector = [float(value.strip()) for value in raw.split(",") if value.strip()]
+        except ValueError as exc:
+            raise AgentIntelligenceError("AGENT_INTELLIGENCE_EMBEDDING_INVALID", "The supplied query embedding is invalid.", 422) from exc
     try:
-        memory = await rpc(
-            user,
-            "retrieve_agent_memory",
-            {
-                "p_agent_id": str(agent_id),
-                "p_query_embedding": query_embedding,
-                "p_limit": limit,
-            },
-        )
-        knowledge = await rpc(
-            user,
-            "retrieve_agent_knowledge",
-            {
-                "p_agent_id": str(agent_id),
-                "p_query_embedding": query_embedding,
-                "p_limit": limit,
-            },
-        )
-    except SupabaseRestError as exc:
-        raise AgentIntelligenceError("AGENT_INTELLIGENCE_RAG_FAILED", exc.message, 502) from exc
-
+        context = await retrieve_agent_context(user, agent_id, query=query, query_embedding=vector, limit=limit)
+    except (SupabaseRestError, AIGatewayError) as exc:
+        raise AgentIntelligenceError("AGENT_INTELLIGENCE_RAG_FAILED", str(exc), 502) from exc
+    authorized = context.get("authorized_context") or {}
     return {
-        "status": "retrieved",
-        "memory": memory if isinstance(memory, list) else [],
-        "knowledge": knowledge if isinstance(knowledge, list) else [],
+        "status": (context.get("embedding") or {}).get("status", "retrieved"),
+        "memory": authorized.get("memory") or [],
+        "knowledge": authorized.get("knowledge") or [],
+        "personalization": authorized.get("personalization") or {},
+        "retrieval": context.get("retrieval") or {},
     }
 
 
@@ -229,7 +215,7 @@ async def agent_intelligence_on_content(
 
     content = await _content_context(user, content_id)
     agent = await _agent_context(user, agent_id)
-    rag = await _retrieve_rag(user, agent_id, query_embedding, rag_limit)
+    rag = await _retrieve_rag(user, agent_id, query_embedding, rag_limit, focus)
 
     action_handoff = None
     if action_request:
