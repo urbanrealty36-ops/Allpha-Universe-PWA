@@ -349,64 +349,71 @@ Live state remains intentionally empty:
 
 Status: WEB COMPLETED / RUNTIME GATE DEFERRED. Authenticated multi-user E2E, real Human↔Agent participation, real Content linkage, moderation decision runtime, RSVP/capacity runtime, Universe Discovery runtime, accessibility/performance, CI/build, deployment and production Green remain later gates.
 
-### PHASE 13 — Messaging & Social Communication — IMPLEMENTED FOUNDATION
+### PHASE 13 — Messaging & Social Communication — WEB ACTIVATED / IMPLEMENTED
 
-The canonical Messaging & Social Communication foundation already exists in Supabase + FastAPI and has now been activated as a complete first-party PWA interaction surface.
+Phase 13 is implemented as one canonical Messaging Engine, with FastAPI → Supabase as the authoritative mutation boundary. It now covers Human↔Human, Human↔Agent, cross-owner Human→another person's public AI Agent, contextual sharing, realtime transport, privacy/block authorization, Agent skill scope, AI Gateway execution, and AI Credit attribution.
 
-Existing authoritative foundation reconciled:
-- communication preferences and DM policy
-- conversations and participants
-- conversation requests
-- messages with reply linkage
-- message delivery receipts
-- message reactions
-- message reports
-- communication activity events
-- canonical Social Graph blocks and notifications
-- realtime publication for conversations, participants and messages
-- authenticated SECURITY DEFINER RPC boundaries with anonymous execution denied
+Implemented subphases:
+- 13.1 Messaging DB Audit — reconciled conversations, participants, requests, messages, delivery, reactions, reports, communication preferences and realtime publication.
+- 13.2 Conversation Lifecycle — direct conversation creation, participants, request/accept/reject, active status and contextual metadata.
+- 13.3 Message Lifecycle — send, reply, edit, delete, delivery/read state, reactions and reporting.
+- 13.4 Human ↔ Human — authoritative DM lifecycle through existing messaging RPCs.
+- 13.5 Human ↔ Agent — Human can converse with an Agent subject; owned-Agent authorization remains enforced.
+- 13.6 Agent ↔ Agent Policy — existing collaboration/runtime boundaries remain canonical; no duplicate Agent messaging engine was introduced.
+- 13.7 Content/World/Community Sharing — conversation metadata now supports contextual source references; existing Content/Community/Universe engines remain canonical sources.
+- 13.8 Realtime Messaging — existing Supabase Realtime publication is used for message transport; realtime never grants authorization.
+- 13.9 Notification Integration — request/report/social notification foundations remain authoritative; notification delivery remains a later authenticated runtime gate.
+- 13.10 Block / Privacy / Authorization — DM preferences, block checks, Agent visibility and server-side authorization are enforced before cross-owner Agent service execution.
+- 13.11 AI Conversation → AI Gateway — cross-owner Agent service requests are routed through the canonical AI Gateway and its capability-aware model/policy router.
+- 13.12 Agent Runtime Integration — Agent Service requests carry Agent, skill, owner, source context and AI Gateway metadata; no second AI execution engine is created.
+- 13.13 Web Messaging UX — /messages now includes conversation management plus an Agent Services surface.
+- 13.14 Mobile Responsive — messaging and Agent Service controls remain responsive in the existing PWA surface.
+- 13.15 Security/RLS/RPC — new service/credit tables use RLS; privileged RPCs use pinned search_path, explicit auth.uid checks and authenticated-only EXECUTE.
+- 13.16 Repository ↔ Supabase Reconciliation — committed migration: database/migrations/20261003190000_phase_13_messaging_agent_services_credit_attribution.sql.
+- 13.17 Documentation & Coverage Audit — Phase 13 coverage recorded here and in the Phase 13 audit.
 
-FastAPI:
-- `/api/v1/messaging/preferences`
-- `/api/v1/messaging/conversations`
-- `/api/v1/messaging/conversations/direct`
-- conversation requests
-- messages, edit/delete/reactions
-- delivery updates
-- reports
+#### Cross-owner AI Agent Service / Skill Economy
 
-### PHASE 13.1 — Messaging Experience Activation — IMPLEMENTED FOUNDATION
+A Human may meet an AI Agent owned by another Human and ask that Agent questions or request generation only within the Agent's published Skill. Examples include a public Agent with a Health/Kesehatan skill receiving educational health questions, or a Content/Feed/Moment context asking an Agent to explain or generate related content.
 
-Activated `apps/web/components/messaging-platform.tsx` with:
-- Human ↔ Human and Human ↔ Agent direct conversation entry
-- conversation request accept/reject
-- realtime message refresh through the existing Supabase Realtime publication
-- message send
-- reply
-- edit/delete for owned user messages
-- message reactions
-- message reporting
-- communication privacy / DM policy controls
-- Human/Agent messaging policy controls
-- authoritative empty/loading/error states
-- no fabricated identities, conversations or messages
+Authoritative workflow:
+Human → public Agent discovery → Skill validation → block/privacy validation → AI Credit reservation/debit → Agent Policy/Passport/Capability boundary → AI Gateway → generated result → Agent-authored message → service completion → Credit reward to Agent Owner.
 
-Realtime is transport only. Authorization, ownership, relationship/block/consent decisions and mutations remain behind FastAPI + Supabase RPCs.
+Important rules:
+- The Human cannot select a cheaper credit price from the client. The server resolves the Agent Skill configuration and its credit_cost; default is 1 AI Credit when no configured skill cost exists.
+- Credits are never fabricated or seeded. Current balances remain 0 until a future authorized grant/purchase/economy flow adds credits.
+- On successful Agent Service completion, the requester's debited Credits are recorded as a reward for the Human Owner of the Agent.
+- If generation fails before completion, the requester's Credits are refunded.
+- Idempotency prevents duplicate service charges/rewards.
+- Public cross-owner Agent services exclude the requester's own Agent and blocked owners.
+- Health/medical Agent responses are constrained to educational scope and must not claim professional credentials, diagnosis, prescriptions or individualized treatment authority.
+- Agent identity, ownership, permissions, authority, risk and governance remain independent of visual Theme/World presentation.
 
-No new database migration was required for 13.1 because the required Phase 13 schema, RPCs, RLS and realtime publication were already live.
+New authoritative domain:
+- agent_service_requests
+- ai_credit_ledger
+- get_ai_credit_balance()
+- list_public_agent_services()
+- reserve_agent_service_request()
+- complete_agent_service_request()
+- release_agent_service_request()
+- create_contextual_direct_conversation()
+- append_agent_service_message()
+- reconciled create_ai_gateway_request() to authorize foreign-Agent execution only when an active service reservation exists.
 
-Live state at activation:
+New FastAPI surface:
+- GET /api/v1/messaging/agent-services
+- GET /api/v1/messaging/credits
+- POST /api/v1/messaging/agent-services/generate
+
+Current state remains intentionally empty:
 - Conversations: 0
-- Participants: 0
 - Messages: 0
-- Delivery receipts: 0
-- Reactions: 0
-- Reports: 0
-- Communication preferences: 0
-- Communication activity: 0
+- Agent Service Requests: 0
+- AI Credit Ledger: 0
+- Seeded AI Credits: 0
 
-Status: **IMPLEMENTED FOUNDATION / NOT GREEN** until authenticated multi-user runtime E2E, Human ↔ Agent E2E, request/consent/block behavior, realtime delivery, notification validation, accessibility/performance and CI/build gates are verified.
-
+Status: WEB ACTIVATED / IMPLEMENTED / NOT GREEN. Deployment/runtime gates remain deferred per project policy: authenticated multi-user E2E, Human↔Human, Human↔Agent, cross-owner Agent Skill execution, real AI Gateway generation, credit debit/reward/refund settlement, realtime delivery/read receipts, notification delivery, attachment/storage runtime, accessibility/performance, CI/build, Vercel/Railway deployment and production Green.
 ### PHASE 14 — AI Gateway & Model Router — IMPLEMENTED FOUNDATION
 Implemented the server-side AI execution boundary with provider registry, model registry, normalized capabilities, global/user/Agent routing policies, context/output/cost/timeout/retry budgets, capability-aware routing, provider adapters, fallback/retry, request/attempt/usage telemetry, safety gating, input fingerprints and response hashes. Added FastAPI /api/v1/ai/config, /api/v1/ai/generate, /api/v1/ai/usage and /api/v1/ai/requests plus User PWA /ai. Provider secrets remain server-side environment variables and no provider/model seed data is inserted.
 
