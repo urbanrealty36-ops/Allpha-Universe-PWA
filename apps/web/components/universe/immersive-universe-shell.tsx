@@ -145,7 +145,9 @@ export default function ImmersiveUniverseShell() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [booths, setBooths] = useState<Booth[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
   const [themePackUrl, setThemePackUrl] = useState<string | null>(null);
+  const [transitionLabel, setTransitionLabel] = useState("Entering spatial layer…");
   const [content, setContent] = useState<Content[]>([]);
   const [portals, setPortals] = useState<Portal[]>([]);
   const [presence, setPresence] = useState<Presence[]>([]);
@@ -178,6 +180,7 @@ export default function ImmersiveUniverseShell() {
       ]);
       setGalaxies(g.data ?? []);
       setThemes(t.data ?? []);
+      setSelectedTheme(null);
       setContent(Array.isArray(d.content) ? d.content : (d.content?.data ?? []));
       setPortals([]);
       setPresence([]);
@@ -202,15 +205,16 @@ export default function ImmersiveUniverseShell() {
     void loadBase();
   }, []);
 
-  function beginTransition() {
+  function beginTransition(label = "Entering spatial layer…") {
+    setTransitionLabel(label);
     setTransitioning(true);
-    window.setTimeout(() => setTransitioning(false), 520);
+    window.setTimeout(() => setTransitioning(false), 760);
   }
 
   async function selectGalaxy(galaxy: Galaxy) {
     setBusy(true);
     setError(null);
-    beginTransition();
+    beginTransition(`Entering ${galaxy.name}…`);
     setSelectedGalaxy(galaxy);
     setSelectedWorld(null);
     setSelectedDistrict(null);
@@ -237,7 +241,7 @@ export default function ImmersiveUniverseShell() {
   async function selectWorld(world: World) {
     setBusy(true);
     setError(null);
-    beginTransition();
+    beginTransition(`Entering ${world.name}…`);
     setSelectedWorld(world);
     setSelectedDistrict(null);
     setSelectedBooth(null);
@@ -282,7 +286,7 @@ export default function ImmersiveUniverseShell() {
   async function selectDistrict(district: District) {
     setBusy(true);
     setError(null);
-    beginTransition();
+    beginTransition(`Descending into ${district.name}…`);
     setSelectedDistrict(district);
     setSelectedBooth(null);
     setSelectedContent(null);
@@ -314,7 +318,7 @@ export default function ImmersiveUniverseShell() {
   }
 
   function selectBooth(booth: SpatialBooth) {
-    beginTransition();
+    beginTransition(`Entering ${booth.name}…`);
     setSelectedBooth(booth);
     setSelectedContent(null);
     setMobileHudOpen(true);
@@ -349,8 +353,8 @@ export default function ImmersiveUniverseShell() {
       selectedBooth?.theme_key ||
       selectedDistrict?.theme_key ||
       selectedWorld?.theme_key;
-    return themes.find((t) => t.slug === key || t.id === key) ?? themes[0] ?? null;
-  }, [selectedWorld, selectedDistrict, selectedBooth, themes]);
+    return themes.find((t) => t.slug === key || t.id === key) ?? selectedTheme ?? null;
+  }, [selectedWorld, selectedDistrict, selectedBooth, selectedTheme, themes]);
 
   const scene = activeTheme?.world_schema ?? null;
 
@@ -434,6 +438,11 @@ export default function ImmersiveUniverseShell() {
             </div>
             <div className="flex gap-2">
               <a href="/theme-studio" className="pointer-events-auto rounded-full border border-cyan-300/20 bg-cyan-300/5 px-3 py-2 text-[10px] text-cyan-100 backdrop-blur-xl hover:border-cyan-300/40">Theme Studio</a>
+              {activeTheme && (
+                <span className="pointer-events-auto rounded-full border border-violet-300/20 bg-violet-300/5 px-3 py-2 text-[10px] text-violet-100 backdrop-blur-xl">
+                  Theme · {activeTheme.name}
+                </span>
+              )}
               {level !== "galaxy" && (
                 <button onClick={goBack} className="pointer-events-auto rounded-full border border-white/10 bg-black/35 px-3 py-2 text-[10px] text-white/65 backdrop-blur-xl hover:text-white">← Back</button>
               )}
@@ -451,6 +460,13 @@ export default function ImmersiveUniverseShell() {
                 level={level}
                 galaxies={galaxies}
                 themes={themes}
+                selectedThemeId={selectedTheme?.id}
+                onTheme={(theme) => {
+                  setSelectedTheme(theme);
+                  setMobileHudOpen(true);
+                  setError(null);
+                  beginTransition(`Activating ${theme.name}…`);
+                }}
                 worlds={worlds}
                 districts={districts}
                 booths={visibleBooths}
@@ -567,6 +583,19 @@ export default function ImmersiveUniverseShell() {
           </div>
         </section>
 
+        {transitioning && (
+          <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+            <div className="absolute inset-0 bg-[#03050b]/70 backdrop-blur-[2px]" />
+            <div className="absolute left-1/2 top-1/2 h-[32rem] w-[32rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-200/15 shadow-[0_0_120px_rgba(34,211,238,0.16)] animate-ping" />
+            <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-200/30 bg-violet-400/10 shadow-[0_0_80px_rgba(139,92,246,0.45)] backdrop-blur-xl" />
+            <div className="absolute inset-x-0 bottom-[18%] text-center">
+              <p className="text-[9px] uppercase tracking-[0.35em] text-cyan-200/60">Spatial Transition</p>
+              <p className="mt-2 text-lg font-medium text-white">{transitionLabel}</p>
+              {activeTheme && <p className="mt-1 text-[10px] text-white/35">Theme · {activeTheme.name}</p>}
+            </div>
+          </div>
+        )}
+
         {capsuleTitle && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 backdrop-blur-md sm:items-center sm:p-6" onClick={() => setCapsuleTitle("")}>
             <div className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-[#090c15]/95 p-5 shadow-2xl sm:p-7" onClick={(event) => event.stopPropagation()}>
@@ -610,6 +639,8 @@ function ImmersiveStage({
   level,
   galaxies,
   themes,
+  selectedThemeId,
+  onTheme,
   worlds,
   districts,
   booths,
@@ -630,6 +661,8 @@ function ImmersiveStage({
   level: Level;
   galaxies: Galaxy[];
   themes: Theme[];
+  selectedThemeId?: string;
+  onTheme: (theme: Theme) => void;
   worlds: World[];
   districts: District[];
   booths: SceneNode[];
@@ -663,7 +696,7 @@ function ImmersiveStage({
           <PerspectiveCamera makeDefault position={[0, 3.8, 13]} fov={54} />
           <ambientLight intensity={0.55} />
           <pointLight position={[0, 4, 0]} intensity={24} color="#7c3aed" />
-          <GalaxyScene galaxies={galaxies} themes={themes} />
+          <GalaxyScene galaxies={galaxies} themes={themes} selectedThemeId={selectedThemeId} onTheme={onTheme} />
           <OrbitControls enablePan={false} minDistance={7} maxDistance={20} autoRotate={!lowPower} autoRotateSpeed={0.16} enableDamping dampingFactor={0.08} />
         </Canvas>
       </div>
@@ -731,7 +764,17 @@ function ImmersiveStage({
   );
 }
 
-function GalaxyScene({ galaxies, themes }: { galaxies: Galaxy[]; themes: Theme[] }) {
+function GalaxyScene({
+  galaxies,
+  themes,
+  selectedThemeId,
+  onTheme,
+}: {
+  galaxies: Galaxy[];
+  themes: Theme[];
+  selectedThemeId?: string;
+  onTheme: (theme: Theme) => void;
+}) {
   return (
     <group>
       <mesh>
@@ -780,12 +823,29 @@ function GalaxyScene({ galaxies, themes }: { galaxies: Galaxy[]; themes: Theme[]
       {themes.slice(0, 25).map((theme, index) => {
         const angle = (index / Math.max(1, Math.min(themes.length, 25))) * Math.PI * 2 + 0.18;
         const radius = 7.2 + (index % 3) * 0.45;
+        const selected = selectedThemeId === theme.id;
         return (
-          <group key={`theme-${theme.id}`} position={[Math.cos(angle) * radius, Math.sin(index * 0.44) * 1.7, Math.sin(angle) * radius]}>
-            <mesh>
+          <group
+            key={`theme-${theme.id}`}
+            position={[Math.cos(angle) * radius, Math.sin(index * 0.44) * 1.7, Math.sin(angle) * radius]}
+            onClick={(event) => {
+              event.stopPropagation();
+              onTheme(theme);
+            }}
+          >
+            <mesh scale={selected ? 1.8 : 1}>
               <sphereGeometry args={[0.09 + (index % 2) * 0.025, 12, 12]} />
-              <meshStandardMaterial color={index % 2 ? "#67e8f9" : "#c4b5fd"} emissive={index % 2 ? "#22d3ee" : "#8b5cf6"} emissiveIntensity={1.7} />
+              <meshStandardMaterial
+                color={selected ? "#ffffff" : index % 2 ? "#67e8f9" : "#c4b5fd"}
+                emissive={selected ? "#ffffff" : index % 2 ? "#22d3ee" : "#8b5cf6"}
+                emissiveIntensity={selected ? 3 : 1.7}
+              />
             </mesh>
+            <Html center distanceFactor={10} style={{ pointerEvents: "none" }}>
+              <div className={`whitespace-nowrap rounded-full border px-2 py-1 text-[8px] backdrop-blur-xl ${selected ? "border-white/30 bg-white/10 text-white" : "border-white/10 bg-black/35 text-white/50"}`}>
+                {theme.name}
+              </div>
+            </Html>
           </group>
         );
       })}
@@ -817,7 +877,15 @@ function WorldNavigationScene({
 }) {
   return (
     <group>
-      <mesh position={[0, -0.5, 0]}>
+      {activeTheme && (
+        <Html position={[0, 3.4, 0]} center distanceFactor={10} style={{ pointerEvents: "none" }}>
+          <div className="rounded-2xl border border-violet-200/15 bg-slate-950/55 px-4 py-2 text-center shadow-2xl backdrop-blur-xl">
+            <div className="text-[8px] uppercase tracking-[0.28em] text-violet-200/55">Active World Theme</div>
+            <div className="mt-1 text-sm font-medium text-white">{activeTheme.name}</div>
+          </div>
+        </Html>
+      )}
+      <mesh position={[0, -0.5, 0]>
         <cylinderGeometry args={[8, 8, 0.5, 64]} />
         <meshStandardMaterial color="#0b1020" metalness={0.35} roughness={0.8} />
       </mesh>
