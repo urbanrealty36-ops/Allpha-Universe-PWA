@@ -15,4 +15,4 @@ async def register_device(payload:DeviceRegistration,request:Request,context:dic
  ua=request.headers.get("user-agent","unknown")
  return await rpc(context["user"],"register_security_device",{"p_device_label":payload.device_label,"p_user_agent_hash":security_hash(ua,s.security_pepper),"p_ip_hash":security_hash(client_ip(request),s.security_pepper)})
 @router.post("/devices/{device_id}/revoke")
-async def revoke_device(device_id:str,context:dict=Depends(get_auth_context)):return await update(context["user"],"security_devices",{"id":f"eq.{device_id}"},{"revoked_at":"now()"})
+async def revoke_device(device_id:str,context:dict=Depends(get_auth_context)):return await update(context["user"],"security_devices",{"id":f"eq.{device_id}"},{"revoked_at":__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()})
