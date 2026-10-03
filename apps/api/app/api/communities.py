@@ -69,6 +69,27 @@ class ReportCreate(BaseModel):
     notes: str | None = Field(default=None, max_length=5000)
 
 
+class TopicCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=160)
+    slug: str = Field(min_length=1, max_length=180, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    description: str | None = Field(default=None, max_length=5000)
+    interest_id: UUID | None = None
+
+
+class TopicLink(BaseModel):
+    topic_id: UUID
+
+
+class WorldLink(BaseModel):
+    world_id: UUID
+    placement: str = Field(default="community", min_length=1, max_length=80)
+
+
+class ModerationDecision(BaseModel):
+    decision: Literal["dismissed", "resolved", "remove", "suspend_member", "ban_member", "escalated"]
+    notes: str | None = Field(default=None, max_length=5000)
+
+
 def _error(exc: SupabaseRestError) -> HTTPException:
     status = exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
     return HTTPException(status_code=status, detail={"code": "COMMUNITY_OPERATION_FAILED", "message": exc.message})
@@ -99,6 +120,150 @@ async def list_communities(
     if q:
         filters["or"] = f"(name.ilike.*{q}*,handle.ilike.*{q}*,description.ilike.*{q}*)"
     return {"data": await select(context["user"], "communities", {"select":"id,owner_type,owner_id,name,handle,description,visibility,status,join_policy,metadata,created_at,updated_at", **filters})}
+
+
+@router.get("/{community_id:uuid}/topics")
+async def list_topics(
+    community_id: UUID,
+    limit: int = Query(default=100, ge=1, le=200),
+    context: dict = Depends(get_auth_context),
+) -> dict[str, Any]:
+    rows = await select(
+        context["user"],
+        "community_topics",
+        {
+            "select": "id,community_id,interest_id,name,slug,description,status,created_by_user_id,created_at",
+            "community_id": f"eq.{community_id}",
+            "status": "eq.active",
+            "order": "created_at.asc",
+            "limit": str(limit),
+        },
+    )
+    return {"data": rows}
+
+
+@router.post("/{community_id:uuid}/topics", status_code=201)
+async def create_topic(
+    community_id: UUID,
+    payload: TopicCreate,
+    context: dict = Depends(get_auth_context),
+) -> Any:
+    try:
+        return await rpc(
+            context["user"],
+            "create_community_topic",
+            {
+                "p_community_id": str(community_id),
+                "p_name": payload.name,
+                "p_slug": payload.slug,
+                "p_description": payload.description,
+                "p_interest_id": str(payload.interest_id) if payload.interest_id else None,
+            },
+        )
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/{community_id:uuid}/topics/link", status_code=201)
+async def link_topic(
+    community_id: UUID,
+    payload: TopicLink,
+    context: dict = Depends(get_auth_context),
+) -> Any:
+    try:
+        return await rpc(
+            context["user"],
+            "link_community_topic",
+            {"p_community_id": str(community_id), "p_topic_id": str(payload.topic_id)},
+        )
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
+
+
+@router.get("/{community_id:uuid}/world-links")
+async def list_world_links(
+    community_id: UUID,
+    limit: int = Query(default=100, ge=1, le=200),
+    context: dict = Depends(get_auth_context),
+) -> dict[str, Any]:
+    rows = await select(
+        context["user"],
+        "universe_world_communities",
+        {
+            "select": "world_id,community_id,placement,created_at",
+            "community_id": f"eq.{community_id}",
+            "order": "created_at.asc",
+            "limit": str(limit),
+        },
+    )
+    return {"data": rows}
+
+
+@router.post("/{community_id:uuid}/world-links", status_code=201)
+async def link_world(
+    community_id: UUID,
+    payload: WorldLink,
+    context: dict = Depends(get_auth_context),
+) -> Any:
+    try:
+        return await rpc(
+            context["user"],
+            "link_community_to_world",
+            {
+                "p_world_id": str(payload.world_id),
+                "p_community_id": str(community_id),
+                "p_placement": payload.placement,
+            },
+        )
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
+
+
+@router.get("/{community_id:uuid}/moderation/cases")
+async def list_moderation_cases(
+    community_id: UUID,
+    status: Literal["open", "resolved", "dismissed"] | None = None,
+    limit: int = Query(default=100, ge=1, le=200),
+    context: dict = Depends(get_auth_context),
+) -> dict[str, Any]:
+    filters = {
+        "community_id": f"eq.{community_id}",
+        "order": "created_at.desc",
+        "limit": str(limit),
+    }
+    if status:
+        filters["decision"] = f"eq.{status}"
+    return {
+        "data": await select(
+            context["user"],
+            "community_moderation_cases",
+            {
+                "select": "id,community_id,report_id,target_type,target_id,decision,decided_by_user_id,notes,created_at,decided_at",
+                **filters,
+            },
+        )
+    }
+
+
+@router.post("/{community_id:uuid}/moderation/cases/{case_id:uuid}/decision")
+async def decide_moderation_case(
+    community_id: UUID,
+    case_id: UUID,
+    payload: ModerationDecision,
+    context: dict = Depends(get_auth_context),
+) -> Any:
+    try:
+        return await rpc(
+            context["user"],
+            "decide_community_moderation_case",
+            {
+                "p_case_id": str(case_id),
+                "p_decision": payload.decision,
+                "p_notes": payload.notes,
+            },
+        )
+    except SupabaseRestError as exc:
+        raise _error(exc) from exc
 
 
 @router.get("/{community_id:uuid}")
