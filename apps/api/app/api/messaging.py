@@ -255,10 +255,8 @@ async def resume_agent_service(service_request_id: UUID, context: dict = Depends
             "status": "eq.completed",
             "order": "sequence_no.asc"
         })
-        result_text = next(
-            (str((step.get("result") or {}).get("text")) for step in steps if isinstance(step.get("result"), dict) and (step.get("result") or {}).get("text")),
-            None
-        )
+        gateway_request_id = next((str((step.get("result") or {}).get("request_id")) for step in steps if isinstance(step.get("result"), dict) and (step.get("result") or {}).get("request_id")), None)
+        result_text = next((str((step.get("result") or {}).get("text")) for step in steps if isinstance(step.get("result"), dict) and (step.get("result") or {}).get("text")), None)
         if not result_text:
             raise AgentRuntimeError("AGENT_SERVICE_EMPTY_RESULT", "Agent Runtime completed without a textual result.", 502)
         message = await rpc(user, "append_agent_service_message", {
@@ -269,7 +267,7 @@ async def resume_agent_service(service_request_id: UUID, context: dict = Depends
         })
         settlement = await rpc(user, "complete_agent_service_request", {
             "p_request_id": str(service_request_id),
-            "p_ai_gateway_request_id": None,
+            "p_ai_gateway_request_id": gateway_request_id,
             "p_result_message_id": message.get("id") if isinstance(message, dict) else None,
             "p_metadata": {"agent_runtime_command_id": str(command_id), "resumed_after_approval": True}
         })
@@ -393,10 +391,12 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             "order": "sequence_no.asc",
         })
         result_text = None
+        gateway_request_id = None
         for step in steps:
             candidate = (step.get("result") or {}).get("text") if isinstance(step.get("result"), dict) else None
             if candidate:
                 result_text = str(candidate)
+                gateway_request_id = (step.get("result") or {}).get("request_id") if isinstance(step.get("result"), dict) else gateway_request_id
         if not result_text:
             raise AgentRuntimeError("AGENT_SERVICE_EMPTY_RESULT", "Agent Runtime completed without a textual result.", 502)
 
