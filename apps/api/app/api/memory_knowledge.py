@@ -253,6 +253,26 @@ async def create_knowledge_chunk(
     return (await insert(user, "knowledge_chunks", values))[0]
 
 
+@router.post("/{agent_id}/knowledge/{knowledge_id}/chunks/{chunk_id}/embedding/generate")
+async def generate_knowledge_chunk_embedding(agent_id: UUID, knowledge_id: UUID, chunk_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user = context["user"]
+    await _owned_agent(user, agent_id)
+    rows = await select(user, "knowledge_chunks", {
+        "select": "id,content",
+        "id": f"eq.{chunk_id}",
+        "knowledge_item_id": f"eq.{knowledge_id}",
+        "limit": "1",
+    })
+    item = await select(user, "knowledge_items", {"select": "id", "id": f"eq.{knowledge_id}", "agent_id": f"eq.{agent_id}", "owner_user_id": f"eq.{user.user_id}", "limit": "1"})
+    if not rows or not item:
+        raise HTTPException(status_code=404, detail={"code": "KNOWLEDGE_CHUNK_NOT_FOUND", "message": "Knowledge chunk was not found."})
+    try:
+        result = await embed_text(user, rows[0]["content"], agent_id=str(agent_id), dimensions=1536, metadata={"purpose":"knowledge_chunk_embedding","knowledge_id":str(knowledge_id),"chunk_id":str(chunk_id)})
+    except AIGatewayError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+    updated = await update(user, "knowledge_chunks", {"id": f"eq.{chunk_id}"}, {"embedding": result.embedding})
+    return {"data": updated[0] if updated else {"id": str(chunk_id)}, "embedding": {"model": result.model_identifier, "dimensions": len(result.embedding), "request_id": result.request_id}}
+
 @router.post("/{agent_id}/knowledge/retrieve")
 async def retrieve_knowledge(agent_id: UUID, payload: RetrievalRequest, context: dict = Depends(get_auth_context)) -> Any:
     user = context["user"]
