@@ -145,4 +145,4 @@ revoke all on function public.create_contextual_direct_conversation(text,uuid,te
 grant execute on function public.create_contextual_direct_conversation(text,uuid,text,text,uuid,jsonb) to authenticated;
 revoke all on function public.append_agent_service_message(uuid,uuid,text,jsonb) from public; revoke execute on function public.append_agent_service_message(uuid,uuid,text,jsonb) from anon, public;
 grant execute on function public.append_agent_service_message(uuid,uuid,text,jsonb) to authenticated;
-revoke all on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) from public; grant execute on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) to authenticated;
+revoke all on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) from public; revoke execute on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) from anon, public; grant execute on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) to authenticated;
