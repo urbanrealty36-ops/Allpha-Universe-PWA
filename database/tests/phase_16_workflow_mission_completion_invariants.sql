@@ -21,8 +21,8 @@ select ok((select rowsecurity from pg_tables where schemaname='public' and table
 select ok((select rowsecurity from pg_tables where schemaname='public' and tablename='mission_participants'),'mission participants RLS enabled');
 select ok((select rowsecurity from pg_tables where schemaname='public' and tablename='mission_runs'),'mission runs RLS enabled');
 
-select ok(has_function_privilege('anon','public.trigger_workflow(uuid,text,jsonb,text)','execute')=false,'anon cannot trigger workflows');
-select ok(has_function_privilege('authenticated','public.trigger_workflow(uuid,text,jsonb,text)','execute')=true,'authenticated can trigger owned workflows');
+select ok(has_function_privilege('anon','public.trigger_workflow(uuid,text,uuid,jsonb,text)','execute')=false,'anon cannot trigger workflows');
+select ok(has_function_privilege('authenticated','public.trigger_workflow(uuid,text,uuid,jsonb,text)','execute')=true,'authenticated can trigger owned workflows');
 select ok(has_function_privilege('anon','public.prepare_workflow_run(uuid)','execute')=false,'anon cannot prepare workflows');
 select ok(has_function_privilege('authenticated','public.prepare_workflow_run(uuid)','execute')=true,'authenticated can prepare workflows');
 select ok(has_function_privilege('anon','public.sync_workflow_run(uuid)','execute')=false,'anon cannot sync workflows');
