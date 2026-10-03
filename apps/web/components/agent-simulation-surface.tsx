@@ -1,6 +1,7 @@
 "use client";
-import {FormEvent,useEffect,useState} from "react";
+import {FormEvent,useCallback,useEffect,useState} from "react";
 import {apiFetch} from "../lib/api";
+import {createSupabaseBrowserClient} from "../lib/supabase/client";
 
 type State={id:string;world_id:string;agent_id:string;movement_state:string;position:Record<string,unknown>;rotation:Record<string,unknown>;zone_key:string|null;speed:number;updated_at:string};
 type Session={id:string;world_id:string;status:string;tick_rate_hz:number;current_tick:number;last_tick_at:string|null};
@@ -11,7 +12,7 @@ export default function AgentSimulationSurface(){
  const[worldId,setWorldId]=useState(""),[agentId,setAgentId]=useState(""),[statesData,setStatesData]=useState<State[]>([]),[sessions,setSessions]=useState<Session[]>([]);
  const[session,setSession]=useState<Session|null>(null),[movement,setMovement]=useState("idle"),[zone,setZone]=useState(""),[x,setX]=useState("0"),[y,setY]=useState("0"),[z,setZ]=useState("0"),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState<string|null>(null);
 
- async function load(){
+ const load=useCallback(async()=>{
   if(!worldId)return;
   setLoading(true);setError(null);
   try{
@@ -55,7 +56,7 @@ export default function AgentSimulationSurface(){
   <header><p className="text-xs uppercase tracking-[.25em] text-cyan-300">Phase 18</p><h1 className="mt-2 text-4xl font-semibold">Agent Simulation & Spatial Runtime</h1><p className="mt-3 max-w-3xl text-slate-400">Authoritative spatial state, Agent presence, interactions and world simulation controls. No synthetic Agents or Worlds are created by this screen.</p></header>
   <section className="mt-7 rounded-2xl border border-white/10 bg-white/[.03] p-5">
    <div className="grid gap-3 md:grid-cols-2"><input value={worldId} onChange={e=>setWorldId(e.target.value)} placeholder="World UUID" className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm"/><input value={agentId} onChange={e=>setAgentId(e.target.value)} placeholder="Owned Agent UUID" className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm"/></div>
-   <button onClick={()=>void load()} disabled={!worldId||loading} className="mt-3 rounded-xl border border-white/10 px-4 py-2 text-sm">{loading?"Loading…":"Load Runtime"}</button>
+   <div className="mt-3 flex items-center gap-3"><button onClick={()=>void load()} disabled={!worldId||loading} className="mt-3 rounded-xl border border-white/10 px-4 py-2 text-sm">{loading?"Loading…":"Load Runtime"}</button><span className="text-xs text-slate-500">Realtime: {realtimeStatus}</span></div>
    {error&&<div className="mt-4 rounded-xl border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">{error}</div>}
   </section>
   <div className="mt-6 grid gap-6 lg:grid-cols-2">
