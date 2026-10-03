@@ -1130,6 +1130,43 @@ Remaining:
 - Phase 26 production security gates
 
 Next: PHASE 27B — Super Admin Domain Operations & Governance Surfaces.
+### PHASE 27B — Super Admin Analytics + Master Data — IMPLEMENTED FOUNDATION
+
+Implemented:
+- server-authoritative Executive Analytics over existing source-of-truth tables
+- interactive 7/30/90-day KPI dashboard
+- transaction/order/payment/revenue/GMV/AOV/payment-success analytics
+- unique/repeat buyer analytics
+- user/Agent/content/engagement analytics
+- billing/economy/credit/payout analytics
+- AI token/cost/latency analytics
+- governance/risk/approval/moderation analytics
+- Universe/Galaxy/World/District/Zone/Booth analytics
+- daily trend series and operational tables
+- Super Admin Master Data surface
+- RBAC/permission, Agent catalog, Theme/World Template, Billing/Credit, AI Provider/Model, Feature Flag and Configuration Version catalogs
+- provider credential fields are excluded from Master Data output
+- FastAPI routes `/api/v1/admin/control-plane/analytics` and `/api/v1/admin/control-plane/master-data`
+- no synthetic business/transaction data
+
+Live verification:
+- analytics RPC successfully executed inside a rollback Super Admin-role test transaction
+- master-data RPC successfully returned authoritative catalog sections
+- Phase 27B invariants PASS
+- public EXECUTE revoked; authenticated EXECUTE explicit
+- private SECURITY DEFINER functions use fixed search_path
+
+Status: **IMPLEMENTED FOUNDATION / NOT GREEN**.
+
+Remaining:
+- authenticated Super Admin browser E2E
+- API/Admin typecheck/build/CI
+- full domain operation surfaces
+- runtime validation with real transactions/AI usage
+- Phase 26 production security gate
+
+**Next: PHASE 27C — Super Admin Domain Operations, Transaction Explorer & Master Data Management.**
+
 ### PHASE 27 — Super Admin Control Plane
 Overview, Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
 
