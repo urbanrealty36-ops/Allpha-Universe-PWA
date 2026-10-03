@@ -1,0 +1,26 @@
+-- Phase 25 Economy, Credits & Billing invariants
+select to_regclass('public.economy_credit_products') is not null as credit_products_exists;
+select to_regclass('public.economy_credit_purchases') is not null as credit_purchases_exists;
+select to_regclass('public.billing_plans') is not null as billing_plans_exists;
+select to_regclass('public.billing_subscriptions') is not null as subscriptions_exists;
+select to_regclass('public.billing_invoices') is not null as invoices_exists;
+select to_regclass('public.economy_settlement_events') is not null as settlement_events_exists;
+select relrowsecurity from pg_class where oid='public.economy_credit_products'::regclass;
+select relrowsecurity from pg_class where oid='public.economy_credit_purchases'::regclass;
+select relrowsecurity from pg_class where oid='public.billing_plans'::regclass;
+select relrowsecurity from pg_class where oid='public.billing_subscriptions'::regclass;
+select relrowsecurity from pg_class where oid='public.billing_invoices'::regclass;
+select exists(select 1 from information_schema.columns where table_schema='public' and table_name='commerce_orders' and column_name='order_kind') as commerce_order_kind;
+select exists(select 1 from information_schema.columns where table_schema='public' and table_name='commerce_payments' and column_name='provider_transaction_id') as payment_provider_tx;
+select exists(select 1 from pg_proc where proname='create_credit_purchase_order') as credit_order_rpc;
+select exists(select 1 from pg_proc where proname='create_subscription_order') as subscription_order_rpc;
+select exists(select 1 from pg_proc where proname='get_my_economy_summary') as summary_rpc;
+select exists(select 1 from pg_proc where proname='process_midtrans_settlement') as midtrans_settlement_rpc;
+select count(*)=0 as no_fabricated_credit_products from public.economy_credit_products;
+select count(*)=0 as no_fabricated_credit_purchases from public.economy_credit_purchases;
+select count(*)=0 as no_fabricated_plans from public.billing_plans;
+select count(*)=0 as no_fabricated_subscriptions from public.billing_subscriptions;
+select count(*)=0 as no_fabricated_invoices from public.billing_invoices;
+select count(*)=0 as no_fabricated_settlements from public.economy_settlement_events;
+select count(*)=0 as no_midtrans_transactions from public.commerce_payments where provider_key='midtrans';
+select count(*)=0 as no_checkout_urls_without_midtrans_payment from public.commerce_payments where checkout_url is not null and provider_key<>'midtrans';
