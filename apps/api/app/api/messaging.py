@@ -334,7 +334,8 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             })
             conversation_id = UUID(str(conversation["conversation_id"]))
 
-        system_scope = (
+        service_context = await rpc(user, "get_agent_service_context", {"p_service_request_id": request_id, "p_limit": 8})
+                system_scope = (
             f"You are the Allpha AI Agent {service.get('agent_name')}. "
             f"Your published Skill for this service is {payload.skill_name}. "
             "Stay within this Skill and the Agent's configured capabilities and policy. "
