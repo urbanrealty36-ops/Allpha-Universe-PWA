@@ -1,5 +1,5 @@
 -- Phase 18 Agent Simulation & Spatial Runtime invariants
-select plan(44);
+select plan(46);
 
 select ok(to_regclass('public.agent_spatial_states') is not null,'spatial states exists');
 select ok(to_regclass('public.spatial_interactions') is not null,'spatial interactions exists');
@@ -23,12 +23,14 @@ select ok(to_regprocedure('public.pause_world_simulation(uuid)') is not null,'pa
 select ok(to_regprocedure('public.resume_world_simulation(uuid)') is not null,'resume simulation RPC');
 select ok(to_regprocedure('public.stop_world_simulation(uuid)') is not null,'stop simulation RPC');
 select ok(to_regprocedure('public.record_simulation_tick(uuid,bigint,integer,text,jsonb)') is not null,'record tick RPC');
+select ok(to_regprocedure('public.advance_world_simulation_tick(uuid)') is not null,'advance simulation tick RPC');
 
 select ok((select prosecdef from pg_proc where oid='public.enter_agent_simulation(uuid,uuid,jsonb,jsonb,text)'::regprocedure),'enter is security definer');
 select ok((select prosecdef from pg_proc where oid='public.update_agent_spatial_state(uuid,uuid,text,jsonb,jsonb,text,jsonb,numeric,jsonb)'::regprocedure),'update is security definer');
 select ok((select prosecdef from pg_proc where oid='public.create_spatial_interaction(uuid,text,uuid,text,uuid,text,jsonb)'::regprocedure),'interaction is security definer');
 select ok((select prosecdef from pg_proc where oid='public.start_world_simulation(uuid,numeric,jsonb)'::regprocedure),'start is security definer');
 select ok((select prosecdef from pg_proc where oid='public.record_simulation_tick(uuid,bigint,integer,text,jsonb)'::regprocedure),'tick is security definer');
+select ok((select prosecdef from pg_proc where oid='public.advance_world_simulation_tick(uuid)'::regprocedure),'advance tick is security definer');
 
 select ok((select pg_get_function_result(oid) is not null from pg_proc where oid='public.enter_agent_simulation(uuid,uuid,jsonb,jsonb,text)'::regprocedure),'enter function valid');
 select ok((select pg_get_function_result(oid) is not null from pg_proc where oid='public.update_agent_spatial_state(uuid,uuid,text,jsonb,jsonb,text,jsonb,numeric,jsonb)'::regprocedure),'update function valid');
