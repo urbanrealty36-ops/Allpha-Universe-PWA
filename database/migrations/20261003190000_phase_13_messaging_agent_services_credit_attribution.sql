@@ -146,3 +146,52 @@ grant execute on function public.create_contextual_direct_conversation(text,uuid
 revoke all on function public.append_agent_service_message(uuid,uuid,text,jsonb) from public; revoke execute on function public.append_agent_service_message(uuid,uuid,text,jsonb) from anon, public;
 grant execute on function public.append_agent_service_message(uuid,uuid,text,jsonb) to authenticated;
 revoke all on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) from public; revoke execute on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) from anon, public; grant execute on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) to authenticated;
+
+
+-- Phase 15 Runtime reconciliation: cross-owner services execute through the canonical Agent Runtime.
+alter table public.agent_commands add column if not exists requester_user_id uuid references public.users(id);
+alter table public.agent_commands add column if not exists service_request_id uuid references public.agent_service_requests(id);
+create index if not exists agent_commands_requester_idx on public.agent_commands(requester_user_id,created_at desc);
+create index if not exists agent_commands_service_request_idx on public.agent_commands(service_request_id);
+drop policy if exists agent_commands_owner_read on public.agent_commands;
+create policy agent_commands_owner_read on public.agent_commands for select to authenticated using ((select auth.uid())=owner_user_id or (select auth.uid())=requester_user_id);
+
+create or replace function public.create_agent_service_command(p_service_request_id uuid,p_command_text text,p_requested_capabilities text[] default '{}',p_idempotency_key text default null)
+returns public.agent_commands language plpgsql security definer set search_path='' as $$
+declare r public.agent_service_requests%rowtype; a public.agents%rowtype; pol public.agent_policies; v public.agent_commands;
+begin
+if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+select * into r from public.agent_service_requests where id=p_service_request_id and requester_user_id=auth.uid() for update;
+if r.id is null then raise exception 'SERVICE_REQUEST_NOT_FOUND'; end if;
+if r.status not in ('reserved','processing') then raise exception 'SERVICE_REQUEST_NOT_ACTIVE'; end if;
+select * into a from public.agents where id=r.agent_id and status='active' and visibility='public';
+if a.id is null or a.owner_user_id=r.requester_user_id then raise exception 'AGENT_NOT_AVAILABLE'; end if;
+select * into pol from public.agent_policies where agent_id=a.id and enabled=true order by policy_version desc limit 1;
+if pol.id is null then raise exception 'AGENT_POLICY_REQUIRED'; end if;
+if p_idempotency_key is not null then select * into v from public.agent_commands where requester_user_id=auth.uid() and idempotency_key=p_idempotency_key limit 1; if v.id is not null then return v; end if; end if;
+update public.agent_service_requests set status='processing',updated_at=timezone('utc',now()) where id=r.id;
+insert into public.agent_commands(agent_id,owner_user_id,requester_user_id,service_request_id,command_text,requested_capabilities,autonomy_level,policy_version,risk_level,risk_decision,idempotency_key,status,command_source)
+values(a.id,a.owner_user_id,r.requester_user_id,r.id,trim(p_command_text),coalesce(p_requested_capabilities,'{}'),coalesce(pol.autonomy_level,'recommend'),pol.policy_version,'low','pending',p_idempotency_key,'planning','agent_service') returning * into v;
+insert into public.agent_execution_contexts(command_id,agent_id,owner_user_id,correlation_id,state,budget_snapshot,policy_snapshot) values(v.id,a.id,a.owner_user_id,v.correlation_id,'planning','{}'::jsonb,to_jsonb(pol));
+insert into public.agent_runtime_events(command_id,agent_id,owner_user_id,event_type,from_state,to_state,metadata) values(v.id,a.id,a.owner_user_id,'service_command_created','received','planning',jsonb_build_object('service_request_id',r.id,'requester_user_id',r.requester_user_id,'skill_name',r.skill_name));
+return v;
+end $$;
+
+revoke all on function public.create_agent_service_command(uuid,text,text[],text) from public,anon;
+grant execute on function public.create_agent_service_command(uuid,text,text[],text) to authenticated;
+
+drop policy if exists agent_execution_contexts_owner_read on public.agent_execution_contexts;
+create policy agent_execution_contexts_owner_read on public.agent_execution_contexts for select to authenticated using ((select auth.uid())=owner_user_id or command_id in (select id from public.agent_commands where requester_user_id=(select auth.uid())));
+drop policy if exists agent_runtime_events_owner_read on public.agent_runtime_events;
+create policy agent_runtime_events_owner_read on public.agent_runtime_events for select to authenticated using ((select auth.uid())=owner_user_id or command_id in (select id from public.agent_commands where requester_user_id=(select auth.uid())));
+drop policy if exists agent_task_steps_owner_read on public.agent_task_steps;
+create policy agent_task_steps_owner_read on public.agent_task_steps for select to authenticated using ((select auth.uid())=owner_user_id or command_id in (select id from public.agent_commands where requester_user_id=(select auth.uid())));
+drop policy if exists agent_tasks_owner_read on public.agent_tasks;
+create policy agent_tasks_owner_read on public.agent_tasks for select to authenticated using ((select auth.uid())=owner_user_id or command_id in (select id from public.agent_commands where requester_user_id=(select auth.uid())));
+drop policy if exists agent_tool_runs_owner_read on public.agent_tool_runs;
+create policy agent_tool_runs_owner_read on public.agent_tool_runs for select to authenticated using ((select auth.uid())=owner_user_id or command_id in (select id from public.agent_commands where requester_user_id=(select auth.uid())));
+drop policy if exists agent_spend_events_owner_read on public.agent_spend_events;
+create policy agent_spend_events_owner_read on public.agent_spend_events for select to authenticated using ((select auth.uid())=owner_user_id or command_id in (select id from public.agent_commands where requester_user_id=(select auth.uid())));
+
+-- Runtime function bodies are reconciled in the linked database by the same authorization rule:
+-- owner OR requester for a service command; owner-only behavior remains for normal commands.
