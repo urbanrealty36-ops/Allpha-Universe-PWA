@@ -1,0 +1,15 @@
+select
+  (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prokind='f' and p.prosecdef and has_function_privilege('anon',p.oid,'EXECUTE'))=0 as no_public_sd_anon,
+  (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prokind='f' and p.prosecdef and has_function_privilege('authenticated',p.oid,'EXECUTE'))=0 as no_public_sd_authenticated,
+  (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prokind='f' and p.prosecdef and pg_get_functiondef(p.oid) not like '%SET search_path TO %')=0 as all_public_sd_pinned,
+  (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.prokind='f' and p.prosecdef and pg_get_functiondef(p.oid) not like '%SET search_path TO %')=0 as all_private_sd_pinned,
+  (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prokind='f' and (has_function_privilege('anon',p.oid,'EXECUTE') or has_function_privilege('authenticated',p.oid,'EXECUTE')) and pg_get_functiondef(p.oid) not like '%set search_path%')=0 as all_client_functions_pinned,
+  (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not c.relrowsecurity)=0 as all_public_tables_rls,
+  (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and c.relrowsecurity and not exists(select 1 from pg_policy p where p.polrelid=c.oid))=0 as no_rls_without_policy,
+  (select count(*) from pg_policy p where p.polcmd in ('a','w') and p.polwithcheck is null)=0 as all_write_policies_have_check,
+  (select count(*) from private.security_idor_audit() where risk in ('CRITICAL','HIGH'))=0 as idor_surface_controlled,
+  (select has_function_privilege('anon','private.security_idor_audit()','EXECUTE'))=false as idor_audit_not_anon,
+  (select has_function_privilege('authenticated','private.security_idor_audit()','EXECUTE'))=false as idor_audit_not_authenticated,
+  (select exists(select 1 from pg_policy where polrelid='public.idempotency_keys'::regclass and polname='deny_client_access_idempotency_keys')) as idempotency_fail_closed,
+  (select exists(select 1 from pg_policy where polrelid='public.policy_rules'::regclass and polname='deny_client_access_policy_rules')) as policy_rules_fail_closed,
+  (select exists(select 1 from pg_policy where polrelid='public.security_events'::regclass and polname='deny_client_access_security_events')) as security_events_fail_closed;
