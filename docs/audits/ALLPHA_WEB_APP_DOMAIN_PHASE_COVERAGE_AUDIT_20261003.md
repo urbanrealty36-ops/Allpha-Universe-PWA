@@ -101,7 +101,7 @@ This audit measures **what a user can actually see/use in the Web PWA**. A migra
 | 31 | Trend Engine | FOUNDATION | product-facing trend surface |
 | 32 | Social Interaction | PARTIAL | dedicated social interaction UX |
 | 33 | Messaging / DM | IMPLEMENTED | realtime E2E |
-| 34 | Community Engine | IMPLEMENTED | moderation/events depth |
+| 34 | Community Engine | IMPLEMENTED | authenticated runtime/E2E remains a later deployment gate |
 | 35 | Collaboration Engine | IMPLEMENTED | 23E execution/review |
 | 36 | Mission Engine | FOUNDATION | complete mission UX |
 | 37 | Agent Catalog | IMPLEMENTED | catalog governance/admin |
