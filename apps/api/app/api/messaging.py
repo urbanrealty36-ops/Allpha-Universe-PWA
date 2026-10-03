@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
 from app.core.auth import AuthenticatedUser
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
+from app.core.agent_runtime import AgentRuntimeError, execute_command, plan_command
 from app.core.supabase_rest import SupabaseRestError, rpc, select
 
 router = APIRouter(prefix="/api/v1/messaging", tags=["Messaging & Social Communication"])
@@ -224,14 +225,14 @@ async def credits(context: dict = Depends(get_auth_context)) -> dict[str, Any]:
 @router.post("/agent-services/generate", status_code=201)
 async def generate_agent_service(payload: AgentServiceRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     user = context["user"]
-    # The server resolves the authoritative skill configuration; the client cannot choose a cheaper price.
     services = await rpc(user, "list_public_agent_services", {"p_skill_name": payload.skill_name, "p_limit": 100})
     service = next((row for row in (services or []) if str(row.get("agent_id")) == str(payload.agent_id)), None)
     if not service:
-        raise HTTPException(status_code=404, detail={"code": "AGENT_SKILL_NOT_AVAILABLE", "message": "The selected Agent does not expose the requested skill."})
+        raise HTTPException(status_code=404, detail={"code": "AGENT_SKILL_NOT_AVAILABLE", "message": "The selected Agent does not expose the requested Skill."})
     configuration = service.get("skill_configuration") or {}
     configured_cost = configuration.get("credit_cost") if isinstance(configuration, dict) else None
     credit_cost = int(configured_cost) if isinstance(configured_cost, int) and configured_cost > 0 else 1
+    request_id: str | None = None
     try:
         reservation = await rpc(user, "reserve_agent_service_request", {
             "p_agent_id": str(payload.agent_id),
@@ -241,11 +242,18 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
             "p_idempotency_key": payload.idempotency_key,
             "p_conversation_id": str(payload.conversation_id) if payload.conversation_id else None,
             "p_source_content_id": str(payload.source_content_id) if payload.source_content_id else None,
-            "p_source_context": payload.source_context,
+            "p_source_context": payload.source_context | {
+                "skill_name": payload.skill_name,
+                "mode": payload.mode,
+                "agent_owner_user_id": str(service.get("owner_user_id")),
+            },
         })
         request_id = str(reservation["id"])
         if reservation.get("reused"):
-            existing = await select(user, "agent_service_requests", {"select": "id,status,conversation_id,result_message_id,credit_cost", "id": f"eq.{request_id}", "limit": "1"})
+            existing = await select(user, "agent_service_requests", {
+                "select": "id,status,conversation_id,result_message_id,credit_cost,service_type,skill_name,agent_id,agent_owner_user_id",
+                "id": f"eq.{request_id}", "limit": "1"
+            })
             return {"data": {"request": existing[0] if existing else reservation, "reused": True}}
 
         conversation_id = payload.conversation_id
@@ -256,66 +264,122 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
                 "p_message": None,
                 "p_context_type": "content" if payload.source_content_id else "agent_service",
                 "p_context_id": str(payload.source_content_id) if payload.source_content_id else request_id,
-                "p_context": payload.source_context | {"service_request_id": request_id, "skill_name": payload.skill_name, "mode": payload.mode},
+                "p_context": payload.source_context | {
+                    "service_request_id": request_id,
+                    "skill_name": payload.skill_name,
+                    "mode": payload.mode,
+                },
             })
             conversation_id = UUID(str(conversation["conversation_id"]))
+
         system_scope = (
-            f"You are the AI Agent {service.get('agent_name')}. Your enabled skill is {payload.skill_name}. "
-            "Answer only within the demonstrated skill scope and the Agent's configured capabilities. "
-            "Do not claim credentials or authority you do not have. For health/medical topics, provide general educational information, "
-            "surface uncertainty and recommend qualified professional care for diagnosis, emergencies, prescriptions, or individualized treatment."
+            f"You are the Allpha AI Agent {service.get('agent_name')}. "
+            f"Your published Skill for this service is {payload.skill_name}. "
+            "Stay within this Skill and the Agent's configured capabilities and policy. "
+            "Do not claim credentials, actions, facts, tools, permissions, purchases, or authority that were not actually provided. "
+            "For health/medical topics, provide general educational information only and recommend qualified professional care "
+            "for diagnosis, emergencies, prescriptions, or individualized treatment."
         )
-        user_prompt = payload.prompt
-        if payload.mode == "generate_content":
-            user_prompt = (
-                "The Human asks you to generate content. Produce the requested content in a usable format, "
-                "respecting the source context and the Agent skill scope.\n\nREQUEST:\n" + payload.prompt
-            )
-        result = await generate(
-            user,
-            [GatewayMessage(role="system", content=system_scope), GatewayMessage(role="user", content=user_prompt)],
-            agent_id=str(payload.agent_id),
-            capabilities=[payload.skill_name],
-            idempotency_key=f"agent-service:{request_id}",
-            metadata={
-                "agent_service_request_id": request_id,
-                "requester_user_id": str(user.user_id),
-                "agent_owner_user_id": str(service.get("owner_user_id")),
-                "skill_name": payload.skill_name,
-                "mode": payload.mode,
-                "source_content_id": str(payload.source_content_id) if payload.source_content_id else None,
-            },
+        user_prompt = payload.prompt if payload.mode == "answer" else (
+            "Generate the requested Content in a usable format while staying within the published Agent Skill and source context.\n\n"
+            f"Source context: {payload.source_context}\n\nREQUEST:\n{payload.prompt}"
         )
+        command_text = (
+            f"Agent Service request. Published Skill: {payload.skill_name}. Mode: {payload.mode}. "
+            "Use the canonical ai.generate tool only. "
+            "The final output must be the direct answer/generation requested by the Human. "
+            f"SYSTEM SCOPE:\n{system_scope}\n\nUSER REQUEST:\n{user_prompt}"
+        )
+        command = await rpc(user, "create_agent_service_command", {
+            "p_service_request_id": request_id,
+            "p_command_text": command_text,
+            "p_requested_capabilities": ["ai.generate"],
+            "p_idempotency_key": f"runtime:{request_id}",
+        })
+        command_id = UUID(str(command["id"]))
+
+        planned = await plan_command(user, command_id)
+        if planned.get("status") == "waiting_approval":
+            return {"data": {
+                "request_id": request_id,
+                "conversation_id": str(conversation_id),
+                "command_id": str(command_id),
+                "status": "waiting_approval",
+                "approval_id": planned.get("approval_id"),
+                "credit_cost": credit_cost,
+                "message": "The Agent Owner's policy requires approval before this service can execute.",
+            }}
+
+        execution = await execute_command(user, command_id)
+        if execution.get("status") == "waiting_approval":
+            return {"data": {
+                "request_id": request_id,
+                "conversation_id": str(conversation_id),
+                "command_id": str(command_id),
+                "status": "waiting_approval",
+                "approval_id": execution.get("approval_id"),
+                "credit_cost": credit_cost,
+            }}
+        if execution.get("status") != "completed":
+            raise AgentRuntimeError("AGENT_SERVICE_RUNTIME_NOT_COMPLETED", "Agent Runtime did not complete the service request.", 409)
+
+        steps = await select(user, "agent_task_steps", {
+            "select": "id,tool_key,status,result,error_code,error_message,completed_at",
+            "command_id": f"eq.{command_id}",
+            "status": "eq.completed",
+            "order": "sequence_no.asc",
+        })
+        result_text = None
+        for step in steps:
+            candidate = (step.get("result") or {}).get("text") if isinstance(step.get("result"), dict) else None
+            if candidate:
+                result_text = str(candidate)
+        if not result_text:
+            raise AgentRuntimeError("AGENT_SERVICE_EMPTY_RESULT", "Agent Runtime completed without a textual result.", 502)
+
         message = await rpc(user, "append_agent_service_message", {
             "p_service_request_id": request_id,
             "p_conversation_id": str(conversation_id),
-            "p_body": result.text,
+            "p_body": result_text,
             "p_metadata": {
                 "agent_service_request_id": request_id,
                 "skill_name": payload.skill_name,
                 "mode": payload.mode,
-                "ai_gateway": {"provider_id": result.provider_id, "model_id": result.model_id, "total_tokens": result.total_tokens},
+                "agent_runtime_command_id": str(command_id),
+                "source_content_id": str(payload.source_content_id) if payload.source_content_id else None,
             },
         })
         settlement = await rpc(user, "complete_agent_service_request", {
             "p_request_id": request_id,
             "p_ai_gateway_request_id": None,
             "p_result_message_id": message.get("id") if isinstance(message, dict) else None,
-            "p_metadata": {"mode": payload.mode},
+            "p_metadata": {
+                "mode": payload.mode,
+                "agent_runtime_command_id": str(command_id),
+            },
         })
         return {"data": {
             "request_id": request_id,
             "conversation_id": str(conversation_id),
+            "command_id": str(command_id),
+            "status": "completed",
             "message": message,
-            "generation": {"text": result.text, "total_tokens": result.total_tokens, "estimated_cost_usd": result.estimated_cost_usd, "latency_ms": result.latency_ms},
+            "generation": {"text": result_text},
             "settlement": settlement,
         }}
-    except (SupabaseRestError, AIGatewayError) as exc:
-        try:
-            if "request_id" in locals():
-                await rpc(user, "release_agent_service_request", {"p_request_id": request_id, "p_reason": getattr(exc, "code", "generation_failed")})
-        except Exception:
-            pass
+    except (SupabaseRestError, AIGatewayError, AgentRuntimeError) as exc:
+        if request_id:
+            try:
+                await rpc(user, "release_agent_service_request", {
+                    "p_request_id": request_id,
+                    "p_reason": getattr(exc, "code", "agent_service_failed"),
+                })
+            except Exception:
+                pass
         if isinstance(exc, SupabaseRestError):
             raise _error(exc) from exc
-        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+        raise HTTPException(status_code=getattr(exc, "status_code", 502), detail={
+            "code": getattr(exc, "code", "AGENT_SERVICE_FAILED"),
+            "message": str(exc),
+        }) from exc
+
