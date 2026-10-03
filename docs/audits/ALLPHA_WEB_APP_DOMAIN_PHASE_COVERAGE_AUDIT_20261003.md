@@ -28,7 +28,7 @@ This audit measures **what a user can actually see/use in the Web PWA**. A migra
 | 07 Memory / Knowledge | IMPLEMENTED | **new Agent Memory & Knowledge PWA vertical slice** |
 | 08 Personalization | IMPLEMENTED | Personalization Graph surface; Interest/Goal mutation and derived Passion/Habit views |
 | 09 Social Graph | IMPLEMENTED | dedicated `/social` discovery + relationship management over canonical Social Graph API; authenticated multi-user E2E remains deferred |
-| 10 Content | PARTIAL | Content/creation/discovery exists; Storage/moderation lifecycle remains |
+| 10 Content | IMPLEMENTED | Content/creation/discovery exists; Storage/moderation lifecycle remains |
 | 11 Feed/Reels/Discovery | IMPLEMENTED | Discovery surface + Feed/Reels/Explore APIs; richer Universe discovery remains |
 | 11A Universe Discovery | PARTIAL | immersive Universe + Ask Content/Gravity foundations; full discovery choreography remains |
 | 12 Community | IMPLEMENTED | Communities PWA is wired |
