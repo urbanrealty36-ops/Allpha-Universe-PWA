@@ -77,7 +77,7 @@ async def plan_command(user: AuthenticatedUser, command_id: UUID) -> dict[str, A
         "Do not expose private chain-of-thought or private Agent-owner policy internals. "
         'Schema: {"risk_level":"low|medium|high|critical","requires_approval":true|false,'
         '"tasks":[{"task_key":"string","title":"string","description":"string","input":{},'
-        '"steps":[{"step_key":"string","tool_key":"string","arguments":{}}]}}. '
+        '"steps":[{"step_key":"string","tool_key":"string","arguments":{}}]}]}. '
         "Prefer the minimum number of steps needed."
     )
     try:
