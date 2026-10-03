@@ -12,7 +12,7 @@ type Item = {
 };
 
 const labels:Record<Surface,string> = {
-  home:"Home", following:"Following", for_you:"For You", reels:"Reels", explore:"Explore",
+  home:"Home", following:"Following", for_you:"For You", reels:"Moments", explore:"Explore",
   live_now:"Live Now", agent:"Agent Feed", knowledge:"Knowledge", world:"World Stream", context:"Context"
 };
 
@@ -68,15 +68,15 @@ export default function FeedSurface({ surface="home" }: { surface?: Surface }) {
     <main className={isReels?"min-h-screen bg-black":"min-h-screen p-5 sm:p-8"}>
       <div className={isReels?"mx-auto max-w-xl":"mx-auto max-w-5xl"}>
         {!isReels && <header className="mb-6">
-          <p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Allpha Discovery</p>
-          <h1 className="mt-2 text-3xl font-semibold">{labels[surface]}</h1>
-          <p className="mt-2 text-sm text-slate-400">Authoritative content ranked from published data, social relationships, personalization signals, freshness, diversity and feedback.</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-cyan-700">Allpha Discovery</p>
+          <h1 className="mt-2 text-3xl font-semibold text-slate-950">{labels[surface]}</h1>
+          <p className="mt-2 text-sm text-slate-600">Authoritative content ranked from published data, social relationships, personalization signals, freshness, diversity and feedback.</p>
           <form onSubmit={e=>{e.preventDefault();setOffset(0);void load(true)}} className="mt-5 flex gap-2">
-            <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search real published content…" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm"/>
-            <button className="rounded-xl border border-white/10 px-4 py-3 text-sm">Search</button>
+            <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search real published content…" className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm"/>
+            <button className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">Search</button>
           </form>
         </header>}
-        {error && <div className="mb-5 rounded-xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
+        {error && <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
         {loading ? <State text="Loading authoritative recommendations…" dark={isReels}/> :
           items.length===0 ? <State text={surface==="live_now"?"No live content is available from the current live-content source.":"No published content matches this surface yet."} dark={isReels}/> :
           <div className={isReels?"snap-y snap-mandatory space-y-0":"space-y-4"}>
@@ -99,30 +99,30 @@ function FeedCard({item,surface,onSignal,onFeedback,reels}:{item:Item;surface:Su
     },{threshold:.65});
     observer.observe(el);return()=>observer.disconnect();
   },[reels,item.id]);
-  return <article ref={(el)=>{ ref.current=el; }} className={reels?"min-h-[100svh] snap-start flex flex-col justify-end p-5 pb-10":"rounded-3xl border border-white/10 bg-white/[0.03] p-6"}>
-    <div className={reels?"rounded-3xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur":" "}>
+  return <article ref={(el)=>{ ref.current=el; }} className={reels?"min-h-[100svh] snap-start flex flex-col justify-end p-5 pb-10":"rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"}>
+    <div className={reels?"rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-xl backdrop-blur":" "}>
       <div className="flex items-center justify-between gap-4">
-        <div><p className="text-xs uppercase tracking-[0.16em] text-cyan-300">{item.content_type}</p><p className="mt-1 text-xs text-slate-500">{item.owner_display_name || item.owner_handle || "Author identity unavailable"}</p></div>
+        <div><p className="text-xs uppercase tracking-[0.16em] text-cyan-700">{item.content_type}</p><p className="mt-1 text-xs text-slate-500">{item.owner_display_name || item.owner_handle || "Author identity unavailable"}</p></div>
         <span className="text-[10px] text-slate-500">rank {Number(item.rank_score).toFixed(2)}</span>
       </div>
-      <h2 className={reels?"mt-3 text-3xl font-semibold":"mt-3 text-2xl font-semibold"}>{item.title||"Untitled content"}</h2>
-      {item.excerpt && <p className="mt-3 text-slate-300">{item.excerpt}</p>}
-      {item.body && <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-300">{item.body}</p>}
+      <h2 className={reels?"mt-3 text-3xl font-semibold text-slate-950":"mt-3 text-2xl font-semibold text-slate-950"}>{item.title||"Untitled content"}</h2>
+      {item.excerpt && <p className="mt-3 text-slate-700">{item.excerpt}</p>}
+      {item.body && <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-700">{item.body}</p>}
       <div className="mt-5 flex flex-wrap gap-2">
         {item.reason_codes.filter(Boolean).map(x=><span key={x} className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-slate-500">{x}</span>)}
       </div>
-      {item.content_type==="video" && <p className="mt-5 text-xs text-slate-500">Video asset delivery is shown only when an authorized media URL is available; no media URL is fabricated.</p>}
+      {item.content_type==="video" && <p className="mt-5 text-xs text-slate-500">Media delivery is shown only when an authorized media URL is available; no media URL is fabricated.</p>}
       <div className="mt-6 flex flex-wrap gap-2">
-        <button onClick={()=>onSignal(item,"like")} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Like</button>
+        <button onClick={()=>onSignal(item,"like")} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">Like</button>
         <button onClick={()=>onSignal(item,"save")} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Save</button>
         <button onClick={()=>onSignal(item,"share")} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Share</button>
         <button onClick={()=>onFeedback(item,"not_interested")} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Not interested</button>
-        <button onClick={()=>onFeedback(item,"report")} className="rounded-lg border border-red-400/20 px-3 py-2 text-xs text-red-300">Report</button>
+        <button onClick={()=>onFeedback(item,"report")} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">Report</button>
       </div>
     </div>
   </article>;
 }
 
 function State({text,dark=false}:{text:string;dark?:boolean}) {
-  return <div className={(dark?"border-white/10 bg-white/[0.04] text-slate-400":"border-white/10 bg-white/[0.03] text-slate-500")+" rounded-2xl border p-6 text-sm"}>{text}</div>;
+  return <div className={(dark?"border-slate-700 bg-slate-900 text-slate-300":"border-slate-200 bg-white text-slate-500")+" rounded-2xl border p-6 text-sm"}>{text}</div>;
 }
