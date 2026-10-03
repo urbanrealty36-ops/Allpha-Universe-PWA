@@ -84,6 +84,16 @@ function Booth3DAsset({ url, position, scale = 1, onClick }: { url:string; posit
   return <primitive object={gltf.scene.clone(true)} position={position} scale={scale} onClick={onClick}/>;
 }
 
+function BoothThemeTemplate({ url, position, scale = 1, onClick }: { url:string; position:[number,number,number]; scale?:number; onClick?:()=>void }) {
+  const gltf = useGLTF(url);
+  const template = useMemo(() => {
+    const source = gltf.scene.getObjectByName("BoothTemplate");
+    return source ? source.clone(true) : null;
+  }, [gltf.scene]);
+  if (!template) return null;
+  return <primitive object={template} position={position} scale={scale} onClick={onClick}/>;
+}
+
 function LiveStage3DAsset({ url }: { url:string }) {
   const gltf = useGLTF(url);
   return <primitive object={gltf.scene.clone(true)} position={[0,0,-3]}/>;
@@ -142,7 +152,7 @@ function WorldObjects({
       const x=booth.position?.x??(i%4)*2.8-4.2,y=booth.position?.y??0,z=booth.position?.z??Math.floor(i/4)*2.8-2.8;
       const modelUrl=typeof booth.metadata?.model_url==="string"?booth.metadata.model_url:null;
       const scale=booth.scale?.x??1,selected=booth.id===selectedBoothId;
-      return modelUrl?<Booth3DAsset key={booth.id} url={modelUrl} position={[x,y,z]} scale={selected?scale*1.08:scale} onClick={()=>onHotspot?.(booth)}/>:<group key={booth.id} position={[x,y,z]} onClick={()=>onHotspot?.(booth)}><mesh position={[0,.8,0]} castShadow><boxGeometry args={[1.6,1.6,1.6]}/><meshStandardMaterial color={selected?"#f0abfc":accent} emissive={selected?"#d946ef":accent} emissiveIntensity={selected?1.3:.35} metalness={.25} roughness={.55}/></mesh><mesh position={[0,1.75,0]} rotation={[0,Math.PI/4,0]}><torusGeometry args={[.58,.06,8,24]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.8}/></mesh></group>;
+      return modelUrl?<Booth3DAsset key={booth.id} url={modelUrl} position={[x,y,z]} scale={selected?scale*1.08:scale} onClick={()=>onHotspot?.(booth)}/>:themePackUrl?<BoothThemeTemplate key={booth.id} url={themePackUrl} position={[x,y,z]} scale={(selected?scale*1.08:scale)*.9} onClick={()=>onHotspot?.(booth)}/>:<group key={booth.id} position={[x,y,z]} onClick={()=>onHotspot?.(booth)}><mesh position={[0,.8,0]} castShadow><boxGeometry args={[1.6,1.6,1.6]}/><meshStandardMaterial color={selected?"#f0abfc":accent} emissive={selected?"#d946ef":accent} emissiveIntensity={selected?1.3:.35} metalness={.25} roughness={.55}/></mesh><mesh position={[0,1.75,0]} rotation={[0,Math.PI/4,0]}><torusGeometry args={[.58,.06,8,24]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.8}/></mesh></group>;
     })}
 
     {portals.map(portal=>{
