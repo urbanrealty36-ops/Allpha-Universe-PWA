@@ -78,7 +78,7 @@ async def booths(district_id:UUID|None=None,limit:int=Query(100,ge=1,le=200),con
 
 @router.post("",status_code=201)
 async def create(p:BoothCreate,context:dict=Depends(get_auth_context)):
-    try:return await rpc(context["user"],"create_booth",{"p_district_id":str(p.district_id),"p_district_zone_id":str(p.district_zone_id) if p.district_zone_id else None,"p_owner_type":p.owner_type,"p_owner_id":str(p.owner_id) if p.owner_id else None,"p_agent_id":str(p.agent_id) if p.agent_id else None,"p_booth_type":p.booth_type,"p_tier":p.tier,"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":p.display_config,"p_scene_config":p.scene_config,"p_catalog_config":p.catalog_config,"p_display_config":{**p.display_config,"branding":p.branding_config},"p_scene_config":{**p.scene_config,**({"host_agent_id":str(p.host_agent_id)} if p.host_agent_id else {})},"p_catalog_config":p.catalog_config,"p_live_entry_config":{**p.live_entry_config,"portal":p.portal_config}})
+    try:return await rpc(context["user"],"create_booth",{"p_district_id":str(p.district_id),"p_district_zone_id":str(p.district_zone_id) if p.district_zone_id else None,"p_owner_type":p.owner_type,"p_owner_id":str(p.owner_id) if p.owner_id else None,"p_agent_id":str(p.agent_id) if p.agent_id else None,"p_booth_type":p.booth_type,"p_tier":p.tier,"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":{**p.display_config,"branding":p.branding_config},"p_scene_config":{**p.scene_config,**({"host_agent_id":str(p.host_agent_id)} if p.host_agent_id else {})},"p_catalog_config":p.catalog_config,"p_live_entry_config":{**p.live_entry_config,"portal":p.portal_config}})
     except SupabaseRestError as e:raise err(e,"BOOTH_CREATE_FAILED")
 
 @router.get("/{booth_id}")
@@ -89,7 +89,7 @@ async def get_booth(booth_id:UUID,context:dict=Depends(get_auth_context)):
 
 @router.patch("/{booth_id}")
 async def update(booth_id:UUID,p:BoothUpdate,context:dict=Depends(get_auth_context)):
-    try:return await rpc(context["user"],"update_booth",{"p_booth_id":str(booth_id),"p_name":p.name,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":p.display_config,"p_scene_config":p.scene_config,"p_catalog_config":p.catalog_config,"p_display_config":{**(p.display_config or {}),"branding":p.branding_config or {}},"p_scene_config":{**(p.scene_config or {}),**({"host_agent_id":str(p.host_agent_id)} if p.host_agent_id else {})},"p_catalog_config":p.catalog_config or {},"p_live_entry_config":{**(p.live_entry_config or {}),"portal":p.portal_config or {}}})
+    try:return await rpc(context["user"],"update_booth",{"p_booth_id":str(booth_id),"p_name":p.name,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":{**(p.display_config or {}),"branding":p.branding_config or {}},"p_scene_config":{**(p.scene_config or {}),**({"host_agent_id":str(p.host_agent_id)} if p.host_agent_id else {})},"p_catalog_config":p.catalog_config or {},"p_live_entry_config":{**(p.live_entry_config or {}),"portal":p.portal_config or {}}})
     except SupabaseRestError as e:raise err(e,"BOOTH_UPDATE_FAILED")
 
 @router.get("/{booth_id}/assets")
