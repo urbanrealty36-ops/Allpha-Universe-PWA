@@ -142,7 +142,7 @@ async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str
                     await rpc(user, "record_agent_spend", {"p_agent_id": str(command["agent_id"]), "p_command_id": str(command_id), "p_step_id": str(step["id"]), "p_amount": result.estimated_cost_usd, "p_currency": "USD", "p_metadata": {"source": "ai_gateway", "model_id": result.model_id}})
                 except SupabaseRestError as exc:
                     raise AgentRuntimeError("AGENT_SPEND_LIMIT_EXCEEDED", exc.message, 402) from exc
-            await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "completed", "p_result": {"text": result.text, "model_id": result.model_id, "latency_ms": result.latency_ms, "estimated_cost_usd": result.estimated_cost_usd}, "p_latency_ms": latency})
+            await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "completed", "p_result": {"text": result.text, "request_id": result.request_id, "model_id": result.model_id, "latency_ms": result.latency_ms, "estimated_cost_usd": result.estimated_cost_usd}, "p_latency_ms": latency})
         except (AIGatewayError, AgentRuntimeError) as exc:
             code = exc.code
             await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "failed", "p_error_code": code, "p_error_message": str(exc), "p_latency_ms": int((time.monotonic() - started) * 1000)})
