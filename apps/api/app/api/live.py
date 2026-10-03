@@ -930,3 +930,59 @@ async def list_live_stage_assets(template_version_id: UUID, context: dict = Depe
         return {"data": result}
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_STAGE_ASSET_LIST_FAILED") from exc
+
+
+
+@router.get("/sessions/{session_id}/human-presentation-runtime")
+async def get_live_human_presentation_runtime(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        presentations = await select(context["user"], "live_session_human_presentations", {
+            "select": "*",
+            "live_session_id": f"eq.{session_id}",
+            "owner_user_id": f"eq.{context['user'].user_id}",
+            "limit": "1",
+        })
+        if not presentations:
+            return {"data": {"active": False, "presentation": None, "costume_asset": None}}
+        presentation = presentations[0]
+        costume = None
+        if presentation.get("custom_costume_id"):
+            rows = await select(context["user"], "live_human_costume_templates", {
+                "select": "id,name,category,storage_bucket,storage_path,mime_type,metadata,status,moderation_status",
+                "id": f"eq.{presentation['custom_costume_id']}",
+                "owner_user_id": f"eq.{context['user'].user_id}",
+                "status": "eq.active", "moderation_status": "eq.approved", "limit": "1",
+            })
+            costume = rows[0] if rows else None
+        else:
+            uniform_id = presentation.get("uniform_id")
+            if not uniform_id and presentation.get("user_uniform_id"):
+                owned = await select(context["user"], "user_uniforms", {
+                    "select": "uniform_id",
+                    "id": f"eq.{presentation['user_uniform_id']}",
+                    "user_id": f"eq.{context['user'].user_id}",
+                    "status": "eq.owned", "limit": "1",
+                })
+                uniform_id = owned[0].get("uniform_id") if owned else None
+            if uniform_id:
+                rows = await select(context["user"], "uniform_catalog", {
+                    "select": "id,name,uniform_key,asset_type,storage_bucket,storage_path,mime_type,metadata,status,moderation_status",
+                    "id": f"eq.{uniform_id}", "status": "eq.published", "moderation_status": "eq.approved", "limit": "1",
+                })
+                costume = rows[0] if rows else None
+        signed_url = None
+        if costume and costume.get("storage_bucket") and costume.get("storage_path"):
+            try:
+                signed_url = await create_signed_download_url(context["user"], costume["storage_bucket"], costume["storage_path"], 900)
+            except SupabaseStorageError:
+                signed_url = None
+        return {"data": {
+            "active": presentation.get("status") == "active",
+            "presentation": presentation,
+            "costume_asset": {**costume, "signed_url": signed_url} if costume else None,
+            "camera_source_id": presentation.get("camera_source_id"),
+            "presence_verification_id": presentation.get("presence_verification_id"),
+            "presentation_only": True,
+        }}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_HUMAN_PRESENTATION_RUNTIME_LOAD_FAILED") from exc
