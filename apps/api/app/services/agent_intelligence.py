@@ -196,8 +196,7 @@ def _prompt_context(
         parts.extend(["PERMISSION-SCOPED AGENT KNOWLEDGE:", json.dumps(rag["knowledge"], ensure_ascii=False)])
     if focus:
         parts.extend(["USER FOCUS:", focus])
-    return "
-".join(parts)
+    return "\n".join(parts)
 
 
 async def agent_intelligence_on_content(
