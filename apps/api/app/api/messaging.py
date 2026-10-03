@@ -222,6 +222,68 @@ async def credits(context: dict = Depends(get_auth_context)) -> dict[str, Any]:
         raise _error(exc) from exc
 
 
+@router.post("/agent-services/{service_request_id}/resume")
+async def resume_agent_service(service_request_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    user = context["user"]
+    rows = await select(user, "agent_service_requests", {
+        "select": "id,status,conversation_id,skill_name,service_type,credit_cost,source_content_id,agent_id",
+        "id": f"eq.{service_request_id}", "limit": "1"
+    })
+    if not rows:
+        raise HTTPException(status_code=404, detail={"code": "SERVICE_REQUEST_NOT_FOUND", "message": "Service request was not found."})
+    request = rows[0]
+    if request["status"] == "completed":
+        return {"data": request}
+    commands = await select(user, "agent_commands", {
+        "select": "id,status,service_request_id",
+        "service_request_id": f"eq.{service_request_id}",
+        "order": "created_at.desc",
+        "limit": "1"
+    })
+    if not commands:
+        raise HTTPException(status_code=409, detail={"code": "SERVICE_COMMAND_NOT_FOUND", "message": "The Agent Runtime command does not exist yet."})
+    command_id = UUID(str(commands[0]["id"]))
+    try:
+        execution = await execute_command(user, command_id)
+        if execution.get("status") == "waiting_approval":
+            return {"data": {"request_id": str(service_request_id), "command_id": str(command_id), **execution}}
+        if execution.get("status") != "completed":
+            raise AgentRuntimeError("AGENT_SERVICE_RUNTIME_NOT_COMPLETED", "Agent Runtime did not complete the service request.", 409)
+        steps = await select(user, "agent_task_steps", {
+            "select": "id,tool_key,status,result",
+            "command_id": f"eq.{command_id}",
+            "status": "eq.completed",
+            "order": "sequence_no.asc"
+        })
+        result_text = next(
+            (str((step.get("result") or {}).get("text")) for step in steps if isinstance(step.get("result"), dict) and (step.get("result") or {}).get("text")),
+            None
+        )
+        if not result_text:
+            raise AgentRuntimeError("AGENT_SERVICE_EMPTY_RESULT", "Agent Runtime completed without a textual result.", 502)
+        message = await rpc(user, "append_agent_service_message", {
+            "p_service_request_id": str(service_request_id),
+            "p_conversation_id": str(request["conversation_id"]),
+            "p_body": result_text,
+            "p_metadata": {"agent_service_request_id": str(service_request_id), "skill_name": request["skill_name"], "agent_runtime_command_id": str(command_id), "resumed_after_approval": True}
+        })
+        settlement = await rpc(user, "complete_agent_service_request", {
+            "p_request_id": str(service_request_id),
+            "p_ai_gateway_request_id": None,
+            "p_result_message_id": message.get("id") if isinstance(message, dict) else None,
+            "p_metadata": {"agent_runtime_command_id": str(command_id), "resumed_after_approval": True}
+        })
+        return {"data": {"request_id": str(service_request_id), "command_id": str(command_id), "status": "completed", "message": message, "generation": {"text": result_text}, "settlement": settlement}}
+    except (SupabaseRestError, AIGatewayError, AgentRuntimeError) as exc:
+        try:
+            await rpc(user, "release_agent_service_request", {"p_request_id": str(service_request_id), "p_reason": getattr(exc, "code", "agent_service_resume_failed")})
+        except Exception:
+            pass
+        if isinstance(exc, SupabaseRestError):
+            raise _error(exc) from exc
+        raise HTTPException(status_code=getattr(exc, "status_code", 502), detail={"code": getattr(exc, "code", "AGENT_SERVICE_RESUME_FAILED"), "message": str(exc)}) from exc
+
+
 @router.post("/agent-services/generate", status_code=201)
 async def generate_agent_service(payload: AgentServiceRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     user = context["user"]
