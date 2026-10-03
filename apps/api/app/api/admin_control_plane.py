@@ -90,3 +90,98 @@ async def admin_master_data(
         return {"data": await rpc(context["user"], "get_admin_master_data", {})}
     except SupabaseRestError as exc:
         raise _error(exc, "ADMIN_MASTER_DATA_FAILED") from exc
+
+class MasterDataMutation(BaseModel):
+    resource: str = Field(min_length=2, max_length=64)
+    id: UUID | None = None
+    action: str = Field(default="upsert", min_length=2, max_length=32)
+    payload: dict[str, Any] = Field(default_factory=dict)
+    reason: str = Field(min_length=3, max_length=2000)
+
+
+class DomainOperation(BaseModel):
+    operation: str = Field(min_length=2, max_length=64)
+    resource: str = Field(min_length=2, max_length=64)
+    id: UUID
+    payload: dict[str, Any] = Field(default_factory=dict)
+    reason: str = Field(min_length=3, max_length=2000)
+
+
+@router.get("/transactions")
+async def admin_transaction_explorer(
+    q: str | None = Query(default=None, max_length=200),
+    order_kind: str | None = Query(default=None, max_length=64),
+    order_status: str | None = Query(default=None, max_length=64),
+    payment_status: str | None = Query(default=None, max_length=64),
+    provider_status: str | None = Query(default=None, max_length=64),
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    context: dict[str, Any] = Depends(require_permission("admin.read")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_admin_transaction_explorer", {
+            "p_q": q, "p_order_kind": order_kind, "p_order_status": order_status,
+            "p_payment_status": payment_status, "p_provider_status": provider_status,
+            "p_from": date_from, "p_to": date_to, "p_limit": limit, "p_offset": offset,
+        })}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_TRANSACTION_EXPLORER_FAILED") from exc
+
+
+@router.get("/transactions/{order_id}")
+async def admin_transaction_detail(
+    order_id: UUID,
+    context: dict[str, Any] = Depends(require_permission("admin.read")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_admin_transaction_detail", {"p_order_id": str(order_id)})}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_TRANSACTION_DETAIL_FAILED") from exc
+
+
+@router.get("/domains/{resource}")
+async def admin_domain_records(
+    resource: str,
+    q: str | None = Query(default=None, max_length=200),
+    status: str | None = Query(default=None, max_length=64),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    context: dict[str, Any] = Depends(require_permission("admin.read")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_admin_domain_records", {
+            "p_resource": resource, "p_q": q, "p_status": status, "p_limit": limit, "p_offset": offset,
+        })}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_DOMAIN_RECORDS_FAILED") from exc
+
+
+@router.post("/master-data/mutate")
+async def mutate_master_data(
+    payload: MasterDataMutation,
+    context: dict[str, Any] = Depends(require_permission("admin.manage")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "mutate_admin_master_data", {
+            "p_resource": payload.resource, "p_id": str(payload.id) if payload.id else None,
+            "p_action": payload.action, "p_payload": payload.payload, "p_reason": payload.reason,
+        })}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_MASTER_DATA_MUTATION_FAILED") from exc
+
+
+@router.post("/domains/operate")
+async def operate_domain(
+    payload: DomainOperation,
+    context: dict[str, Any] = Depends(require_permission("admin.manage")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "execute_admin_domain_operation", {
+            "p_operation": payload.operation, "p_resource": payload.resource, "p_id": str(payload.id),
+            "p_payload": payload.payload, "p_reason": payload.reason,
+        })}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_DOMAIN_OPERATION_FAILED") from exc
+
