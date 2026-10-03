@@ -178,6 +178,13 @@ async def archive(content_id: UUID, context: dict = Depends(get_auth_context)) -
         raise _error(exc) from exc
 
 
+@router.get("/{content_id:uuid}/media-state")
+async def media_state(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_content_media_state", {"p_content_id": str(content_id)})}
+    except SupabaseRestError as exc:
+        raise _error(exc, "CONTENT_MEDIA_STATE_FAILED") from exc
+
 @router.get("/{content_id:uuid}/topics")
 async def list_content_topics(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     rows = await select(context["user"], "content_topic_links", {
