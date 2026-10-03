@@ -1,15 +1,23 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Observability</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Analytics</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Product and business analytics</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
+"use client";
+import {useEffect,useState} from "react";
+import {apiFetch} from "../../lib/api";
+type D=any;
+const n=(x:any)=>new Intl.NumberFormat("id-ID",{maximumFractionDigits:1}).format(Number(x||0));
+const money=(x:any)=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(x||0));
+const percent=(x:any)=>`${(Number(x||0)*100).toFixed(1)}%`;
+function K({label,value,sub}:{label:string,value:any,sub?:string}){return <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="text-sm text-slate-400">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p>{sub&&<p className="mt-1 text-xs text-slate-500">{sub}</p>}</div>}
+function Bars({s}:{s:any[]}){const m=Math.max(1,...s.map(x=>Number(x.revenue_idr||0)));return <div className="h-56 flex items-end gap-1">{s.map((x,i)=><div key={i} title={`${x.date} · ${money(x.revenue_idr)}`} className="flex-1 h-full flex items-end"><div className="w-full rounded-t bg-cyan-300/70 hover:bg-cyan-200" style={{height:`${Math.max(2,Number(x.revenue_idr||0)/m*100)}%`}}/></div>)}</div>}
+export default function AnalyticsPage(){
+ const [d,setD]=useState<D|null>(null),[err,setErr]=useState<string|null>(null),[days,setDays]=useState(30);
+ useEffect(()=>{const to=new Date(),from=new Date(to.getTime()-days*86400000);setErr(null);void apiFetch<{data:D}>(`/api/v1/admin/control-plane/analytics?date_from=${encodeURIComponent(from.toISOString())}&date_to=${encodeURIComponent(to.toISOString())}`).then(x=>setD(x.data)).catch(e=>setErr(e instanceof Error?e.message:"ADMIN_ANALYTICS_FAILED"))},[days]);
+ const k=d?.kpis,s=d?.series??[];
+ return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-[1600px]">
+ <div className="flex flex-wrap items-end justify-between gap-5"><div><p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Allpha Control Plane · Phase 27B</p><h1 className="mt-3 text-4xl font-semibold">Executive Analytics</h1><p className="mt-3 text-slate-400">Authoritative statistics from PostgreSQL source-of-truth domains. No synthetic data.</p></div><div className="flex gap-2">{[7,30,90].map(x=><button key={x} onClick={()=>setDays(x)} className={`rounded-xl border px-4 py-2 text-sm ${days===x?"border-cyan-300/60 bg-cyan-300/10":"border-white/10"}`}>{x}D</button>)}</div></div>
+ {err&&<div className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/10 p-4">{err}</div>}
+ {k&&<><section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"><K label="Users" value={n(k.users.total)} sub={`+${n(k.users.new)} new`}/><K label="Orders" value={n(k.commerce.orders)} sub={`${n(k.commerce.paid_orders)} paid`}/><K label="Marketplace GMV" value={money(k.commerce.marketplace_gmv_idr)} sub={`AOV ${money(k.commerce.aov_idr)}`}/><K label="Payment Success" value={percent(k.commerce.payment_success_rate)} sub={`${n(k.commerce.captured_payments)} captured`}/><K label="Repeat Buyers" value={percent(k.commerce.repeat_buyer_rate)} sub={`${n(k.commerce.repeat_buyers)} repeat`}/><K label="AI Tokens" value={n(k.ai.tokens)} sub={`$${Number(k.ai.estimated_cost_usd||0).toFixed(2)} est.`}/></section>
+ <section className="mt-6 grid gap-6 lg:grid-cols-3"><div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] p-5"><div className="flex justify-between"><div><h2 className="font-semibold">Revenue Trend</h2><p className="text-xs text-slate-500">Captured IDR payments per day</p></div><span>{money(k.commerce.gross_value_idr)}</span></div><div className="mt-6"><Bars s={s.slice(-30)}/></div></div><div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><h2 className="font-semibold">Commerce Funnel</h2><div className="mt-5 space-y-4 text-sm"><p className="flex justify-between">Orders <b>{n(k.commerce.orders)}</b></p><p className="flex justify-between">Payment attempts <b>{n(k.commerce.payment_attempts)}</b></p><p className="flex justify-between">Captured <b>{n(k.commerce.captured_payments)}</b></p><p className="flex justify-between">Unique buyers <b>{n(k.commerce.unique_buyers)}</b></p><p className="flex justify-between">Repeat buyers <b>{n(k.commerce.repeat_buyers)}</b></p></div></div></section>
+ <section className="mt-6 grid gap-6 lg:grid-cols-3"><div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><h2 className="font-semibold">Commerce by Order Type</h2><div className="mt-4 space-y-3">{(d.commerce_breakdown?.by_order_kind??[]).map((x:any)=><div key={x.order_kind} className="flex justify-between border-b border-white/5 pb-3"><span>{x.order_kind}</span><span>{n(x.orders)} · {money(x.revenue_idr)}</span></div>)}</div></div><div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><h2 className="font-semibold">AI Operations</h2><div className="mt-4 grid grid-cols-2 gap-3"><K label="Requests" value={n(k.ai.requests)}/><K label="Completed" value={n(k.ai.completed)}/><K label="Tokens" value={n(k.ai.tokens)}/><K label="Latency" value={`${n(k.ai.avg_latency_ms)} ms`}/></div></div><div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><h2 className="font-semibold">Governance / Universe</h2><div className="mt-4 space-y-2 text-sm"><p>Pending approvals <b>{n(k.governance.pending_approvals)}</b></p><p>Risk assessments <b>{n(k.governance.risk_assessments)}</b></p><p>Audit events <b>{n(k.governance.audit_events)}</b></p><p>Moderation cases <b>{n(k.governance.moderation_cases)}</b></p><p>Worlds {n(k.universe.worlds)} · Districts {n(k.universe.districts)} · Booths {n(k.universe.booths)}</p><p>Active Agent presence {n(k.universe.active_presences)}</p></div></div></section>
+ <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5"><h2 className="font-semibold">Daily Activity</h2><div className="mt-4 overflow-x-auto"><table className="w-full text-sm"><thead className="text-left text-xs text-slate-500"><tr><th className="py-2">Date</th><th>Users</th><th>Orders</th><th>Paid</th><th>Revenue</th><th>Impressions</th><th>Interactions</th><th>AI Tokens</th></tr></thead><tbody>{s.map((x:any)=><tr key={x.date} className="border-t border-white/5"><td className="py-2">{x.date}</td><td>{n(x.new_users)}</td><td>{n(x.orders)}</td><td>{n(x.paid_orders)}</td><td>{money(x.revenue_idr)}</td><td>{n(x.impressions)}</td><td>{n(x.interactions)}</td><td>{n(x.ai_tokens)}</td></tr>)}</tbody></table></div></section></>}
+ {!d&&!err&&<div className="mt-8 rounded-2xl border border-white/10 p-8 text-slate-400">Loading authoritative analytics…</div>}
+ </div></main>
 }
