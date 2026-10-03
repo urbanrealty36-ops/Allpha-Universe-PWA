@@ -9,6 +9,9 @@ type Post={id:string;content_id:string;author_type:string;author_id:string;pinne
 type Comment={id:string;post_id:string;parent_id:string|null;author_type:string;author_id:string;body:string;created_at:string};
 type Event={id:string;title:string;description:string|null;starts_at:string;ends_at:string|null;location_type:string;status:string;capacity:number|null};
 type ContentItem={id:string;title:string|null;content_type:string;status:string};
+type Topic={id:string;name:string;slug:string;description:string|null;interest_id:string|null;status:string};
+type WorldLink={world_id:string;community_id:string;placement:string;created_at:string};
+type ModerationCase={id:string;report_id:string|null;target_type:string;target_id:string;decision:string|null;notes:string|null;created_at:string;decided_at:string|null};
 
 const button="rounded-xl border border-white/10 px-3 py-2 text-xs transition hover:bg-white/[.06] disabled:opacity-40";
 const input="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-emerald-300/40";
@@ -19,12 +22,17 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
  const [members,setMembers]=useState<Member[]>([]);
  const [posts,setPosts]=useState<Post[]>([]);
  const [events,setEvents]=useState<Event[]>([]);
+ const [topics,setTopics]=useState<Topic[]>([]);
+ const [worldLinks,setWorldLinks]=useState<WorldLink[]>([]);
+ const [cases,setCases]=useState<ModerationCase[]>([]);
  const [comments,setComments]=useState<Record<string,Comment[]>>({});
  const [content,setContent]=useState<ContentItem[]>([]);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState<string|null>(null);
  const [q,setQ]=useState(""),[name,setName]=useState(""),[handle,setHandle]=useState(""),[description,setDescription]=useState("");
  const [postContentId,setPostContentId]=useState(""),[commentBody,setCommentBody]=useState<Record<string,string>>({});
  const [eventTitle,setEventTitle]=useState(""),[eventDescription,setEventDescription]=useState(""),[eventStarts,setEventStarts]=useState("");
+ const [topicName,setTopicName]=useState(""),[topicSlug,setTopicSlug]=useState(""),[topicDescription,setTopicDescription]=useState("");
+ const [worldId,setWorldId]=useState(""),[worldPlacement,setWorldPlacement]=useState("community");
  const [report,setReport]=useState<{type:string;id:string}|null>(null),[reportReason,setReportReason]=useState(""),[reportNotes,setReportNotes]=useState("");
 
  async function loadList(){
@@ -36,14 +44,17 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
   if(!detailId)return;
   setLoading(true);setError(null);
   try{
-   const [c,m,p,e,ct]=await Promise.all([
+   const [c,m,p,e,content,t,w,mc]=await Promise.all([
     apiFetch<{data:Community}>("/api/v1/communities/"+detailId),
     apiFetch<{data:Member[]}>("/api/v1/communities/"+detailId+"/members"),
     apiFetch<{data:Post[]}>("/api/v1/communities/"+detailId+"/posts"),
     apiFetch<{data:Event[]}>("/api/v1/communities/"+detailId+"/events"),
-    apiFetch<{data:ContentItem[]}>("/api/v1/content?status=published&limit=100")
+    apiFetch<{data:ContentItem[]}>("/api/v1/content?status=published&limit=100"),
+    apiFetch<{data:Topic[]}>("/api/v1/communities/"+detailId+"/topics"),
+    apiFetch<{data:WorldLink[]}>("/api/v1/communities/"+detailId+"/world-links"),
+    apiFetch<{data:ModerationCase[]}>("/api/v1/communities/"+detailId+"/moderation/cases")
    ]);
-   setCommunity(c.data);setMembers(m.data??[]);setPosts(p.data??[]);setEvents(e.data??[]);setContent(ct.data??[]);
+   setCommunity(c.data);setMembers(m.data??[]);setPosts(p.data??[]);setEvents(e.data??[]);setContent(content.data??[]);setTopics(t.data??[]);setWorldLinks(w.data??[]);setCases(mc.data??[]);
   }catch(e){setError(e instanceof Error?e.message:"COMMUNITY_LOAD_FAILED")}finally{setLoading(false)}
  }
  useEffect(()=>{void(detailId?loadDetail():loadList())},[detailId]);
@@ -73,6 +84,21 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
   await action("/api/v1/communities/"+detailId+"/events",{created_by_type:"user",title:eventTitle,description:eventDescription||null,starts_at:new Date(eventStarts).toISOString(),location_type:"online"});
   setEventTitle("");setEventDescription("");setEventStarts("");
  }
+ async function createTopic(e:FormEvent){
+  e.preventDefault();if(!detailId||!topicName||!topicSlug)return;
+  await action("/api/v1/communities/"+detailId+"/topics",{name:topicName,slug:topicSlug,description:topicDescription||null});
+  setTopicName("");setTopicSlug("");setTopicDescription("");
+ }
+ async function linkWorld(e:FormEvent){
+  e.preventDefault();if(!detailId||!worldId)return;
+  await action("/api/v1/communities/"+detailId+"/world-links",{world_id:worldId,placement:worldPlacement});
+  setWorldId("");
+ }
+ async function decideCase(caseId:string,decision:string){
+  if(!detailId)return;
+  await action("/api/v1/communities/"+detailId+"/moderation/cases/"+caseId+"/decision",{decision});
+ }
+
  async function submitReport(e:FormEvent){
   e.preventDefault();if(!detailId||!report)return;
   await action("/api/v1/communities/"+detailId+"/reports",{target_type:report.type,target_id:report.id,reason_code:reportReason.trim()||"other",notes:reportNotes||null});
@@ -118,6 +144,32 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
     </section>
 
     <aside className="space-y-5">
+      <section className="rounded-2xl border border-white/10 p-5">
+       <h2 className="font-semibold">Topics</h2>
+       {topics.length===0?<p className="mt-2 text-sm text-slate-500">No community topics yet.</p>:<div className="mt-3 flex flex-wrap gap-2">{topics.map(t=><span key={t.id} className="rounded-full border border-white/10 px-3 py-1 text-xs">{t.name}</span>)}</div>}
+       <form onSubmit={createTopic} className="mt-4 space-y-2 border-t border-white/10 pt-4">
+        <input value={topicName} onChange={e=>setTopicName(e.target.value)} placeholder="Topic name" className={"w-full "+input} required/>
+        <input value={topicSlug} onChange={e=>setTopicSlug(e.target.value)} placeholder="topic-slug" className={"w-full "+input} required/>
+        <textarea value={topicDescription} onChange={e=>setTopicDescription(e.target.value)} placeholder="Description" rows={2} className={"w-full "+input}/>
+        <button disabled={saving||!topicName||!topicSlug} className={button}>Create topic</button>
+       </form>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 p-5">
+       <h2 className="font-semibold">World Connection</h2>
+       {worldLinks.length===0?<p className="mt-2 text-sm text-slate-500">Community belum terhubung ke World.</p>:<div className="mt-3 space-y-2">{worldLinks.map(w=><div key={w.world_id+"-"+w.placement} className="rounded-xl bg-black/20 p-3 text-xs"><p>World: {w.world_id}</p><p className="text-slate-500">Placement: {w.placement}</p></div>)}</div>}
+       <form onSubmit={linkWorld} className="mt-4 space-y-2 border-t border-white/10 pt-4">
+        <input value={worldId} onChange={e=>setWorldId(e.target.value)} placeholder="Existing World ID" className={"w-full "+input} required/>
+        <input value={worldPlacement} onChange={e=>setWorldPlacement(e.target.value)} placeholder="community" className={"w-full "+input}/>
+        <button disabled={saving||!worldId} className={button}>Connect to World</button>
+       </form>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 p-5">
+       <h2 className="font-semibold">Moderation</h2>
+       {cases.length===0?<p className="mt-2 text-sm text-slate-500">No moderation cases.</p>:<div className="mt-3 space-y-3">{cases.map(x=><div key={x.id} className="rounded-xl bg-black/20 p-3"><p className="text-xs text-slate-500">{x.target_type}:{x.target_id}</p><p className="mt-1 text-xs">{x.decision||"open"}</p>{!x.decision&&<div className="mt-2 flex flex-wrap gap-2">{["dismissed","resolved","remove","suspend_member","ban_member","escalated"].map(d=><button key={d} disabled={saving} className={button} onClick={()=>void decideCase(x.id,d)}>{d}</button>)}</div>}</div>)}</div>}
+      </section>
+
       <section className="rounded-2xl border border-white/10 p-5"><h2 className="font-semibold">Members</h2><p className="mt-2 text-sm text-slate-400">{members.filter(m=>m.status==="active").length} active · {members.filter(m=>m.status==="pending").length} pending</p><div className="mt-4 space-y-2">{members.filter(m=>m.status==="pending").map(m=><div key={m.id} className="rounded-xl bg-black/20 p-3"><p className="text-xs text-slate-400">{m.subject_type}:{m.subject_id}</p><div className="mt-2 flex flex-wrap gap-2">{["approve","reject","suspend","ban"].map(a=><button key={a} disabled={saving} className={button} onClick={()=>void action("/api/v1/communities/"+detailId+"/members/"+m.id+"/action",{action:a})}>{a}</button>)}</div></div>)}</div></section>
 
       <section className="rounded-2xl border border-white/10 p-5">
