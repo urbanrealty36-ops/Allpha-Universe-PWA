@@ -80,6 +80,9 @@ async def _create_snap(payment_id: str, amount: int, currency: str, items: list[
 
 async def _checkout_for_order(user, order_id: UUID, idempotency_key: str | None) -> dict[str, Any]:
     try:
+        owned_order = await select(user, "commerce_orders", {"select": "id,buyer_user_id,status,total_amount,currency,order_kind", "id": f"eq.{order_id}", "buyer_user_id": f"eq.{user.user_id}", "limit": "1"})
+        if not owned_order:
+            raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND", "message": "The requested resource was not found."})
         payment = await rpc(
             user,
             "create_commerce_payment_intent",
