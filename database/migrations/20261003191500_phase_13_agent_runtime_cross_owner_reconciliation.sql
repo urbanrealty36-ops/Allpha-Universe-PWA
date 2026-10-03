@@ -167,3 +167,58 @@ return jsonb_build_object('skills',skills,'public_knowledge',knowledge,'service_
 end $$;
 revoke all on function public.get_agent_service_context(uuid,integer) from public,anon;
 grant execute on function public.get_agent_service_context(uuid,integer) to authenticated;
+
+
+-- Cross-owner approval is decided by the Agent Owner; the requesting Human may resume after approval.
+create or replace function public.begin_agent_execution(p_command_id uuid)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare c public.agent_commands; a public.agents; pol public.agent_policies; ks public.agent_kill_switches; approval_id uuid; need_approval boolean:=false; policy_rules jsonb; current_caps text[]; svc public.agent_service_requests; approver uuid;
+begin
+select * into c from public.agent_commands where id=p_command_id and (owner_user_id=auth.uid() or requester_user_id=auth.uid()) for update;
+if c.id is null then raise exception 'COMMAND_NOT_FOUND'; end if;
+if c.status<>'ready' then raise exception 'COMMAND_NOT_READY'; end if;
+if c.service_request_id is not null then select * into svc from public.agent_service_requests where id=c.service_request_id and requester_user_id=auth.uid() for update; if svc.id is null or svc.status not in ('processing','reserved') or svc.agent_id<>c.agent_id then raise exception 'SERVICE_REQUEST_NOT_ACTIVE'; end if; end if;
+select * into a from public.agents where id=c.agent_id; if a.id is null or a.status<>'active' then raise exception 'AGENT_NOT_ACTIVE'; end if;
+select * into ks from public.agent_kill_switches where agent_id=c.agent_id; if coalesce(ks.enabled,false) then raise exception 'AGENT_KILL_SWITCH_ENABLED'; end if;
+select * into pol from public.agent_policies where agent_id=c.agent_id and enabled=true order by policy_version desc limit 1; if pol.id is null then raise exception 'AGENT_POLICY_REQUIRED'; end if;
+policy_rules:=coalesce(pol.rules,'{}');
+select coalesce(array_agg(ac.capability order by ac.capability),'{}') into current_caps from public.agent_capabilities ac where ac.agent_id=c.agent_id and ac.enabled=true;
+if exists(select 1 from unnest(coalesce(c.requested_capabilities,'{}')) x where not(x=any(current_caps))) then raise exception 'AGENT_CAPABILITY_REVOKED'; end if;
+need_approval:=exists(select 1 from public.agent_task_steps where command_id=c.id and requires_approval=true) or c.risk_level in ('high','critical') or c.autonomy_level='recommend' or (c.autonomy_level='assist' and c.risk_level in ('medium','high','critical')) or coalesce((policy_rules->'approval_required_risk_levels') ? c.risk_level::text,false);
+approver:=case when c.service_request_id is not null then a.owner_user_id else auth.uid() end;
+insert into public.risk_assessments(actor_user_id,actor_agent_id,action,resource_type,resource_id,risk_level,decision,factors,policy_version) values(auth.uid(),c.agent_id,'agent.execute','agent_command',c.id,c.risk_level,case when need_approval then 'approval_required' else 'allow' end,jsonb_build_object('autonomy_level',c.autonomy_level,'command_id',c.id,'command_source',c.command_source,'service_request_id',c.service_request_id,'approver_user_id',approver,'policy_rules',policy_rules,'execution_recheck',true),pol.policy_version);
+if need_approval then
+insert into public.approval_requests(requester_user_id,requester_agent_id,action,resource_type,resource_id,status,risk_level,payload,expires_at) values(approver,c.agent_id,'agent.execute','agent_command',c.id,'pending'::public.approval_status,c.risk_level,jsonb_build_object('command_id',c.id,'command_text',c.command_text,'risk_level',c.risk_level,'service_request_id',c.service_request_id,'service_requester_user_id',c.requester_user_id,'correlation_id',c.correlation_id),timezone('utc',now())) returning id into approval_id;
+update public.agent_commands set status='waiting_approval',risk_decision='approval_required' where id=c.id;
+update public.agent_execution_contexts set state='waiting_approval',updated_at=timezone('utc',now()) where command_id=c.id;
+insert into public.agent_runtime_events(command_id,agent_id,owner_user_id,event_type,from_state,to_state,metadata) values(c.id,c.agent_id,c.owner_user_id,'approval_requested','ready','waiting_approval',jsonb_build_object('approval_id',approval_id,'service_request_id',c.service_request_id,'approver_user_id',approver));
+return jsonb_build_object('status','waiting_approval','approval_id',approval_id,'command_id',c.id);
+end if;
+update public.agent_commands set status='running',risk_decision='allow',started_at=timezone('utc',now()) where id=c.id;
+update public.agent_execution_contexts set state='running',updated_at=timezone('utc',now()) where command_id=c.id;
+insert into public.agent_runtime_events(command_id,agent_id,owner_user_id,event_type,from_state,to_state,metadata) values(c.id,c.agent_id,c.owner_user_id,'execution_started','ready','running',jsonb_build_object('service_request_id',c.service_request_id));
+return jsonb_build_object('status','running','command_id',c.id);
+end $$;
+
+create or replace function public.resume_agent_after_approval(p_command_id uuid)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare c public.agent_commands; a public.agents; pol public.agent_policies; ks public.agent_kill_switches; ap public.approval_requests; current_caps text[]; policy_rules jsonb;
+begin
+select * into c from public.agent_commands where id=p_command_id and (owner_user_id=auth.uid() or requester_user_id=auth.uid()) for update;
+if c.id is null then raise exception 'COMMAND_NOT_FOUND'; end if;
+if c.status<>'waiting_approval' then raise exception 'COMMAND_NOT_WAITING_APPROVAL'; end if;
+select * into ap from public.approval_requests where resource_id=c.id and resource_type='agent_command' and status='approved'::public.approval_status order by created_at desc limit 1 for update;
+if ap.id is null then raise exception 'APPROVAL_NOT_GRANTED'; end if;
+if ap.expires_at is not null and ap.expires_at<=timezone('utc',now()) then update public.approval_requests set status='expired'::public.approval_status,decided_at=coalesce(decided_at,timezone('utc',now())) where id=ap.id; raise exception 'APPROVAL_EXPIRED'; end if;
+select * into a from public.agents where id=c.agent_id and status='active'; if a.id is null then raise exception 'AGENT_NOT_ACTIVE'; end if;
+select * into ks from public.agent_kill_switches where agent_id=c.agent_id; if coalesce(ks.enabled,false) then raise exception 'AGENT_KILL_SWITCH_ENABLED'; end if;
+select * into pol from public.agent_policies where agent_id=c.agent_id and enabled=true order by policy_version desc limit 1; if pol.id is null then raise exception 'AGENT_POLICY_REQUIRED'; end if;
+policy_rules:=coalesce(pol.rules,'{}');
+select coalesce(array_agg(ac.capability order by ac.capability),'{}') into current_caps from public.agent_capabilities ac where ac.agent_id=c.agent_id and ac.enabled=true;
+if exists(select 1 from unnest(coalesce(c.requested_capabilities,'{}')) x where not(x=any(current_caps))) then raise exception 'AGENT_CAPABILITY_REVOKED'; end if;
+insert into public.risk_assessments(actor_user_id,actor_agent_id,action,resource_type,resource_id,risk_level,decision,factors,policy_version) values(auth.uid(),c.agent_id,'agent.execute.recheck','agent_command',c.id,c.risk_level,'allow',jsonb_build_object('approval_id',ap.id,'approval_recheck',true,'execution_recheck',true,'policy_rules',policy_rules,'policy_version',pol.policy_version),pol.policy_version);
+update public.agent_commands set status='running',risk_decision='allow',policy_version=pol.policy_version,started_at=coalesce(started_at,timezone('utc',now())) where id=c.id;
+update public.agent_execution_contexts set state='running',policy_snapshot=coalesce(to_jsonb(pol),'{}'),updated_at=timezone('utc',now()) where command_id=c.id;
+insert into public.agent_runtime_events(command_id,agent_id,owner_user_id,event_type,from_state,to_state,metadata) values(c.id,c.agent_id,c.owner_user_id,'approval_resumed','waiting_approval','running',jsonb_build_object('approval_id',ap.id,'policy_version',pol.policy_version,'execution_recheck',true));
+return jsonb_build_object('status','running','command_id',c.id,'approval_id',ap.id);
+end $$;
