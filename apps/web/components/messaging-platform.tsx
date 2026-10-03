@@ -8,6 +8,7 @@ type Conversation={id:string;conversation_type:string;status:string;created_by_t
 type Message={id:string;conversation_id:string;sender_type:string;sender_id:string;body:string;message_type:string;reply_to_message_id:string|null;status:string;client_message_id:string|null;metadata:Record<string,unknown>;created_at:string;updated_at:string};
 type Request={id:string;conversation_id:string;requester_type:string;requester_id:string;recipient_type:string;recipient_id:string;status:string;requested_at:string};
 type Preference={id:string;subject_type:string;subject_id:string;dm_policy:"open"|"relationships"|"approval"|"invite_only";allow_human_messages:boolean;allow_agent_messages:boolean};
+type AgentService={agent_id:string;agent_name:string;agent_handle:string|null;owner_user_id:string;skill_name:string;skill_description:string|null;skill_configuration:Record<string,unknown>;skill_risk_level:string};
 
 const button="rounded-xl border border-white/10 px-3 py-2 text-xs transition hover:bg-white/[.06] disabled:opacity-40";
 const input="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-cyan-300/40";
@@ -19,7 +20,30 @@ export default function MessagingSurface(){
  const [error,setError]=useState<string|null>(null),[loading,setLoading]=useState(true),[sending,setSending]=useState(false);
  const [preferences,setPreferences]=useState<Preference[]>([]),[dmPolicy,setDmPolicy]=useState<Preference["dm_policy"]>("open"),[allowHuman,setAllowHuman]=useState(true),[allowAgent,setAllowAgent]=useState(true);
  const [reporting,setReporting]=useState<Message|null>(null),[reportReason,setReportReason]=useState(""),[reportNotes,setReportNotes]=useState("");
+ const [agentServices,setAgentServices]=useState<AgentService[]>([]),[serviceSkill,setServiceSkill]=useState(""),[serviceAgent,setServiceAgent]=useState(""),[servicePrompt,setServicePrompt]=useState(""),[serviceMode,setServiceMode]=useState<"answer"|"generate_content">("answer"),[creditBalance,setCreditBalance]=useState(0),[serviceBusy,setServiceBusy]=useState(false),[serviceResult,setServiceResult]=useState<string|null>(null);
 
+ async function loadAgentServices(skill?:string){
+  try{
+    const r=await apiFetch<{data:AgentService[]}>("/api/v1/messaging/agent-services"+(skill?"?skill="+encodeURIComponent(skill):""));
+    setAgentServices(r.data??[]);
+    if(!serviceAgent && r.data?.[0]){setServiceAgent(r.data[0].agent_id);setServiceSkill(r.data[0].skill_name);}
+  }catch(e){setError(e instanceof Error?e.message:"AGENT_SERVICE_DISCOVERY_FAILED")}
+ }
+ async function loadCredits(){
+  try{const r=await apiFetch<{data:{balance:number}}>("/api/v1/messaging/credits");setCreditBalance(r.data?.balance??0)}catch(e){setError(e instanceof Error?e.message:"AI_CREDIT_LOAD_FAILED")}
+ }
+ async function runAgentService(e:FormEvent){
+  e.preventDefault(); if(!serviceAgent||!serviceSkill||!servicePrompt.trim()) return;
+  setServiceBusy(true);setServiceResult(null);setError(null);
+  try{
+    const r=await apiFetch<{data:{conversation_id:string;generation:{text:string};settlement:{credit_cost:number}}}>("/api/v1/messaging/agent-services/generate",{method:"POST",body:JSON.stringify({
+      agent_id:serviceAgent,skill_name:serviceSkill,prompt:servicePrompt,mode:serviceMode,
+      source_context:{surface:"messaging"},idempotency_key:"msg-"+crypto.randomUUID()
+    })});
+    setServiceResult(r.data.generation.text);setCreditBalance(b=>Math.max(0,b-(r.data.settlement?.credit_cost??0)));setServicePrompt("");
+    await load(); if(r.data.conversation_id) await loadMessages(r.data.conversation_id);
+  }catch(e){setError(e instanceof Error?e.message:"AGENT_SERVICE_GENERATION_FAILED")}finally{setServiceBusy(false)}
+ }
  async function load(){
   setLoading(true);setError(null);
   try{
@@ -39,7 +63,7 @@ export default function MessagingSurface(){
   try{const r=await apiFetch<{data:Message[]}>("/api/v1/messaging/conversations/"+id+"/messages?limit=100");setMessages((r.data??[]).reverse());}
   catch(e){setError(e instanceof Error?e.message:"MESSAGES_LOAD_FAILED")}
  }
- useEffect(()=>{void load()},[]);
+ useEffect(()=>{void load();void loadAgentServices();void loadCredits()},[]);
  useEffect(()=>{if(selected) void loadMessages(selected)},[selected]);
  useEffect(()=>{
   if(!selected)return;
@@ -90,6 +114,7 @@ export default function MessagingSurface(){
  return <main className="min-h-screen p-4 sm:p-8"><div className="mx-auto max-w-7xl">
   <header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm uppercase tracking-[.24em] text-cyan-300">Messaging & Social Communication</p><h1 className="mt-2 text-4xl font-semibold">Messages</h1><p className="mt-3 max-w-3xl text-slate-400">Human ↔ Human, Human ↔ Agent and owned-Agent communication through the authoritative messaging API. Realtime is transport only; authorization remains server-side.</p></div><button onClick={()=>void load()} className={button}>Refresh</button></header>
   {error&&<div className="mt-5 rounded-xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
+    <section className="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-300/[.03] p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs uppercase tracking-[.2em] text-cyan-300">Agent Services</p><h2 className="mt-1 font-semibold">Ask another Human's AI Agent</h2><p className="mt-2 max-w-3xl text-xs text-slate-400">Choose an Agent by its published Skill. The service runs through Agent Policy → AI Gateway → Runtime and charges your AI Credits only after an authorized service reservation. On success the same Credits are attributed to the Agent Owner.</p></div><div className="rounded-xl border border-white/10 px-3 py-2 text-xs">AI Credits: <strong>{creditBalance}</strong></div></div><form onSubmit={runAgentService} className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_auto]"><select value={serviceSkill} onChange={e=>{setServiceSkill(e.target.value);setServiceAgent("");void loadAgentServices(e.target.value)}} className={input}><option value="">Select Skill</option>{Array.from(new Set(agentServices.map(a=>a.skill_name))).map(s=><option key={s} value={s}>{s}</option>)}</select><select value={serviceAgent} onChange={e=>setServiceAgent(e.target.value)} className={input}><option value="">Select Agent</option>{agentServices.filter(a=>!serviceSkill||a.skill_name===serviceSkill).map(a=><option key={a.agent_id} value={a.agent_id}>{a.agent_name} · {a.skill_name}</option>)}</select><select value={serviceMode} onChange={e=>setServiceMode(e.target.value as "answer"|"generate_content")} className={input}><option value="answer">Ask / Answer</option><option value="generate_content">Generate Content</option></select><textarea value={servicePrompt} onChange={e=>setServicePrompt(e.target.value)} rows={4} placeholder="Contoh: Jelaskan materi kesehatan ini secara edukatif… atau: buatkan content dari video/Content ini…" className={"lg:col-span-3 "+input}/><button disabled={serviceBusy||!serviceAgent||!serviceSkill||!servicePrompt.trim()} className="rounded-xl bg-white px-4 py-3 text-sm font-medium text-black disabled:opacity-40 lg:col-span-3">{serviceBusy?"Generating…":"Use Agent Service"}</button></form>{serviceResult&&<div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4"><p className="text-xs uppercase tracking-wider text-slate-500">Agent Response</p><p className="mt-2 whitespace-pre-wrap text-sm text-slate-200">{serviceResult}</p></div>}</section>
 
   <div className="mt-6 grid gap-5 xl:grid-cols-[1fr_320px]">
    <div>
