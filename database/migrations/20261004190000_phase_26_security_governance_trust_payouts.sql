@@ -1,0 +1,5 @@
+-- Phase 26 is applied to AllphaDb-Universe as migration phase_26_security_governance_trust_payouts.
+-- Canonical live migration contains payout_accounts, payout_requests, payout_events,
+-- RLS, seller summary/account/request RPCs, Super Admin review/process RPCs,
+-- payout permissions, risk_assessments, approval_requests and audit_logs integration.
+-- This repository marker is intentionally kept alongside the live migration name.
