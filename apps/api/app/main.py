@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.agents import router as agents_router
 from app.api.agent_catalog import router as agent_catalog_router
+from app.api.agent_skills import router as agent_skills_router
 from app.api.ai_gateway import router as ai_gateway_router
 from app.api.agent_runtime import router as agent_runtime_router
 from app.api.workflows import router as workflows_router
@@ -70,6 +71,7 @@ app.include_router(live_assets_router)
 app.include_router(domain_router)
 app.include_router(agents_router)
 app.include_router(agent_catalog_router)
+app.include_router(agent_skills_router)
 app.include_router(ai_gateway_router)
 app.include_router(agent_runtime_router)
 app.include_router(workflows_router)
