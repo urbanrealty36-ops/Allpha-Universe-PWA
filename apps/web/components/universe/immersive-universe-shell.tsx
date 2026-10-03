@@ -47,11 +47,11 @@ export default function ImmersiveUniverseShell() {
       const [g, t, d] = await Promise.all([
         apiFetch<{ data: Galaxy[] }>("/api/v1/universe/galaxies"),
         apiFetch<{ data: Theme[] }>("/api/v1/themes/world-runtime/catalog"),
-        apiFetch<{ data: Content[] }>("/api/v1/discovery/home?surface=home&limit=12"),
+        apiFetch<{ content: Content[] | { data?: Content[] } }>("/api/v1/discovery/home?surface=home&limit=12"),
       ]);
       setGalaxies(g.data ?? []);
       setThemes(t.data ?? []);
-      setContent(Array.isArray(d.data) ? d.data : []);
+      setContent(Array.isArray(d.content) ? d.content : (d.content?.data ?? []));
       if (g.data?.[0]) {
         setSelectedGalaxy(g.data[0]);
         const w = await apiFetch<{ data: World[] }>(`/api/v1/universe/worlds?galaxy_id=${g.data[0].id}&limit=100`);
