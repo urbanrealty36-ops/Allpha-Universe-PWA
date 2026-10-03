@@ -384,29 +384,8 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
     configured_cost = configuration.get("credit_cost") if isinstance(configuration, dict) else None
     credit_cost = int(service.get("credit_cost") or (configured_cost if isinstance(configured_cost, int) else 1))
     request_id: str | None = None
+    conversation_id = payload.conversation_id
     try:
-        reservation = await rpc(user, "reserve_agent_service_request", {
-            "p_agent_id": str(payload.agent_id),
-            "p_skill_name": payload.skill_name,
-            "p_prompt": payload.prompt,
-            "p_credit_cost": credit_cost,
-            "p_idempotency_key": payload.idempotency_key,
-            "p_conversation_id": str(payload.conversation_id) if payload.conversation_id else None,
-            "p_source_content_id": str(payload.source_content_id) if payload.source_content_id else None,
-            "p_source_context": payload.source_context | {
-                "skill_name": payload.skill_name,
-                "mode": payload.mode,
-                "agent_owner_user_id": str(service.get("owner_user_id")),
-            },
-        })
-        request_id = str(reservation["id"])
-        if reservation.get("reused"):
-            existing = await select(user, "agent_service_requests", {
-                "select": "id,status,conversation_id,result_message_id,generated_content_id,credit_cost,service_type,skill_name,agent_id,agent_owner_user_id",
-                "id": f"eq.{request_id}", "limit": "1"
-            })
-            return {"data": {"request": existing[0] if existing else reservation, "reused": True}}
-
         conversation_id = payload.conversation_id
         if not conversation_id:
             service_source_context = {
@@ -423,6 +402,30 @@ async def generate_agent_service(payload: AgentServiceRequest, context: dict = D
                 "p_client_message_id": None,
             })
             conversation_id = UUID(str(conversation["conversation_id"]))
+            if str(conversation.get("status")) != "active":
+                raise HTTPException(status_code=409, detail={"code": "AGENT_CONVERSATION_NOT_ACTIVE", "message": "The Agent conversation is not active; explicit AI Service execution cannot start."})
+
+        reservation = await rpc(user, "reserve_agent_service_request", {        reservation = await rpc(user, "reserve_agent_service_request", {
+            "p_agent_id": str(payload.agent_id),
+            "p_skill_name": payload.skill_name,
+            "p_prompt": payload.prompt,
+            "p_credit_cost": credit_cost,
+            "p_idempotency_key": payload.idempotency_key,
+            "p_conversation_id": str(payload.conversation_id) if payload.conversation_id else None,
+            "p_source_content_id": str(payload.source_content_id) if payload.source_content_id else None,
+            "p_source_context": payload.source_context | {
+                "skill_name": payload.skill_name,
+                "mode": payload.mode,
+                "interaction_boundary": "ai_service",
+            },
+        })
+        request_id = str(reservation["id"])
+        if reservation.get("reused"):
+            existing = await select(user, "agent_service_requests", {
+                "select": "id,status,conversation_id,result_message_id,generated_content_id,credit_cost,service_type,skill_name,agent_id,agent_owner_user_id",
+                "id": f"eq.{request_id}", "limit": "1"
+            })
+            return {"data": {"request": existing[0] if existing else reservation, "reused": True}}
 
         service_context = await rpc(user, "get_agent_service_context", {"p_service_request_id": request_id, "p_limit": 8})
         system_scope = (
