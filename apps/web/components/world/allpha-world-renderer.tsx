@@ -6,6 +6,7 @@ import { useMemo, useRef } from "react";
 import type { Group } from "three";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
+import type { CharacterAnimationSignal } from "../../lib/live-character-animation";
 
 type SpatialPresence = {
   id: string;
@@ -107,7 +108,7 @@ function LiveStage3DAsset({ url }: { url:string }) {
   return <primitive object={stage} position={[0,0,-3]}/>;
 }
 
-function PlatformAgentCharacter3D({position,characterKey,performance}:{position:[number,number,number];characterKey?:string|null;performance?:{state?:string;speaking:boolean;level:number;userSpeaking:boolean}}){
+function PlatformAgentCharacter3D({position,characterKey,performance}:{position:[number,number,number];characterKey?:string|null;performance?: CharacterAnimationSignal}){
   const root=useRef<Group>(null),head=useRef<Group>(null),torso=useRef<Group>(null),la=useRef<Group>(null),ra=useRef<Group>(null),lf=useRef<Group>(null),rf=useRef<Group>(null),ll=useRef<Group>(null),rl=useRef<Group>(null),le=useRef<Group>(null),re=useRef<Group>(null),mouth=useRef<Group>(null);
   const [primary,secondary,accent]=useMemo(()=>{const p:Record<string,[string,string,string]>={sage:["#334155","#e2e8f0","#38bdf8"],navigator:["#0f766e","#ccfbf1","#14b8a6"],strategist:["#312e81","#e0e7ff","#818cf8"],builder:["#7c2d12","#ffedd5","#f97316"],analyst:["#1f2937","#f3f4f6","#60a5fa"],mentor:["#78350f","#fef3c7","#f59e0b"],creator:["#581c87","#f3e8ff","#d946ef"],host:["#0f172a","#f8fafc","#38bdf8"],guardian:["#1e293b","#e2e8f0","#94a3b8"],presenter:["#172554","#eff6ff","#60a5fa"],streamer:["#172554","#dbeafe","#3b82f6"],world_guide:["#164e63","#cffafe","#67e8f9"]};return p[characterKey||""]??["#111827","#e5e7eb","#22d3ee"]},[characterKey]);
   useFrame(({clock})=>{const t=clock.getElapsedTime(),v=Math.max(0,Math.min(1,performance?.level??0)),s=performance?.state??(performance?.speaking?"speaking":performance?.userSpeaking?"listening":"idle"),talk=s==="speaking",listen=s==="listening",think=s==="thinking",facial=performance?.facial??"neutral",gaze=performance?.gaze??"camera";
@@ -133,7 +134,7 @@ function PlatformAgentCharacter3D({position,characterKey,performance}:{position:
     <mesh position={[0,.03,0]}><torusGeometry args={[.72,.025,8,32]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.9}/></mesh>
   </group>
 }
-function AgentCharacter3DAsset({ url, position, performance }: { url:string; position:[number,number,number]; performance?: { speaking:boolean; level:number; userSpeaking:boolean } }) {
+function AgentCharacter3DAsset({ url, position, performance }: { url:string; position:[number,number,number]; performance?: CharacterAnimationSignal }) {
   const gltf = useGLTF(url);
   const character = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
   useFrame(({ clock }) => {
