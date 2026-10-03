@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any, Literal
+import hashlib
+import os
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -858,6 +860,159 @@ async def finalize_live_custom_costume(costume_id: UUID, payload: LiveCustomCost
         return {"data": result}
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_COSTUME_FINALIZE_FAILED") from exc
+
+
+
+class LiveVoiceTokenRequest(BaseModel):
+    collaboration_id: UUID
+    voice: str = Field(default="marin", min_length=1, max_length=80)
+
+
+class LiveVoiceStateRequest(BaseModel):
+    binding_id: UUID
+    target: Literal["active", "stopped", "failed"]
+
+
+@router.post("/sessions/{session_id}/voice/token")
+async def create_live_voice_token(
+    session_id: UUID,
+    payload: LiveVoiceTokenRequest,
+    context: dict = Depends(get_auth_context),
+):
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail={"code": "OPENAI_REALTIME_NOT_CONFIGURED"})
+    try:
+        sessions = await select(context["user"], "live_sessions", {
+            "select": "id,status,title,host_user_id",
+            "id": f"eq.{session_id}",
+            "host_user_id": f"eq.{context['user'].user_id}",
+            "limit": "1",
+        })
+        if not sessions:
+            raise HTTPException(status_code=404, detail={"code": "LIVE_SESSION_NOT_FOUND"})
+        if sessions[0].get("status") != "live":
+            raise HTTPException(status_code=409, detail={"code": "LIVE_SESSION_NOT_LIVE"})
+
+        collaborations = await select(context["user"], "live_agent_collaborations", {
+            "select": "id,live_session_id,agent_id,mode,status,consent_status,risk_decision,required_capability,capability_verified,policy_verified",
+            "id": f"eq.{payload.collaboration_id}",
+            "live_session_id": f"eq.{session_id}",
+            "owner_user_id": f"eq.{context['user'].user_id}",
+            "limit": "1",
+        })
+        if not collaborations:
+            raise HTTPException(status_code=404, detail={"code": "LIVE_COLLAB_NOT_FOUND_OR_NOT_OWNED"})
+        collab = collaborations[0]
+        if collab.get("status") != "active" or collab.get("consent_status") != "approved" or collab.get("risk_decision") != "allow":
+            raise HTTPException(status_code=409, detail={"code": "LIVE_COLLAB_NOT_READY_FOR_VOICE"})
+        if collab.get("capability_verified") is not True or collab.get("policy_verified") is not True:
+            raise HTTPException(status_code=409, detail={"code": "LIVE_COLLAB_GOVERNANCE_NOT_VERIFIED"})
+
+        binding = await rpc(context["user"], "prepare_live_voice_binding", {
+            "p_live_session_id": str(session_id),
+            "p_collaboration_id": str(payload.collaboration_id),
+            "p_model": "gpt-realtime-2.1",
+            "p_voice": payload.voice.strip(),
+        })
+
+        identities = await select(context["user"], "agent_identities", {
+            "select": "agent_id,metadata,verification_status",
+            "agent_id": f"eq.{collab['agent_id']}",
+            "limit": "1",
+        })
+        identity = identities[0] if identities else {}
+        metadata = identity.get("metadata") or {}
+        factory = metadata.get("factory_config") or {}
+        persona = metadata.get("persona_defaults") or metadata.get("persona") or {}
+        tone = metadata.get("tone_defaults") or metadata.get("tone") or {}
+        interaction = metadata.get("interaction_style") or {}
+        instructions = (
+            "You are the AI Agent speaking inside an Allpha Universe Live Experience. "
+            "Respond as the owned Agent represented by this Live collaboration. "
+            "Use realtime speech, concise turn-taking, natural interruption handling, and helpful conversation. "
+            "Never claim authority beyond the existing Agent Passport, Capability, Policy, Consent, Risk and Approval chain. "
+            "Do not execute or promise privileged actions merely because the user is speaking. "
+            f"Agent mode: {collab.get('mode')}. "
+            f"Persona: {persona}. Tone: {tone}. Interaction style: {interaction}. "
+            f"Factory configuration: {factory}."
+        )
+
+        session_config = {
+            "session": {
+                "type": "realtime",
+                "model": binding["model"],
+                "audio": {"output": {"voice": binding["voice"]}},
+                "instructions": instructions[:12000],
+            }
+        }
+        safety_identifier = hashlib.sha256(str(context["user"].user_id).encode()).hexdigest()
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/realtime/client_secrets",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                    "OpenAI-Safety-Identifier": safety_identifier,
+                },
+                json=session_config,
+            )
+        if response.status_code >= 400:
+            detail = response.text[:1000]
+            raise HTTPException(status_code=502, detail={"code": "OPENAI_REALTIME_CLIENT_SECRET_FAILED", "message": detail})
+        data = response.json()
+        return {
+            "data": {
+                "binding": binding,
+                "client_secret": data.get("value"),
+                "expires_at": data.get("expires_at"),
+                "model": binding["model"],
+                "voice": binding["voice"],
+                "transport": "webrtc",
+                "authority_boundary": "existing_live_collaboration_and_agent_runtime",
+            }
+        }
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_VOICE_TOKEN_PREPARE_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/voice/state")
+async def transition_live_voice_state(
+    session_id: UUID,
+    payload: LiveVoiceStateRequest,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        rows = await select(context["user"], "live_session_voice_bindings", {
+            "select": "id,live_session_id,owner_user_id",
+            "id": f"eq.{payload.binding_id}",
+            "live_session_id": f"eq.{session_id}",
+            "owner_user_id": f"eq.{context['user'].user_id}",
+            "limit": "1",
+        })
+        if not rows:
+            raise HTTPException(status_code=404, detail={"code": "LIVE_VOICE_BINDING_NOT_FOUND"})
+        return {"data": await rpc(context["user"], "transition_live_voice_binding", {
+            "p_binding_id": str(payload.binding_id),
+            "p_target": payload.target,
+        })}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_VOICE_STATE_FAILED") from exc
+
+
+@router.get("/sessions/{session_id}/voice")
+async def get_live_voice_binding(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        rows = await select(context["user"], "live_session_voice_bindings", {
+            "select": "id,live_session_id,collaboration_id,owner_user_id,provider,model,voice,status,started_at,stopped_at,metadata",
+            "live_session_id": f"eq.{session_id}",
+            "owner_user_id": f"eq.{context['user'].user_id}",
+            "order": "updated_at.desc",
+            "limit": "1",
+        })
+        return {"data": rows[0] if rows else None}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_VOICE_LOAD_FAILED") from exc
 
 
 @router.post("/sessions/{session_id}/activate-experience")
