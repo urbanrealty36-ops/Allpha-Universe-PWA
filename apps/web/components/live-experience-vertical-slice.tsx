@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import { apiFetch } from "../lib/api";
 import { normalizeWorldScene, type WorldScene } from "../lib/world-engine/scene-schema";
 
@@ -94,7 +94,7 @@ export default function LiveExperienceVerticalSlice({theme}:{theme:Theme|null}) 
         authority_policy:{presentation_only:true,session_id:session.id,theme_id:theme?.id??null},
         interaction_policy:{human_approval_required_for_side_effects:true},
       })});
-      setCollaboration(r.data);setResult(r.data);
+      setCollaboration(r.data);setResult(r.data);\n      if(path==="activate" && r.data.status==="active"){\n        const district=districts.find(x=>x.id===districtId);\n        if(district){\n          try{\n            await apiFetch(`/api/v1/universe/worlds/${district.world_id}/agents`,{method:"POST",body:JSON.stringify({agent_id:agentId,presence_role:"host"})});\n            await apiFetch(`/api/v1/universe/worlds/${district.world_id}/presence`,{method:"POST",body:JSON.stringify({agent_id:agentId,state:"collaborating",activity:"live-experience",context:{live_session_id:session?.id??null,collaboration_id:r.data.id,theme_id:theme?.id??null}})});\n          }catch(e){setError(e instanceof Error?e.message:"AGENT_WORLD_PRESENCE_BIND_FAILED");}\n        }\n      }
     }catch(e){setError(e instanceof Error?e.message:"LIVE_COLLAB_REQUEST_FAILED");}
     finally{setBusy(false);}
   }
@@ -141,7 +141,7 @@ export default function LiveExperienceVerticalSlice({theme}:{theme:Theme|null}) 
         <Card n="03" title="Create Live Session">
           <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Live session title" className={input}/>
           <input type="datetime-local" value={scheduledAt} onChange={e=>setScheduledAt(e.target.value)} className={input}/>
-          <button disabled={busy||!templateId||!versionId||!title.trim()} onClick={createSession as never} className={button}>Create Draft Session</button>
+          <button disabled={busy||!templateId||!versionId||!title.trim()} onClick={(e)=>void createSession(e)} className={button}>Create Draft Session</button>
           {session&&<div className="mt-2 rounded-xl border border-white/10 p-3 text-[10px] text-slate-400">Session: {session.status} · {session.id}</div>}
           {session&&<div className="mt-2 flex flex-wrap gap-2">
             {session.status==="draft"&&<button disabled={busy} onClick={()=>void transition("schedule")} className={button}>Schedule</button>}
@@ -179,6 +179,6 @@ export default function LiveExperienceVerticalSlice({theme}:{theme:Theme|null}) 
     </div>
   </section>;
 }
-function Card({n,title,children}:{n:string;title:string;children:React.ReactNode}){return <div className="rounded-2xl border border-white/10 bg-black/10 p-3"><div className="mb-2 flex items-center gap-2"><span className="rounded-full border border-white/10 px-2 py-1 text-[9px] text-slate-500">{n}</span><span className="text-xs font-semibold">{title}</span></div><div className="space-y-2">{children}</div></div>}
+function Card({n,title,children}:{n:string;title:string;children:ReactNode}){return <div className="rounded-2xl border border-white/10 bg-black/10 p-3"><div className="mb-2 flex items-center gap-2"><span className="rounded-full border border-white/10 px-2 py-1 text-[9px] text-slate-500">{n}</span><span className="text-xs font-semibold">{title}</span></div><div className="space-y-2">{children}</div></div>}
 const input="w-full rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-xs text-white outline-none";
 const button="rounded-xl bg-cyan-300 px-3 py-2 text-[10px] font-semibold text-slate-950 disabled:opacity-30";
