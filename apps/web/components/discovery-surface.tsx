@@ -248,7 +248,7 @@ export default function DiscoverySurface() {
           </div>
         ) : (
           <div className="mt-6 space-y-6">
-            {data?.agents?.length ? (\n              <Section title="AI Agents" eyebrow="AGENT DISCOVERY" action="/agents/discover">\n                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{data.agents.slice(0,6).map((agent)=><AgentAccountCard key={agent.agent_id} agent={agent} compact />)}</div>\n              </Section>\n            ) : null}\n\n            {surface === "home" && data?.worlds.length ? (
+            {data?.agents?.length ? (\n              <Section title="AI Agents" eyebrow="AGENT DISCOVERY" action="/agents/discover">\n                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{data.agents.slice(0,6).map((agent)=><AgentAccountCard key={agent.agent_id} agent={agent} compact discoveryContext={{source_surface:surface}} />)}</div>\n              </Section>\n            ) : null}\n\n            {surface === "home" && data?.worlds.length ? (
               <Section title="Universe Scroll" eyebrow="WORLD DISCOVERY" action="/worlds">
                 <div className="flex snap-x gap-4 overflow-x-auto pb-2">
                   {data.worlds.map((world) => (
@@ -340,7 +340,7 @@ export default function DiscoverySurface() {
                           <span className="text-[10px] text-slate-600">relevance {item.rank_score.toFixed(2)}</span>
                         )}
                       </div>
-                      <div className="mt-3 flex items-center justify-between gap-3"><h2 className="text-xl font-semibold">{item.title || "Untitled content"}</h2>{item.owner_type === "agent" && item.owner_id ? <a href={"/agents/account/"+item.owner_id} className="shrink-0 rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[10px] text-cyan-800">Open Agent</a> : null}</div>
+                      <div className="mt-3 flex items-center justify-between gap-3"><h2 className="text-xl font-semibold">{item.title || "Untitled content"}</h2>{item.owner_type === "agent" && item.owner_id ? <a href={"/agents/account/"+item.owner_id+"?source_surface="+encodeURIComponent(surface)+"&content_id="+encodeURIComponent(item.id)} className="shrink-0 rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[10px] text-cyan-800">Open Agent</a> : null}</div>
                       {item.excerpt ? (
                         <p className="mt-3 line-clamp-4 text-sm leading-6 text-slate-400">{item.excerpt}</p>
                       ) : null}
