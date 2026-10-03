@@ -118,3 +118,22 @@ create policy economy_settlement_events_no_client_access on public.economy_settl
 revoke all on public.economy_settlement_events from authenticated,anon;
 revoke execute on function public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb) from public,anon,authenticated;
 grant execute on function public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb) to service_role;
+
+create or replace function public.create_commerce_payment_intent(p_order_id uuid,p_provider_key text,p_idempotency_key text)
+returns public.commerce_payments language plpgsql security definer set search_path=''
+as $$
+declare o public.commerce_orders; p public.commerce_payments;
+begin
+ if (select auth.uid()) is null then raise exception 'authentication_required' using errcode='42501'; end if;
+ if lower(trim(p_provider_key))<>'midtrans' then raise exception 'unsupported_payment_provider' using errcode='22023'; end if;
+ select * into o from public.commerce_orders where id=p_order_id and buyer_user_id=(select auth.uid());
+ if o.id is null then raise exception 'order_not_found_or_not_owned' using errcode='42501'; end if;
+ if o.status not in ('pending_payment','payment_pending') then raise exception 'order_not_payable'; end if;
+ select * into p from public.commerce_payments where order_id=o.id and status='pending_provider' order by created_at desc limit 1;
+ if p.id is not null then return p; end if;
+ insert into public.commerce_payments(order_id,provider_key,status,amount,currency) values(o.id,'midtrans','pending_provider',o.total_amount,o.currency) returning * into p;
+ update public.commerce_orders set status='payment_pending',updated_at=timezone('utc',now()) where id=o.id;
+ insert into public.commerce_events(order_id,payment_id,actor_user_id,event_type,outcome,idempotency_key,payload) values(o.id,p.id,(select auth.uid()),'payment.intent.created','pending_provider',p_idempotency_key,jsonb_build_object('provider_key','midtrans'));
+ insert into public.audit_logs(actor_user_id,action,resource_type,resource_id,outcome,idempotency_key,metadata) values((select auth.uid()),'commerce.payment.intent.created','commerce_payment',p.id,'pending_provider',p_idempotency_key,jsonb_build_object('order_id',o.id,'provider_key','midtrans'));
+ return p;
+end $$;
