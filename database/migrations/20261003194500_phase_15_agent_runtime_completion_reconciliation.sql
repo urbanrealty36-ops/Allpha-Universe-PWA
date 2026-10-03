@@ -22,7 +22,7 @@ begin
     into tools from public.agent_tool_definitions td
    where td.enabled=true and exists(select 1 from public.agent_capabilities ac where ac.agent_id=c.agent_id and ac.capability=td.capability and ac.enabled=true);
   return jsonb_build_object(
-    'command',jsonb_build_object('id',c.id,'agent_id',c.agent_id,'command_text',c.command_text,'requested_capabilities',c.requested_capabilities,'autonomy_level',c.autonomy_level,'command_source',c.command_source,'service_request_id',c.service_request_id,'live_session_id',c.live_session_id,'live_collaboration_id',c.live_collaboration_id),
+    'command',jsonb_build_object('id',c.id,'agent_id',c.agent_id,'command_text',c.command_text,'requested_capabilities',c.requested_capabilities,'status',c.status,'autonomy_level',c.autonomy_level,'command_source',c.command_source,'service_request_id',c.service_request_id,'live_session_id',c.live_session_id,'live_collaboration_id',c.live_collaboration_id),
     'agent',jsonb_build_object('id',a.id,'name',a.name,'description',a.description,'runtime_state',a.runtime_state,'persona',case when is_owner then coalesce(a.persona,'{}'::jsonb) else '{}'::jsonb end),
     'policy',jsonb_build_object('policy_version',pol.policy_version,'autonomy_level',pol.autonomy_level,'spending_limit',pol.spending_limit,'rate_limit',pol.rate_limit,'approval_required_risk_levels',coalesce(pol.rules->'approval_required_risk_levels','[]'::jsonb)),
     'capabilities',caps,'available_tools',tools,
