@@ -102,7 +102,7 @@ create or replace function public.record_feed_interaction(
   p_watch_duration_ms bigint default null,p_metadata jsonb default '{}'::jsonb)
 returns jsonb language plpgsql security definer set search_path=public,auth
 as $$
-declare v_user uuid:=auth.uid(); v_content public.content_items%rowtype;
+declare v_user uuid:=auth.uid(); v_content public.content_items%rowtype; v_id uuid;
 begin
   if v_user is null then raise exception 'authentication required' using errcode='42501'; end if;
   if p_surface not in ('home','following','for_you','reels','explore','live_now','agent','knowledge','world','context') then raise exception 'unsupported feed surface' using errcode='22023'; end if;
@@ -118,11 +118,14 @@ begin
     or (b.blocker_type=v_content.owner_type and b.blocker_id=v_content.owner_id and b.blocked_type='user' and b.blocked_id=v_user)) then
     raise exception 'content not available' using errcode='42501';
   end if;
-  insert into content_events(content_id,actor_user_id,event_type,metadata)
-  values(p_content_id,v_user,p_event_type,jsonb_build_object('surface',p_surface,'position',p_position,'watch_duration_ms',p_watch_duration_ms,'metadata',coalesce(p_metadata,'{}'::jsonb)));
-  return jsonb_build_object('ok',true,'content_id',p_content_id,'event_type',p_event_type);
+  insert into feed_interaction_events(user_id,content_id,surface,event_type,position,watch_duration_ms,metadata)
+  values(v_user,p_content_id,p_surface,p_event_type,p_position,p_watch_duration_ms,coalesce(p_metadata,'{}'::jsonb))
+  returning id into v_id;
+  return jsonb_build_object('id',v_id,'content_id',p_content_id,'event_type',p_event_type);
 end;
 $$;
+revoke all on function public.record_feed_interaction(uuid,text,text,integer,bigint,jsonb) from public,anon;
+grant execute on function public.record_feed_interaction(uuid,text,text,integer,bigint,jsonb) to authenticated;
 
 create or replace function public.record_feed_feedback(
   p_content_id uuid default null,p_owner_type text default null,p_owner_id uuid default null,
