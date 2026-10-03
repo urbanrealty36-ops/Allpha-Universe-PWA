@@ -61,6 +61,41 @@ begin
   return jsonb_build_object('world_id',p_world_id,'community_id',p_community_id,'placement',p_placement);
 end $function$;
 
+create or replace function public.report_community_target(
+  p_community_id uuid,
+  p_target_type text,
+  p_target_id uuid,
+  p_reason_code text,
+  p_notes text
+) returns jsonb
+language plpgsql security definer set search_path to ''
+as $function$
+declare v_uid uuid:=auth.uid(); v_id uuid; v_case_id uuid;
+begin
+  if v_uid is null then raise exception 'authentication_required'; end if;
+  if not exists(select 1 from public.communities c where c.id=p_community_id and c.status<>'archived') then raise exception 'community_not_found'; end if;
+  if p_target_type='community' then
+    if p_target_id<>p_community_id then raise exception 'community_report_target_mismatch'; end if;
+  elsif p_target_type='post' then
+    if not exists(select 1 from public.community_posts where id=p_target_id and community_id=p_community_id) then raise exception 'community_report_target_not_found'; end if;
+  elsif p_target_type='comment' then
+    if not exists(select 1 from public.community_comments where id=p_target_id and community_id=p_community_id) then raise exception 'community_report_target_not_found'; end if;
+  elsif p_target_type='member' then
+    if not exists(select 1 from public.community_memberships where id=p_target_id and community_id=p_community_id) then raise exception 'community_report_target_not_found'; end if;
+  elsif p_target_type='event' then
+    if not exists(select 1 from public.community_events where id=p_target_id and community_id=p_community_id) then raise exception 'community_report_target_not_found'; end if;
+  else
+    raise exception 'invalid_community_report_target';
+  end if;
+  insert into public.community_reports(community_id,reporter_user_id,target_type,target_id,reason_code,notes,status)
+  values(p_community_id,v_uid,p_target_type,p_target_id,p_reason_code,p_notes,'reviewing') returning id into v_id;
+  insert into public.community_moderation_cases(community_id,report_id,target_type,target_id)
+  values(p_community_id,v_id,p_target_type,p_target_id) returning id into v_case_id;
+  insert into public.community_activity_events(community_id,actor_type,actor_id,event_type,target_type,target_id,metadata)
+  values(p_community_id,'user',v_uid,'reported',p_target_type,p_target_id,jsonb_build_object('case_id',v_case_id));
+  return jsonb_build_object('id',v_id,'case_id',v_case_id,'status','reviewing');
+end $function$;
+
 create or replace function public.decide_community_moderation_case(
   p_case_id uuid,
   p_decision text,
@@ -71,43 +106,36 @@ as $function$
 declare v_uid uuid := auth.uid(); v_case record;
 begin
   if v_uid is null then raise exception 'authentication_required'; end if;
-  select mc.*, r.reporter_user_id into v_case
-  from public.community_moderation_cases mc
-  left join public.community_reports r on r.id=mc.report_id
-  where mc.id=p_case_id;
+  select mc.* into v_case from public.community_moderation_cases mc where mc.id=p_case_id;
   if not found then raise exception 'moderation_case_not_found'; end if;
   if not exists (
     select 1 from public.community_memberships m
     where m.community_id=v_case.community_id and m.subject_type='user' and m.subject_id=v_uid
       and m.status='active' and m.role in ('owner','admin','moderator')
   ) then raise exception 'community_moderation_denied'; end if;
-  if p_decision not in ('dismissed','resolved','remove','suspend_member','ban_member','escalated') then raise exception 'invalid_moderation_decision'; end if;
-
+  if v_case.decision is not null then raise exception 'moderation_case_already_decided'; end if;
+  if p_decision not in ('allow','remove','restrict','suspend','ban') then raise exception 'invalid_moderation_decision'; end if;
   if p_decision='remove' then
-    if v_case.target_type='post' then
+    if v_case.target_type='community' then
+      update public.communities set status='archived',updated_at=timezone('utc',now()) where id=v_case.target_id and id=v_case.community_id;
+    elsif v_case.target_type='post' then
       update public.community_posts set status='removed',updated_at=timezone('utc',now()) where id=v_case.target_id and community_id=v_case.community_id;
     elsif v_case.target_type='comment' then
       update public.community_comments set status='removed',updated_at=timezone('utc',now()) where id=v_case.target_id and community_id=v_case.community_id;
     elsif v_case.target_type='event' then
       update public.community_events set status='cancelled',updated_at=timezone('utc',now()) where id=v_case.target_id and community_id=v_case.community_id;
     end if;
-  elsif p_decision in ('suspend_member','ban_member') and v_case.target_type='member' then
-    update public.community_memberships
-      set status=case when p_decision='ban_member' then 'banned' else 'suspended' end,
-          updated_at=timezone('utc',now())
+  elsif p_decision='restrict' and v_case.target_type='community' then
+    update public.communities set visibility='restricted',updated_at=timezone('utc',now()) where id=v_case.target_id and id=v_case.community_id;
+  elsif p_decision in ('suspend','ban') then
+    if v_case.target_type<>'member' then raise exception 'member_decision_requires_member_target'; end if;
+    update public.community_memberships set status=case when p_decision='ban' then 'banned' else 'suspended' end,updated_at=timezone('utc',now())
       where id=v_case.target_id and community_id=v_case.community_id;
   end if;
-
-  update public.community_moderation_cases
-    set decision=p_decision,decided_by_user_id=v_uid,notes=p_notes,decided_at=timezone('utc',now())
-    where id=p_case_id;
-  update public.community_reports
-    set status=case when p_decision='dismissed' then 'dismissed' else 'resolved' end,resolved_at=timezone('utc',now())
-    where id=v_case.report_id;
-
+  update public.community_moderation_cases set decision=p_decision,decided_by_user_id=v_uid,notes=p_notes,decided_at=timezone('utc',now()) where id=p_case_id;
+  update public.community_reports set status=case when p_decision='allow' then 'dismissed' else 'resolved' end,resolved_at=timezone('utc',now()) where id=v_case.report_id;
   insert into public.community_activity_events(community_id,actor_type,actor_id,event_type,target_type,target_id,metadata)
-  values(v_case.community_id,'user',v_uid,'moderation_decision',v_case.target_type,v_case.target_id,
-         jsonb_build_object('case_id',p_case_id,'decision',p_decision));
+  values(v_case.community_id,'user',v_uid,'moderation_decision',v_case.target_type,v_case.target_id,jsonb_build_object('case_id',p_case_id,'decision',p_decision));
   return jsonb_build_object('id',p_case_id,'decision',p_decision);
 end $function$;
 
@@ -117,5 +145,8 @@ revoke all on function public.link_community_topic(uuid,uuid) from public,anon;
 grant execute on function public.link_community_topic(uuid,uuid) to authenticated;
 revoke all on function public.link_community_to_world(uuid,uuid,text) from public,anon;
 grant execute on function public.link_community_to_world(uuid,uuid,text) to authenticated;
+revoke all on function public.report_community_target(uuid,text,uuid,text,text) from public,anon;
+grant execute on function public.report_community_target(uuid,text,uuid,text,text) to authenticated;
+
 revoke all on function public.decide_community_moderation_case(uuid,text,text) from public,anon;
 grant execute on function public.decide_community_moderation_case(uuid,text,text) to authenticated;
