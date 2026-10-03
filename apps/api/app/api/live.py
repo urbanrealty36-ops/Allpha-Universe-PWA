@@ -411,7 +411,7 @@ async def list_live_character_assets(
     context: dict = Depends(get_auth_context),
 ):
     q = {
-        "select": "id,owner_user_id,agent_id,asset_type,name,storage_path,mime_type,metadata,moderation_status,status,content_size_bytes,checksum_sha256,uploaded_at,updated_at",
+        "select": "id,owner_user_id,agent_id,catalog_character_id,asset_type,asset_source,name,storage_bucket,storage_path,mime_type,metadata,moderation_status,status,content_size_bytes,checksum_sha256,uploaded_at,updated_at",
         "status": "eq.active",
         "moderation_status": "eq.approved",
         "order": "updated_at.desc",
@@ -426,7 +426,7 @@ async def list_live_character_assets(
         result = []
         for row in rows:
             item = dict(row)
-            if row.get("storage_bucket") and row.get("storage_path"):
+            if row.get("asset_source") != "platform_catalog" and row.get("storage_bucket") and row.get("storage_path"):
                 try:
                     item["signed_url"] = await create_signed_download_url(context["user"], row["storage_bucket"], row["storage_path"], 900)
                 except SupabaseStorageError:
@@ -437,6 +437,38 @@ async def list_live_character_assets(
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_CHARACTER_ASSET_LIST_FAILED") from exc
     return {"data": result}
+
+
+@router.get("/character-runtime-catalog")
+async def list_live_character_runtime_catalog(
+    agent_id: UUID | None = None,
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        rows = await rpc(context["user"], "list_live_character_runtime_catalog", {
+            "p_agent_id": str(agent_id) if agent_id else None,
+        })
+        result = []
+        for row in rows:
+            item = dict(row)
+            item["signed_url"] = None
+            if item.get("asset_source") != "platform_catalog":
+                assets = await select(context["user"], "live_character_assets", {
+                    "select": "id,storage_bucket,storage_path,mime_type",
+                    "id": f"eq.{item['asset_id']}",
+                    "limit": "1",
+                })
+                if assets and assets[0].get("storage_bucket") and assets[0].get("storage_path"):
+                    try:
+                        item["signed_url"] = await create_signed_download_url(
+                            context["user"], assets[0]["storage_bucket"], assets[0]["storage_path"], 900
+                        )
+                    except SupabaseStorageError:
+                        item["signed_url"] = None
+            result.append(item)
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_CHARACTER_RUNTIME_CATALOG_FAILED") from exc
 
 
 @router.get("/sessions/{session_id}/characters")
