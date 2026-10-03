@@ -1,0 +1,33 @@
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+import { apiFetch } from "../lib/api";
+
+type Bundle={agent:any;identity:any;persona:any;passport:any;policy:any;budget:any};
+type Capability={id:string;capability:string;enabled:boolean;constraints:Record<string,unknown>};
+type Permission={id:string;resource:string;action:string;effect:string;scope:Record<string,unknown>};
+
+const input="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-300/40";
+const btn="rounded-xl border border-white/10 px-4 py-2 text-xs hover:border-cyan-300/30 disabled:opacity-40";
+
+export default function AgentControlSurface({agentId}:{agentId:string}){
+ const [bundle,setBundle]=useState<Bundle|null>(null),[caps,setCaps]=useState<Capability[]>([]),[perms,setPerms]=useState<Permission[]>([]);
+ const [capability,setCapability]=useState(""),[resource,setResource]=useState(""),[action,setAction]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null);
+ async function load(){setError(null);try{const [b,c,p]=await Promise.all([
+  apiFetch<Bundle>(`/api/v1/agents/${agentId}`),apiFetch<{data:Capability[]}>(`/api/v1/agents/${agentId}/capabilities`),apiFetch<{data:Permission[]}>(`/api/v1/agents/${agentId}/permissions`)
+ ]);setBundle(b);setCaps(c.data??[]);setPerms(p.data??[])}catch(e){setError(e instanceof Error?e.message:"AGENT_CONTROL_LOAD_FAILED")}}
+ useEffect(()=>{void load()},[agentId]);
+ async function addCapability(e:FormEvent){e.preventDefault();if(!capability.trim())return;setBusy(true);try{await apiFetch(`/api/v1/agents/${agentId}/capabilities`,{method:"POST",body:JSON.stringify({capability:capability.trim(),constraints:{}})});setCapability("");await load()}catch(e){setError(e instanceof Error?e.message:"CAPABILITY_ADD_FAILED")}finally{setBusy(false)}}
+ async function addPermission(e:FormEvent){e.preventDefault();if(!resource.trim()||!action.trim())return;setBusy(true);try{await apiFetch(`/api/v1/agents/${agentId}/permissions`,{method:"POST",body:JSON.stringify({resource:resource.trim(),action:action.trim(),effect:"allow",scope:{}})});setResource("");setAction("");await load()}catch(e){setError(e instanceof Error?e.message:"PERMISSION_ADD_FAILED")}finally{setBusy(false)}}
+ async function verify(){setBusy(true);try{await apiFetch(`/api/v1/agents/${agentId}/verification/request`,{method:"POST"});await load()}catch(e){setError(e instanceof Error?e.message:"VERIFICATION_REQUEST_FAILED")}finally{setBusy(false)}}
+ return <main className="min-h-screen bg-slate-950 px-4 py-7 text-white sm:px-8"><div className="mx-auto max-w-7xl">
+  <header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-[11px] uppercase tracking-[.28em] text-cyan-300">Phase 06 · Identity / Passport</p><h1 className="mt-2 text-4xl font-semibold">Agent Passport & Authority</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">Identity, verification, persona, passport, policy, budget, capabilities and permissions. Presentation never grants authority; server policy remains authoritative.</p></div><button onClick={()=>void load()} className={btn}>Refresh</button></header>
+  {error&&<div className="mt-6 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>}
+  <div className="mt-8 grid gap-5 lg:grid-cols-2">
+   <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><h2 className="text-xl font-semibold">Identity & Passport</h2><div className="mt-4 grid gap-3 sm:grid-cols-2">{[["Name",bundle?.agent?.name],["Handle",bundle?.agent?.handle||"—"],["Status",bundle?.agent?.status],["Runtime",bundle?.agent?.runtime_state],["Verification",bundle?.passport?.verification_status||bundle?.identity?.verification_status||"not verified"],["Passport Version",bundle?.passport?.passport_version??"—"]].map(([k,v])=><div key={String(k)} className="rounded-xl border border-white/10 p-4"><p className="text-[10px] uppercase tracking-wider text-slate-500">{k}</p><p className="mt-1 text-sm text-slate-200">{String(v??"—")}</p></div>)}</div><button disabled={busy||bundle?.passport?.verification_status==="pending"} onClick={()=>void verify()} className="mt-4 rounded-xl bg-cyan-300 px-4 py-2 text-xs font-semibold text-slate-950">{bundle?.passport?.verification_status==="pending"?"Verification Pending":"Request Verification"}</button></section>
+   <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><h2 className="text-xl font-semibold">Policy & Budget</h2><pre className="mt-4 max-h-64 overflow-auto rounded-xl border border-white/10 bg-black/20 p-4 text-xs text-slate-400">{JSON.stringify({policy:bundle?.policy,budget:bundle?.budget},null,2)}</pre></section>
+   <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><h2 className="text-xl font-semibold">Capabilities</h2><form onSubmit={addCapability} className="mt-4 flex gap-2"><input value={capability} onChange={e=>setCapability(e.target.value)} className={input} placeholder="Capability key"/><button disabled={busy||!capability.trim()} className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-950">Grant</button></form><div className="mt-4 space-y-2">{caps.length===0?<p className="text-sm text-slate-500">No capability records.</p>:caps.map(x=><div key={x.id} className="flex justify-between rounded-xl border border-white/10 p-3"><span className="text-sm">{x.capability}</span><span className="text-xs text-slate-500">{x.enabled?"enabled":"disabled"}</span></div>)}</div></section>
+   <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><h2 className="text-xl font-semibold">Permissions</h2><form onSubmit={addPermission} className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><input value={resource} onChange={e=>setResource(e.target.value)} className={input} placeholder="Resource"/><input value={action} onChange={e=>setAction(e.target.value)} className={input} placeholder="Action"/><button disabled={busy||!resource.trim()||!action.trim()} className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-950">Allow</button></form><div className="mt-4 space-y-2">{perms.length===0?<p className="text-sm text-slate-500">No permission records.</p>:perms.map(x=><div key={x.id} className="rounded-xl border border-white/10 p-3 text-sm"><span>{x.resource}</span><span className="mx-2 text-slate-600">·</span><span>{x.action}</span><span className="ml-2 text-xs text-slate-500">{x.effect}</span></div>)}</div></section>
+  </div>
+ </div></main>;
+}
