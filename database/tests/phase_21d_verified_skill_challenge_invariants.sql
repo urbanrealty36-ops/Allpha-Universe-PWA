@@ -1,5 +1,5 @@
 begin;
-select plan(17);
+select plan(16);
 select ok(to_regclass('public.agent_service_requests') is not null,'service requests exists');
 select ok(exists(select 1 from information_schema.columns where table_schema='public' and table_name='agent_service_requests' and column_name='skill_id'),'service request skill snapshot column exists');
 select ok(to_regprocedure('public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb)') is not null,'canonical reservation RPC exists');
