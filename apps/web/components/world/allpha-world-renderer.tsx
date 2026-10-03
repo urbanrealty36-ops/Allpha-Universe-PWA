@@ -40,6 +40,8 @@ type Props = {
   selectedBoothId?: string;
   themePackUrl?: string | null;
   selectedDistrictId?: string;
+  liveStageUrl?: string | null;
+  agentCharacterUrl?: string | null;
 };
 
 function Structure({
@@ -122,7 +124,7 @@ function WorldObjects({
   const hasThemePack = Boolean(themePackUrl);
 
   return <>
-    {themePackUrl ? <ThemePackEnvironment url={themePackUrl} /> : null}
+    {themePackUrl ? <ThemePackEnvironment url={themePackUrl} /> : null}\n    {liveStageUrl ? <LiveStage3DAsset url={liveStageUrl} /> : null}
     {!hasThemePack && <>
       <mesh position={[0, -.3, 0]} receiveShadow><boxGeometry args={[28, .5, 28]} /><meshStandardMaterial color={style.ground} roughness={.9} /></mesh>
       <mesh position={[0, -.02, 0]}><boxGeometry args={[22, .06, 22]} /><meshStandardMaterial color={secondary} /></mesh>
@@ -150,7 +152,7 @@ function WorldObjects({
       const p = agent.position!;
       const selected = agent.id === selectedBoothId;
       return <group key={agent.id} position={[p.x, p.y + .55, p.z]} onClick={() => onHotspot?.({ id: agent.id, kind: "character", position: p, metadata: { agent_id: agent.agent_id, movement_state: agent.movement_state, zone_key: agent.zone_key } })}>
-        <mesh><sphereGeometry args={[selected ? .42 : .32, 14, 14]} /><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={selected ? 1 : .55} /></mesh>
+        {agentCharacterUrl && agent.agent_id ? <AgentCharacter3DAsset url={agentCharacterUrl} position={[0, .05, 0]} /> : <mesh><sphereGeometry args={[selected ? .42 : .32, 14, 14]} /><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={selected ? 1 : .55} /></mesh>}
         <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[selected ? .72 : .55, .035, 8, 32]} /><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.2} transparent opacity={.8} /></mesh>
       </group>;
     })}
@@ -219,7 +221,7 @@ export default function AllphaWorldRenderer({
       <PerspectiveCamera makeDefault position={[14, 11, 14]} fov={58} />
       <ambientLight intensity={.8} />
       <directionalLight position={[8, 14, 6]} intensity={2} castShadow={shadows} />
-      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} selectedBoothId={selectedBoothId} themePackUrl={themePackUrl} />
+      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} selectedBoothId={selectedBoothId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} />
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI * .48} enableDamping dampingFactor={.08} />
     </Canvas>
   </div>;
