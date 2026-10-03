@@ -4,6 +4,7 @@ import base64
 import hashlib
 import hmac
 from decimal import Decimal
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -144,7 +145,7 @@ async def _checkout_for_order(user, order_id: UUID, idempotency_key: str | None)
                 "external_reference": snap["order_id"],
                 "checkout_url": snap["redirect_url"],
                 "provider_payload": {"provider": "midtrans", "snap_token": snap["token"], "snap_order_id": snap["order_id"]},
-                "updated_at": "now()",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         return {"payment_id": payment_id, "order_id": order_id, "redirect_url": snap["redirect_url"], "token": snap["token"], "status": "pending_provider"}
