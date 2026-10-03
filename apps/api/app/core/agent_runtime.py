@@ -49,28 +49,51 @@ async def create_command(user: AuthenticatedUser, agent_id: UUID, command_text: 
 
 
 async def plan_command(user: AuthenticatedUser, command_id: UUID) -> dict[str, Any]:
-    rows = await select(user, "agent_commands", {"select": "id,agent_id,command_text,requested_capabilities,autonomy_level,policy_version,status,command_source,live_session_id,live_collaboration_id", "id": f"eq.{command_id}", "limit": "1"})
-    if not rows:
-        raise AgentRuntimeError("COMMAND_NOT_FOUND", "Command was not found.", 404)
-    command = rows[0]
-    if command["status"] not in ("planning", "received"):
-        return command
+    try:
+        context = await rpc(user, "get_agent_runtime_context", {"p_command_id": str(command_id)})
+    except SupabaseRestError as exc:
+        raise AgentRuntimeError("AGENT_RUNTIME_CONTEXT_FAILED", exc.message, 409) from exc
 
-    agent = await select(user, "agents", {"select": "id,name,description,runtime_state", "id": f"eq.{command['agent_id']}", "limit": "1"})
-    policy = await select(user, "agent_policies", {"select": "name,policy_version,rules,autonomy_level,enabled", "agent_id": f"eq.{command['agent_id']}", "enabled": "eq.true", "order": "policy_version.desc", "limit": "1"})
-    capabilities = await select(user, "agent_capabilities", {"select": "capability,constraints", "agent_id": f"eq.{command['agent_id']}", "enabled": "eq.true"})
-    tools = await select(user, "agent_tool_definitions", {"select": "tool_key,name,description,capability,risk_level,input_schema", "enabled": "eq.true", "order": "tool_key.asc"})
-    planner_input = {"agent": agent[0] if agent else None, "policy": policy[0] if policy else None, "capabilities": capabilities, "available_tools": tools, "command": command["command_text"], "requested_capabilities": command["requested_capabilities"], "runtime_context": {"source": command.get("command_source"), "live_session_id": command.get("live_session_id"), "live_collaboration_id": command.get("live_collaboration_id")}}
+    command = context.get("command") or {}
+    planner_input = {
+        "agent": context.get("agent"),
+        "policy": context.get("policy"),
+        "capabilities": context.get("capabilities") or [],
+        "available_tools": context.get("available_tools") or [],
+        "command": command.get("command_text"),
+        "requested_capabilities": command.get("requested_capabilities") or [],
+        "runtime_context": {
+            "source": command.get("command_source"),
+            "service_request_id": command.get("service_request_id"),
+            "live_session_id": command.get("live_session_id"),
+            "live_collaboration_id": command.get("live_collaboration_id"),
+            "privacy": context.get("privacy") or {},
+        },
+    }
+
     system = (
         "You are the Allpha Agent Runtime planner. Produce ONLY valid JSON, never markdown. "
-        "Do not invent tools or capabilities. Use only available_tools. Do not expose private chain-of-thought. "
-        'Schema: {"risk_level":"low|medium|high|critical","requires_approval":true|false,"tasks":[{"task_key":"string","title":"string","description":"string","input":{},"steps":[{"step_key":"string","tool_key":"string","arguments":{}}]}]}. '
+        "Do not invent tools or capabilities. Use only available_tools. "
+        "Do not expose private chain-of-thought or private Agent-owner policy internals. "
+        'Schema: {"risk_level":"low|medium|high|critical","requires_approval":true|false,'
+        '"tasks":[{"task_key":"string","title":"string","description":"string","input":{},'
+        '"steps":[{"step_key":"string","tool_key":"string","arguments":{}}]}}. '
         "Prefer the minimum number of steps needed."
     )
     try:
-        result = await generate(user, [GatewayMessage(role="system", content=system), GatewayMessage(role="user", content=json.dumps(planner_input, ensure_ascii=False))], agent_id=str(command["agent_id"]), capabilities=["ai.generate"], metadata={"purpose": "agent_planning"})
+        result = await generate(
+            user,
+            [
+                GatewayMessage(role="system", content=system),
+                GatewayMessage(role="user", content=json.dumps(planner_input, ensure_ascii=False)),
+            ],
+            agent_id=str(command["agent_id"]),
+            capabilities=["ai.generate"],
+            metadata={"purpose": "agent_planning", "command_id": str(command_id)},
+        )
     except AIGatewayError as exc:
         raise AgentRuntimeError(exc.code, str(exc), exc.status_code) from exc
+
     plan = _parse_plan(result.text)
     try:
         return await rpc(user, "materialize_agent_plan", {"p_command_id": str(command_id), "p_plan": plan})
