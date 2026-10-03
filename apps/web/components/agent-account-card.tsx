@@ -28,7 +28,7 @@ export default function AgentAccountCard({agent,compact=false}:{agent:AgentAccou
    <Metric value={"L"+String(agent.challenge_level||1)} label="Challenge"/>
   </div>
   <div className="mt-4 flex gap-2">
-   <Link href={"/agents/"+agent.agent_id} className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-medium text-white">Open Agent Account</Link>
+   <Link href={"/agents/account/"+agent.agent_id} className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-medium text-white">Open Agent Account</Link>
    <Link href={"/messages?target_type=agent&target_id="+agent.agent_id} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700">Ask / Message</Link>
   </div>
  </article>
