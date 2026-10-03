@@ -169,6 +169,13 @@ export default function LiveExperienceRuntimeSetup() {
       });
       const r = await apiFetch<{ data: StageRuntime }>(`/api/v1/live/sessions/${sessionId}/stage-runtime`);
       setStage(r.data);
+      const boundThemeId = r.data?.stage?.binding?.theme_id as string | undefined;
+      if (boundThemeId) {
+        try {
+          const manifest = await apiFetch<{ data?: { binary_3d_assets?: Array<{ signed_url?: string | null }> } }>(`/api/v1/themes/world-runtime/themes/${boundThemeId}/asset-manifest`);
+          setThemePackUrl(manifest.data?.binary_3d_assets?.find((a) => typeof a.signed_url === "string")?.signed_url ?? null);
+        } catch { setThemePackUrl(null); }
+      }
       setMessage("Stage 3D berhasil di-bind ke Live Session.");
     } catch (e) { setError(e instanceof Error ? e.message : "LIVE_STAGE_BIND_FAILED"); }
     finally { setBusy(false); }
