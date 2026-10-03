@@ -172,16 +172,16 @@ export default function DiscoverySurface() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-slate-50 text-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-8 sm:py-8">
-        <header className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/20 sm:p-8">
+        <header className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-8 sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-cyan-300">Allpha Universe</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-cyan-700">Allpha Universe</p>
               <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">
                 Discover people, Agents, content and Worlds.
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
                 A unified discovery surface over Allpha&apos;s authoritative Feed, Universe and Live engines.
                 Relevance is contextual; authority, ownership and permissions remain outside the presentation layer.
               </p>
@@ -197,9 +197,9 @@ export default function DiscoverySurface() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search published discovery…"
-                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none ring-cyan-300/30 focus:ring-2"
+                className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none ring-cyan-300/30 focus:ring-2"
               />
-              <button className="rounded-xl border border-white/10 bg-white px-4 py-3 text-sm font-medium text-slate-950">
+              <button className="rounded-xl border border-slate-200 bg-slate-950 px-4 py-3 text-sm font-medium text-white">
                 Search
               </button>
             </form>
@@ -213,7 +213,7 @@ export default function DiscoverySurface() {
                 className={
                   surface === tab.key
                     ? "shrink-0 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-950"
-                    : "shrink-0 rounded-full border border-white/10 px-4 py-2 text-sm text-slate-400 hover:text-white"
+                    : "shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:text-slate-950"
                 }
               >
                 {tab.label}
@@ -225,13 +225,13 @@ export default function DiscoverySurface() {
         {surface === "home" ? <UniverseThemeNavigator /> : null}
 
         {error && (
-          <div className="mt-5 rounded-2xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">
+          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-sm text-slate-500">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
             Loading authoritative discovery…
           </div>
         ) : (
@@ -243,11 +243,11 @@ export default function DiscoverySurface() {
                     <a
                       key={world.id}
                       href="/worlds"
-                      className="min-w-[270px] snap-start rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-300/[0.12] via-white/[0.04] to-violet-400/[0.10] p-5 hover:border-white/20"
+                      className="min-w-[270px] snap-start rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-violet-50 p-5 shadow-sm hover:border-slate-300"
                     >
                       <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-300">{world.world_type}</p>
                       <h2 className="mt-3 text-xl font-semibold">{world.name}</h2>
-                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-400">
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
                         {world.description || "Published World available for exploration."}
                       </p>
                       <p className="mt-5 text-xs text-slate-500">{world.theme_key || "Theme configured by World"}</p>
@@ -264,7 +264,7 @@ export default function DiscoverySurface() {
                     <a
                       key={live.id}
                       href="/live"
-                      className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 hover:border-white/20"
+                      className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm hover:border-slate-300"
                     >
                       <div className="flex items-center justify-between gap-4">
                         <span className="rounded-full border border-red-400/30 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-red-300">
@@ -297,7 +297,7 @@ export default function DiscoverySurface() {
                   {content.map((item) => (
                     <article
                       key={item.id}
-                      className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 transition hover:border-white/20"
+                      className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300"
                     >
                       <div className="flex items-center justify-between gap-4">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-300">
@@ -333,7 +333,7 @@ export default function DiscoverySurface() {
                             setAskAnswer(null);
                             setAskMeta(null);
                           }}
-                          className="rounded-xl border border-white/10 px-3 py-2 text-xs text-slate-300"
+                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700"
                         >
                           Ask the Content
                         </button>
@@ -375,18 +375,18 @@ export default function DiscoverySurface() {
                               value={askQuestion}
                               onChange={(event) => setAskQuestion(event.target.value)}
                               placeholder="Tanyakan sesuatu tentang content ini…"
-                              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-cyan-300/30"
+                              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-cyan-300/30"
                               maxLength={12000}
                             />
                             <button
                               disabled={asking || !askQuestion.trim()}
-                              className="rounded-xl bg-cyan-300 px-3 py-2 text-xs font-medium text-slate-950 disabled:opacity-40"
+                              className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-medium text-white disabled:opacity-40"
                             >
                               {asking ? "Thinking…" : "Ask"}
                             </button>
                           </form>
                           {askAnswer ? (
-                            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
                               <p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">{askAnswer}</p>
                               {askMeta ? <p className="mt-3 text-[10px] leading-4 text-slate-500">{askMeta}</p> : null}
                             </div>
@@ -417,7 +417,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5 sm:p-6">
+    <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{eyebrow}</p>
