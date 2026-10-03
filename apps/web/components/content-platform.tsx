@@ -24,7 +24,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
     try {
       if (detailId) {
         const r = await apiFetch<{data:Content}>("/api/v1/content/" + detailId);
-        setSelected(r.data);\n        const [t,rv,ev,cat] = await Promise.all([\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/topics"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/revisions"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/events"),\n          apiFetch<{data:any[]}>("/api/v1/content/topics"),\n          apiFetch<{data:any[]}>(`/api/v1/content/${detailId}/media-state`)\n        ]);\n        setTopics(t.data||[]); setRevisions(rv.data||[]); setEvents(ev.data||[]); setTopicCatalog(cat.data||[]); setMediaState((cat as any).data||[]);
+        setSelected(r.data);\n        const [t,rv,ev,cat,ms] = await Promise.all([\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/topics"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/revisions"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/events"),\n          apiFetch<{data:any[]}>("/api/v1/content/topics"),\n          apiFetch<{data:any[]}>(`/api/v1/content/${detailId}/media-state`)\n        ]);\n        setTopics(t.data||[]); setRevisions(rv.data||[]); setEvents(ev.data||[]); setTopicCatalog(cat.data||[]); setMediaState(ms.data||[]);
       } else {
         const r = await apiFetch<{data:Content[]}>("/api/v1/content?mine=true");
         setItems(r.data);
