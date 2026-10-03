@@ -1,8 +1,8 @@
 from __future__ import annotations
-import hashlib,hmac,ipaddress,re,time,secrets
+import hashlib,hmac,ipaddress,re,time,secrets,socket
 from collections import defaultdict,deque
 from urllib.parse import urlsplit
-from fastapi import Request
+from fastapi import Request\nfrom app.core.config import get_settings\nfrom app.core.supabase_rest import SupabaseRestError,service_rpc
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 PRIVATE=(ipaddress.ip_network("10.0.0.0/8"),ipaddress.ip_network("172.16.0.0/12"),ipaddress.ip_network("192.168.0.0/16"),ipaddress.ip_network("127.0.0.0/8"),ipaddress.ip_network("169.254.0.0/16"),ipaddress.ip_network("::1/128"),ipaddress.ip_network("fc00::/7"),ipaddress.ip_network("fe80::/10"))
@@ -10,14 +10,14 @@ PROMPTS=(r"ignore\\s+(all\\s+)?previous\\s+instructions",r"reveal\\s+(the\\s+)?s
 class SecurityViolation(Exception):
  def __init__(self,code,message="Security policy rejected the request."):self.code,self.message=code,message
 def security_hash(value,pepper):return hmac.new(pepper.encode(),value.encode(),hashlib.sha256).hexdigest()
-def client_ip(request):return request.client.host if request.client else "unknown"
+def client_ip(request):\n peer=request.client.host if request.client else "unknown"\n try: trusted={x.strip() for x in get_settings().trusted_proxy_ips.split(",") if x.strip()}\n except Exception: trusted=set()\n if peer in trusted:\n  forwarded=request.headers.get("x-forwarded-for","")\n  for candidate in [x.strip() for x in forwarded.split(",") if x.strip()]:\n   try:\n    ip=ipaddress.ip_address(candidate)\n    if not any(ip in n for n in PRIVATE): return str(ip)\n   except ValueError: continue\n return peer
 def validate_external_url(value,allowed_schemes=("https",),allow_hosts=None):
  if len(value)>2048:raise SecurityViolation("URL_TOO_LONG")
  p=urlsplit(value)
  if p.scheme.lower() not in allowed_schemes or not p.hostname or p.username or p.password:raise SecurityViolation("URL_INVALID")
  try:a=ipaddress.ip_address(p.hostname)
  except ValueError:a=None
- if a and any(a in n for n in PRIVATE):raise SecurityViolation("URL_PRIVATE_NETWORK_BLOCKED")
+ if a and any(a in n for n in PRIVATE):raise SecurityViolation("URL_PRIVATE_NETWORK_BLOCKED")\n if a is None:\n  try:\n   resolved={ipaddress.ip_address(info[4][0]) for info in socket.getaddrinfo(p.hostname,p.port or 443,type=socket.SOCK_STREAM)}\n  except OSError as exc: raise SecurityViolation("URL_DNS_RESOLUTION_FAILED") from exc\n  if not resolved or any(any(addr in n for n in PRIVATE) for addr in resolved): raise SecurityViolation("URL_PRIVATE_NETWORK_BLOCKED")
  if allow_hosts and p.hostname.lower() not in {x.lower() for x in allow_hosts}:raise SecurityViolation("URL_HOST_NOT_ALLOWED")
  return value
 def validate_upload(filename,content_type,size,max_bytes,allowed_types):
@@ -43,7 +43,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
  async def dispatch(self,request,call_next):
   path=request.url.path;ip=client_ip(request)
   limiter=SENSITIVE_LIMITER if any(path.startswith(x) for x in ("/api/v1/auth","/api/v1/payments","/api/v1/payouts","/api/v1/agent-runtime","/api/v1/ai")) else GLOBAL_LIMITER
-  if not limiter.allow(f"{ip}:{path.split('/')[3] if len(path.split('/'))>3 else path}"):return JSONResponse(429,{"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})
+  route_class=path.split("/")[3] if len(path.split("/"))>3 else path\n  bucket=f"{ip}:{route_class}"\n  local_allowed=limiter.allow(bucket)\n  if not local_allowed:return JSONResponse(429,{"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})\n  if path.startswith("/api/v1/") and request.method!="OPTIONS":\n   try:\n    distributed=await service_rpc("security_check_rate_limit",{"p_bucket_key":bucket,"p_limit":30 if limiter is SENSITIVE_LIMITER else 240,"p_window_seconds":60})\n    if distributed is False:return JSONResponse(429,{"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})\n   except (SupabaseRestError,RuntimeError):\n    return JSONResponse(503,{"detail":{"code":"SECURITY_RATE_LIMIT_UNAVAILABLE","message":"Distributed security controls are temporarily unavailable."}})
   if request.method in {"POST","PUT","PATCH","DELETE"}:
    origin=request.headers.get("origin")
    if origin and not (origin.startswith("http://localhost:3000") or origin.startswith("http://localhost:3001") or origin.startswith("https://")):return JSONResponse(403,{"detail":{"code":"ORIGIN_BLOCKED","message":"Request origin is not allowed."}})
