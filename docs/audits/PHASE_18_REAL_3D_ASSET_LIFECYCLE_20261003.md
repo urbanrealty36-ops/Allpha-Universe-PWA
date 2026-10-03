@@ -12,9 +12,11 @@ This increment closes the missing real-asset lifecycle between existing domain w
 
 ### Booth
 
-Booth already had the authoritative lifecycle and remains canonical:
+Booth already had the authoritative lifecycle and remains canonical. Spatial Slice now consumes its signed active 3D asset and passes model_url into AllphaWorldRenderer:
 
-prepare → signed upload → Storage object verification → active asset → slot binding → published Booth → signed runtime asset → AllphaWorldRenderer.
+prepare → signed upload → Storage object verification → active asset → signed runtime asset → Spatial Slice → AllphaWorldRenderer.
+
+Slot binding remains available through the existing Booth domain API.
 
 No duplicate Booth asset engine was created.
 
