@@ -131,11 +131,18 @@ if not exists(select 1 from public.conversation_participants cp where cp.convers
 insert into public.messages(conversation_id,sender_type,sender_id,body,message_type,status,metadata) values(p_conversation_id,'agent',r.agent_id,p_body,'text','sent',coalesce(p_metadata,'{}'::jsonb)) returning * into m; return m;
 end; $$;
 
-revoke all on function public.get_ai_credit_balance() from public; grant execute on function public.get_ai_credit_balance() to authenticated;
-revoke all on function public.list_public_agent_services(text,integer) from public; grant execute on function public.list_public_agent_services(text,integer) to authenticated;
-revoke all on function public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb) from public; grant execute on function public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb) to authenticated;
-revoke all on function public.complete_agent_service_request(uuid,uuid,uuid,jsonb) from public; grant execute on function public.complete_agent_service_request(uuid,uuid,uuid,jsonb) to authenticated;
-revoke all on function public.release_agent_service_request(uuid,text) from public; grant execute on function public.release_agent_service_request(uuid,text) to authenticated;
-revoke all on function public.create_contextual_direct_conversation(text,uuid,text,text,uuid,jsonb) from public; grant execute on function public.create_contextual_direct_conversation(text,uuid,text,text,uuid,jsonb) to authenticated;
-revoke all on function public.append_agent_service_message(uuid,uuid,text,jsonb) from public; grant execute on function public.append_agent_service_message(uuid,uuid,text,jsonb) to authenticated;
+revoke all on function public.get_ai_credit_balance() from public; revoke execute on function public.get_ai_credit_balance() from anon, public;
+grant execute on function public.get_ai_credit_balance() to authenticated;
+revoke all on function public.list_public_agent_services(text,integer) from public; revoke execute on function public.list_public_agent_services(text,integer) from anon, public;
+grant execute on function public.list_public_agent_services(text,integer) to authenticated;
+revoke all on function public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb) from public; revoke execute on function public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb) from anon, public;
+grant execute on function public.reserve_agent_service_request(uuid,text,text,integer,text,uuid,uuid,jsonb) to authenticated;
+revoke all on function public.complete_agent_service_request(uuid,uuid,uuid,jsonb) from public; revoke execute on function public.complete_agent_service_request(uuid,uuid,uuid,jsonb) from anon, public;
+grant execute on function public.complete_agent_service_request(uuid,uuid,uuid,jsonb) to authenticated;
+revoke all on function public.release_agent_service_request(uuid,text) from public; revoke execute on function public.release_agent_service_request(uuid,text) from anon, public;
+grant execute on function public.release_agent_service_request(uuid,text) to authenticated;
+revoke all on function public.create_contextual_direct_conversation(text,uuid,text,text,uuid,jsonb) from public; revoke execute on function public.create_contextual_direct_conversation(text,uuid,text,text,uuid,jsonb) from anon, public;
+grant execute on function public.create_contextual_direct_conversation(text,uuid,text,text,uuid,jsonb) to authenticated;
+revoke all on function public.append_agent_service_message(uuid,uuid,text,jsonb) from public; revoke execute on function public.append_agent_service_message(uuid,uuid,text,jsonb) from anon, public;
+grant execute on function public.append_agent_service_message(uuid,uuid,text,jsonb) to authenticated;
 revoke all on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) from public; grant execute on function public.create_ai_gateway_request(uuid,text,text[],text,jsonb) to authenticated;
