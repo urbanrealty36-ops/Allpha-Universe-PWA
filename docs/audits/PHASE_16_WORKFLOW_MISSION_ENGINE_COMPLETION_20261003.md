@@ -41,7 +41,7 @@ A Workflow never calls a provider directly and does not create a second executor
 ### Trigger boundary
 - Added authenticated trigger_workflow RPC.
 - Supports manual, event, schedule and webhook trigger types at the invocation boundary.
-- Trigger requires Workflow ownership, active Workflow, published version and an owned active Agent.
+- Trigger requires Workflow ownership, active Workflow, published version and an explicitly selected owned active Agent; it never chooses an Agent implicitly.
 - Optional 24-hour idempotency key prevents duplicate trigger runs.
 - Triggered execution still uses Workflow Run → Agent Runtime → Tool / AI Gateway.
 
