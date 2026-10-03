@@ -39,6 +39,7 @@ export default function LiveExperienceVerticalSlice({ theme }: { theme: Theme | 
   const [scheduledAt, setScheduledAt] = useState("");
   const [command, setCommand] = useState("");
   const [stageUrl, setStageUrl] = useState<string | null>(null);
+  const [themePackUrl, setThemePackUrl] = useState<string | null>(null);
   const [characterUrl, setCharacterUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -272,7 +273,7 @@ export default function LiveExperienceVerticalSlice({ theme }: { theme: Theme | 
           <div className="text-right text-[9px]"><p className={stageUrl ? "text-emerald-200" : "text-amber-200"}>{assetStatus}</p><p className={characterUrl ? "text-emerald-200" : "text-amber-200"}>{characterStatus}</p></div>
         </div>
         <div className="h-[560px]">
-          {scene ? <AllphaWorldRenderer scene={scene} tokens={theme?.tokens} booths={boothNodes} presence={selectedAgentPresence} themePackUrl={null} liveStageUrl={stageUrl} agentCharacterUrl={characterUrl} /> : <div className="flex h-full items-center justify-center text-sm text-slate-500">No validated Theme Scene.</div>}
+          {scene ? <AllphaWorldRenderer scene={scene} tokens={theme?.tokens} booths={boothNodes} presence={selectedAgentPresence} themePackUrl={themePackUrl} liveStageUrl={stageUrl} agentCharacterUrl={characterUrl} /> : <div className="flex h-full items-center justify-center text-sm text-slate-500">No validated Theme Scene.</div>}
         </div>
         {result && <pre className="max-h-40 overflow-auto border-t border-white/10 p-3 text-[9px] text-slate-500">{JSON.stringify(result, null, 2)}</pre>}
       </div>
