@@ -135,6 +135,11 @@ async def stop(session_id:UUID,context:dict=Depends(get_auth_context)):
     try:return await rpc(context["user"],"stop_world_simulation",{"p_session_id":str(session_id)})
     except SupabaseRestError as e: raise err(e,"SIMULATION_STOP_FAILED")
 
+@router.post("/sessions/{session_id}/advance")
+async def advance(session_id:UUID,context:dict=Depends(get_auth_context)):
+    try:return await rpc(context["user"],"advance_world_simulation_tick",{"p_session_id":str(session_id)})
+    except SupabaseRestError as e: raise err(e,"SIMULATION_ADVANCE_TICK_FAILED")
+
 @router.get("/sessions/{session_id}/ticks")
 async def ticks(session_id:UUID,limit:int=Query(100,ge=1,le=500),context:dict=Depends(get_auth_context)):
     return {"data":await select(context["user"],"simulation_ticks",{"select":"*","session_id":f"eq.{session_id}","order":"tick_number.desc","limit":str(limit)})}
