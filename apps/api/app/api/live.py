@@ -95,8 +95,8 @@ class LiveTransportStart(BaseModel):
     stream_reference: str = Field(min_length=1, max_length=1000)
 
 
-@router.post("/sessions/{session_id}/start")
-async def start_live_session(session_id: UUID, payload: LiveTransportStart, context: dict = Depends(get_auth_context)):
+@router.post("/sessions/{session_id}/transport/start")
+async def start_live_transport(session_id: UUID, payload: LiveTransportStart, context: dict = Depends(get_auth_context)):
     try:
         result = await rpc(context["user"], "start_live_session", {
             "p_session_id": str(session_id),
