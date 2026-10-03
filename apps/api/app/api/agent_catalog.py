@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, HTTPException
 
@@ -68,16 +69,64 @@ async def discover_agent_accounts(
     query: str | None = Query(default=None, max_length=160),
     limit: int = Query(default=24, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    district_id: UUID | None = Query(default=None),
+    booth_id: UUID | None = Query(default=None),
+    live_session_id: UUID | None = Query(default=None),
+    content_id: UUID | None = Query(default=None),
     context: dict[str, Any] = Depends(get_auth_context),
 ) -> dict[str, Any]:
-    """Canonical public Agent Account discovery. Uses existing Agent/Skill/Reputation primitives."""
+    """Canonical Agent Account discovery with optional existing-surface context resolution."""
     user: AuthenticatedUser = context["user"]
+    context_ids: list[str] = []
+    context_source: str | None = None
+
+    if sum(x is not None for x in (district_id, booth_id, live_session_id, content_id)) > 1:
+        raise HTTPException(status_code=422, detail={"code": "AGENT_DISCOVERY_CONTEXT_AMBIGUOUS", "message": "Only one discovery context may be supplied."})
+
+    if booth_id:
+        rows = await select(user, "booths", {"select": "agent_id,host_agent_id", "id": f"eq.{booth_id}", "status": "in.(published,active)", "limit": "1"})
+        if rows:
+            context_ids = [str(x) for x in (rows[0].get("agent_id"), rows[0].get("host_agent_id")) if x]
+            context_source = "booth"
+    elif live_session_id:
+        rows = await select(user, "live_sessions", {"select": "host_agent_id", "id": f"eq.{live_session_id}", "visibility": "eq.public", "limit": "1"})
+        if rows and rows[0].get("host_agent_id"):
+            context_ids = [str(rows[0]["host_agent_id"])]
+            context_source = "live"
+    elif content_id:
+        rows = await select(user, "content_items", {"select": "owner_type,owner_id", "id": f"eq.{content_id}", "status": "eq.published", "visibility": "in.(public,unlisted)", "limit": "1"})
+        if rows and rows[0].get("owner_type") == "agent" and rows[0].get("owner_id"):
+            context_ids = [str(rows[0]["owner_id"])]
+            context_source = "content"
+    elif district_id:
+        districts = await select(user, "districts", {"select": "world_id,status", "id": f"eq.{district_id}", "status": "neq.archived", "limit": "1"})
+        if districts:
+            zones = await select(user, "district_zones", {"select": "zone_key,status", "district_id": f"eq.{district_id}", "status": "eq.active"})
+            zone_keys = [str(z["zone_key"]) for z in zones if z.get("zone_key")]
+            if zone_keys:
+                states = await select(user, "agent_spatial_states", {
+                    "select": "agent_id",
+                    "world_id": f"eq.{districts[0]['world_id']}",
+                    "zone_key": f"in.({','.join(zone_keys)})",
+                    "limit": str(min(limit, 100)),
+                })
+                context_ids = list(dict.fromkeys(str(s["agent_id"]) for s in states if s.get("agent_id")))
+                context_source = "district"
+
+    if context_ids:
+        profiles = []
+        for agent_id in context_ids[:limit]:
+            try:
+                profile = await rpc(user, "get_public_agent_account", {"p_agent_id": agent_id})
+                if profile:
+                    profiles.append(profile)
+            except SupabaseRestError:
+                continue
+        return {"data": profiles, "context": {"source": context_source, "resolved_agent_count": len(profiles)}}
+
     return {
-        "data": await rpc(
-            user,
-            "discover_public_agent_accounts",
-            {"p_query": query, "p_limit": limit, "p_offset": offset},
-        ),
+        "data": await rpc(user, "discover_public_agent_accounts", {"p_query": query, "p_limit": limit, "p_offset": offset}),
+        "context": {"source": "global_discovery", "resolved_agent_count": None},
         "contract": {
             "identity": "agent",
             "interaction": "existing_messaging_or_agent_service",
