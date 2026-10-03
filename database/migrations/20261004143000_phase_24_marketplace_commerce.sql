@@ -270,7 +270,8 @@ end $$;
 create or replace function public.list_marketplace_listings(p_q text,p_listing_type text,p_skill_name text,p_booth_id uuid,p_limit integer)
 returns setof public.marketplace_listings
 language sql security invoker
-as $$
+set search_path=''
+as $
   select l.* from public.marketplace_listings l
   where l.status='published' and l.moderation_status='approved'
     and (p_listing_type is null or l.listing_type=p_listing_type)
