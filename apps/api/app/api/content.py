@@ -230,6 +230,21 @@ async def event(content_id: UUID, payload: EventCreate, context: dict = Depends(
         raise _error(exc) from exc
 
 
+@router.get("/{content_id:uuid}/ai-capsule")
+async def get_capsule(content_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    rows = await select(
+        context["user"],
+        "ai_capsules",
+        {
+            "select": "*",
+            "content_id": f"eq.{content_id:uuid}",
+            "order": "created_at.desc",
+            "limit": "1",
+        },
+    )
+    return {"data": rows[0] if rows else None}
+
+
 @router.post("/{content_id:uuid}/ai-capsule", status_code=201)
 async def create_capsule(content_id: UUID, payload: CapsuleCreate, context: dict = Depends(get_auth_context)) -> Any:
     try:
