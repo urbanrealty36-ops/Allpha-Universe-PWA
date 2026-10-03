@@ -3124,3 +3124,126 @@ The live project still has no real Agent/Service/Conversation business dataset, 
 
 ### Next
 Slice F — Phase 22 Live Integration, connecting Live discovery/Agent Account interaction to the existing Phase 22 Live collaboration/runtime boundaries without creating a second Live AI engine or Conversation engine.
+
+## PHASE 22F — LIVE INTEGRATION — IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING
+
+Implemented on `main` and applied to AllphaDb-Universe.
+
+### Canonical Live integration path
+
+`Live Session → Owned Agent Collaboration → Capability → Policy → Consent → Risk → Agent Runtime Command → AI Gateway → Live Message`
+
+No second Live AI engine, Conversation engine, Agent Runtime, or AI Gateway was introduced.
+
+### Character presentation runtime
+
+New table:
+- `live_session_character_bindings`
+
+New RPCs:
+- `select_live_character(...)`
+- `remove_live_character(...)`
+
+Rules:
+- only the Live Session owner can select/remove a character
+- asset must be real, active and moderation-approved
+- asset must belong to the Human or an Agent owned by that Human
+- Agent-bound character selection can be bound only to the active Live collaboration for that Agent
+- Character presentation cannot change Agent authority
+- active binding is unique per Live Session
+- binding table is published to Supabase Realtime
+- no fake character assets/bindings are created
+
+### Live Agent conversation runtime
+
+Implemented `run_live_conversation_turn()` in the existing `apps/api/app/core/agent_runtime.py`.
+
+The Live turn:
+1. validates owned active collaboration and live session
+2. collects recent Live conversation context
+3. creates the existing canonical Live Agent command
+4. reuses existing Agent Runtime planning/execution
+5. reuses existing AI Gateway through Agent Runtime
+6. writes the Agent response through `create_live_session_message`
+7. re-checks Agent active state, capability, policy and kill switch at message persistence time
+
+Audience Ask is exposed through:
+- `POST /api/v1/live/sessions/{session_id}/audience/ask`
+
+Character API:
+- `GET /api/v1/live/character-assets`
+- `GET /api/v1/live/sessions/{session_id}/characters`
+- `POST /api/v1/live/sessions/{session_id}/characters`
+- `POST /api/v1/live/sessions/{session_id}/characters/remove`
+
+### PWA activation
+
+`apps/web/components/live-streaming-collaboration.tsx` now exposes:
+- governed Character asset selection
+- active Character binding state
+- Character removal
+- canonical Live collaboration/runtime controls
+- existing Host Agent Account discovery
+- existing realtime audience/conversation surface
+
+No Storage URL is fabricated. Character assets remain governed by the existing private Storage/asset lifecycle.
+
+### Security hardening
+
+`create_live_session_message()` now re-checks at the moment an Agent message is persisted:
+- authenticated owner
+- active Live collaboration
+- approved consent
+- risk decision allow
+- Agent active/owned
+- required capability
+- active Agent policy
+- Agent kill switch disabled
+- Live policy enabled
+
+Anonymous execution remains revoked for the new Character RPCs.
+
+### Verification
+
+Repository test:
+- `database/tests/phase_22f_live_integration_invariants.sql`
+
+Live Supabase invariant execution:
+- **16/16 passed**
+- no synthetic Live Sessions
+- no synthetic Character bindings
+- Realtime publication verified
+- Character RPC security/privilege boundaries verified
+- Live Agent message authority re-checks verified
+
+Current live data:
+- platform Live Experience Templates: 25
+- published/validated/performance-passed/approved template versions: 25
+- Live Sessions: 0
+- Live Collaborations: 0
+- Live Messages: 0
+- Live Viewers: 0
+- Live Audience Interactions: 0
+- Character Bindings: 0
+
+Security Advisor was rechecked after the migration. Existing project-wide warnings remain; no new anonymous execution finding was introduced by the Phase 22F Character RPCs.
+
+### Remaining Phase 22 activation gates
+
+Not GREEN yet. The live database intentionally contains no real user-owned Agent/Live business records, so authenticated multi-user E2E cannot be truthfully claimed.
+
+Still pending as separate runtime/production gates:
+- real authenticated Human creates a Live Session
+- real owned Agent collaboration reaches active state
+- real approved Character Storage asset is selected
+- real server-side AI provider credential/runtime succeeds
+- real Agent Runtime command + AI Gateway request/attempt is observed
+- browser Realtime multi-user verification
+- actual camera/stream transport provider/runtime
+- voice/TTS runtime
+- production media compositor/character animation output
+- accessibility/performance/browser build verification
+- CI/runtime/staging/production gates
+
+Phase 22 remains **IMPLEMENTED FOUNDATION / NOT GREEN**.
+
