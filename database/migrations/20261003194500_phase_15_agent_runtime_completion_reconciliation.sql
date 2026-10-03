@@ -31,6 +31,7 @@ begin
 end
 $function$;
 
+revoke execute on function public.get_agent_runtime_context(uuid) from public;
 revoke execute on function public.get_agent_runtime_context(uuid) from anon;
 grant execute on function public.get_agent_runtime_context(uuid) to authenticated;
 
