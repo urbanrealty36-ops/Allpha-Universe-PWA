@@ -88,6 +88,33 @@ async def live_template_versions(
     return {"data": rows}
 
 
+class LiveTransportStart(BaseModel):
+    stream_provider: str = Field(min_length=1, max_length=100)
+    stream_reference: str = Field(min_length=1, max_length=1000)
+
+
+@router.post("/sessions/{session_id}/start")
+async def start_live_session(session_id: UUID, payload: LiveTransportStart, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "start_live_session", {
+            "p_session_id": str(session_id),
+            "p_stream_provider": payload.stream_provider.strip(),
+            "p_stream_reference": payload.stream_reference.strip(),
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_SESSION_START_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/end")
+async def end_live_session(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "end_live_session", {"p_session_id": str(session_id)})
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_SESSION_END_FAILED") from exc
+
+
 @router.get("/sessions")
 async def live_sessions(
     status: SessionStatus | None = None,
