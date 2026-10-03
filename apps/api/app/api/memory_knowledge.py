@@ -49,7 +49,8 @@ class KnowledgeChunkCreateRequest(BaseModel):
 
 
 class RetrievalRequest(BaseModel):
-    embedding: str = Field(min_length=3)
+    query: str | None = Field(default=None, max_length=4000)
+    embedding: str | None = Field(default=None, min_length=3)
     limit: int = Field(default=10, ge=1, le=50)
 
 
