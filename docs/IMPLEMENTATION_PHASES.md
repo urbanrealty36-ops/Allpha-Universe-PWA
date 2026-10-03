@@ -1093,6 +1093,8 @@ Plans, subscriptions, features, entitlements, feature gates, usage, invoices, bi
 ### PHASE 26 — Security, Governance & Trust
 Defense-in-depth security across frontend, backend/API, Auth/session, database/RLS, storage/upload, URL/SSRF, CSRF/XSRF, rate limiting, IP/device security, AI prompt injection/tool safety, Commerce/Payment/Payout, Admin, audit, moderation and security operations. Includes live Security Advisor reconciliation and function-by-function SECURITY DEFINER hardening gate.
 
+Status: OPEN — live Security Advisor has one remaining external Auth finding (`auth_leaked_password_protection`). SECURITY DEFINER executable audit, anonymous EXECUTE hardening, RLS coverage, IDOR/BOLA regression, session revocation, distributed rate limiting, CSP baseline, CI secret/dependency gates and live security checks are implemented and revalidated. Do not advance to Phase 27 until the Auth control is enabled and Security Advisor is re-run clean.
+
 ### PHASE 27 — Super Admin Control Plane
 Overview, Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
 
