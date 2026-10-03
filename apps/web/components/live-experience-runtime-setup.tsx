@@ -304,8 +304,7 @@ export default function LiveExperienceRuntimeSetup() {
     finally { setBusy(false); }
   }
 
-  const platformOptions = costumes.platform_uniforms.map((u) => ({ id: u.id, name: u.name, type: "uniform" }));
-  const ownedOptions = costumes.owned_uniforms.map((u: any) => {
+    const ownedOptions = costumes.owned_uniforms.map((u: any) => {
     const catalog = costumes.platform_uniforms.find((x) => x.id === u.uniform_id);
     return { id: u.id, name: catalog?.name ?? `Uniform ${u.uniform_id.slice(0, 8)}`, type: "owned" };
   });
@@ -396,7 +395,6 @@ export default function LiveExperienceRuntimeSetup() {
                 setCostumeKind(kind as "uniform" | "custom"); setSelectedCostume(id);
               }}>
                 <option value="uniform:">No costume / default Human</option>
-                {platformOptions.map((x) => <option key={"p"+x.id} value={"uniform:"+x.id}>Platform · {x.name}</option>)}
                 {ownedOptions.map((x) => <option key={"o"+x.id} value={"uniform:"+x.id}>Owned · {x.name}</option>)}
                 {customOptions.map((x) => <option key={"c"+x.id} value={"custom:"+x.id}>Custom · {x.name}</option>)}
               </select>
@@ -418,7 +416,7 @@ export default function LiveExperienceRuntimeSetup() {
               {collaborations.map((c) => <option key={c.id} value={c.id}>{c.mode} · {c.status} · {c.risk_decision}</option>)}
             </select>
             <button className={button + " mt-3 w-full"} disabled={!camera || !presence || presence.verification_status !== "verified" || busy} onClick={bindPresentation}>Bind Human Presentation</button>
-            <button className="mt-2 w-full rounded-[var(--allpha-radius-md)] bg-[var(--allpha-cyan)] px-3 py-2 text-sm font-semibold text-black disabled:opacity-40" disabled={!stage?.active || !camera || !presence || presence.verification_status !== "verified" || busy} onClick={activate}>Activate Live Experience</button>
+            <button className="mt-2 w-full rounded-[var(--allpha-radius-md)] bg-[var(--allpha-cyan)] px-3 py-2 text-sm font-semibold text-black disabled:opacity-40" disabled={!stage?.active || !camera || !presence || presence.verification_status !== "verified" || !collaborationId || busy} onClick={activate}>Activate Live Experience</button>
           </div>
         </div>
 
