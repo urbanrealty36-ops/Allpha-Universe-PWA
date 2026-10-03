@@ -467,9 +467,8 @@ async def set_capability_state(agent_id: UUID, capability_id: UUID, payload: dic
 async def revoke_permission(agent_id: UUID, permission_id: UUID, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
     user: AuthenticatedUser = context["user"]
     await _owned_agent(user, agent_id)
-    rows = await select(user, "agent_permissions", {"select": "id", "id": f"eq.{permission_id}", "agent_id": f"eq.{agent_id}", "limit": "1"})
-    if not rows:
-        raise HTTPException(status_code=404, detail={"code": "PERMISSION_NOT_FOUND", "message": "Permission was not found."})
-    await rpc(user, "refresh_agent_passport", {"p_agent_id": str(agent_id)})
-    deleted = await update(user, "agent_permissions", {"id": f"eq.{permission_id}"}, {"valid_until": "now()"})
-    return {"data": deleted[0] if deleted else {"id": str(permission_id), "revoked": True}}
+    try:
+        result = await rpc(user, "revoke_agent_permission", {"p_permission_id": str(permission_id)})
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise HTTPException(status_code=exc.status_code if 400 <= exc.status_code < 500 else 502, detail={"code": "PERMISSION_REVOKE_FAILED", "message": exc.message}) from exc
