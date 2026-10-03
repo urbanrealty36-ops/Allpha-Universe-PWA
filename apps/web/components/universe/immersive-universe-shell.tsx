@@ -145,6 +145,7 @@ export default function ImmersiveUniverseShell() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [booths, setBooths] = useState<Booth[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [themePackUrl, setThemePackUrl] = useState<string | null>(null);
   const [content, setContent] = useState<Content[]>([]);
   const [portals, setPortals] = useState<Portal[]>([]);
   const [presence, setPresence] = useState<Presence[]>([]);
@@ -352,6 +353,30 @@ export default function ImmersiveUniverseShell() {
   }, [selectedWorld, selectedDistrict, selectedBooth, themes]);
 
   const scene = activeTheme?.world_schema ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadThemePack() {
+      setThemePackUrl(null);
+      if (!activeTheme?.id) return;
+      try {
+        const response = await apiFetch<{
+          data?: {
+            has_binary_3d_pack?: boolean;
+            binary_3d_assets?: Array<{ signed_url?: string | null; metadata?: Record<string, unknown> }>;
+          };
+        }>(`/api/v1/themes/world-runtime/themes/${activeTheme.id}/asset-manifest`);
+        const url = response.data?.binary_3d_assets?.find((asset) => typeof asset.signed_url === "string")?.signed_url;
+        if (!cancelled) setThemePackUrl(url ?? null);
+      } catch {
+        if (!cancelled) setThemePackUrl(null);
+      }
+    }
+    void loadThemePack();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTheme?.id]);
 
   function goBack() {
     beginTransition();
