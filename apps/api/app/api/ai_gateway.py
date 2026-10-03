@@ -9,6 +9,7 @@ from app.api.dependencies import get_auth_context
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
 from app.core.supabase_rest import select
 from app.core.security import SecurityViolation, require_safe_prompt
+from app.core.security import SecurityViolation, require_safe_prompt
 
 router = APIRouter(prefix="/api/v1/ai", tags=["AI Gateway & Model Router"])
 
@@ -138,6 +139,12 @@ async def get_requests(limit: int = Query(default=50, ge=1, le=200), context: di
 
 @router.post("/generate")
 async def generate_text(payload: GenerateRequest, context: dict = Depends(get_auth_context)) -> dict[str, Any]:
+    for message in payload.messages:
+        if message.role == "user":
+            try:
+                require_safe_prompt(message.content)
+            except SecurityViolation as exc:
+                raise HTTPException(status_code=400, detail={"code": exc.code, "message": "Prompt rejected by Allpha security policy."}) from exc
     try:
         result = await generate(
             context["user"],
