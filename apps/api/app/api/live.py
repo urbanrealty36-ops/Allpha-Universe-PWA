@@ -1003,3 +1003,51 @@ async def moderate_live_custom_costume(costume_id: UUID, payload: LiveCustomCost
         return {"data": result}
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_COSTUME_MODERATION_FAILED") from exc
+
+
+
+@router.get("/sessions/{session_id}/human-presentation-public")
+async def get_public_live_human_presentation(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        payload = await rpc(context["user"], "get_public_live_human_presentation", {
+            "p_live_session_id": str(session_id),
+        })
+        if not payload.get("active"):
+            return {"data": payload}
+        costume = None
+        if payload.get("custom_costume_id"):
+            rows = await select(context["user"], "live_human_costume_templates", {
+                "select": "id,name,category,storage_bucket,storage_path,mime_type,metadata",
+                "id": f"eq.{payload['custom_costume_id']}",
+                "status": "eq.active", "moderation_status": "eq.approved", "limit": "1",
+            })
+            costume = rows[0] if rows else None
+        elif payload.get("uniform_id"):
+            rows = await select(context["user"], "uniform_catalog", {
+                "select": "id,name,uniform_key,asset_type,storage_bucket,storage_path,mime_type,metadata",
+                "id": f"eq.{payload['uniform_id']}",
+                "status": "eq.published", "moderation_status": "eq.approved", "limit": "1",
+            })
+            costume = rows[0] if rows else None
+        elif payload.get("user_uniform_id"):
+            owned = await select(context["user"], "user_uniforms", {
+                "select": "uniform_id",
+                "id": f"eq.{payload['user_uniform_id']}",
+                "status": "eq.owned", "limit": "1",
+            })
+            if owned:
+                rows = await select(context["user"], "uniform_catalog", {
+                    "select": "id,name,uniform_key,asset_type,storage_bucket,storage_path,mime_type,metadata",
+                    "id": f"eq.{owned[0]['uniform_id']}",
+                    "status": "eq.published", "moderation_status": "eq.approved", "limit": "1",
+                })
+                costume = rows[0] if rows else None
+        signed_url = None
+        if costume and costume.get("storage_bucket") and costume.get("storage_path"):
+            try:
+                signed_url = await create_signed_download_url(context["user"], costume["storage_bucket"], costume["storage_path"], 900)
+            except SupabaseStorageError:
+                signed_url = None
+        return {"data": {**payload, "costume_asset": {**costume, "signed_url": signed_url} if costume else None}}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_PUBLIC_HUMAN_PRESENTATION_LOAD_FAILED") from exc
