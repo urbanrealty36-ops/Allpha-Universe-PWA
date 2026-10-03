@@ -1849,3 +1849,173 @@ At the beginning of the next conversation:
 
 Immediate target:
 **Authenticated Real-Data E2E + Allpha Universe Discovery Engine activation planning**, with no fake data/assets and no duplicate engines.
+
+---
+
+# MASTER ARCHITECTURE ADDENDUM — 2026-10-03
+## Conversation vs AI Service Boundary + Human Owner Takeover + Agent Skill Economy
+
+This addendum is canonical for continuation. It consolidates the latest Allpha decisions about Agent discovery, normal conversation, explicit AI work, Human Owner takeover and the Skill Challenge economy.
+
+## 1. Two interaction classes
+
+Allpha MUST distinguish:
+
+### A. Conversation / Social-Business Interaction — FREE
+
+Discovery can originate from Feed/Content, Moments, Live, Districts, Zones, Booths, Search, Agent Account/Profile, previous conversations or recommendations.
+
+After discovering another Human's AI Agent, a Human may:
+- introduce themselves
+- ask who the Agent/Human is
+- ask about products, prices or offers
+- discuss sales
+- present a product/business
+- network
+- negotiate
+- discuss partnerships
+- have ordinary social/business conversation.
+
+These use the canonical Messaging / Conversation layer only.
+
+Canonical path:
+Human → Agent Account → Message / Ask → Conversation → Agent or Human Owner → Response
+
+Rules:
+- no Model Router
+- no AI Gateway generation
+- no Agent Service reservation
+- no AI Credit debit
+- no AI Service reward
+- no Skill Challenge usage merely because a message was sent
+- Human Owner may take over.
+
+IMPORTANT: Ask is an interaction primitive, not a billing primitive.
+
+### B. AI Service / Generation Interaction — CREDIT
+
+AI Credits are consumed only when the Human explicitly asks the Agent to perform an AI task such as research, analytics, design, video, content, coding, strategy or another configured AI capability.
+
+Canonical path:
+Human → Agent Account → Message / Ask → explicit AI Task → Agent Service → Skill Resolution → Agent Runtime → Memory/RAG where authorized → AI Gateway → Model Router → Generate → Result
+
+Only this path creates AI Service usage and AI Credit debit.
+
+## 2. No duplicate engines
+
+Do NOT create a Conversation AI Engine, Ask Engine, Skill Execution Engine, Skill Generate Engine, Skill Reward Engine or Social AI Engine.
+
+Reuse the existing Messaging, Agent Service, Agent Runtime, Memory/RAG, AI Gateway, Model Router, Workflow/Mission and Economy primitives.
+
+## 3. Human Owner Takeover
+
+An Agent conversation remains one canonical conversation. The Human Owner may enter it directly.
+
+Server-authoritative conversation metadata uses:
+
+{
+  "interaction_mode": "conversation | human_takeover",
+  "human_takeover_active": true,
+  "agent_id": "...",
+  "agent_owner_user_id": "..."
+}
+
+For Agent conversations, the owner is represented as an agent_owner participant so the owner can read and explicitly take over.
+
+When takeover is active:
+- the owner may send as Human
+- new paid Agent Service execution on that conversation is blocked
+- Agent-generated service output cannot be appended
+- no authority is transferred to the Agent
+- ownership, capabilities, policy, risk and approval remain unchanged.
+
+The owner can release the conversation back to the Agent.
+
+## 4. Implemented backend boundary
+
+Migration: database/migrations/20261003143000_phase_21_conversation_service_boundary.sql
+
+Implemented RPCs:
+- get_agent_conversation_control
+- set_agent_conversation_takeover
+- hardened create_direct_conversation
+- hardened send_message
+- hardened reserve_agent_service_request
+- hardened append_agent_service_message
+
+API:
+- GET /api/v1/messaging/conversations/{conversation_id}/control
+- POST /api/v1/messaging/conversations/{conversation_id}/takeover
+
+UI: apps/web/components/messaging-platform.tsx
+
+The Messaging UI explicitly separates normal free Conversation from paid AI Service.
+
+## 5. Skill Challenge economic loop
+
+Skill Challenge is a cross-domain quality/reputation/economic layer, not an AI execution engine.
+
+Canonical loop:
+Agent Account → Skills → Human discovers Agent → Conversation OR explicit AI Task → Agent Service → Agent Runtime → AI Gateway/Model Router → Result → Verified Usage → Quality Evaluation → Skill Challenge → Reputation + AI Credit Reward
+
+Normal conversation does not become Skill usage merely because it occurred.
+
+The current Phase 21 reward model is v1:
+Reward = Service Credit Cost × Quality Score / 100
+
+with the current verified-outcome cap of 100 AI Credits per quality event.
+
+This is not the final Economy design. Phase 25 may evolve the formula while reusing canonical service, ledger and reputation primitives.
+
+Quality outcomes remain cross-owner, tied to completed Agent Service usage, requester-originated, idempotent and auditable. Self-reward is prohibited.
+
+## 6. Cross-surface product loop
+
+Feed / Content / Moments / Live / District / Booth / Search / Agent Account
+→ Agent Profile + Skills
+→ Message / Ask
+→ Conversation OR explicit AI Task
+→ existing Messaging / Agent Service / Agent Runtime stack
+→ Result
+→ Quality Outcome
+→ Skill Challenge
+→ Reputation / Reward
+
+Each layer activates only when applicable. A normal conversation must never be forced through the AI generation stack.
+
+## 7. Phase 22 rule
+
+Live is another discovery/interaction surface. It MUST reuse canonical Messaging semantics and the existing Agent Service / Agent Runtime / AI Gateway when a Human explicitly requests AI work.
+
+Live must not create another conversation AI engine.
+
+## 8. Authority safety
+
+Authority remains:
+Human Owner → Agent Passport → Capability → Policy → Consent → Risk → Approval → Agent Runtime → Tool / Audit
+
+Conversation status, Human takeover, skill level, quality score, reputation, leaderboard position, spatial presence, Theme, World, Booth or Character never grants Agent authority.
+
+## 9. Verification
+
+Repository test: database/tests/phase_21_conversation_service_boundary_invariants.sql
+
+Live verification: 7/7 conversation/service boundary invariants passed.
+
+No synthetic Human, Agent, Conversation, Message, Service Request, Credit Ledger or Skill records were inserted.
+
+Authenticated multi-user E2E remains a later completion gate because no real Agent business records currently exist for legitimate E2E provisioning.
+
+## 10. Canonical continuation rule
+
+Conversation creates relationship.
+AI Service creates computational value.
+Verified quality creates reputation.
+Reputation can create demand and reward.
+
+Canonical architecture:
+Messaging → Conversation → explicit AI Service → Agent Runtime → Memory/RAG → AI Gateway / Model Router → Result → Quality Outcome → Skill Challenge → Economy.
+
+Do not reinterpret ordinary Agent messaging as billable AI execution. Do not create a second engine to enforce this distinction.
+
+---
