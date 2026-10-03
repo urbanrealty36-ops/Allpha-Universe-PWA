@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
@@ -16,6 +16,8 @@ const input="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm out
 
 export default function MessagingSurface(){
  const [conversations,setConversations]=useState<Conversation[]>([]),[requests,setRequests]=useState<Request[]>([]),[messages,setMessages]=useState<Message[]>([]);
+ const [entryAgentId,setEntryAgentId]=useState<string|null>(null),[entryMode,setEntryMode]=useState<"message"|"ask">("message"),[entryContext,setEntryContext]=useState<Record<string,unknown>>({});
+ const entryHandled=useRef(false);
  const [selected,setSelected]=useState<string|null>(null),[targetType,setTargetType]=useState<"user"|"agent">("user"),[targetId,setTargetId]=useState("");
  const [newMessage,setNewMessage]=useState(""),[replyTo,setReplyTo]=useState<Message|null>(null),[editing,setEditing]=useState<Message|null>(null);
  const [error,setError]=useState<string|null>(null),[loading,setLoading]=useState(true),[sending,setSending]=useState(false),[conversationControl,setConversationControl]=useState<ConversationControl|null>(null),[takeoverBusy,setTakeoverBusy]=useState(false);
@@ -70,6 +72,36 @@ export default function MessagingSurface(){
   catch(e){setError(e instanceof Error?e.message:"MESSAGES_LOAD_FAILED")}
  }
  useEffect(()=>{void load();void loadAgentServices();void loadCredits()},[]);
+
+ useEffect(()=>{
+  if(entryHandled.current || typeof window==="undefined") return;
+  const params=new URLSearchParams(window.location.search);
+  const type=params.get("target_type");
+  const id=params.get("target_id");
+  if(type!=="agent" || !id) return;
+  entryHandled.current=true;
+  const mode=params.get("interaction")==="ask" ? "ask" : "message";
+  const context:Record<string,unknown>={};
+  for(const key of ["district_id","booth_id","live_session_id","content_id","moment_id"]){
+   const value=params.get(key);
+   if(value) context[key]=value;
+  }
+  setEntryAgentId(id);
+  setEntryMode(mode);
+  setEntryContext(context);
+  void (async()=>{
+   try{
+    const r=await apiFetch<{conversation_id:string;status:string}>("/api/v1/messaging/conversations/agent",{
+      method:"POST",
+      body:JSON.stringify({agent_id:id,interaction_mode:mode,source_context:context}),
+    });
+    await load();
+    if(r.conversation_id) await loadMessages(r.conversation_id);
+   }catch(e){
+    setError(e instanceof Error?e.message:"AGENT_CONVERSATION_ENTRY_FAILED");
+   }
+  })();
+ },[]);
  async function loadConversationControl(id:string){
   try{const r=await apiFetch<{data:ConversationControl}>("/api/v1/messaging/conversations/"+id+"/control");setConversationControl(r.data??null)}
   catch{setConversationControl(null)}
@@ -140,6 +172,15 @@ export default function MessagingSurface(){
     {serviceContentId&&<p className="mt-3 text-xs text-cyan-200">Content draft created: {serviceContentId} · edit/review it in Content before publishing.</p>}
   </div>}</section>
 
+ {entryAgentId&&<section className="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-300/[.03] p-5">
+   <p className="text-xs uppercase tracking-[.2em] text-cyan-300">Agent Account · {entryMode.toUpperCase()}</p>
+   <h2 className="mt-1 font-semibold">{entryMode==="ask"?"Ask this AI Agent":"Message this AI Agent"}</h2>
+   <p className="mt-2 text-xs text-slate-400">Anda masuk dari Agent Account discovery. Ini tetap satu Conversation canonical; Ask di sini bukan AI Service berbayar dan tidak memanggil Model Router.</p>
+   <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-500">
+    <span className="rounded-full border border-white/10 px-2 py-1">Agent: {entryAgentId}</span>
+    {Object.entries(entryContext).map(([key,value])=><span key={key} className="rounded-full border border-white/10 px-2 py-1">{key}: {String(value)}</span>)}
+   </div>
+  </section>}
   <div className="mt-6 grid gap-5 xl:grid-cols-[1fr_320px]">
    <div>
     <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5"><h2 className="font-semibold">Start Direct Conversation</h2><form onSubmit={create} className="mt-4 grid gap-3 sm:grid-cols-[140px_1fr_1fr_auto]"><select value={targetType} onChange={e=>setTargetType(e.target.value as "user"|"agent")} className={input}><option value="user">User</option><option value="agent">Agent</option></select><input value={targetId} onChange={e=>setTargetId(e.target.value)} placeholder="Authoritative target UUID" className={input} required/><input value={newMessage} onChange={e=>setNewMessage(e.target.value)} placeholder="Optional first message" className={input}/><button disabled={sending} className="rounded-xl bg-white px-4 py-3 text-sm font-medium text-black disabled:opacity-40">Start</button></form><p className="mt-2 text-xs text-slate-500">Target identity is never fabricated. Relationship, consent and block rules remain server-authoritative.</p></section>
