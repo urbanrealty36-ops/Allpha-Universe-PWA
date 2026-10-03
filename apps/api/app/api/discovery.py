@@ -45,12 +45,14 @@ async def discovery_home(
         "surface": surface,
         "content": [],
         "worlds": [],
+        "communities": [],
         "live": [],
         "navigation": {
             "feed": "/feed",
             "reels": "/reels",
             "universe": "/universe",
             "worlds": "/worlds",
+            "communities": "/communities",
             "live": "/live",
         },
         "sources": {
@@ -91,6 +93,17 @@ async def discovery_home(
             })
         except SupabaseRestError as exc:
             result["worlds_error"] = _error(exc)
+
+    if surface in {"home", "worlds"}:
+        try:
+            result["communities"] = await select(user, "communities", {
+                "select": "id,name,handle,description,visibility,status,join_policy,updated_at",
+                "status": "eq.active",
+                "order": "updated_at.desc",
+                "limit": str(min(limit, 20)),
+            })
+        except SupabaseRestError as exc:
+            result["communities_error"] = _error(exc)
 
     if surface in {"home", "live"}:
         try:
