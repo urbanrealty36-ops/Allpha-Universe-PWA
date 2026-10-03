@@ -16,9 +16,8 @@ select is(
   'resolver is SECURITY DEFINER'
 );
 
-select is(
-  (select array_to_string(p.proconfig, ',') from pg_proc p where p.oid='public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure),
-  'search_path=',
+select ok(
+  (select p.proconfig[1] = 'search_path=""' from pg_proc p where p.oid='public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure),
   'resolver has empty search_path'
 );
 
