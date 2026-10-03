@@ -185,3 +185,37 @@ async def operate_domain(
     except SupabaseRestError as exc:
         raise _error(exc, "ADMIN_DOMAIN_OPERATION_FAILED") from exc
 
+class MasterDataRollback(BaseModel):
+    resource: str = Field(min_length=2, max_length=64)
+    id: UUID
+    audit_id: UUID
+    reason: str = Field(min_length=3, max_length=2000)
+
+
+@router.get("/master-data/{resource}/{record_id}/history")
+async def master_data_history(
+    resource: str,
+    record_id: UUID,
+    limit: int = Query(default=50, ge=1, le=100),
+    context: dict[str, Any] = Depends(require_permission("admin.read")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_admin_master_data_history", {
+            "p_resource": resource, "p_id": str(record_id), "p_limit": limit,
+        })}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_MASTER_DATA_HISTORY_FAILED") from exc
+
+
+@router.post("/master-data/rollback")
+async def rollback_master_data(
+    payload: MasterDataRollback,
+    context: dict[str, Any] = Depends(require_permission("admin.manage")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "rollback_admin_master_data", {
+            "p_resource": payload.resource, "p_id": str(payload.id),
+            "p_audit_id": str(payload.audit_id), "p_reason": payload.reason,
+        })}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_MASTER_DATA_ROLLBACK_FAILED") from exc
