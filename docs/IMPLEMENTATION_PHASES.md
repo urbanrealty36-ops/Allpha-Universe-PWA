@@ -1475,3 +1475,17 @@ Implemented without creating a second reputation or collaboration engine:
 Runtime/cross-Agent E2E remains pending because the canonical database currently contains zero real collaboration requests/negotiations/agreements/commands. This is an intentional empty-data state, not a failure.
 
 **Next implementation phase:** **Phase 24 — Marketplace & Commerce**, beginning with reconciliation of the existing marketplace/commerce foundation and its dependencies on Tenant/Booth, Entitlement, Economy/Billing, Payment and Authorization. Do not assume commerce tables are production-ready merely because schema exists.
+
+
+## PHASE 26 — SECURITY, GOVERNANCE & TRUST + SELLER PAYOUTS
+- Status: IMPLEMENTED FOUNDATION / REAL MONEY-MOVEMENT E2E PENDING.
+- Reuses Policy, Permission, Risk, Approval, Audit and Trust/Safety foundations.
+- Adds seller payout account, payout request and payout event workflow.
+- Marketplace seller earnings derive only from captured Midtrans-backed paid/completed Commerce orders.
+- Every payout request is high-risk and requires existing Approval Request + Super Admin permission-gated decision.
+- Super Admin records processing/paid/failed state and disbursement reference; no automatic bank-transfer provider is fabricated.
+- No second wallet, payment gateway, ledger, commerce, risk or approval engine.
+- No payout business data seeded.
+
+### Next Phase
+**PHASE 27 — Subscription/Billing & Entitlement hardening / Economy activation continuation** (reconcile existing Phase 25 Billing/Economy and complete missing entitlement/commercial governance before final runtime gates).
