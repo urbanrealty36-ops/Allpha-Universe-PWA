@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import { apiFetch } from "../lib/api";
 import { normalizeWorldScene, type WorldScene } from "../lib/world-engine/scene-schema";
 
@@ -85,11 +85,11 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     e.preventDefault(); if (!galaxyName.trim()) return;
     setBusy(true); setError(null);
     try {
-      const r = await apiFetch<{ data: Galaxy }>("/api/v1/universe/galaxies", {
+      await apiFetch("/api/v1/universe/galaxies", {
         method: "POST",
         body: JSON.stringify({ name: galaxyName.trim(), slug: slugify(galaxyName), visibility: "public", metadata: { presentation_theme: theme?.slug ?? null } }),
       });
-      setGalaxyName(""); await loadGalaxies(); setGalaxyId(r.data.id);
+      setGalaxyName(""); await loadGalaxies(); const created = (await apiFetch<{ data: Galaxy[] }>("/api/v1/universe/galaxies")).data?.find(x => x.slug === slugify(galaxyName)); if (created) setGalaxyId(created.id);
     } catch (e) { setError(e instanceof Error ? e.message : "GALAXY_CREATE_FAILED"); }
     finally { setBusy(false); }
   }
@@ -98,7 +98,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     e.preventDefault(); if (!galaxyId || !worldName.trim()) return;
     setBusy(true); setError(null);
     try {
-      const r = await apiFetch<{ data: World }>("/api/v1/universe/worlds", {
+      await apiFetch("/api/v1/universe/worlds", {
         method: "POST",
         body: JSON.stringify({
           galaxy_id: galaxyId, name: worldName.trim(), slug: slugify(worldName),
@@ -107,7 +107,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
           metadata: { created_from: "theme-studio" },
         }),
       });
-      setWorldName(""); await loadWorlds(galaxyId); setWorldId(r.data.id);
+      const createdName = worldName.trim(); setWorldName(""); await loadWorlds(galaxyId); const created = (await apiFetch<{ data: World[] }>(`/api/v1/universe/worlds?galaxy_id=${encodeURIComponent(galaxyId)}`)).data?.find(x => x.slug === slugify(createdName)); if (created) setWorldId(created.id);
     } catch (e) { setError(e instanceof Error ? e.message : "WORLD_CREATE_FAILED"); }
     finally { setBusy(false); }
   }
@@ -116,7 +116,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     e.preventDefault(); if (!worldId || !districtName.trim()) return;
     setBusy(true); setError(null);
     try {
-      const r = await apiFetch<{ data: District }>("/api/v1/districts", {
+      await apiFetch("/api/v1/districts", {
         method: "POST",
         body: JSON.stringify({
           world_id: worldId, name: districtName.trim(), slug: slugify(districtName),
@@ -125,7 +125,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
           metadata: { created_from: "theme-studio" },
         }),
       });
-      setDistrictName(""); await loadDistricts(worldId); setDistrictId(r.data.id);
+      const createdName = districtName.trim(); setDistrictName(""); await loadDistricts(worldId); const created = (await apiFetch<{ data: District[] }>(`/api/v1/districts?world_id=${encodeURIComponent(worldId)}`)).data?.find(x => x.slug === slugify(createdName)); if (created) setDistrictId(created.id);
     } catch (e) { setError(e instanceof Error ? e.message : "DISTRICT_CREATE_FAILED"); }
     finally { setBusy(false); }
   }
@@ -134,14 +134,14 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     e.preventDefault(); if (!districtId || !zoneName.trim()) return;
     setBusy(true); setError(null);
     try {
-      const r = await apiFetch<{ data: Zone }>(`/api/v1/districts/${districtId}/zones`, {
+      await apiFetch(` /api/v1/districts/${districtId}/zones`.trim(), {
         method: "POST",
         body: JSON.stringify({
           zone_key: slugify(zoneName), name: zoneName.trim(), zone_type: "public",
           spatial_config: { presentation_only: true }, metadata: { created_from: "theme-studio" },
         }),
       });
-      setZoneName(""); await loadZones(districtId); setZoneId(r.data.id);
+      const createdName = zoneName.trim(); setZoneName(""); await loadZones(districtId); const created = (await apiFetch<{ data: Zone[] }>(`/api/v1/districts/${districtId}/zones`)).data?.find(x => x.zone_key === slugify(createdName)); if (created) setZoneId(created.id);
     } catch (e) { setError(e instanceof Error ? e.message : "ZONE_CREATE_FAILED"); }
     finally { setBusy(false); }
   }
@@ -224,7 +224,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   );
 }
 
-function FlowCard({ step, title, selected, children }: { step: string; title: string; selected: string | boolean; children: React.ReactNode }) {
+function FlowCard({ step, title, selected, children }: { step: string; title: string; selected: string | boolean; children: ReactNode }) {
   return <div className={`rounded-2xl border p-3 ${selected ? "border-cyan-300/30 bg-cyan-300/[0.025]" : "border-white/10 bg-black/10"}`}><div className="mb-2 flex items-center gap-2"><span className="rounded-full border border-white/10 px-2 py-1 text-[9px] text-slate-500">{step}</span><span className="text-xs font-semibold">{title}</span></div>{children}</div>;
 }
 function Stat({ label, value }: { label: string; value: string }) { return <div className="rounded-xl border border-white/10 bg-white/[0.02] p-2"><p className="text-[8px] uppercase tracking-wider text-slate-600">{label}</p><p className="mt-1 text-xs text-white/70">{value}</p></div>; }
