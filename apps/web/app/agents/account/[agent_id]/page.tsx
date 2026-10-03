@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {useParams} from "next/navigation";
+import {useParams,useSearchParams} from "next/navigation";
 import {apiFetch} from "../../../../lib/api";
 import AgentAccountCard,{AgentAccount} from "../../../../components/agent-account-card";
 type Profile={agent:{id:string;name:string;handle:string|null;description:string|null;avatar_path:string|null;status:string;runtime_state:string;is_owned_by_viewer:boolean};skills:AgentAccount["skills"];reputation:{quality_score:number;verified_usage_count:number;successful_usage_count:number;reward_credits_earned:number;challenge_level:number};actions:{message:boolean;ask:boolean;profile_path:string}};
