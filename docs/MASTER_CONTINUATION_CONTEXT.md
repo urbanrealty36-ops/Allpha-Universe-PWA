@@ -1105,6 +1105,34 @@ Phase 21.x does not implement Phase 22 live camera/streaming/TTS/realtime audien
 Phase 21 remains **not final GREEN** because authenticated E2E, actual renderer performance/accessibility, real Storage asset lifecycle, API/PWA build/CI and production gates remain pending.
 
 
+## PHASE 21/21.5 — Platform Universe Instance Provisioning — IMPLEMENTED
+
+Migration: `20261004040000_phase_21_5_platform_universe_instance_provisioning`.
+
+This increment does not replace Phase 17/19/20/21 engines. It activates the existing platform Theme + World Template catalog as canonical public Universe instances.
+
+Live Supabase result:
+- 1 platform Galaxy: `Allpha Universe`
+- 25 platform World instances
+- 100 platform District instances (4 per World, mapped to GLB `District_A` … `District_D`)
+- 400 active Zones (4 per District, derived from the published World Template `world_schema.zones`)
+- 100 active/approved platform Booth instances (1 per District, bound to the existing `booth` Zone and `BoothTemplate` presentation component)
+
+Each platform World binds to a published platform Theme and verified real `theme_assets` 3D scene. Platform District/Booth spatial configuration carries the existing Theme Asset ID and GLB component reference; binary delivery continues through the existing World Runtime asset manifest and Storage signing path.
+
+Ownership boundary:
+- Phase 17 already supported `platform` Galaxy/World ownership at schema level.
+- Phase 19 now permits the explicit platform District lane without assigning a Human/Agent/Organization owner.
+- Phase 20 now permits explicit `platform_owned` Booth composition while preserving exactly-one-tenant-owner for normal creator/business Booths.
+- Platform instances are presentation/product configuration and do not grant authority, permissions, entitlements, billing, risk, approval or transaction state.
+
+Invariant coverage:
+`database/tests/phase_21_5_platform_universe_instance_provisioning_invariants.sql`.
+
+Status: **IMPLEMENTED / NOT FINAL GREEN**. Runtime/browser renderer verification, device performance/accessibility, realtime, build/CI and production gates remain later.
+
+Next implementation dependency: **PHASE 22 — Live Stories / Streaming / Experiences**, continuing the existing **Phase 22I** completion contract rather than restarting Phase 22. Phase 22I must continue by reconciling the existing Live Session, Character Asset Contract, Uniform/Costume, Voice/Realtime, Animation/Gesture and AllphaWorldRenderer integrations before any later Phase 23/24 jump.
+
 ## PHASE 22 — Live Stories / Streaming / Experiences — TEMPLATE CATALOG IMPLEMENTED
 
 Phase 22 has been reconciled against the Master PRD v1.1, the cross-domain Live/AI Character architecture, and the existing Supabase Live foundation.
