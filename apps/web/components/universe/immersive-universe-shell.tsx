@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { Html, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -155,6 +155,7 @@ export default function ImmersiveUniverseShell() {
   const [selectedBooth, setSelectedBooth] = useState<SpatialBooth | null>(null);
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [selectedPortal, setSelectedPortal] = useState<Portal | null>(null);
+  const [selectedPresence, setSelectedPresence] = useState<Presence | null>(null);
   const [capsule, setCapsule] = useState<Capsule | null>(null);
   const [capsuleTitle, setCapsuleTitle] = useState("");
   const [loading, setLoading] = useState(true);
@@ -215,6 +216,7 @@ export default function ImmersiveUniverseShell() {
     setSelectedBooth(null);
     setSelectedContent(null);
     setSelectedPortal(null);
+    setSelectedPresence(null);
     setComposition(null);
     try {
       const r = await apiFetch<{ data: World[] }>(
@@ -240,6 +242,7 @@ export default function ImmersiveUniverseShell() {
     setSelectedBooth(null);
     setSelectedContent(null);
     setSelectedPortal(null);
+    setSelectedPresence(null);
     setComposition(null);
     try {
       const [d, c, p, a] = await Promise.all([
@@ -283,6 +286,7 @@ export default function ImmersiveUniverseShell() {
     setSelectedBooth(null);
     setSelectedContent(null);
     setSelectedPortal(null);
+    setSelectedPresence(null);
     try {
       const r = await apiFetch<{ data: SpatialComposition }>(
         `/api/v1/themes/world-runtime/districts/${district.id}/composition`,
@@ -444,6 +448,7 @@ export default function ImmersiveUniverseShell() {
                   setSelectedContent(null);
                   setSelectedBooth(null);
                   setSelectedPortal(null);
+                  setSelectedPresence(item);
                   setError(null);
                 }}
               />
@@ -488,6 +493,7 @@ export default function ImmersiveUniverseShell() {
                     <span className="rounded-full border border-white/10 px-2.5 py-1">Server-authoritative</span>
                     <span className="rounded-full border border-white/10 px-2.5 py-1">Touch / drag to orbit</span>
                     <span className="rounded-full border border-white/10 px-2.5 py-1">{presence.length} Agent presence</span>
+                    {selectedPresence && <span className="max-w-[240px] truncate rounded-full border border-emerald-300/20 bg-emerald-300/5 px-2.5 py-1 text-emerald-100">Agent {selectedPresence.agent_id.slice(0, 8)} · {selectedPresence.state ?? "present"}</span>}
                     <span className="rounded-full border border-white/10 px-2.5 py-1">{content.length} spatial Content</span>
                     <span className="rounded-full border border-white/10 px-2.5 py-1">{portals.length} Portal</span>
                   </div>
@@ -582,7 +588,6 @@ function ImmersiveStage({
   content,
   activeTheme,
   selectedWorldId,
-  selectedDistrictId,
   selectedBoothId,
   transitioning,
   onWorld,
@@ -602,7 +607,6 @@ function ImmersiveStage({
   content: Content[];
   activeTheme: Theme | null;
   selectedWorldId?: string;
-  selectedDistrictId?: string;
   selectedBoothId?: string;
   transitioning: boolean;
   onWorld: (world: World) => void;
