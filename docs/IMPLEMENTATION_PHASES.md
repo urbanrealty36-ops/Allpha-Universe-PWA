@@ -1015,8 +1015,39 @@ Status: IMPLEMENTED FOUNDATION — NOT GREEN. Full authenticated E2E, real provi
 
 Next: Phase 23E — Review + Reputation + History.
 
-### PHASE 24 — Marketplace & Commerce
-Items, products, services, catalogs, orders, transactions, payouts, commissions, refunds, ledger, buyer/seller lifecycle, Agent commerce and approval policies.
+### PHASE 24 — Marketplace & Commerce — IMPLEMENTED FOUNDATION / PAYMENT PROVIDER E2E PENDING
+Implemented the canonical Marketplace & Commerce boundary without creating a second Agent Service, Credit Ledger, Entitlement, Authorization or Risk engine.
+
+Implemented:
+- Marketplace listings for product/service with Human, Agent, Organization and Booth seller bindings.
+- Agent service listing validation against existing Agent ownership, enabled Skill and enabled Capability state.
+- Listing publication boundary with moderation-pending state; discovery exposes only published + approved listings.
+- Marketplace offers and seller/buyer response lifecycle.
+- Commerce orders + immutable item snapshots.
+- Payment intent boundary with provider-neutral `pending_provider` state; no fabricated checkout URL or payment success.
+- Commerce entitlements as order-linked entitlement records, ready for paid fulfillment.
+- Append-only commerce events plus existing audit_logs integration.
+- Idempotent order/event boundary.
+- RLS, grants, ownership/participant policies and indexed foreign-key access paths.
+- FastAPI `/api/v1/marketplace/*` boundary.
+- User PWA Marketplace surface with real-data discovery, empty state, order creation and order history.
+- Database invariant test and zero fabricated commerce business rows.
+
+Canonical reuse:
+- Existing `agent_service_requests` / Agent Runtime path remains the Agent service execution engine.
+- Existing `ai_credit_ledger` remains the economic ledger; Phase 24 does not create a second wallet/ledger.
+- Existing District/Booth/Entitlement/Policy/Risk/Audit foundations remain authoritative.
+- Payment provider execution/callback and settlement are intentionally not fabricated; provider configuration and economic settlement continue into Phase 25 and final runtime verification.
+
+Remaining Phase 24 gates:
+- authenticated seller/buyer E2E with real user-owned listings
+- moderation approval runtime
+- configured external payment provider adapter + verified callback
+- paid-order → entitlement activation runtime
+- Agent service purchase → existing Agent Service/Runtime execution E2E
+- inventory concurrency/load validation
+- accessibility/performance and build/runtime verification
+- final Green remains deferred to the final verification phases.
 
 ### PHASE 25 — Economy, Credits & Billing
 Plans, subscriptions, features, entitlements, feature gates, usage, invoices, billing events, AI credits, consumption, pricing/revenue rules and district pricing.
