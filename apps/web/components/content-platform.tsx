@@ -15,7 +15,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
   const [body,setBody] = useState("");
   const [excerpt,setExcerpt] = useState("");
   const [visibility,setVisibility] = useState("public");
-  const [loading,setLoading] = useState(true);\n  const [topics,setTopics] = useState<any[]>([]);\n  const [revisions,setRevisions] = useState<any[]>([]);\n  const [events,setEvents] = useState<any[]>([]);\n  const [topicCatalog,setTopicCatalog] = useState<any[]>([]);\n  const [selectedTopic,setSelectedTopic] = useState("");
+  const [loading,setLoading] = useState(true);\n  const [topics,setTopics] = useState<any[]>([]);\n  const [revisions,setRevisions] = useState<any[]>([]);\n  const [events,setEvents] = useState<any[]>([]);\n  const [topicCatalog,setTopicCatalog] = useState<any[]>([]);\n  const [mediaState,setMediaState] = useState<any[]>([]);\n  const [selectedTopic,setSelectedTopic] = useState("");
   const [saving,setSaving] = useState(false);
   const [error,setError] = useState<string|null>(null);
 
@@ -24,7 +24,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
     try {
       if (detailId) {
         const r = await apiFetch<{data:Content}>("/api/v1/content/" + detailId);
-        setSelected(r.data);\n        const [t,rv,ev,cat] = await Promise.all([\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/topics"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/revisions"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/events"),\n          apiFetch<{data:any[]}>("/api/v1/content/topics")\n        ]);\n        setTopics(t.data||[]); setRevisions(rv.data||[]); setEvents(ev.data||[]); setTopicCatalog(cat.data||[]);
+        setSelected(r.data);\n        const [t,rv,ev,cat] = await Promise.all([\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/topics"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/revisions"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/events"),\n          apiFetch<{data:any[]}>("/api/v1/content/topics"),\n          apiFetch<{data:any[]}>(`/api/v1/content/${detailId}/media-state`)\n        ]);\n        setTopics(t.data||[]); setRevisions(rv.data||[]); setEvents(ev.data||[]); setTopicCatalog(cat.data||[]); setMediaState((cat as any).data||[]);
       } else {
         const r = await apiFetch<{data:Content[]}>("/api/v1/content?mine=true");
         setItems(r.data);
@@ -44,7 +44,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
     finally { setSaving(false); }
   }
 
-  async function action(id:string, actionName:"publish"|"archive") {
+  async function submitModeration(id:string) { setSaving(true); setError(null); try { await apiFetch(`/api/v1/content/${id}/submit-moderation`, {method:"POST"}); await load(); } catch(e) { setError(e instanceof Error ? e.message : "CONTENT_MODERATION_SUBMIT_FAILED"); } finally { setSaving(false); } }\n\n  async function action(id:string, actionName:"publish"|"archive") {
     setSaving(true); setError(null);
     try { await apiFetch("/api/v1/content/" + id + "/" + actionName, {method:"POST"}); await load(); }
     catch (e) { setError(e instanceof Error ? e.message : "CONTENT_ACTION_FAILED"); }
@@ -90,7 +90,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
         {loading ? <State text="Loading authoritative content…" /> : items.length === 0 ? <State text="No content exists yet. Create a real draft above." /> :
           <div className="grid gap-4 md:grid-cols-2">{items.map(x=><article key={x.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.15em] text-cyan-300">{x.content_type}</p><h3 className="mt-2 text-lg font-semibold">{x.title || "Untitled content"}</h3><p className="mt-2 text-sm text-slate-400">{x.excerpt || "No excerpt."}</p></div><span className="rounded-full border border-white/10 px-2 py-1 text-[11px] text-slate-400">{x.status}</span></div>
-            <div className="mt-5 flex gap-2">{x.status==="draft" && <button disabled={saving} onClick={()=>void action(x.id,"publish")} className="rounded-lg bg-white px-3 py-2 text-xs font-medium text-black">Publish</button>}{(x.status==="draft"||x.status==="published") && <button disabled={saving} onClick={()=>void action(x.id,"archive")} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300">Archive</button>}<a href={"/content/" + x.id} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300">Open</a></div>
+            <div className="mt-5 flex gap-2">{x.status==="draft" && <button disabled={saving} onClick={()=>void submitModeration(x.id)} className="rounded-lg border border-cyan-300/20 px-3 py-2 text-xs text-cyan-200">Submit moderation</button>} {x.status==="draft" && <button disabled={saving} onClick={()=>void action(x.id,"publish")} className="rounded-lg bg-white px-3 py-2 text-xs font-medium text-black">Publish</button>}{(x.status==="draft"||x.status==="published") && <button disabled={saving} onClick={()=>void action(x.id,"archive")} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300">Archive</button>}<a href={"/content/" + x.id} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300">Open</a></div>
           </article>)}</div>}
       </section>
     </div></main>
