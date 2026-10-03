@@ -121,15 +121,15 @@ function PlatformAgentCharacter3D({position,characterKey,performance}:{position:
   });
   return <group ref={root} position={position} scale={1.05}>
     <group ref={torso}><mesh position={[0,1.55,0]} castShadow><boxGeometry args={[.9,1.25,.48]}/><meshStandardMaterial color={primary}/></mesh>
-      <group ref={la} position={[-.58,1.85,0]}><mesh position={[0,-.38,0]}><cylinderGeometry args={[.13,.15,.76,10]}/><meshStandardMaterial color={primary}/></mesh><group ref={lf} position={[0,-.78,0]}><mesh position={[0,-.33,0]}><cylinderGeometry args={[.11,.13,.66,10]}/><meshStandardMaterial color={secondary}/></mesh></group></group>
-      <group ref={ra} position={[.58,1.85,0]}><mesh position={[0,-.38,0]}><cylinderGeometry args={[.13,.15,.76,10]}/><meshStandardMaterial color={primary}/></mesh><group ref={rf} position={[0,-.78,0]}><mesh position={[0,-.33,0]}><cylinderGeometry args={[.11,.13,.66,10]}/><meshStandardMaterial color={secondary}/></mesh></group></group>
+      <group ref={la} position={[-.58,1.85,0]}><mesh position={[0,-.38,0]}><cylinderGeometry args={[.13,.15,.76,10]}/><meshStandardMaterial color={primary}/></mesh><group ref={lf} position={[0,-.78,0]}><mesh position={[0,-.33,0]}><cylinderGeometry args={[.11,.13,.66,10]}/><meshStandardMaterial color={secondary}/></mesh><mesh position={[0,-.72,0]}><sphereGeometry args={[.14,10,10]}/><meshStandardMaterial color={secondary}/></mesh></group></group>
+      <group ref={ra} position={[.58,1.85,0]}><mesh position={[0,-.38,0]}><cylinderGeometry args={[.13,.15,.76,10]}/><meshStandardMaterial color={primary}/></mesh><group ref={rf} position={[0,-.78,0]}><mesh position={[0,-.33,0]}><cylinderGeometry args={[.11,.13,.66,10]}/><meshStandardMaterial color={secondary}/></mesh><mesh position={[0,-.72,0]}><sphereGeometry args={[.14,10,10]}/><meshStandardMaterial color={secondary}/></mesh></group></group>
     </group>
     <group ref={head} position={[0,2.78,0]}><mesh><sphereGeometry args={[.58,24,20]}/><meshStandardMaterial color={secondary}/></mesh>
-      <mesh ref={le} position={[-.18,.05,.52]}><sphereGeometry args={[.09,12,12]}/><meshStandardMaterial color="#fff"/></mesh><mesh ref={re} position={[.18,.05,.52]}><sphereGeometry args={[.09,12,12]}/><meshStandardMaterial color="#fff"/></mesh>
+      <mesh ref={le} position={[-.18,.05,.52]}><sphereGeometry args={[.09,12,12]}/><meshStandardMaterial color="#fff"/></mesh><mesh ref={re} position={[.18,.05,.52]}><sphereGeometry args={[.09,12,12]}/><meshStandardMaterial color="#fff"/></mesh><mesh position={[-.18,.19,.54]} rotation={[0,0,.12]}><boxGeometry args={[.18,.035,.025]}/><meshStandardMaterial color={accent}/></mesh><mesh position={[.18,.19,.54]} rotation={[0,0,-.12]}><boxGeometry args={[.18,.035,.025]}/><meshStandardMaterial color={accent}/></mesh>
       <group ref={mouth} position={[0,-.48,.53]} scale={[.75,.15,.35]}><mesh><sphereGeometry args={[.16,14,10]}/><meshStandardMaterial color="#160b12"/></mesh></group>
     </group>
-    <group ref={ll} position={[-.25,.65,0]}><mesh position={[0,-.45,0]}><cylinderGeometry args={[.17,.19,.9,10]}/><meshStandardMaterial color={primary}/></mesh></group>
-    <group ref={rl} position={[.25,.65,0]}><mesh position={[0,-.45,0]}><cylinderGeometry args={[.17,.19,.9,10]}/><meshStandardMaterial color={primary}/></mesh></group>
+    <group ref={ll} position={[-.25,.65,0]}><mesh position={[0,-.45,0]}><cylinderGeometry args={[.17,.19,.9,10]}/><meshStandardMaterial color={primary}/></mesh><mesh position={[0,-.98,.08]}><boxGeometry args={[.34,.18,.56]}/><meshStandardMaterial color={secondary}/></mesh></group>
+    <group ref={rl} position={[.25,.65,0]}><mesh position={[0,-.45,0]}><cylinderGeometry args={[.17,.19,.9,10]}/><meshStandardMaterial color={primary}/></mesh><mesh position={[0,-.98,.08]}><boxGeometry args={[.34,.18,.56]}/><meshStandardMaterial color={secondary}/></mesh></group>
     <mesh position={[0,.03,0]}><torusGeometry args={[.72,.025,8,32]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.9}/></mesh>
   </group>
 }
