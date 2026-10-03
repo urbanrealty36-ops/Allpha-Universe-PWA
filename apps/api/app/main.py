@@ -23,6 +23,7 @@ from app.api.discovery import router as discovery_router
 from app.api.ask_content import router as ask_content_router
 from app.api.content_evolution import router as content_evolution_router
 from app.api.agent_intelligence import router as agent_intelligence_router
+from app.api.admin_agent_authority import router as admin_agent_authority_router
 from app.api.health import router as health_router
 from app.api.runtime_activation import router as runtime_activation_router
 from app.api.identity import router as identity_router
@@ -60,6 +61,7 @@ app.include_router(discovery_router)
 app.include_router(ask_content_router)
 app.include_router(content_evolution_router)
 app.include_router(agent_intelligence_router)
+app.include_router(admin_agent_authority_router)
 app.include_router(identity_router)
 app.include_router(memory_knowledge_router)
 app.include_router(messaging_router)
