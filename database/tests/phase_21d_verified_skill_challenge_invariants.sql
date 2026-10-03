@@ -12,7 +12,7 @@ select ok(has_function_privilege('authenticated','public.record_agent_skill_qual
 select ok((select prokind='f' and prosecdef from pg_proc where oid='public.list_verifiable_agent_service_requests(integer)'::regprocedure),'verifiable listing security definer');
 select ok((select prosecdef from pg_proc where oid='public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure),'quality outcome security definer');
 select ok((select proconfig @> array['search_path=""'] from pg_proc where oid='public.list_verifiable_agent_service_requests(integer)'::regprocedure),'verifiable listing empty search_path');
-select ok((select proconfig @> array['search_path='] from pg_proc where oid='public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure),'quality outcome empty search_path');
+select ok((select proconfig @> array['search_path=""'] from pg_proc where oid='public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure),'quality outcome empty search_path');
 select ok(pg_get_functiondef('public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure) like '%SKILL_REWARD_SELF_USAGE_FORBIDDEN%','self reward guard');
 select ok(pg_get_functiondef('public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure) like '%SKILL_REWARD_REQUESTER_ONLY%','requester-only guard');
 select ok(pg_get_functiondef('public.record_agent_skill_quality_outcome(uuid,numeric,jsonb,jsonb)'::regprocedure) like '%verified_cross_owner_usage_v1%','reward provenance');
