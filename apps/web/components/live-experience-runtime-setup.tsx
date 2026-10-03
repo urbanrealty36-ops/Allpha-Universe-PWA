@@ -1,7 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { normalizeWorldScene } from "../lib/world-engine/scene-schema";
+import type { WorldScene } from "../lib/world-engine/scene-schema";
+
+const AllphaWorldRenderer = dynamic(() => import("./world/allpha-world-renderer"), { ssr: false, loading: () => <div className="flex min-h-[420px] items-center justify-center text-sm text-white/40">Preparing canonical 3D renderer…</div> });
 
 type Session = {
   id: string;
@@ -12,7 +17,7 @@ type Session = {
   live_experience_templates?: { name: string; category: string; slug: string } | null;
 };
 
-type Theme = { id: string; name: string; slug: string; category?: string | null };
+type Theme = { id: string; name: string; slug: string; category?: string | null; tokens?: Record<string, unknown>; world_schema?: unknown };
 
 type Collaboration = {
   id: string;
@@ -76,6 +81,7 @@ export default function LiveExperienceRuntimeSetup() {
   const streamRef = useRef<MediaStream | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [themePackUrl, setThemePackUrl] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [themeId, setThemeId] = useState("");
   const [stage, setStage] = useState<StageRuntime | null>(null);
@@ -109,7 +115,7 @@ export default function LiveExperienceRuntimeSetup() {
     try {
       const [sessionResponse, themeResponse, costumeResponse] = await Promise.all([
         apiFetch<{ data: Session[] }>("/api/v1/live/sessions?limit=100"),
-        apiFetch<{ data: Theme[] }>("/api/v1/themes?source=platform&limit=100"),
+        apiFetch<{ data: Theme[] }>("/api/v1/themes/world-runtime/catalog"),
         apiFetch<{ data: typeof costumes }>("/api/v1/live/costumes/catalog"),
       ]);
       const nextSessions = sessionResponse.data ?? [];
@@ -132,6 +138,17 @@ export default function LiveExperienceRuntimeSetup() {
         apiFetch<{ data: Collaboration[] }>(`/api/v1/live/sessions/${id}/collaborations`),
       ]);
       setStage(stageResponse.data ?? null);
+      setCamera(cameraResponse.data ?? null);
+      const stageThemeId = stageResponse.data?.stage?.binding?.theme_id as string | undefined;
+      if (stageThemeId) setThemeId(stageThemeId);
+      if (stageThemeId) {
+        try {
+          const manifest = await apiFetch<{ data?: { binary_3d_assets?: Array<{ signed_url?: string | null }> } }>(`/api/v1/themes/world-runtime/themes/${stageThemeId}/asset-manifest`);
+          setThemePackUrl(manifest.data?.binary_3d_assets?.find((a) => typeof a.signed_url === "string")?.signed_url ?? null);
+        } catch { setThemePackUrl(null); }
+      } else {
+        setThemePackUrl(null);
+      }
       setCamera(cameraResponse.data ?? null);
       setPresence(presenceResponse.data ?? null);
       setCollaborations(collabResponse.data ?? []);
@@ -340,10 +357,25 @@ export default function LiveExperienceRuntimeSetup() {
               <button className={button} disabled={!sessionId || !themeId || busy} onClick={bindStage}>Bind 3D Stage</button>
             </div>
             {stage?.active && (
-              <div className="mt-2 rounded-lg border border-white/10 bg-black/20 p-3 text-xs">
-                <div className="font-medium text-[var(--allpha-cyan)]">LiveExperienceStage active</div>
-                <div className="mt-1 text-white/55">Renderer: {stage.stage?.renderer} · source: {stage.stage?.binding?.stage_source}</div>
-                {stage.stage?.signed_url && <a className="mt-2 inline-block underline text-white/70" href={stage.stage.signed_url} target="_blank" rel="noreferrer">Open signed 3D asset</a>}
+              <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-black">
+                {renderScene ? (
+                  <div className="h-[360px]">
+                    <AllphaWorldRenderer
+                      scene={renderScene}
+                      tokens={selectedRuntimeTheme?.tokens as Record<string, unknown> | undefined}
+                      lowPower={false}
+                      themePackUrl={themePackUrl}
+                      liveStageUrl={stage.stage?.signed_url ?? null}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex min-h-[260px] items-center justify-center text-sm text-white/40">No validated World Scene available for this Theme.</div>
+                )}
+                <div className="border-t border-white/10 p-3 text-xs">
+                  <div className="font-medium text-[var(--allpha-cyan)]">LiveExperienceStage active</div>
+                  <div className="mt-1 text-white/55">Canonical renderer: {stage.stage?.renderer} · source: {stage.stage?.binding?.stage_source}</div>
+                  {stage.stage?.signed_url && <a className="mt-2 inline-block underline text-white/70" href={stage.stage.signed_url} target="_blank" rel="noreferrer">Open signed 3D asset</a>}
+                </div>
               </div>
             )}
           </div>
