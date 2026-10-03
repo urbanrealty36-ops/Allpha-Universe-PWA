@@ -837,6 +837,60 @@ Not GREEN:
 
 Next: PHASE 23 — AI-to-AI Collaboration
 
+### PHASE 22G — Live Experience 3D Stage + Human Presentation Runtime — IMPLEMENTED FOUNDATION
+
+Implemented on main and applied to AllphaDb-Universe.
+
+Canonical workflow:
+Human Live Session → Live Experience Template → Theme 3D / LiveExperienceStage component → optional dedicated Stage 3D asset → Human-owned Agent Collaboration → Real device camera → Human Face/Body Presence Check → Human Uniform/Costume → Human Presentation Binding → Live Experience activation.
+
+Implemented:
+- live_session_stage_bindings for authoritative session-to-theme/stage composition.
+- Reuses the existing allpha-world-assets Theme 3D pack and the existing LiveExperienceStage component contract; no second renderer.
+- Dedicated Live Stage GLB upload/finalize/list lifecycle reuses existing live_experience_stage_assets and signed Storage URLs.
+- Stage runtime endpoint returns signed asset URLs only for approved/active assets and identifies AllphaWorldRenderer as the renderer boundary.
+- live_session_camera_sources registers the Human's real browser/device camera as a media source; no raw camera frames are persisted.
+- live_human_presence_verifications records Face/Body presence readiness and stream liveness. It intentionally does not store face embeddings/raw frames and is not legal/KYC identity verification.
+- live_human_costume_templates supports user-authored 3D costumes/uniform templates with private Storage + moderation lifecycle.
+- Existing uniform_catalog / user_uniforms remain the canonical platform/owned uniform system; Live only binds an owned uniform or an approved custom costume.
+- live_session_human_presentations binds camera + presence verification + costume/appearance state.
+- activate_live_experience() is the final server-authoritative runtime gate and can require an already-active Live Agent Collaboration.
+- Face/body presentation state never grants Agent authority, ownership, capability, permission, billing entitlement or execution rights.
+- Custom categories include superhero, business shirt, suit/tie, formal, Nusantara, traditional, cultural, uniform, fantasy, sci-fi, creator and custom. Licensed IP costumes must be supplied under appropriate rights; Allpha does not seed unlicensed IP assets.
+
+API:
+- POST /api/v1/live/sessions/{session_id}/stage
+- GET /api/v1/live/sessions/{session_id}/stage-runtime
+- POST /api/v1/live/templates/{template_version_id}/stage-assets/upload-url
+- POST /api/v1/live/stage-assets/{asset_id}/finalize
+- GET /api/v1/live/templates/{template_version_id}/stage-assets
+- POST /api/v1/live/sessions/{session_id}/camera
+- GET /api/v1/live/sessions/{session_id}/camera
+- POST /api/v1/live/sessions/{session_id}/presence-check
+- GET /api/v1/live/sessions/{session_id}/presence-check
+- GET/POST /api/v1/live/sessions/{session_id}/human-presentation
+- GET /api/v1/live/costumes/catalog
+- POST /api/v1/live/costumes/custom
+- POST /api/v1/live/costumes/custom/{costume_id}/finalize
+- POST /api/v1/live/sessions/{session_id}/activate-experience
+
+Database:
+- phase_22g_live_experience_3d_stage_human_presentation
+- phase_22g_live_human_presentation_uniform_ownership_hardening
+
+Security:
+- All new privileged mutations use SECURITY DEFINER RPCs with empty search_path.
+- Anonymous EXECUTE is revoked; authenticated EXECUTE is granted.
+- Session ownership is checked server-side.
+- Storage remains private and browser receives signed URLs.
+- No raw biometric template, face embedding or camera frame is stored.
+
+Not GREEN:
+- Real authenticated multi-user E2E is still pending.
+- Actual device/browser face/body detector coverage is limited to the presentation-readiness contract; this is not legal identity verification.
+- Dedicated Stage 3D asset upload/moderation needs real authorized asset lifecycle testing.
+- The current Theme pack contains the LiveExperienceStage component contract; dedicated Stage GLBs are optional overrides and no synthetic stage assets were seeded.
+- API/PWA build, CI, realtime/media transport, voice/TTS, character animation/compositor and production runtime gates remain pending.
 ### PHASE 23 — AI-to-AI Collaboration
 Discover, evaluate, Agent DM, negotiate, human approval, collaboration agreement, execute, review, reputation and history.
 
