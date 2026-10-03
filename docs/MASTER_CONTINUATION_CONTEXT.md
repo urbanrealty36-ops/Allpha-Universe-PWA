@@ -2918,3 +2918,124 @@ The implementation is therefore:
 ### Next implementation
 
 **Slice C — Explicit AI Service Contract & Skill Resolution**, reusing the existing Agent Service → Agent Runtime → Memory/RAG → AI Gateway / Model Router path.
+
+## PHASE 21C — EXPLICIT AI SERVICE CONTRACT & SKILL RESOLUTION — IMPLEMENTED FOUNDATION
+
+Slice C activates the explicit paid/credit-bearing AI path from the canonical Agent Account and Conversation contract. No second AI execution engine was introduced.
+
+### Canonical contract
+
+```text
+Agent Account
+ → selected published/active Skill
+ → Skill Resolution
+ → canonical Agent Conversation
+ → explicit AI Service request
+ → AI Credit reservation
+ → Agent Runtime command
+ → Memory/RAG service context
+ → AI Gateway / Model Router
+ → result
+ → canonical Conversation
+ → settlement / generated Content
+```
+
+### Skill Resolution
+
+New canonical RPC:
+- `resolve_public_agent_service(agent_id, skill_name)`
+
+It resolves:
+- public active Agent
+- cross-owner restriction
+- Social Block restrictions
+- enabled Agent Skill
+- Skill metadata / configuration
+- Skill category / level / quality
+- catalog risk level
+- configured AI Credit cost
+- required `ai.generate` capability
+
+Security:
+- SECURITY DEFINER
+- empty `search_path`
+- anon EXECUTE revoked
+- authenticated EXECUTE granted
+
+### Explicit AI Service
+
+Existing Agent Service endpoint was reconciled to the canonical Skill Resolver:
+- `POST /api/v1/messaging/agent-services/generate`
+- `GET /api/v1/messaging/agent-services/resolve`
+
+Important boundary:
+- normal Message / Ask remains free
+- explicit AI Service is the only path that reserves AI Credits
+- service reservation is bound to the canonical Agent Conversation
+- a newly resolved Conversation must be active before reservation
+- existing `reserve_agent_service_request` remains the authoritative credit/eligibility boundary
+- Human Owner Takeover is enforced by the existing reservation RPC
+- service execution continues through existing Agent Runtime
+- service context continues through existing Memory/RAG visibility rules
+- generation continues through existing AI Gateway / Model Router
+- result continues through existing `append_agent_service_message`
+- settlement continues through existing `complete_agent_service_request`
+- failure/refund continues through existing `release_agent_service_request`
+
+### Conversation convergence
+
+If no Conversation ID is supplied, Slice C now uses:
+- `get_or_create_agent_conversation`
+- interaction mode = `ask`
+- canonical discovery provenance only
+
+It no longer creates a separate contextual Conversation engine.
+
+### Web activation
+
+Agent Account Skill Portfolio now exposes:
+- **Use Skill**
+- **Discuss**
+
+Use Skill enters the existing Messaging surface with the authoritative Agent UUID + selected Skill and resolves the Skill before explicit AI Service execution.
+
+The Messaging surface displays:
+- selected Agent
+- selected Skill
+- Skill level
+- current configured AI Credit cost when resolvable
+- explicit distinction between free Ask and paid AI Service
+
+### Security / authority
+
+Slice C does not allow:
+- self-use of an Agent
+- blocked Human ↔ owner interaction
+- inactive/private Agent service
+- disabled Skill service
+- missing `ai.generate` capability
+- AI Service execution during Human Owner Takeover
+- credit debit outside `reserve_agent_service_request`
+- direct browser-side privileged database mutation
+
+### Database
+
+Migrations:
+- `database/migrations/20261003171000_phase_21c_explicit_ai_service_skill_resolution.sql`
+
+Repository test:
+- `database/tests/phase_21c_explicit_ai_service_skill_resolution_invariants.sql`
+
+Verification:
+- **12/12 invariants passed**
+- no Service Request or Agent Runtime command seed data inserted
+
+### Current status
+
+**PHASE 21C — IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING**
+
+Runtime E2E remains pending because the live database intentionally contains zero real Agents / Skills / Service Requests. No fake business records were inserted.
+
+### Next implementation
+
+**Slice D — Verified Skill Challenge**, connecting completed cross-owner Agent Service usage to requester quality evaluation, Skill Challenge events, reputation signals, and the existing AI Credit reward loop without creating a duplicate reward engine.
