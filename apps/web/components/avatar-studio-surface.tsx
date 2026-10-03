@@ -4,13 +4,12 @@ import { FormEvent, useEffect, useState, type ReactNode } from "react";
 import { apiFetch } from "../lib/api";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
-type Character={id:string;character_key:string;name:string;archetype:string;description?:string|null;visual_profile?:Record<string,unknown>};
-type UserCharacter={id:string;character_key:string;display_name?:string|null;equipped:boolean;appearance:Record<string,unknown>};
-type Catalog={id:string;name:string;description?:string|null;status:string;moderation_status:string;theme_compatibility?:Record<string,unknown>};
-type Owned={id:string;equipped?:boolean;status:string};
-type Agent={id:string;name:string;status:string};
+type Character = { id:string; character_key:string; name:string; archetype:string; description?:string|null; visual_profile?:Record<string,unknown> };
+type UserCharacter = { id:string; character_key:string; display_name?:string|null; equipped:boolean; appearance:Record<string,unknown> };
+type Catalog = { id:string; name:string; description?:string|null; status:string; moderation_status:string; theme_compatibility?:Record<string,unknown> };
+type Agent = { id:string; name:string; status:string };
 
-export default function AvatarStudioSurface(){
+export default function AvatarStudioSurface() {
   const [characters,setCharacters]=useState<Character[]>([]);
   const [ownedCharacters,setOwnedCharacters]=useState<UserCharacter[]>([]);
   const [uniforms,setUniforms]=useState<Catalog[]>([]);
@@ -24,36 +23,73 @@ export default function AvatarStudioSurface(){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState<string|null>(null);
 
-  async function load(){
+  async function load() {
     const [catalog,chars,uni,sti,cos,agentList]=await Promise.all([
       apiFetch<{data:{characters:Character[]}}>("/api/v1/agent-catalog"),
       apiFetch<{data:UserCharacter[]}>("/api/v1/avatar/characters"),
       apiFetch<{data:Catalog[]}>("/api/v1/avatar/uniforms/catalog"),
       apiFetch<{data:Catalog[]}>("/api/v1/avatar/stickers/catalog"),
       apiFetch<{data:Catalog[]}>("/api/v1/avatar/cosmetics/catalog"),
+      apiFetch<{data:Agent[]}>("/api/v1/agents/me"),
     ]);
-    setCharacters(catalog.data?.characters??[]);setOwnedCharacters(chars.data??[]);
-    setUniforms(uni.data??[]);setStickers(sti.data??[]);setCosmetics(cos.data??[]);
+    setCharacters(catalog.data?.characters??[]);
+    setOwnedCharacters(chars.data??[]);
+    setUniforms(uni.data??[]);
+    setStickers(sti.data??[]);
+    setCosmetics(cos.data??[]);
+    setAgents(agentList.data??[]);
   }
-  useEffect(()=>{void load().catch(e=>setError(e instanceof Error?e.message:"AVATAR_STUDIO_LOAD_FAILED"));},[]);\n\n  useEffect(()=>{\n    setCharacterAsset(null);\n    if(!selectedAgentId)return;\n    void apiFetch<{data:{active?:any}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character`).then(r=>setCharacterAsset(r.data?.active??null)).catch(()=>setCharacterAsset(null));\n  },[selectedAgentId]);\n\n  async function uploadAgentCharacter(file:File){\n    if(!selectedAgentId)return;setBusy(true);setError(null);\n    try{\n      if(file.type!=="model/gltf-binary"&&!file.name.toLowerCase().endsWith(".glb"))throw new Error("AGENT_CHARACTER_GLB_REQUIRED");\n      const prepared=await apiFetch<{data:{asset:{id:string;storage_bucket:string};upload:{path:string;token:string}}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character/upload-url`,{method:"POST",body:JSON.stringify({name:file.name.replace(/\\.glb$/i,""),metadata:{format:"glb",source:"avatar-studio"}})});\n      const supabase=createSupabaseBrowserClient();\n      const result=await supabase.storage.from(prepared.data.asset.storage_bucket).uploadToSignedUrl(prepared.data.upload.path,prepared.data.upload.token,file);\n      if(result.error)throw new Error(result.error.message);\n      const digest=await crypto.subtle.digest("SHA-256",await file.arrayBuffer());\n      const checksum=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");\n      await apiFetch(`/api/v1/live-assets/agents/${selectedAgentId}/character/${prepared.data.asset.id}/finalize`,{method:"POST",body:JSON.stringify({checksum_sha256:checksum})});\n      const r=await apiFetch<{data:{active?:any}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character`);setCharacterAsset(r.data?.active??null);\n    }catch(e){setError(e instanceof Error?e.message:"AGENT_CHARACTER_UPLOAD_FAILED")}finally{setBusy(false)}\n  }
 
-  async function createCharacter(e:FormEvent){
-    e.preventDefault();if(!selectedKey)return;setBusy(true);setError(null);
-    try{
+  useEffect(()=>{void load().catch(e=>setError(e instanceof Error?e.message:"AVATAR_STUDIO_LOAD_FAILED"));},[]);
+
+  useEffect(()=>{
+    setCharacterAsset(null);
+    if(!selectedAgentId)return;
+    void apiFetch<{data:{active?:any}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character`)
+      .then(r=>setCharacterAsset(r.data?.active??null))
+      .catch(()=>setCharacterAsset(null));
+  },[selectedAgentId]);
+
+  async function uploadAgentCharacter(file:File) {
+    if(!selectedAgentId)return;
+    setBusy(true);setError(null);
+    try {
+      if(file.type!=="model/gltf-binary"&&!file.name.toLowerCase().endsWith(".glb"))throw new Error("AGENT_CHARACTER_GLB_REQUIRED");
+      const prepared=await apiFetch<{data:{asset:{id:string;storage_bucket:string};upload:{path:string;token:string}}}>(
+        `/api/v1/live-assets/agents/${selectedAgentId}/character/upload-url`,
+        {method:"POST",body:JSON.stringify({name:file.name.replace(/\.glb$/i,""),metadata:{format:"glb",source:"avatar-studio"}})}
+      );
+      const supabase=createSupabaseBrowserClient();
+      const result=await supabase.storage.from(prepared.data.asset.storage_bucket).uploadToSignedUrl(prepared.data.upload.path,prepared.data.upload.token,file);
+      if(result.error)throw new Error(result.error.message);
+      const digest=await crypto.subtle.digest("SHA-256",await file.arrayBuffer());
+      const checksum=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+      await apiFetch(`/api/v1/live-assets/agents/${selectedAgentId}/character/${prepared.data.asset.id}/finalize`,{method:"POST",body:JSON.stringify({checksum_sha256:checksum})});
+      const r=await apiFetch<{data:{active?:any}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character`);
+      setCharacterAsset(r.data?.active??null);
+    } catch(e) {
+      setError(e instanceof Error?e.message:"AGENT_CHARACTER_UPLOAD_FAILED");
+    } finally { setBusy(false); }
+  }
+
+  async function createCharacter(e:FormEvent) {
+    e.preventDefault();if(!selectedKey)return;
+    setBusy(true);setError(null);
+    try {
       await apiFetch("/api/v1/avatar/characters",{method:"POST",body:JSON.stringify({
         character_key:selectedKey,display_name:displayName.trim()||null,
         appearance:{source:"platform_character_catalog"},metadata:{created_from:"avatar-studio"}
       })});
       setDisplayName("");await load();
-    }catch(e){setError(e instanceof Error?e.message:"USER_CHARACTER_CREATE_FAILED");}
-    finally{setBusy(false);}
+    } catch(e) { setError(e instanceof Error?e.message:"USER_CHARACTER_CREATE_FAILED"); }
+    finally { setBusy(false); }
   }
 
-  async function equipCharacter(id:string){
+  async function equipCharacter(id:string) {
     setBusy(true);setError(null);
-    try{await apiFetch(`/api/v1/avatar/characters/${id}/equip`,{method:"POST",body:JSON.stringify({equipped:true})});await load();}
-    catch(e){setError(e instanceof Error?e.message:"USER_CHARACTER_EQUIP_FAILED");}
-    finally{setBusy(false);}
+    try { await apiFetch(`/api/v1/avatar/characters/${id}/equip`,{method:"POST",body:JSON.stringify({equipped:true})});await load(); }
+    catch(e) { setError(e instanceof Error?e.message:"USER_CHARACTER_EQUIP_FAILED"); }
+    finally { setBusy(false); }
   }
 
   return <main className="min-h-screen bg-[#03050b] px-4 py-6 text-white sm:px-8">
@@ -75,7 +111,14 @@ export default function AvatarStudioSurface(){
             {ownedCharacters.length===0?<Empty text="Belum ada User Character milik user ini."/>:ownedCharacters.map(x=><div key={x.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 p-3"><div><p className="text-xs font-semibold">{x.display_name||x.character_key}</p><p className="text-[10px] text-slate-500">{x.character_key}</p></div>{x.equipped?<span className="rounded-full border border-emerald-300/20 px-2 py-1 text-[9px] text-emerald-200">EQUIPPED</span>:<button disabled={busy} onClick={()=>void equipCharacter(x.id)} className={smallButton}>Equip</button>}</div>)}
           </div>
         </Panel>
-        <Panel title="AI Character 3D Asset">\n          <select value={selectedAgentId} onChange={e=>setSelectedAgentId(e.target.value)} className={input}><option value="">Select owned Agent</option>{agents.map(x=><option key={x.id} value={x.id}>{x.name} · {x.status}</option>)}</select>\n          {selectedAgentId&&<label className="mt-3 inline-flex cursor-pointer rounded-lg border border-cyan-300/40 px-3 py-2 text-[10px]">{busy?"Uploading…":"Upload Character GLB"}<input type="file" accept=".glb,model/gltf-binary" className="hidden" disabled={busy} onChange={e=>{const f=e.target.files?.[0];e.currentTarget.value="";if(f)void uploadAgentCharacter(f)}}/></label>}\n          <p className="mt-3 text-[10px] text-slate-500">{characterAsset?"Asset active, tetapi runtime tetap menunggu moderation approved.":"Belum ada AI Character 3D asset active + approved untuk Agent ini."}</p>\n        </Panel>\n        <Panel title="Uniform Catalog / Ownership">
+
+        <Panel title="AI Character 3D Asset">
+          <select value={selectedAgentId} onChange={e=>setSelectedAgentId(e.target.value)} className={input}><option value="">Select owned Agent</option>{agents.map(x=><option key={x.id} value={x.id}>{x.name} · {x.status}</option>)}</select>
+          {selectedAgentId&&<label className="mt-3 inline-flex cursor-pointer rounded-lg border border-cyan-300/40 px-3 py-2 text-[10px]">{busy?"Uploading…":"Upload Character GLB"}<input type="file" accept=".glb,model/gltf-binary" className="hidden" disabled={busy} onChange={e=>{const f=e.target.files?.[0];e.currentTarget.value="";if(f)void uploadAgentCharacter(f)}}/></label>}
+          <p className="mt-3 text-[10px] text-slate-500">{characterAsset?"Asset active; runtime tetap menunggu moderation approved.":"Belum ada AI Character 3D asset active + approved untuk Agent ini."}</p>
+        </Panel>
+
+        <Panel title="Uniform Catalog / Ownership">
           <CatalogState items={uniforms} empty="Belum ada Uniform yang published + approved."/>
           <p className="mt-4 text-[10px] text-slate-600">Ownership hanya dapat berasal dari entitlement/acquisition lifecycle. UI ini tidak memberikan item gratis secara diam-diam.</p>
         </Panel>
@@ -91,6 +134,7 @@ export default function AvatarStudioSurface(){
     </div>
   </main>;
 }
+
 function Panel({title,children}:{title:string;children:ReactNode}){return <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-5"><h2 className="text-lg font-semibold">{title}</h2><div className="mt-4">{children}</div></section>}
 function CatalogState({items,empty}:{items:Catalog[];empty:string}){return items.length===0?<Empty text={empty}/>:<div className="space-y-2">{items.map(x=><div key={x.id} className="rounded-xl border border-white/10 p-3"><p className="text-xs font-medium">{x.name}</p><p className="mt-1 text-[10px] text-slate-500">{x.status} · {x.moderation_status}</p></div>)}</div>}
 function Empty({text}:{text:string}){return <div className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-slate-500">{text}</div>}
