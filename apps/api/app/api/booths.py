@@ -27,6 +27,9 @@ class BoothCreate(BaseModel):
     scene_config:dict[str,Any]=Field(default_factory=dict)
     catalog_config:dict[str,Any]=Field(default_factory=dict)
     live_entry_config:dict[str,Any]=Field(default_factory=dict)
+    branding_config:dict[str,Any]=Field(default_factory=dict)
+    portal_config:dict[str,Any]=Field(default_factory=dict)
+    host_agent_id:UUID|None=None
 
 class BoothUpdate(BaseModel):
     name:str=Field(min_length=1,max_length=160)
@@ -36,6 +39,9 @@ class BoothUpdate(BaseModel):
     scene_config:dict[str,Any]|None=None
     catalog_config:dict[str,Any]|None=None
     live_entry_config:dict[str,Any]|None=None
+    branding_config:dict[str,Any]|None=None
+    portal_config:dict[str,Any]|None=None
+    host_agent_id:UUID|None=None
 
 class AssetCreate(BaseModel):
     asset_type:Literal["image","video","presentation","3d_scene","document"]
@@ -58,6 +64,7 @@ class LeaseCreate(BaseModel):
     billing_cycle:str|None=None
     starts_at:str
     ends_at:str|None=None
+    traffic_score:float|None=Field(default=None,ge=0,le=100)
     metadata:dict[str,Any]=Field(default_factory=dict)
 
 def err(e:SupabaseRestError,code:str)->HTTPException:
@@ -71,7 +78,7 @@ async def booths(district_id:UUID|None=None,limit:int=Query(100,ge=1,le=200),con
 
 @router.post("",status_code=201)
 async def create(p:BoothCreate,context:dict=Depends(get_auth_context)):
-    try:return await rpc(context["user"],"create_booth",{"p_district_id":str(p.district_id),"p_district_zone_id":str(p.district_zone_id) if p.district_zone_id else None,"p_owner_type":p.owner_type,"p_owner_id":str(p.owner_id) if p.owner_id else None,"p_agent_id":str(p.agent_id) if p.agent_id else None,"p_booth_type":p.booth_type,"p_tier":p.tier,"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":p.display_config,"p_scene_config":p.scene_config,"p_catalog_config":p.catalog_config,"p_live_entry_config":p.live_entry_config})
+    try:return await rpc(context["user"],"create_booth",{"p_district_id":str(p.district_id),"p_district_zone_id":str(p.district_zone_id) if p.district_zone_id else None,"p_owner_type":p.owner_type,"p_owner_id":str(p.owner_id) if p.owner_id else None,"p_agent_id":str(p.agent_id) if p.agent_id else None,"p_booth_type":p.booth_type,"p_tier":p.tier,"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":p.display_config,"p_scene_config":p.scene_config,"p_catalog_config":p.catalog_config,"p_live_entry_config":{**p.live_entry_config,"portal":p.portal_config},"p_display_config":{**p.display_config,"branding":p.branding_config},"p_scene_config":{**p.scene_config,**({"host_agent_id":str(p.host_agent_id)} if p.host_agent_id else {})}})
     except SupabaseRestError as e:raise err(e,"BOOTH_CREATE_FAILED")
 
 @router.get("/{booth_id}")
@@ -82,7 +89,7 @@ async def get_booth(booth_id:UUID,context:dict=Depends(get_auth_context)):
 
 @router.patch("/{booth_id}")
 async def update(booth_id:UUID,p:BoothUpdate,context:dict=Depends(get_auth_context)):
-    try:return await rpc(context["user"],"update_booth",{"p_booth_id":str(booth_id),"p_name":p.name,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":p.display_config,"p_scene_config":p.scene_config,"p_catalog_config":p.catalog_config,"p_live_entry_config":p.live_entry_config})
+    try:return await rpc(context["user"],"update_booth",{"p_booth_id":str(booth_id),"p_name":p.name,"p_description":p.description,"p_theme_key":p.theme_key,"p_display_config":p.display_config,"p_scene_config":p.scene_config,"p_catalog_config":p.catalog_config,"p_live_entry_config":{**(p.live_entry_config or {}),"portal":p.portal_config or {}},"p_display_config":{**(p.display_config or {}),"branding":p.branding_config or {}},"p_scene_config":{**(p.scene_config or {}),**({"host_agent_id":str(p.host_agent_id)} if p.host_agent_id else {})}})
     except SupabaseRestError as e:raise err(e,"BOOTH_UPDATE_FAILED")
 
 @router.get("/{booth_id}/assets")
@@ -211,7 +218,7 @@ async def leases(booth_id:UUID,context:dict=Depends(get_auth_context)):
 
 @router.post("/{booth_id}/leases",status_code=201)
 async def request_lease(booth_id:UUID,p:LeaseCreate,context:dict=Depends(get_auth_context)):
-    try:return await rpc(context["user"],"request_booth_lease",{"p_booth_id":str(booth_id),"p_tier":p.tier,"p_size_class":p.size_class,"p_visibility_class":p.visibility_class,"p_price_amount":p.price_amount,"p_currency":p.currency,"p_billing_cycle":p.billing_cycle,"p_starts_at":p.starts_at,"p_ends_at":p.ends_at,"p_metadata":p.metadata})
+    try:return await rpc(context["user"],"request_booth_lease",{"p_booth_id":str(booth_id),"p_tier":p.tier,"p_size_class":p.size_class,"p_visibility_class":p.visibility_class,"p_price_amount":p.price_amount,"p_currency":p.currency,"p_billing_cycle":p.billing_cycle,"p_starts_at":p.starts_at,"p_ends_at":p.ends_at,"p_metadata":{**p.metadata,**({"traffic_score":p.traffic_score} if p.traffic_score is not None else {})}})
     except SupabaseRestError as e:raise err(e,"BOOTH_LEASE_REQUEST_FAILED")
 
 @router.post("/leases/{lease_id}/activate")
