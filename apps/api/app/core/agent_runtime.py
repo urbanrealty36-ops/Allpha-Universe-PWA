@@ -122,6 +122,58 @@ async def resume_after_approval(user: AuthenticatedUser, command_id: UUID) -> di
         raise AgentRuntimeError("AGENT_APPROVAL_RESUME_FAILED", exc.message, 409) from exc
 
 
+def _path_value(value: Any, path: str) -> Any:
+    current: Any = value
+    for part in path.split("."):
+        if isinstance(current, dict):
+            current = current.get(part)
+        elif isinstance(current, list) and part.isdigit() and int(part) < len(current):
+            current = current[int(part)]
+        else:
+            return None
+    return current
+
+
+def _condition_matches(condition: Any, completed: dict[str, Any]) -> bool:
+    if not condition:
+        return True
+    if not isinstance(condition, dict):
+        return False
+    if isinstance(condition.get("all"), list):
+        return all(_condition_matches(item, completed) for item in condition["all"])
+    if isinstance(condition.get("any"), list):
+        return any(_condition_matches(item, completed) for item in condition["any"])
+    path = condition.get("path")
+    operator = condition.get("operator", "exists")
+    if not isinstance(path, str):
+        return False
+    actual = _path_value(completed, path)
+    if operator == "exists":
+        return actual is not None
+    if operator == "equals":
+        return actual == condition.get("value")
+    if operator == "not_equals":
+        return actual != condition.get("value")
+    if operator == "contains":
+        return isinstance(actual, (str, list, dict)) and condition.get("value") in actual
+    return False
+
+
+def _retry_policy(policy: Any) -> tuple[int, int, set[str]]:
+    if not isinstance(policy, dict):
+        return 1, 0, set()
+    try:
+        max_attempts = max(1, min(int(policy.get("max_attempts", 1)), 5))
+    except (TypeError, ValueError):
+        max_attempts = 1
+    try:
+        backoff_ms = max(0, min(int(policy.get("backoff_ms", 250)), 30000))
+    except (TypeError, ValueError):
+        backoff_ms = 250
+    codes = policy.get("retryable_codes") or []
+    return max_attempts, backoff_ms, {str(code) for code in codes if isinstance(code, str)}
+
+
 async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str, Any]:
     rows = await select(user, "agent_commands", {"select": "id,agent_id,status,risk_level,command_source,live_session_id,live_collaboration_id", "id": f"eq.{command_id}", "limit": "1"})
     if not rows:
@@ -148,29 +200,78 @@ async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str
         await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "completed", "p_result_summary": "All planned steps completed."})
         return {"status": "completed", "command_id": str(command_id)}
 
+    completed: dict[str, Any] = {}
     for step in steps:
-        started = time.monotonic()
-        try:
-            if step["tool_key"] != "ai.generate":
-                raise AgentRuntimeError("AGENT_TOOL_EXECUTOR_NOT_IMPLEMENTED", f"Tool executor is not implemented for {step['tool_key']}.", 501)
-            args = step.get("arguments") or {}
-            messages = args.get("messages")
-            if not isinstance(messages, list) or not messages:
-                raise AgentRuntimeError("AGENT_TOOL_ARGUMENTS_INVALID", "ai.generate requires messages.", 422)
-            valid_messages = [m for m in messages if isinstance(m, dict) and m.get("role") and m.get("content")]
-            result = await generate(user, [GatewayMessage(role=str(m["role"]), content=str(m["content"])) for m in valid_messages], agent_id=str(command["agent_id"]), capabilities=["ai.generate"], metadata={"purpose": "agent_command", "command_id": str(command_id), "step_id": str(step["id"]), "command_source": command.get("command_source"), "live_session_id": command.get("live_session_id"), "live_collaboration_id": command.get("live_collaboration_id")})
-            latency = int((time.monotonic() - started) * 1000)
-            if result.estimated_cost_usd and result.estimated_cost_usd > 0:
-                try:
-                    await rpc(user, "record_agent_spend", {"p_agent_id": str(command["agent_id"]), "p_command_id": str(command_id), "p_step_id": str(step["id"]), "p_amount": result.estimated_cost_usd, "p_currency": "USD", "p_metadata": {"source": "ai_gateway", "model_id": result.model_id}})
-                except SupabaseRestError as exc:
-                    raise AgentRuntimeError("AGENT_SPEND_LIMIT_EXCEEDED", exc.message, 402) from exc
-            await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "completed", "p_result": {"text": result.text, "request_id": result.request_id, "model_id": result.model_id, "latency_ms": result.latency_ms, "estimated_cost_usd": result.estimated_cost_usd}, "p_latency_ms": latency})
-        except (AIGatewayError, AgentRuntimeError) as exc:
-            code = exc.code
-            await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "failed", "p_error_code": code, "p_error_message": str(exc), "p_latency_ms": int((time.monotonic() - started) * 1000)})
-            await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "failed", "p_error_code": code, "p_error_message": str(exc)})
-            raise AgentRuntimeError(code, str(exc), getattr(exc, "status_code", 502)) from exc
+        control = (step.get("arguments") or {}).get("_workflow_control") or {}
+        if not _condition_matches(control.get("condition"), completed):
+            await rpc(
+                user,
+                "record_agent_tool_result",
+                {
+                    "p_step_id": str(step["id"]),
+                    "p_status": "skipped",
+                    "p_result": {"skipped": True, "reason": "condition_false"},
+                },
+            )
+            completed[step["step_key"]] = {"status": "skipped", "result": {"skipped": True, "reason": "condition_false"}}
+            continue
+
+        args = dict(step.get("arguments") or {})
+        args.pop("_workflow_control", None)
+        messages = args.get("messages")
+        if not isinstance(messages, list) or not messages:
+            code = "AGENT_TOOL_ARGUMENTS_INVALID"
+            await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "failed", "p_error_code": code, "p_error_message": "ai.generate requires messages."})
+            await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "failed", "p_error_code": code, "p_error_message": "ai.generate requires messages."})
+            raise AgentRuntimeError(code, "ai.generate requires messages.", 422)
+
+        valid_messages = [m for m in messages if isinstance(m, dict) and m.get("role") and m.get("content")]
+        max_attempts, backoff_ms, retryable_codes = _retry_policy(control.get("retry_policy"))
+        last_error: AgentRuntimeError | None = None
+
+        for attempt in range(1, max_attempts + 1):
+            started = time.monotonic()
+            try:
+                if step["tool_key"] != "ai.generate":
+                    raise AgentRuntimeError("AGENT_TOOL_EXECUTOR_NOT_IMPLEMENTED", f"Tool executor is not implemented for {step['tool_key']}.", 501)
+                result = await generate(
+                    user,
+                    [GatewayMessage(role=str(m["role"]), content=str(m["content"])) for m in valid_messages],
+                    agent_id=str(command["agent_id"]),
+                    capabilities=["ai.generate"],
+                    metadata={
+                        "purpose": "agent_command",
+                        "command_id": str(command_id),
+                        "step_id": str(step["id"]),
+                        "command_source": command.get("command_source"),
+                        "live_session_id": command.get("live_session_id"),
+                        "live_collaboration_id": command.get("live_collaboration_id"),
+                        "attempt": attempt,
+                    },
+                )
+                latency = int((time.monotonic() - started) * 1000)
+                if result.estimated_cost_usd and result.estimated_cost_usd > 0:
+                    try:
+                        await rpc(user, "record_agent_spend", {"p_agent_id": str(command["agent_id"]), "p_command_id": str(command_id), "p_step_id": str(step["id"]), "p_amount": result.estimated_cost_usd, "p_currency": "USD", "p_metadata": {"source": "ai_gateway", "model_id": result.model_id, "attempt": attempt}})
+                    except SupabaseRestError as exc:
+                        raise AgentRuntimeError("AGENT_SPEND_LIMIT_EXCEEDED", exc.message, 402) from exc
+                payload = {"text": result.text, "request_id": result.request_id, "model_id": result.model_id, "latency_ms": result.latency_ms, "estimated_cost_usd": result.estimated_cost_usd, "attempt": attempt}
+                await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "completed", "p_result": payload, "p_latency_ms": latency})
+                completed[step["step_key"]] = {"status": "completed", "result": payload}
+                last_error = None
+                break
+            except (AIGatewayError, AgentRuntimeError) as exc:
+                last_error = exc if isinstance(exc, AgentRuntimeError) else AgentRuntimeError(exc.code, str(exc), exc.status_code)
+                retryable = last_error.code in retryable_codes and attempt < max_attempts
+                if retryable:
+                    await asyncio.sleep((backoff_ms * attempt) / 1000)
+                    continue
+                await rpc(user, "record_agent_tool_result", {"p_step_id": str(step["id"]), "p_status": "failed", "p_error_code": last_error.code, "p_error_message": str(last_error), "p_latency_ms": int((time.monotonic() - started) * 1000)})
+                await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "failed", "p_error_code": last_error.code, "p_error_message": str(last_error)})
+                raise last_error
+
+        if last_error is not None:
+            raise last_error
 
     await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "completed", "p_result_summary": "All planned steps completed."})
     return {"status": "completed", "command_id": str(command_id)}
