@@ -1,8 +1,7 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
@@ -109,7 +108,6 @@ function LiveStage3DAsset({ url }: { url:string }) {
 function AgentCharacter3DAsset({ url, position, performance }: { url:string; position:[number,number,number]; performance?: { speaking:boolean; level:number; userSpeaking:boolean } }) {
   const gltf = useGLTF(url);
   const character = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
-  const started = useRef(false);
   useFrame(({ clock }) => {
     const level = Math.max(0, Math.min(1, performance?.level ?? 0));
     const speaking = Boolean(performance?.speaking);
@@ -126,25 +124,28 @@ function AgentCharacter3DAsset({ url, position, performance }: { url:string; pos
         }
       }
       if (node.isBone) {
-        if (/(spine|chest|upperchest)/.test(name)) node.rotation.z += Math.sin(t * 1.1) * (speaking ? .006 + level * .012 : .003);
+        if (!node.userData.__allphaBaseRotation) node.userData.__allphaBaseRotation = { x: node.rotation.x, y: node.rotation.y, z: node.rotation.z };
+        const base = node.userData.__allphaBaseRotation;
+        if (/(spine|chest|upperchest)/.test(name)) node.rotation.z = base.z + Math.sin(t * 1.1) * (speaking ? .006 + level * .012 : .003);
         if (/(head|neck)/.test(name)) {
-          node.rotation.y += Math.sin(t * .55) * .008;
-          node.rotation.x += Math.sin(t * .8) * .006;
+          node.rotation.y = base.y + Math.sin(t * .55) * .008;
+          node.rotation.x = base.x + Math.sin(t * .8) * .006;
         }
         if (/(leftarm|rightarm|leftshoulder|rightshoulder)/.test(name)) {
           const side = /(left)/.test(name) ? -1 : 1;
-          node.rotation.z += side * Math.sin(t * (speaking ? 1.7 : .8)) * (speaking ? .018 + level * .035 : .008);
+          node.rotation.z = base.z + side * Math.sin(t * (speaking ? 1.7 : .8)) * (speaking ? .018 + level * .035 : .008);
         }
         if (/(leftforearm|rightforearm|lefthand|righthand)/.test(name) && speaking) {
-          node.rotation.x += Math.sin(t * 2.1) * (.012 + level * .02);
+          node.rotation.x = base.x + Math.sin(t * 2.1) * (.012 + level * .02);
         }
       }
       if (/(left.?eye|right.?eye|eyeball|eye_l|eye_r)/.test(name)) {
-        node.rotation.y += Math.sin(t * .55) * .004;
-        node.rotation.x += Math.sin(t * .7) * .003;
+        if (!node.userData.__allphaBaseRotation) node.userData.__allphaBaseRotation = { x: node.rotation.x, y: node.rotation.y, z: node.rotation.z };
+        const baseEye = node.userData.__allphaBaseRotation;
+        node.rotation.y = baseEye.y + Math.sin(t * .55) * .004;
+        node.rotation.x = baseEye.x + Math.sin(t * .7) * .003;
       }
     });
-    started.current = true;
   });
   return <primitive object={character} position={position} scale={1}/>;
 }
