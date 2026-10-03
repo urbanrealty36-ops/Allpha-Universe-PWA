@@ -1015,6 +1015,44 @@ Status: IMPLEMENTED FOUNDATION — NOT GREEN. Full authenticated E2E, real provi
 
 Next: Phase 23E — Review + Reputation + History.
 
+
+### PHASE 25 — Economy, Credits & Billing — IMPLEMENTED FOUNDATION / MIDTRANS E2E CONFIGURATION PENDING
+
+Implemented the canonical Economy/Billing boundary and centralized Midtrans payment path without creating a second wallet, credit ledger, payment engine, entitlement engine or Agent Service engine.
+
+Implemented:
+- Existing `ai_credit_ledger` retained as the authoritative credit ledger and balance source.
+- Credit products + credit purchases linked to Commerce Orders.
+- Billing plans, subscriptions and invoices linked to Commerce Orders.
+- Commerce Order `order_kind` distinguishes marketplace, credit purchase, subscription and other centralized transactions.
+- Midtrans Snap adapter in FastAPI; Server Key remains server-side only.
+- Allpha Web App checkout now routes Marketplace Commerce, credit purchases and subscriptions through the same Midtrans boundary.
+- Midtrans notification endpoint with SHA-512 signature verification and idempotent settlement processing.
+- Settlement RPC is callable only by `service_role`; authenticated/anon cannot invoke it.
+- Successful Midtrans settlement posts credit purchases into existing `ai_credit_ledger` and activates subscription/invoice state.
+- Successful Marketplace settlement activates existing commerce entitlements.
+- Midtrans status lookup is available for authenticated order/payment references.
+- Economy and Billing PWA surface plus centralized payment-result surface.
+- RLS/grants and invariant test coverage.
+
+Required server configuration:
+- `MIDTRANS_SERVER_KEY`
+- `MIDTRANS_CLIENT_KEY` (reserved for future Snap.js/popup usage)
+- `MIDTRANS_ENVIRONMENT=sandbox|production`
+- `SUPABASE_SERVICE_ROLE_KEY` for server-only webhook settlement path
+- `ALLPHA_PUBLIC_WEB_URL` for payment finish redirect
+
+No real credit products, plans, users, payments, subscriptions, invoices or settlement rows were seeded.
+
+Remaining Phase 25 gates:
+- Configure real Midtrans Sandbox credentials and Payment Notification URL.
+- Authenticated Marketplace → Midtrans → webhook → paid → entitlement E2E.
+- Authenticated Credit Purchase → Midtrans → webhook → ledger credit E2E.
+- Subscription initial checkout → invoice paid → subscription active E2E.
+- Midtrans expiry/deny/cancel/refund reconciliation.
+- Recurring subscription renewal automation remains provider/configuration dependent and is not fabricated.
+- Build/runtime/CI and final Green remain deferred to final verification phases.
+
 ### PHASE 24 — Marketplace & Commerce — IMPLEMENTED FOUNDATION / PAYMENT PROVIDER E2E PENDING
 Implemented the canonical Marketplace & Commerce boundary without creating a second Agent Service, Credit Ledger, Entitlement, Authorization or Risk engine.
 
