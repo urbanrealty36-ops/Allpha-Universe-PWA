@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from app.api.dependencies import get_auth_context
 from app.core.auth import AuthenticatedUser
-from app.core.supabase_rest import insert, rpc, select, update
+from app.core.ai_gateway import AIGatewayError, embed_text\nfrom app.core.supabase_rest import insert, rpc, select, update
 
 
 router = APIRouter(prefix="/api/v1/agents", tags=["Agent Memory & Knowledge"])
@@ -96,6 +96,22 @@ async def create_memory(agent_id: UUID, payload: MemoryCreateRequest, context: d
     return result
 
 
+@router.post("/{agent_id}/memory/{memory_id}/embedding/generate")
+async def generate_memory_embedding(agent_id: UUID, memory_id: UUID, context: dict = Depends(get_auth_context)) -> Any:
+    user = context["user"]
+    await _owned_agent(user, agent_id)
+    memory = await select(user, "agent_memory", {"select": "id,content", "id": f"eq.{memory_id}", "agent_id": f"eq.{agent_id}", "owner_user_id": f"eq.{user.user_id}", "limit": "1"})
+    if not memory:
+        raise HTTPException(status_code=404, detail={"code": "MEMORY_NOT_FOUND", "message": "Memory was not found."})
+    try:
+        result = await embed_text(user, memory[0]["content"], agent_id=str(agent_id), dimensions=1536, metadata={"purpose":"agent_memory_embedding","memory_id":str(memory_id)})
+    except AIGatewayError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+    rows = await update(user, "agent_memory_embeddings", {"memory_id": f"eq.{memory_id}"}, {"embedding": result.embedding, "model": result.model_identifier, "dimensions": len(result.embedding)})
+    if not rows:
+        rows = await insert(user, "agent_memory_embeddings", {"memory_id": str(memory_id), "embedding": result.embedding, "model": result.model_identifier, "dimensions": len(result.embedding)})
+    return {"data": rows[0] if rows else {"memory_id": str(memory_id)}, "embedding": {"model": result.model_identifier, "dimensions": len(result.embedding), "request_id": result.request_id}}
+
 @router.post("/{agent_id}/memory/{memory_id}/embedding")
 async def upsert_memory_embedding(
     agent_id: UUID,
@@ -133,11 +149,16 @@ async def upsert_memory_embedding(
 async def retrieve_memory(agent_id: UUID, payload: RetrievalRequest, context: dict = Depends(get_auth_context)) -> Any:
     user = context["user"]
     await _owned_agent(user, agent_id)
-    result = await rpc(user, "retrieve_agent_memory", {
-        "p_agent_id": str(agent_id),
-        "p_query_embedding": payload.embedding,
-        "p_limit": payload.limit,
-    })
+    embedding = payload.embedding
+    if not embedding and payload.query:
+        try:
+            result = await embed_text(user, payload.query, agent_id=str(agent_id), dimensions=1536, metadata={"purpose":"agent_memory_query"})
+            embedding = "[" + ",".join(f"{v:.10g}" for v in result.embedding) + "]"
+        except AIGatewayError as exc:
+            raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+    if not embedding:
+        raise HTTPException(status_code=422, detail={"code": "RETRIEVAL_QUERY_REQUIRED", "message": "query or embedding is required."})
+    result = await rpc(user, "retrieve_agent_memory", {"p_agent_id": str(agent_id), "p_query_embedding": embedding, "p_limit": payload.limit})
     return {"data": result}
 
 
@@ -236,11 +257,16 @@ async def create_knowledge_chunk(
 async def retrieve_knowledge(agent_id: UUID, payload: RetrievalRequest, context: dict = Depends(get_auth_context)) -> Any:
     user = context["user"]
     await _owned_agent(user, agent_id)
-    result = await rpc(user, "retrieve_agent_knowledge", {
-        "p_agent_id": str(agent_id),
-        "p_query_embedding": payload.embedding,
-        "p_limit": payload.limit,
-    })
+    embedding = payload.embedding
+    if not embedding and payload.query:
+        try:
+            result = await embed_text(user, payload.query, agent_id=str(agent_id), dimensions=1536, metadata={"purpose":"agent_knowledge_query"})
+            embedding = "[" + ",".join(f"{v:.10g}" for v in result.embedding) + "]"
+        except AIGatewayError as exc:
+            raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+    if not embedding:
+        raise HTTPException(status_code=422, detail={"code": "RETRIEVAL_QUERY_REQUIRED", "message": "query or embedding is required."})
+    result = await rpc(user, "retrieve_agent_knowledge", {"p_agent_id": str(agent_id), "p_query_embedding": embedding, "p_limit": payload.limit})
     return {"data": result}
 
 
