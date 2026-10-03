@@ -1,6 +1,6 @@
 begin;
 
-select plan(47);
+select plan(48);
 
 select has_table('public','communities','communities table exists');
 select has_table('public','community_memberships','membership table exists');
@@ -46,6 +46,7 @@ select is((select prosecdef from pg_proc where oid='public.create_community_topi
 select is((select prosecdef from pg_proc where oid='public.link_community_topic(uuid,uuid)'::regprocedure),true,'topic link RPC is security definer');
 select is((select prosecdef from pg_proc where oid='public.link_community_to_world(uuid,uuid,text)'::regprocedure),true,'world link RPC is security definer');
 select is((select prosecdef from pg_proc where oid='public.decide_community_moderation_case(uuid,text,text)'::regprocedure),true,'moderation decision RPC is security definer');
+select ok(position('insert into public.community_moderation_cases' in pg_get_functiondef('public.report_community_target(uuid,text,uuid,text,text)'::regprocedure)) > 0,'report RPC creates a moderation case');
 
 select is((select count(*) from public.communities),0::bigint,'no community seed data');
 select is((select count(*) from public.community_memberships),0::bigint,'no membership seed data');
