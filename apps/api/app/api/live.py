@@ -367,6 +367,73 @@ async def create_live_audience_interaction(session_id: UUID, payload: LiveAudien
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_AUDIENCE_INTERACTION_FAILED") from exc
 
+
+class LiveCharacterSelect(BaseModel):
+    asset_id: UUID
+    collaboration_id: UUID | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+@router.get("/sessions/{session_id}/characters")
+async def list_live_characters(session_id: UUID, context: dict = Depends(get_auth_context)):
+    rows = await select(
+        context["user"],
+        "live_session_character_bindings",
+        {
+            "select": "id,live_session_id,live_agent_collaboration_id,asset_id,selected_by_user_id,status,selected_at,removed_at,metadata",
+            "live_session_id": f"eq.{session_id}",
+            "order": "selected_at.desc",
+        },
+    )
+    return {"data": rows}
+
+
+@router.post("/sessions/{session_id}/characters", status_code=201)
+async def select_live_character(session_id: UUID, payload: LiveCharacterSelect, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "select_live_character", {
+            "p_live_session_id": str(session_id),
+            "p_asset_id": str(payload.asset_id),
+            "p_collaboration_id": str(payload.collaboration_id) if payload.collaboration_id else None,
+            "p_metadata": payload.metadata,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_CHARACTER_SELECT_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/characters/remove")
+async def remove_live_character(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "remove_live_character", {"p_live_session_id": str(session_id)})
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_CHARACTER_REMOVE_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/audience/ask", status_code=201)
+async def ask_live_agent_from_audience(
+    session_id: UUID,
+    payload: LiveConversationMessage,
+    viewer_id: UUID = Query(...),
+    collaboration_id: UUID = Query(...),
+    context: dict = Depends(get_auth_context),
+):
+    try:
+        await rpc(context["user"], "create_live_session_message", {
+            "p_live_session_id": str(session_id),
+            "p_sender_type": "audience",
+            "p_content": payload.content.strip(),
+            "p_live_collaboration_id": str(collaboration_id),
+            "p_viewer_id": str(viewer_id),
+        })
+        return {"data": await run_live_conversation_turn(context["user"], session_id, collaboration_id)}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_AUDIENCE_ASK_FAILED") from exc
+    except AgentRuntimeError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)}) from exc
+
+
 @router.get("/sessions/{session_id}")
 async def get_live_session(session_id: UUID, context: dict = Depends(get_auth_context)):
     rows = await select(
