@@ -96,6 +96,7 @@ async def build_agent_context(
         "order": "confidence.desc",
         "limit": "10",
     })
+    goals = await select(user, "personalization_goals", {"select": "id,title,description,status,priority,target_date,progress,metadata,updated_at", "agent_id": f"eq.{agent_id}", "order": "priority.desc,updated_at.desc", "limit": "10"})
     habits = await select(user, "habit_patterns", {
         "select": "id,pattern_type,pattern_key,pattern,confidence,evidence_count,status,last_observed_at,updated_at",
         "agent_id": f"eq.{agent_id}",
@@ -129,6 +130,7 @@ async def build_agent_context(
             "interest_affinities": affinities,
             "passion_clusters": passions,
             "habit_patterns": habits,
+            "goals": goals,
             "spatial_presence_is_not_learning_authority": True,
         },
         "collaboration": collaboration,
@@ -138,6 +140,16 @@ async def build_agent_context(
             "vector_retrieval": "existing_retrieve_agent_memory_and_retrieve_agent_knowledge_via_POST_retrieve",
             "llm": "only_after_authorization_filtering_and_context_budgeting",
             "authority": "presentation_retrieval_learning_and_spatial_context_never_grant_authority",
+        },
+        "authorized_context": {
+            "memory": memory,
+            "knowledge": knowledge,
+            "personalization": {"interest_affinities": affinities, "passion_clusters": passions, "habit_patterns": habits, "goals": goals},
+            "spatial": spatial,
+            "collaboration": collaboration,
+            "live": live,
+            "bounded": True,
+            "authority": "context informs Agent Runtime but never grants authority",
         },
         "world": {"world_id": str(world_id) if world_id else None, "district_id": str(district_id) if district_id else None},
     }
