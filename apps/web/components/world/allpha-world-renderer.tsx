@@ -110,6 +110,7 @@ function WorldObjects({
   portals: SpatialPortal[];
   content: SpatialContent[];
   selectedBoothId?: string;
+  themePackUrl?: string | null;
 }) {
   const style = useMemo(() => proceduralThemeStyle(scene), [scene]);
   const primary = String(tokens?.["theme.color.primary"] ?? style.accent);
@@ -134,7 +135,7 @@ function WorldObjects({
       const x = Math.cos(angle) * 6;
       const z = Math.sin(angle) * 6;
       return <group key={zone.id} position={[x, 0, z]}>
-        <mesh onClick={() => onHotspot?.({ id: zone.id, kind: "zone", metadata: { type: zone.type } })}><boxGeometry args={[3.4, .45, 3.4]} /><meshStandardMaterial color={i === 0 ? color : style.secondary} /></mesh>
+        <mesh onClick={() => onHotspot?.({ id: zone.id, kind: "zone", metadata: { type: zone.type } })}><boxGeometry args={[3.4, .45, 3.4]} /><meshStandardMaterial color={i === 0 ? color : style.secondary} transparent={hasThemePack} opacity={hasThemePack ? .04 : 1} /></mesh>
         {!hasThemePack && <Structure kind={style.structure} color={style.secondary} accent={accent} position={[0, 0, 0]} scale={.75 + (i % 3) * .1} />}
       </group>;
     })}
