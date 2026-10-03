@@ -1144,6 +1144,32 @@ Not GREEN:
 Next: PHASE 21 — Theme & World Builder.
 
 
+### PHASE 21/21.5 — Platform Universe Instance Provisioning — IMPLEMENTED
+
+Activated the existing platform Theme + World Template catalog as canonical public Universe instances without introducing a second World/District/Booth/Theme/renderer engine.
+
+Live topology:
+- 1 platform Galaxy
+- 25 platform Worlds
+- 100 platform Districts, four per World, mapped to existing GLB District_A–D components
+- 400 active Zones, four per District, derived from the existing World Template world_schema.zones
+- 100 active/approved platform Booths, one per District, bound to the existing booth Zone and BoothTemplate presentation component
+
+Platform instances are product/spatial configuration, not fabricated user/Agent/organization business records. Normal Human/Agent/Organization ownership semantics remain unchanged. The existing Theme Asset, Storage, World Runtime and AllphaWorldRenderer paths remain authoritative.
+
+Migration:
+- database/migrations/20261004040000_phase_21_5_platform_universe_instance_provisioning.sql
+
+Invariants:
+- database/tests/phase_21_5_platform_universe_instance_provisioning_invariants.sql
+
+Architecture:
+- docs/architecture/PHASE_21_5_PLATFORM_UNIVERSE_INSTANCE_PROVISIONING_v1.0.md
+
+Status: IMPLEMENTED / NOT FINAL GREEN. Runtime/browser renderer, device performance/accessibility, realtime, build/CI and production gates remain later.
+
+Next: PHASE 22 — Live Stories / Streaming / Experiences, continuing the existing Phase 22I completion contract.
+
 ### PHASE 22 — Live Stories / Streaming / Experiences — TEMPLATE CATALOG IMPLEMENTED
 Implemented the built-in Live Streaming Collaboration presentation catalog on top of the existing Live schema foundation.
 
