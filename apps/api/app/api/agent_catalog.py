@@ -1,10 +1,10 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 
 from app.api.dependencies import get_auth_context
 from app.core.auth import AuthenticatedUser
-from app.core.supabase_rest import select
+from app.core.supabase_rest import rpc, select
 
 
 router = APIRouter(prefix="/api/v1/agent-catalog", tags=["Agent Catalog"])
