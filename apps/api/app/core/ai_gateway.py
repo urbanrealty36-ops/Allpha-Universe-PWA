@@ -336,3 +336,117 @@ async def generate(user: AuthenticatedUser, messages: list[GatewayMessage], *, a
     })
     await _record_usage(user, {"request_id": request_id, "event_type": "failure", "agent_id": agent_id, "metadata": {"error_code": last_error.code if last_error else "AI_GATEWAY_FAILED"}})
     raise last_error or AIGatewayError("AI_GATEWAY_FAILED", "All configured model attempts failed.", 502)
+
+
+@dataclass(frozen=True)
+class GatewayEmbeddingResult:
+    request_id: str
+    embedding: list[float]
+    provider_id: str
+    model_id: str
+    model_identifier: str
+    input_tokens: int | None
+    estimated_cost_usd: float | None
+    latency_ms: int
+    attempt_no: int
+
+
+async def _call_openai_embedding(provider: dict[str, Any], model: dict[str, Any], text: str, dimensions: int | None, timeout_ms: int) -> tuple[list[float], int | None, int]:
+    payload: dict[str, Any] = {"model": model["model_identifier"], "input": text, "encoding_format": "float"}
+    if dimensions is not None:
+        payload["dimensions"] = dimensions
+    headers = {"Authorization": f"Bearer {_provider_secret(provider)}", "Content-Type": "application/json"}
+    url = f"{provider['base_url'].rstrip('/')}/embeddings"
+    started = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=timeout_ms / 1000) as client:
+            response = await client.post(url, json=payload, headers=headers)
+    except httpx.TimeoutException as exc:
+        raise AIGatewayError("AI_PROVIDER_TIMEOUT", "AI provider request timed out.", 504) from exc
+    except httpx.HTTPError as exc:
+        raise AIGatewayError("AI_PROVIDER_NETWORK_ERROR", "AI provider network request failed.", 502) from exc
+    latency = int((time.monotonic() - started) * 1000)
+    if response.status_code >= 400:
+        code = "AI_PROVIDER_RATE_LIMITED" if response.status_code == 429 else "AI_PROVIDER_HTTP_ERROR"
+        raise AIGatewayError(code, f"AI provider returned HTTP {response.status_code}.", 429 if response.status_code == 429 else 502)
+    data = response.json()
+    rows = data.get("data") or []
+    embedding = rows[0].get("embedding") if rows else None
+    if not isinstance(embedding, list) or not embedding:
+        raise AIGatewayError("AI_EMBEDDING_EMPTY", "Embedding provider returned no vector.", 502)
+    usage = data.get("usage") or {}
+    return [float(value) for value in embedding], usage.get("prompt_tokens") or usage.get("total_tokens"), latency
+
+
+async def embed_text(
+    user: AuthenticatedUser,
+    text: str,
+    *,
+    agent_id: str | None = None,
+    dimensions: int | None = None,
+    idempotency_key: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> GatewayEmbeddingResult:
+    clean = text.strip()
+    if not clean:
+        raise AIGatewayError("AI_EMBEDDING_INPUT_EMPTY", "Embedding input must not be empty.", 422)
+    if len(clean) > 32000:
+        raise AIGatewayError("AI_EMBEDDING_INPUT_TOO_LARGE", "Embedding input exceeds the server limit.", 413)
+
+    request = await rpc(user, "create_ai_gateway_request", {
+        "p_agent_id": agent_id,
+        "p_idempotency_key": idempotency_key,
+        "p_requested_capabilities": ["embedding.generate"],
+        "p_input_fingerprint": hashlib.sha256(clean.encode()).hexdigest(),
+        "p_metadata": {**(metadata or {}), "gateway_operation": "embedding"},
+    })
+    request_id = str(request["id"])
+    if request.get("idempotency_reused"):
+        raise AIGatewayError("AI_IDEMPOTENCY_REPLAY_UNAVAILABLE", "An idempotency key has already been used. A new provider call was not started.", 409)
+
+    models = await select(user, "ai_models", {
+        "select": "id,provider_id,model_key,model_identifier,display_name,enabled,context_window_tokens,max_output_tokens,input_cost_per_1m,output_cost_per_1m,capabilities,metadata,ai_providers(id,provider_key,adapter,base_url,credential_env_var,enabled,metadata)",
+        "enabled": "eq.true",
+        "order": "model_key.asc",
+    })
+    policies = await select(user, "ai_routing_policies", {
+        "select": "id,policy_key,scope_type,scope_id,priority,enabled,required_capabilities,allowed_model_ids,fallback_model_ids,max_context_tokens,max_output_tokens,max_cost_usd,timeout_ms,max_retries,safety_policy,metadata",
+        "enabled": "eq.true",
+        "order": "priority.asc",
+    })
+    policy = _policy_for(str(user.user_id), agent_id, policies)
+    candidates = _candidate_models(models, policy, {"embedding.generate"})
+    if not candidates:
+        await _update_request(user, request_id, {"p_status": "not_configured", "p_safety_status": "not_configured", "p_error_code": "AI_NO_EMBEDDING_MODEL", "p_error_message": "No enabled embedding model satisfies the routing policy."})
+        await _record_usage(user, {"request_id": request_id, "event_type": "denied", "agent_id": agent_id, "metadata": {"reason": "no_embedding_model"}})
+        raise AIGatewayError("AI_NO_EMBEDDING_MODEL", "No configured embedding model can satisfy this request.", 503)
+
+    timeout_ms = int((policy or {}).get("timeout_ms", 30000))
+    await _update_request(user, request_id, {"p_status": "running", "p_safety_status": "not_configured", "p_selected_policy_id": str(policy["id"]) if policy else None})
+    last_error: AIGatewayError | None = None
+    max_retries = int((policy or {}).get("max_retries", 1))
+    for index, model in enumerate(candidates[:max_retries + 1], start=1):
+        provider = model.get("ai_providers") or {}
+        try:
+            configured_dimensions = int((model.get("metadata") or {}).get("dimensions") or 0) or None
+            target_dimensions = dimensions or configured_dimensions
+            if configured_dimensions and target_dimensions and target_dimensions != configured_dimensions:
+                raise AIGatewayError("AI_EMBEDDING_DIMENSION_UNSUPPORTED", "Requested embedding dimensions do not match the configured vector contract.", 422)
+            vector, input_tokens, latency = await _call_openai_embedding(provider, model, clean, target_dimensions, timeout_ms)
+            cost = _estimate_cost(model, input_tokens, None)
+            if policy and policy.get("max_cost_usd") is not None and cost is not None and cost > float(policy["max_cost_usd"]):
+                raise AIGatewayError("AI_COST_BUDGET_EXCEEDED", "Estimated embedding cost exceeds the routing policy budget.", 402)
+            await _record_attempt(user, {"request_id": request_id, "attempt_no": index, "provider_id": str(provider["id"]), "model_id": str(model["id"]), "status": "completed", "latency_ms": latency, "input_tokens": input_tokens, "output_tokens": None, "total_tokens": input_tokens, "estimated_cost_usd": cost})
+            await _update_request(user, {"p_request_id": request_id, "p_status": "completed", "p_safety_status": "not_configured", "p_selected_model_id": str(model["id"]), "p_selected_policy_id": str(policy["id"]) if policy else None, "p_input_tokens": input_tokens, "p_output_tokens": None, "p_total_tokens": input_tokens, "p_estimated_cost_usd": cost, "p_latency_ms": latency, "p_response_text_hash": hashlib.sha256(",".join(f"{v:.8g}" for v in vector).encode()).hexdigest()})
+            await _record_usage(user, {"request_id": request_id, "event_type": "success", "provider_id": str(provider["id"]), "model_id": str(model["id"]), "agent_id": agent_id, "input_tokens": input_tokens, "output_tokens": None, "total_tokens": input_tokens, "estimated_cost_usd": cost, "latency_ms": latency, "metadata": {"gateway_operation": "embedding", "dimensions": len(vector)}})
+            return GatewayEmbeddingResult(request_id, vector, str(provider["id"]), str(model["id"]), str(model["model_identifier"]), input_tokens, cost, latency, index)
+        except AIGatewayError as exc:
+            last_error = exc
+            await _record_attempt(user, {"request_id": request_id, "attempt_no": index, "provider_id": str(provider.get("id")), "model_id": str(model.get("id")), "status": "timeout" if exc.code == "AI_PROVIDER_TIMEOUT" else ("rate_limited" if exc.code == "AI_PROVIDER_RATE_LIMITED" else "failed"), "error_code": exc.code, "error_message": str(exc)[:1000]})
+            if index < min(max_retries + 1, len(candidates)):
+                await _record_usage(user, {"request_id": request_id, "event_type": "retry", "provider_id": str(provider.get("id")), "model_id": str(model.get("id")), "agent_id": agent_id, "metadata": {"attempt_no": index, "error_code": exc.code, "gateway_operation": "embedding"}})
+                continue
+            break
+    await _update_request(user, request_id, {"p_status": "failed", "p_safety_status": "not_configured", "p_selected_policy_id": str(policy["id"]) if policy else None, "p_error_code": last_error.code if last_error else "AI_EMBEDDING_FAILED", "p_error_message": str(last_error)[:1000] if last_error else "All embedding model attempts failed."})
+    await _record_usage(user, {"request_id": request_id, "event_type": "failure", "agent_id": agent_id, "metadata": {"error_code": last_error.code if last_error else "AI_EMBEDDING_FAILED", "gateway_operation": "embedding"}})
+    raise last_error or AIGatewayError("AI_EMBEDDING_FAILED", "All embedding model attempts failed.", 502)
