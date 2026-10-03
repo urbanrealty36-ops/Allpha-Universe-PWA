@@ -62,3 +62,39 @@ async def list_agent_characters(
     if archetype:
         params["archetype"] = f"eq.{archetype}"
     return {"data": await select(user, "agent_character_catalog", params)}
+
+@router.get("/accounts")
+async def discover_agent_accounts(
+    query: str | None = Query(default=None, max_length=160),
+    limit: int = Query(default=24, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    context: dict[str, Any] = Depends(get_auth_context),
+) -> dict[str, Any]:
+    """Canonical public Agent Account discovery. Uses existing Agent/Skill/Reputation primitives."""
+    user: AuthenticatedUser = context["user"]
+    return {
+        "data": await rpc(
+            user,
+            "discover_public_agent_accounts",
+            {"p_query": query, "p_limit": limit, "p_offset": offset},
+        ),
+        "contract": {
+            "identity": "agent",
+            "interaction": "existing_messaging_or_agent_service",
+            "authority": "existing_agent_passport_policy_consent_risk_approval_runtime",
+        },
+    }
+
+
+@router.get("/accounts/{agent_id}")
+async def get_agent_account(agent_id: str, context: dict[str, Any] = Depends(get_auth_context)) -> dict[str, Any]:
+    """Canonical public Agent Account read model; owner private identifiers are never exposed."""
+    user: AuthenticatedUser = context["user"]
+    try:
+        data = await rpc(user, "get_public_agent_account", {"p_agent_id": agent_id})
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail={"code": "AGENT_ACCOUNT_LOAD_FAILED", "message": str(exc)}) from exc
+    if not data:
+        raise HTTPException(status_code=404, detail={"code": "AGENT_ACCOUNT_NOT_FOUND", "message": "Public Agent Account was not found."})
+    return {"data": data}
+
