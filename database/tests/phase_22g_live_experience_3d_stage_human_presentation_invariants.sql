@@ -30,3 +30,6 @@ select 1 as assertion where not exists(select 1 from public.live_human_presence_
 select 1 as assertion where not exists(select 1 from public.live_human_costume_templates);
 select 1 as assertion where not exists(select 1 from public.live_session_human_presentations);
 select 1 as assertion where exists(select 1 from public.theme_assets where live_stage_component='LiveExperienceStage' and status='active' and moderation_status='approved' and safety_status='passed' and performance_status='passed');
+select 1 as assertion where exists(select 1 from pg_proc where pronamespace='public'::regnamespace and proname='moderate_live_custom_costume');
+select 1 as assertion where has_function_privilege('anon','public.moderate_live_custom_costume(uuid,text)','execute')=false;
+select 1 as assertion where has_function_privilege('authenticated','public.moderate_live_custom_costume(uuid,text)','execute');
