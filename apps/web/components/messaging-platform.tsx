@@ -70,7 +70,21 @@ export default function MessagingSurface(){
   catch(e){setError(e instanceof Error?e.message:"MESSAGES_LOAD_FAILED")}
  }
  useEffect(()=>{void load();void loadAgentServices();void loadCredits()},[]);
- useEffect(()=>{if(selected) void loadMessages(selected)},[selected]);
+ async function loadConversationControl(id:string){
+  try{const r=await apiFetch<{data:ConversationControl}>("/api/v1/messaging/conversations/"+id+"/control");setConversationControl(r.data??null)}
+  catch{setConversationControl(null)}
+ }
+ async function toggleTakeover(){
+  if(!selected||!conversationControl?.is_agent_owner)return;
+  setTakeoverBusy(true);setError(null);
+  try{
+   const active=!conversationControl.human_takeover_active;
+   const r=await apiFetch<{data:ConversationControl}>("/api/v1/messaging/conversations/"+selected+"/takeover",{method:"POST",body:JSON.stringify({active})});
+   setConversationControl(r.data??{...conversationControl,human_takeover_active:active});
+  }catch(e){setError(e instanceof Error?e.message:"HUMAN_TAKEOVER_UPDATE_FAILED")}
+  finally{setTakeoverBusy(false)}
+ }
+ useEffect(()=>{if(selected){void loadMessages(selected);void loadConversationControl(selected)}},[selected]);
  useEffect(()=>{
   if(!selected)return;
   const supabase=createSupabaseBrowserClient();
