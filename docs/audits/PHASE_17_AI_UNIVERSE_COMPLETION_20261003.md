@@ -185,3 +185,36 @@ Still deferred by the project's execution policy:
 - production Green
 
 No synthetic business data was introduced.
+
+
+## Galaxy → World transition and explicit Theme activation
+
+Follow-up implementation commit: `85da44af962d646f4ce3f0ab9a2f95664b9a28c3`.
+
+The spatial navigation now has an explicit transition contract:
+
+`Galaxy node → spatial transition → World scene`
+
+The transition:
+- announces the destination Galaxy/World/District/Booth
+- uses a full-screen spatial warp/HUD treatment instead of a dashboard loading card
+- preserves the 3D canvas as the primary surface
+- does not fabricate a destination record
+
+Theme activation is now explicit:
+- Theme Template nodes in the Galaxy scene are clickable spatial objects
+- the selected Theme is visually highlighted
+- the selected Theme becomes the presentation context until an authoritative World/District/Booth `theme_key` overrides it
+- no arbitrary `themes[0]` fallback is used
+- World HUD identifies the active Theme Template
+- the existing signed asset-manifest lifecycle remains the only path to binary 3D delivery
+- when no active binary asset exists, the canonical procedural renderer remains the fallback
+
+This keeps the domain boundary explicit:
+
+`Theme Template = visual configuration`
+`World = authoritative spatial/business object`
+
+and:
+
+`Galaxy → World transition` is navigation/presentation, not a new engine.
