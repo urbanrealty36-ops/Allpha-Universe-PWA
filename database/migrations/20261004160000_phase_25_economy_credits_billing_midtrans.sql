@@ -114,3 +114,7 @@ end $$;
 revoke all on function public.create_credit_purchase_order(uuid,text),public.create_subscription_order(uuid,text),public.get_my_economy_summary(),public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb) from public,anon;
 grant execute on function public.create_credit_purchase_order(uuid,text),public.create_subscription_order(uuid,text),public.get_my_economy_summary() to authenticated;
 grant execute on function public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb) to service_role;
+create policy economy_settlement_events_no_client_access on public.economy_settlement_events for select to authenticated using (false);
+revoke all on public.economy_settlement_events from authenticated,anon;
+revoke execute on function public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb) from public,anon,authenticated;
+grant execute on function public.process_midtrans_settlement(uuid,text,text,bigint,text,jsonb) to service_role;
