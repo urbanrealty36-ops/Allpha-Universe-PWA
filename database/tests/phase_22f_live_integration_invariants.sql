@@ -1,5 +1,5 @@
 begin;
-select plan(16);
+select plan(20);
 select ok(to_regclass('public.live_session_character_bindings') is not null,'Live character binding table exists');
 select ok(to_regprocedure('public.select_live_character(uuid,uuid,uuid,jsonb)') is not null,'Live character selection RPC exists');
 select ok(to_regprocedure('public.remove_live_character(uuid)') is not null,'Live character removal RPC exists');
@@ -16,5 +16,9 @@ select ok(pg_get_functiondef('public.create_live_session_message(uuid,text,text,
 select ok(exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='live_session_character_bindings'),'character bindings published to Realtime');
 select ok((select count(*) from public.live_session_character_bindings)=0,'no synthetic character bindings');
 select ok((select count(*) from public.live_sessions)=0,'no synthetic Live sessions');
+select ok(to_regprocedure('public.start_live_session(uuid,text,text)') is not null,'Live start lifecycle RPC exists');
+select ok(to_regprocedure('public.end_live_session(uuid)') is not null,'Live end lifecycle RPC exists');
+select ok(has_function_privilege('anon','public.start_live_session(uuid,text,text)','execute') is false,'anon cannot start Live');
+select ok(has_function_privilege('authenticated','public.start_live_session(uuid,text,text)','execute'),'authenticated can start Live');
 select * from finish();
 rollback;
