@@ -1,0 +1,174 @@
+{
+  "schema_version": "allpha.theme-3d-pack.v1",
+  "pack_version": "1.0.0",
+  "theme_count": 25,
+  "storage_bucket": "allpha-world-assets",
+  "expected_storage_prefix": "platform/themes/{catalog_key}/v{theme_version}/",
+  "asset_type": "3d_scene",
+  "mime_type": "model/gltf-binary",
+  "runtime_components": [
+    "WorldGround",
+    "District_A",
+    "District_B",
+    "District_C",
+    "District_D",
+    "WorldLandmark",
+    "BoothTemplate",
+    "AgentCharacterTemplate",
+    "PortalGateway",
+    "ContentAICapsule",
+    "LiveExperienceStage"
+  ],
+  "themes": [
+    {
+      "catalog_key": "heroic-nexus",
+      "name": "Heroic Nexus",
+      "catalog_order": 1,
+      "artifact_file": "heroic-nexus.glb"
+    },
+    {
+      "catalog_key": "nusantara-raya",
+      "name": "Nusantara Raya",
+      "catalog_order": 2,
+      "artifact_file": "nusantara-raya.glb"
+    },
+    {
+      "catalog_key": "neo-jakarta-2099",
+      "name": "Neo Jakarta 2099",
+      "catalog_order": 3,
+      "artifact_file": "neo-jakarta-2099.glb"
+    },
+    {
+      "catalog_key": "celestial-samurai",
+      "name": "Celestial Samurai",
+      "catalog_order": 4,
+      "artifact_file": "celestial-samurai.glb"
+    },
+    {
+      "catalog_key": "skyforge-empire",
+      "name": "Skyforge Empire",
+      "catalog_order": 5,
+      "artifact_file": "skyforge-empire.glb"
+    },
+    {
+      "catalog_key": "emerald-rainforest",
+      "name": "Emerald Rainforest",
+      "catalog_order": 6,
+      "artifact_file": "emerald-rainforest.glb"
+    },
+    {
+      "catalog_key": "aurora-kingdom",
+      "name": "Aurora Kingdom",
+      "catalog_order": 7,
+      "artifact_file": "aurora-kingdom.glb"
+    },
+    {
+      "catalog_key": "desert-starfall",
+      "name": "Desert Starfall",
+      "catalog_order": 8,
+      "artifact_file": "desert-starfall.glb"
+    },
+    {
+      "catalog_key": "oceanic-atlantis",
+      "name": "Oceanic Atlantis",
+      "catalog_order": 9,
+      "artifact_file": "oceanic-atlantis.glb"
+    },
+    {
+      "catalog_key": "lunar-frontier",
+      "name": "Lunar Frontier",
+      "catalog_order": 10,
+      "artifact_file": "lunar-frontier.glb"
+    },
+    {
+      "catalog_key": "mars-frontier",
+      "name": "Mars Frontier",
+      "catalog_order": 11,
+      "artifact_file": "mars-frontier.glb"
+    },
+    {
+      "catalog_key": "neon-tokyo",
+      "name": "Neon Tokyo",
+      "catalog_order": 12,
+      "artifact_file": "neon-tokyo.glb"
+    },
+    {
+      "catalog_key": "pharaoh-eternal",
+      "name": "Pharaoh Eternal",
+      "catalog_order": 13,
+      "artifact_file": "pharaoh-eternal.glb"
+    },
+    {
+      "catalog_key": "viking-fjord",
+      "name": "Viking Fjord",
+      "catalog_order": 14,
+      "artifact_file": "viking-fjord.glb"
+    },
+    {
+      "catalog_key": "kingdom-of-aether",
+      "name": "Kingdom of Aether",
+      "catalog_order": 15,
+      "artifact_file": "kingdom-of-aether.glb"
+    },
+    {
+      "catalog_key": "coral-metropolis",
+      "name": "Coral Metropolis",
+      "catalog_order": 16,
+      "artifact_file": "coral-metropolis.glb"
+    },
+    {
+      "catalog_key": "savanna-spirit",
+      "name": "Savanna Spirit",
+      "catalog_order": 17,
+      "artifact_file": "savanna-spirit.glb"
+    },
+    {
+      "catalog_key": "floating-garden",
+      "name": "Floating Garden",
+      "catalog_order": 18,
+      "artifact_file": "floating-garden.glb"
+    },
+    {
+      "catalog_key": "dragon-dominion",
+      "name": "Dragon Dominion",
+      "catalog_order": 19,
+      "artifact_file": "dragon-dominion.glb"
+    },
+    {
+      "catalog_key": "quantum-city",
+      "name": "Quantum City",
+      "catalog_order": 20,
+      "artifact_file": "quantum-city.glb"
+    },
+    {
+      "catalog_key": "crystal-ai-city",
+      "name": "Crystal AI City",
+      "catalog_order": 21,
+      "artifact_file": "crystal-ai-city.glb"
+    },
+    {
+      "catalog_key": "galactic-frontier",
+      "name": "Galactic Frontier",
+      "catalog_order": 22,
+      "artifact_file": "galactic-frontier.glb"
+    },
+    {
+      "catalog_key": "chronos-realm",
+      "name": "Chronos Realm",
+      "catalog_order": 23,
+      "artifact_file": "chronos-realm.glb"
+    },
+    {
+      "catalog_key": "mystic-academy",
+      "name": "Mystic Academy",
+      "catalog_order": 24,
+      "artifact_file": "mystic-academy.glb"
+    },
+    {
+      "catalog_key": "dream-carnival",
+      "name": "Dream Carnival",
+      "catalog_order": 25,
+      "artifact_file": "dream-carnival.glb"
+    }
+  ]
+}
