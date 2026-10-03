@@ -184,3 +184,65 @@ async def execute_collaboration_agreement(
             status_code=status,
             detail={"code": "COLLABORATION_EXECUTION_BIND_FAILED", "message": exc.message},
         ) from exc
+
+
+class CollaborationResultCreate(BaseModel):
+    status: str = Field(pattern="^(recorded|successful|partial|failed|cancelled|disputed)$")
+    outcome_summary: str | None = Field(default=None, max_length=10000)
+    output: dict[str, Any] = Field(default_factory=dict)
+    metrics: dict[str, Any] = Field(default_factory=dict)
+    execution_command_id: UUID | None = None
+    workflow_run_id: UUID | None = None
+
+class CollaborationReviewCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    outcome: str = Field(pattern="^(successful|partial|failed|disputed)$")
+    review_text: str | None = Field(default=None, max_length=10000)
+    dimensions: dict[str, Any] = Field(default_factory=dict)
+
+@router.get("/results")
+async def collaboration_results(limit:int=Query(50,ge=1,le=100),context:dict=Depends(get_auth_context))->dict[str,Any]:
+    return {"data":await select(context["user"],"agent_collaboration_results",{
+        "select":"id,agreement_id,collaboration_request_id,negotiation_id,requester_agent_id,target_agent_id,status,outcome_summary,output,metrics,started_at,completed_at,created_at,updated_at",
+        "order":"updated_at.desc","limit":str(limit)
+    })}
+
+@router.post("/agreements/{agreement_id}/result",status_code=201)
+async def record_result(agreement_id:UUID,payload:CollaborationResultCreate,context:dict=Depends(get_auth_context))->Any:
+    try:
+        return await rpc(context["user"],"record_agent_collaboration_result",{
+            "p_agreement_id":str(agreement_id),"p_status":payload.status,"p_outcome_summary":payload.outcome_summary,
+            "p_output":payload.output,"p_metrics":payload.metrics,
+            "p_execution_command_id":str(payload.execution_command_id) if payload.execution_command_id else None,
+            "p_workflow_run_id":str(payload.workflow_run_id) if payload.workflow_run_id else None,
+        })
+    except SupabaseRestError as exc:
+        status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
+        raise HTTPException(status_code=status,detail={"code":"COLLABORATION_RESULT_FAILED","message":exc.message}) from exc
+
+@router.get("/results/{result_id}/reviews")
+async def result_reviews(result_id:UUID,limit:int=Query(50,ge=1,le=100),context:dict=Depends(get_auth_context))->dict[str,Any]:
+    return {"data":await select(context["user"],"agent_collaboration_reviews",{
+        "select":"id,result_id,agreement_id,reviewer_agent_id,subject_agent_id,role,rating,outcome,review_text,dimensions,status,created_at,updated_at",
+        "result_id":f"eq.{result_id}","order":"created_at.desc","limit":str(limit)
+    })}
+
+@router.post("/results/{result_id}/review",status_code=201)
+async def submit_review(result_id:UUID,payload:CollaborationReviewCreate,context:dict=Depends(get_auth_context))->Any:
+    try:
+        return await rpc(context["user"],"submit_agent_collaboration_review",{
+            "p_result_id":str(result_id),"p_rating":payload.rating,"p_outcome":payload.outcome,
+            "p_review_text":payload.review_text,"p_dimensions":payload.dimensions,
+        })
+    except SupabaseRestError as exc:
+        status=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
+        raise HTTPException(status_code=status,detail={"code":"COLLABORATION_REVIEW_FAILED","message":exc.message}) from exc
+
+@router.get("/agents/{agent_id}/history")
+async def collaboration_history(agent_id:UUID,limit:int=Query(50,ge=1,le=100),context:dict=Depends(get_auth_context))->dict[str,Any]:
+    try:
+        rows=await rpc(context["user"],"get_agent_collaboration_history",{"p_agent_id":str(agent_id),"p_limit":limit})
+        return {"data":rows if isinstance(rows,list) else rows.get("data",rows)}
+    except SupabaseRestError as exc:
+        status=exc.status_code if exc.status_code in {400,401,403,404,422} else 500
+        raise HTTPException(status_code=status,detail={"code":"COLLABORATION_HISTORY_FAILED","message":exc.message}) from exc
