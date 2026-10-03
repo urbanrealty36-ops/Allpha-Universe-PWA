@@ -2,7 +2,8 @@
 
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
-import { useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
 
@@ -53,6 +54,7 @@ type Props = {
   themePackUrl?: string | null;
   liveStageUrl?: string | null;
   agentCharacterUrl?: string | null;
+  agentCharacterPerformance?: { speaking: boolean; level: number; userSpeaking: boolean };
 };
 
 function Structure({ kind, color, accent, position, scale = 1 }: {
@@ -104,18 +106,56 @@ function LiveStage3DAsset({ url }: { url:string }) {
   return <primitive object={stage} position={[0,0,-3]}/>;
 }
 
-function AgentCharacter3DAsset({ url, position }: { url:string; position:[number,number,number] }) {
+function AgentCharacter3DAsset({ url, position, performance }: { url:string; position:[number,number,number]; performance?: { speaking:boolean; level:number; userSpeaking:boolean } }) {
   const gltf = useGLTF(url);
-  return <primitive object={gltf.scene.clone(true)} position={position} scale={1}/>;
+  const character = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  const started = useRef(false);
+  useFrame(({ clock }) => {
+    const level = Math.max(0, Math.min(1, performance?.level ?? 0));
+    const speaking = Boolean(performance?.speaking);
+    const t = clock.getElapsedTime();
+    character.traverse((node: any) => {
+      const name = String(node.name || "").toLowerCase();
+      if (node.morphTargetDictionary && node.morphTargetInfluences) {
+        for (const key of Object.keys(node.morphTargetDictionary)) {
+          const k = key.toLowerCase();
+          const idx = node.morphTargetDictionary[key];
+          if (/(mouth|jaw|viseme|talk|lip)/.test(k)) node.morphTargetInfluences[idx] = speaking ? level : Math.max(0, (node.morphTargetInfluences[idx] ?? 0) * .85);
+          if (/(smile|happy)/.test(k)) node.morphTargetInfluences[idx] = speaking ? Math.min(.22, level * .22) : Math.max(0, (node.morphTargetInfluences[idx] ?? 0) * .94);
+          if (/(blink|eye_close)/.test(k)) node.morphTargetInfluences[idx] = Math.max(0, (Math.sin(t * .75) > .985 ? 1 : 0));
+        }
+      }
+      if (node.isBone) {
+        if (/(spine|chest|upperchest)/.test(name)) node.rotation.z += Math.sin(t * 1.1) * (speaking ? .006 + level * .012 : .003);
+        if (/(head|neck)/.test(name)) {
+          node.rotation.y += Math.sin(t * .55) * .008;
+          node.rotation.x += Math.sin(t * .8) * .006;
+        }
+        if (/(leftarm|rightarm|leftshoulder|rightshoulder)/.test(name)) {
+          const side = /(left)/.test(name) ? -1 : 1;
+          node.rotation.z += side * Math.sin(t * (speaking ? 1.7 : .8)) * (speaking ? .018 + level * .035 : .008);
+        }
+        if (/(leftforearm|rightforearm|lefthand|righthand)/.test(name) && speaking) {
+          node.rotation.x += Math.sin(t * 2.1) * (.012 + level * .02);
+        }
+      }
+      if (/(left.?eye|right.?eye|eyeball|eye_l|eye_r)/.test(name)) {
+        node.rotation.y += Math.sin(t * .55) * .004;
+        node.rotation.x += Math.sin(t * .7) * .003;
+      }
+    });
+    started.current = true;
+  });
+  return <primitive object={character} position={position} scale={1}/>;
 }
 
 function WorldObjects({
-  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,themePackUrl,liveStageUrl,agentCharacterUrl
+  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,themePackUrl,liveStageUrl,agentCharacterUrl,agentCharacterPerformance
 }: {
   scene:WorldScene; tokens?:Record<string,unknown>; onHotspot?:Props["onHotspot"]; lowPower:boolean;
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
   spatialObjects:DistrictSpatialObject[];
-  selectedBoothId?:string; themePackUrl?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null;
+  selectedBoothId?:string; themePackUrl?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterPerformance?: {speaking:boolean;level:number;userSpeaking:boolean};
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
   const primary=String(tokens?.["theme.color.primary"]??style.accent);
@@ -148,7 +188,7 @@ function WorldObjects({
       const p=agent.position!;
       const selected=agent.id===selectedBoothId;
       return <group key={agent.id} position={[p.x,p.y+.55,p.z]} onClick={()=>onHotspot?.({id:agent.id,kind:"character",position:p,metadata:{agent_id:agent.agent_id,movement_state:agent.movement_state,zone_key:agent.zone_key}})}>
-        {agentCharacterUrl&&agent.agent_id?<AgentCharacter3DAsset url={agentCharacterUrl} position={[0,.05,0]}/>:<mesh><sphereGeometry args={[selected?.42:.32,14,14]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={selected?1:.55}/></mesh>}
+        {agentCharacterUrl&&agent.agent_id?<AgentCharacter3DAsset url={agentCharacterUrl} position={[0,.05,0]} performance={agentCharacterPerformance}/>:<mesh><sphereGeometry args={[selected?.42:.32,14,14]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={selected?1:.55}/></mesh>}
         <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[selected?.72:.55,.035,8,32]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.2} transparent opacity={.8}/></mesh>
       </group>;
     })}
@@ -198,7 +238,7 @@ function WorldObjects({
 }
 
 export default function AllphaWorldRenderer({
-  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null
+  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null,agentCharacterPerformance
 }: Props) {
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
@@ -208,7 +248,7 @@ export default function AllphaWorldRenderer({
       <PerspectiveCamera makeDefault position={[14,11,14]} fov={58}/>
       <ambientLight intensity={.8}/>
       <directionalLight position={[8,14,6]} intensity={2} castShadow={shadows}/>
-      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl}/>
+      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterPerformance={agentCharacterPerformance}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
     </Canvas>
   </div>;
