@@ -181,3 +181,26 @@ Remaining gates are deployment/runtime gates only:
 8. accessibility/performance runtime validation
 9. API/PWA/Admin CI/build verification
 10. Vercel/Railway deployment and final production Green
+
+
+### Verification correction — report → moderation case
+
+A final backend verification found that the original report RPC persisted reports without creating a moderation case. This was corrected in the Phase 12 completion migration and live database.
+
+The authoritative report lifecycle is now:
+Report target → validate target belongs to Community → Community Report(status=reviewing) → Community Moderation Case → moderator decision → target action where applicable → report resolution → activity telemetry.
+
+Supported authoritative moderation decisions are constrained by the existing database contract:
+- allow
+- remove
+- restrict
+- suspend
+- ban
+
+The User PWA controls now follow those same server/database values. The decision RPC also rejects already-decided cases.
+
+Static live verification confirms:
+- report RPC contains moderation-case creation
+- moderation decision idempotency guard exists
+- database decision constraint matches API/UI values
+- Community/Report/Moderation counts remain zero because no authenticated runtime data was created
