@@ -3,7 +3,7 @@
 
 begin;
 
-select plan(10);
+select plan(11);
 
 select ok(
   to_regprocedure('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)') is not null,
@@ -45,6 +45,11 @@ select ok(
   to_regprocedure('public.get_agent_conversation_control(uuid)') is not null
   and to_regprocedure('public.set_agent_conversation_takeover(uuid,boolean)') is not null,
   'existing Human Owner Takeover boundary remains present'
+);
+
+select ok(
+  position('INVALID_SOURCE_CONTEXT_KEY' in pg_get_functiondef('public.get_or_create_agent_conversation(uuid,text,jsonb,text,text)'::regprocedure)) > 0,
+  'discovery context is constrained to canonical keys'
 );
 
 select is(
