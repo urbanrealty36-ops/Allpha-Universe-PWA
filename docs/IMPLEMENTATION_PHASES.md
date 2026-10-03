@@ -1325,3 +1325,20 @@ Current runtime blockers:
 - RAG embedding generation remains unconfigured; no embeddings are fabricated.
 
 Therefore Phase 11A.14 is **IMPLEMENTED FOUNDATION / NOT GREEN**. It becomes runtime GREEN only after the authenticated user creates real Agent + Content, the server-side OpenAI credential is bound, the Gateway smoke test succeeds, Agent Runtime command execution succeeds, Discovery telemetry is observed, and build/CI/browser/security gates pass.
+
+
+## Phase 22I — AI Character Asset + Animation Contract
+
+**Status: IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING**
+
+- Platform AI Character Runtime Catalog activated for every enabled entry in `agent_character_catalog`.
+- 34 platform-ready character runtime assets registered as `platform_catalog` procedural humanoids; no user/business seed data.
+- `live_character_asset_contracts` v1 defines full-body, face, voice/viseme proxy, gesture and state-machine channels.
+- Runtime states: idle, listening, thinking, speaking, emphasis, greeting, acknowledge, farewell.
+- Canonical `select_live_character` now permits platform catalog assets while preserving ownership checks for user/Agent-owned assets.
+- Web App Live Experience now exposes an AI Character picker and Use Character action.
+- Canonical `AllphaWorldRenderer` renders the platform character procedurally and consumes GPT-Live lifecycle/audio-level signals for body, eyes, facial expression and lip/jaw movement.
+- Existing OpenAI GPT-Live WebRTC voice path remains the only Live voice engine; no duplicate voice/AI engine introduced.
+- Existing 8 published/approved Allpha platform uniforms remain selectable through the existing claim flow.
+- No per-frame animation state is persisted in Supabase.
+- Final runtime E2E still requires a real authenticated Live Session + approved Collaboration + device microphone/camera and browser execution; no fake business data was inserted.
