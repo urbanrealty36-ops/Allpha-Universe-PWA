@@ -233,3 +233,83 @@ async def cancel_command(user: AuthenticatedUser, command_id: UUID, reason: str 
         return await rpc(user, "cancel_agent_command", {"p_command_id": str(command_id), "p_reason": reason or "Cancelled by user."})
     except Exception as exc:
         raise _err(exc) from exc
+
+async def run_live_conversation_turn(user: AuthenticatedUser, session_id: UUID, collaboration_id: UUID) -> dict[str, Any]:
+    """Execute one canonical Live Agent turn through Agent Runtime → AI Gateway.
+
+    Live does not create a second AI engine. The Live collaboration RPC is the
+    authority boundary; command planning/execution remains the canonical Agent Runtime.
+    """
+    try:
+        collabs = await select(user, "live_agent_collaborations", {
+            "select": "id,live_session_id,agent_id,owner_user_id,mode,required_capability,status,consent_status,risk_decision",
+            "id": f"eq.{collaboration_id}",
+            "live_session_id": f"eq.{session_id}",
+            "owner_user_id": f"eq.{user.user_id}",
+            "limit": "1",
+        })
+        if not collabs:
+            raise AgentRuntimeError("LIVE_COLLAB_NOT_FOUND_OR_NOT_OWNED", "Live collaboration was not found or is not owned by the authenticated user.", 404)
+        collab = collabs[0]
+        if collab.get("status") != "active" or collab.get("consent_status") != "approved" or collab.get("risk_decision") != "allow":
+            raise AgentRuntimeError("LIVE_COLLAB_NOT_ACTIVE", "Live collaboration is not active.", 409)
+
+        sessions = await select(user, "live_sessions", {
+            "select": "id,status,title,host_user_id",
+            "id": f"eq.{session_id}",
+            "host_user_id": f"eq.{user.user_id}",
+            "limit": "1",
+        })
+        if not sessions or sessions[0].get("status") != "live":
+            raise AgentRuntimeError("LIVE_SESSION_NOT_LIVE", "Live session is not currently live.", 409)
+
+        messages = await select(user, "live_session_messages", {
+            "select": "sender_type,sender_agent_id,role,content,created_at",
+            "live_session_id": f"eq.{session_id}",
+            "live_collaboration_id": f"eq.{collaboration_id}",
+            "order": "created_at.desc",
+            "limit": "12",
+        })
+        if not messages:
+            raise AgentRuntimeError("LIVE_CONVERSATION_INPUT_REQUIRED", "No Live conversation input exists.", 422)
+        messages = list(reversed(messages))
+
+        latest_input = next((m for m in reversed(messages) if m.get("sender_type") in ("owner", "audience")), None)
+        if not latest_input or not str(latest_input.get("content") or "").strip():
+            raise AgentRuntimeError("LIVE_CONVERSATION_INPUT_REQUIRED", "No Human/Audience Live input exists.", 422)
+
+        command_text = "Live conversation turn. Respond concisely for a realtime audience.\\n"
+        command_text += f"Session: {sessions[0].get('title') or 'Live Experience'}\\n"
+        command_text += "Recent conversation:\\n"
+        for message in messages[-10:]:
+            command_text += f"{message.get('sender_type')}: {str(message.get('content') or '')[:1200]}\\n"
+        command_text += "\\nLive safety: remain within the Agent's existing policy, capability and consent. Do not claim authority or make unauthorized commitments."
+
+        command = await rpc(user, "create_live_agent_command", {
+            "p_collaboration_id": str(collaboration_id),
+            "p_command_text": command_text[:12000],
+            "p_requested_capabilities": ["ai.generate"],
+            "p_idempotency_key": None,
+        })
+        command_id = UUID(str(command["id"]))
+        await plan_command(user, command_id)
+        result = await execute_command(user, command_id)
+        text = str(((result.get("result") or {}).get("text") or result.get("result_summary") or "")).strip()
+        if not text:
+            raise AgentRuntimeError("LIVE_AGENT_EMPTY_RESPONSE", "Live Agent Runtime completed without a response.", 502)
+
+        message = await rpc(user, "create_live_session_message", {
+            "p_live_session_id": str(session_id),
+            "p_sender_type": "agent",
+            "p_content": text[:20000],
+            "p_live_collaboration_id": str(collaboration_id),
+            "p_viewer_id": None,
+        })
+        return {"status": "completed", "command_id": str(command_id), "message": message, "result": result.get("result") or {}}
+    except AgentRuntimeError:
+        raise
+    except SupabaseRestError as exc:
+        raise AgentRuntimeError("LIVE_AGENT_RUNTIME_FAILED", str(exc), getattr(exc, "status_code", 409)) from exc
+    except Exception as exc:
+        raise AgentRuntimeError("LIVE_AGENT_RUNTIME_FAILED", str(exc), 409) from exc
+\n
