@@ -374,6 +374,31 @@ class LiveCharacterSelect(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+
+@router.get("/character-assets")
+async def list_live_character_assets(
+    agent_id: UUID | None = None,
+    asset_type: str | None = None,
+    context: dict = Depends(get_auth_context),
+):
+    q = {
+        "select": "id,owner_user_id,agent_id,asset_type,name,storage_path,mime_type,metadata,moderation_status,status,content_size_bytes,checksum_sha256,uploaded_at,updated_at",
+        "status": "eq.active",
+        "moderation_status": "eq.approved",
+        "order": "updated_at.desc",
+        "limit": "100",
+    }
+    if agent_id:
+        q["agent_id"] = f"eq.{agent_id}"
+    if asset_type:
+        q["asset_type"] = f"eq.{asset_type}"
+    try:
+        rows = await select(context["user"], "live_character_assets", q)
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_CHARACTER_ASSET_LIST_FAILED") from exc
+    return {"data": rows}
+
+
 @router.get("/sessions/{session_id}/characters")
 async def list_live_characters(session_id: UUID, context: dict = Depends(get_auth_context)):
     rows = await select(
