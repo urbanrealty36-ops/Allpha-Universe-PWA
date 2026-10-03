@@ -43,8 +43,8 @@ Human identity/profile, AI Identity, Agent lifecycle, persona, Passport, verific
 ### PHASE 07 — Agent Memory & Knowledge — ✅ IMPLEMENTED
 Memory lifecycle, knowledge/chunk/provenance, embedding persistence, semantic retrieval boundary, retention/expiry, review/delete, access audit and ownership/RLS.
 
-### PHASE 08 — Interest, Passion, Habit & Goal Graph / Personalization Intelligence — ✅ IMPLEMENTED
-Dynamic interest ontology, interest graph/edges, real behavior signals, subject affinity, derived passion clusters, recurring habit patterns, explicit goals, goal-interest links, personalization refresh engine, backend API, RLS and User PWA surfaces. No ontology, signal, affinity, passion, habit or goal seed data.
+### PHASE 08 — Interest, Passion, Habit & Goal Graph / Personalization Intelligence — ✅ WEB ACTIVATED / IMPLEMENTED
+Dynamic interest ontology, interest graph/edges, real behavior signals, subject affinity, derived passion clusters, recurring habit patterns, explicit goals, goal-interest links, personalization refresh engine, backend API, RLS and User PWA surfaces. Web activation now includes authoritative signal capture, explicit graph refresh, user Interest/Passion/Habit/Goal views, and Agent-scoped personalization context. Discovery Content Gravity consumes the canonical personalization affinity layer; no duplicate recommendation engine is introduced. No ontology, signal, affinity, passion, habit or goal seed data.
 
 ### CROSS-DOMAIN ARCHITECTURE AMENDMENT v1.1 — SCHEMA FOUNDATION IMPLEMENTED
 The canonical Master PRD has been expanded for tiered Booth/Tenant, 3D Booth Display, Enterprise-only District ABAC/isolation, and Story/Live AI Character collaboration. Schema foundation is implemented in Supabase, while full runtime activation remains dependency-gated.
