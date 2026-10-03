@@ -156,3 +156,55 @@ Until those gates are executed, procedural/fallback and empty/not-activated stat
 ## No fake data
 
 No Live Stage asset rows or AI Character asset rows were seeded. Empty asset state is intentional until a real owner/admin uploads and approves actual GLB files.
+
+## Authenticated E2E gate execution — 2026-10-03
+
+The implementation was re-verified against the live Supabase project before attempting the final E2E gate.
+
+Verified live:
+
+- live_experience_stage_assets exists with Storage/checksum/moderation lifecycle columns.
+- Live Stage lifecycle RPCs exist: prepare_live_stage_3d_asset, finalize_live_stage_3d_asset, archive_live_stage_3d_asset, moderate_live_stage_3d_asset.
+- AI Character lifecycle RPCs exist: prepare_agent_character_3d_asset, finalize_agent_character_3d_asset, archive_agent_character_3d_asset, moderate_agent_character_3d_asset.
+- live_experience_stage_assets and live_character_assets have authenticated access/RLS controls.
+- allpha-world-assets currently has zero objects.
+- allpha-agent-assets currently has zero objects.
+- No test/business asset rows were inserted.
+
+### Final gate status
+
+NOT EXECUTED / NOT GREEN
+
+A real authenticated browser E2E cannot be truthfully marked complete from the current execution environment because this conversation runtime has no writable browser/runtime session connected to the local FastAPI/Web services, and the repository does not currently expose a deployed E2E target.
+
+The required gate remains:
+
+real Booth GLB
+→ real Live Stage GLB
+→ real AI Character GLB
+→ authenticated signed upload
+→ Storage verification
+→ admin moderation
+→ authenticated signed download
+→ Live Session
+→ Collaboration consent
+→ Collaboration activation
+→ Agent World Presence
+→ AllphaWorldRenderer
+→ browser assertion
+
+No fake Storage object or SQL-inserted storage.objects row is being used as a substitute. Supabase explicitly recommends creating/deleting Storage objects through the Storage API rather than manipulating storage.objects directly.
+
+The next execution environment must provide:
+
+- an isolated/staging Supabase target or explicit E2E cleanup credentials
+- authenticated owner credentials
+- authenticated Super Admin credentials with admin.manage
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+- NEXT_PUBLIC_API_URL
+- running FastAPI on :8000
+- running Web PWA on :3000
+- Playwright Chromium
+
+Playwright is the intended browser gate because it provides authenticated browser state, Chromium execution, screenshots/traces, and CI integration.
