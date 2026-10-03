@@ -535,6 +535,14 @@ Implemented Galaxy → World → Interest / Content / Community / Agent / Portal
 
 Phase 17 UI/UX was reconciled against the Project Universe references: /universe is spatial-first, full-bleed and 3D-oriented rather than a dashboard. Real Galaxies are rendered from the authoritative Universe API; the 25 platform Themes remain explicitly separated as 3D Theme Templates/configuration. The bottom dashboard-like Quick List grid was replaced by a compact floating spatial command dock.
 
+Galaxy → World / Theme activation follow-up:
+- Galaxy nodes now use an explicit spatial transition treatment before entering a World.
+- The 25 platform Themes are selectable spatial Theme Template nodes inside the Galaxy scene.
+- Theme selection is explicit; there is no implicit `themes[0]` fallback.
+- The selected Theme Template becomes the presentation context until an authoritative World/District/Booth `theme_key` takes precedence.
+- The World spatial HUD identifies the active Theme Template.
+- Binary 3D remains governed by the signed Theme asset-manifest lifecycle; procedural rendering remains the fallback when no active binary asset exists.
+
 Runtime E2E remains gated by authenticated Galaxy/World traversal, Agent ownership/presence, portal/visibility, realtime/spatial runtime, CI/build and deployment.
 
 ### PHASE 17.1 — Living Universe 3D Experience — WEB/UI ACTIVATED / RUNTIME E2E PENDING
