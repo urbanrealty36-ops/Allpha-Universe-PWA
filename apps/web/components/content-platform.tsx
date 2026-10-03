@@ -14,7 +14,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
   const [body,setBody] = useState("");
   const [excerpt,setExcerpt] = useState("");
   const [visibility,setVisibility] = useState("public");
-  const [loading,setLoading] = useState(true);
+  const [loading,setLoading] = useState(true);\n  const [topics,setTopics] = useState<any[]>([]);\n  const [revisions,setRevisions] = useState<any[]>([]);\n  const [events,setEvents] = useState<any[]>([]);\n  const [topicCatalog,setTopicCatalog] = useState<any[]>([]);\n  const [selectedTopic,setSelectedTopic] = useState("");
   const [saving,setSaving] = useState(false);
   const [error,setError] = useState<string|null>(null);
 
@@ -23,7 +23,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
     try {
       if (detailId) {
         const r = await apiFetch<{data:Content}>("/api/v1/content/" + detailId);
-        setSelected(r.data);
+        setSelected(r.data);\n        const [t,rv,ev,cat] = await Promise.all([\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/topics"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/revisions"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/events"),\n          apiFetch<{data:any[]}>("/api/v1/content/topics")\n        ]);\n        setTopics(t.data||[]); setRevisions(rv.data||[]); setEvents(ev.data||[]); setTopicCatalog(cat.data||[]);
       } else {
         const r = await apiFetch<{data:Content[]}>("/api/v1/content?mine=true");
         setItems(r.data);
