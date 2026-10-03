@@ -16,7 +16,7 @@ const input="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm out
 
 export default function MessagingSurface(){
  const [conversations,setConversations]=useState<Conversation[]>([]),[requests,setRequests]=useState<Request[]>([]),[messages,setMessages]=useState<Message[]>([]);
- const [entryAgentId,setEntryAgentId]=useState<string|null>(null),[entryMode,setEntryMode]=useState<"message"|"ask">("message"),[entryContext,setEntryContext]=useState<Record<string,unknown>>({});
+ const [entryAgentId,setEntryAgentId]=useState<string|null>(null),[entryMode,setEntryMode]=useState<"message"|"ask">("message"),[entryContext,setEntryContext]=useState<Record<string,unknown>>({}),[entrySkill,setEntrySkill]=useState<string|null>(null),[resolvedService,setResolvedService]=useState<Record<string,unknown>|null>(null);
  const entryHandled=useRef(false);
  const [selected,setSelected]=useState<string|null>(null),[targetType,setTargetType]=useState<"user"|"agent">("user"),[targetId,setTargetId]=useState("");
  const [newMessage,setNewMessage]=useState(""),[replyTo,setReplyTo]=useState<Message|null>(null),[editing,setEditing]=useState<Message|null>(null);
@@ -81,6 +81,7 @@ export default function MessagingSurface(){
   if(type!=="agent" || !id) return;
   entryHandled.current=true;
   const mode=params.get("interaction")==="ask" ? "ask" : "message";
+  const requestedSkill=params.get("skill");
   const context:Record<string,unknown>={};
   for(const key of ["district_id","booth_id","live_session_id","content_id","moment_id"]){
    const value=params.get(key);
@@ -89,6 +90,7 @@ export default function MessagingSurface(){
   setEntryAgentId(id);
   setEntryMode(mode);
   setEntryContext(context);
+  setEntrySkill(requestedSkill);
   void (async()=>{
    try{
     const r=await apiFetch<{conversation_id:string;status:string}>("/api/v1/messaging/conversations/agent",{
@@ -101,6 +103,11 @@ export default function MessagingSurface(){
     setError(e instanceof Error?e.message:"AGENT_CONVERSATION_ENTRY_FAILED");
    }
   })();
+  if(requestedSkill){
+   void apiFetch<{data:Record<string,unknown>}>("/api/v1/messaging/agent-services/resolve?agent_id="+encodeURIComponent(id)+"&skill="+encodeURIComponent(requestedSkill))
+    .then(r=>{setResolvedService(r.data);setServiceAgent(id);setServiceSkill(String(r.data.skill_name||requestedSkill));})
+    .catch(e=>setError(e instanceof Error?e.message:"AGENT_SKILL_RESOLUTION_FAILED"));
+  }
  },[]);
  async function loadConversationControl(id:string){
   try{const r=await apiFetch<{data:ConversationControl}>("/api/v1/messaging/conversations/"+id+"/control");setConversationControl(r.data??null)}
@@ -175,7 +182,7 @@ export default function MessagingSurface(){
  {entryAgentId&&<section className="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-300/[.03] p-5">
    <p className="text-xs uppercase tracking-[.2em] text-cyan-300">Agent Account · {entryMode.toUpperCase()}</p>
    <h2 className="mt-1 font-semibold">{entryMode==="ask"?"Ask this AI Agent":"Message this AI Agent"}</h2>
-   <p className="mt-2 text-xs text-slate-400">Anda masuk dari Agent Account discovery. Ini tetap satu Conversation canonical; Ask di sini bukan AI Service berbayar dan tidak memanggil Model Router.</p>
+   <p className="mt-2 text-xs text-slate-400">Anda masuk dari Agent Account discovery. Ini tetap satu Conversation canonical. Ask biasa tidak memanggil Model Router; AI Service hanya berjalan setelah Human menekan Use Agent Service.</p>{entrySkill&&<div className="mt-3 rounded-xl border border-cyan-200 bg-cyan-50 p-3 text-xs text-cyan-900"><strong>Selected Skill:</strong> {entrySkill}{resolvedService&&<> · Level {String(resolvedService.skill_level)} · {String(resolvedService.credit_cost)} AI Credits</>}</div>}
    <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-500">
     <span className="rounded-full border border-white/10 px-2 py-1">Agent: {entryAgentId}</span>
     {Object.entries(entryContext).map(([key,value])=><span key={key} className="rounded-full border border-white/10 px-2 py-1">{key}: {String(value)}</span>)}
