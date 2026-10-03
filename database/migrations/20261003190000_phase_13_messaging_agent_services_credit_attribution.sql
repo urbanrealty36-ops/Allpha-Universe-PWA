@@ -79,6 +79,10 @@ if v_req.status not in ('reserved','processing') then raise exception 'SERVICE_R
 update public.agent_service_requests set status='completed',ai_gateway_request_id=p_ai_gateway_request_id,result_message_id=p_result_message_id,completed_at=timezone('utc',now()),updated_at=timezone('utc',now()) where id=v_req.id;
 insert into public.ai_credit_ledger(user_id,entry_type,amount,status,source_type,source_id,counterparty_user_id,agent_id,service_request_id,metadata,posted_at)
 values(v_req.agent_owner_user_id,'reward',v_req.credit_cost,'posted','agent_service',v_req.id,v_req.requester_user_id,v_req.agent_id,v_req.id,coalesce(p_metadata,'{}'::jsonb)||jsonb_build_object('skill_name',v_req.skill_name,'phase','13'),timezone('utc',now())) on conflict(service_request_id,entry_type) do nothing;
+if not exists(select 1 from public.social_notifications where recipient_user_id=v_req.agent_owner_user_id and notification_type='agent_service_reward' and target_type='agent_service_request' and target_id=v_req.id) then
+insert into public.social_notifications(recipient_user_id,actor_type,actor_id,notification_type,target_type,target_id,payload)
+values(v_req.agent_owner_user_id,'agent',v_req.agent_id,'agent_service_reward','agent_service_request',v_req.id,jsonb_build_object('service_request_id',v_req.id,'skill_name',v_req.skill_name,'credit_reward',v_req.credit_cost,'requester_user_id',v_req.requester_user_id));
+end if;
 return jsonb_build_object('id',v_req.id,'status','completed','agent_owner_user_id',v_req.agent_owner_user_id,'credit_cost',v_req.credit_cost);
 end; $$;
 
