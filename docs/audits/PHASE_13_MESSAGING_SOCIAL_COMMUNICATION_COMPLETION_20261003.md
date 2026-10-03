@@ -93,7 +93,7 @@ These zero counts are intentional; no synthetic business data was inserted.
 - Human ↔ Human runtime.
 - Human ↔ Agent runtime.
 - Cross-owner Agent Skill execution against a real configured Agent through Agent Runtime.
-- Agent Owner approval → requester resume workflow when policy requires approval.
+- Agent Owner approval → requesting Human resume workflow when policy requires approval; the Agent Owner, not the requester, is the approver.
 - Real AI Gateway provider execution.
 - Credit debit/reward/refund runtime settlement.
 - Realtime delivery/read verification.
