@@ -9,6 +9,8 @@ router=APIRouter(prefix="/api/v1/districts",tags=["Districts"])
 OwnerType=Literal["user","agent","organization"]
 SubjectType=Literal["user","agent","organization"]
 Tier=Literal["free","standard","creator","business","prime","event","enterprise"]
+SpatialObjectType=Literal["building","road","coworking","meeting_room","event","marketplace","agent_zone","community_zone"]
+Availability=Literal["available","limited","reserved","unavailable"]
 
 class DistrictCreate(BaseModel):
     world_id:UUID
@@ -33,6 +35,16 @@ class ZoneCreate(BaseModel):
     zone_key:str=Field(min_length=1,max_length=120); name:str=Field(min_length=1,max_length=160)
     zone_type:Literal["public","member","restricted","enterprise","private"]="public"
     spatial_config:dict[str,Any]=Field(default_factory=dict); metadata:dict[str,Any]=Field(default_factory=dict)
+class SpatialObjectCreate(BaseModel):
+    zone_id:UUID|None=None
+    object_type:SpatialObjectType
+    name:str=Field(min_length=1,max_length=160)
+    slug:str=Field(min_length=1,max_length=180,pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    capacity:int|None=Field(default=None,ge=0)
+    availability:Availability="available"
+    spatial_config:dict[str,Any]=Field(default_factory=dict)
+    presentation_config:dict[str,Any]=Field(default_factory=dict)
+    metadata:dict[str,Any]=Field(default_factory=dict)
 
 def err(e:SupabaseRestError,code:str)->HTTPException:
     return HTTPException(status_code=e.status_code if e.status_code in {400,401,403,404,409,422} else 500,detail={"code":code,"message":e.message})
@@ -45,8 +57,7 @@ async def districts(world_id:UUID|None=None,limit:int=Query(100,ge=1,le=200),con
 
 @router.post("",status_code=201)
 async def create_district(p:DistrictCreate,context:dict=Depends(get_auth_context)):
-    try:
-        return await rpc(context["user"],"create_district",{"p_world_id":str(p.world_id),"p_owner_type":p.owner_type,"p_owner_id":str(p.owner_id or context["user"].user_id),"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_district_type":p.district_type,"p_visibility":p.visibility,"p_theme_key":p.theme_key,"p_spatial_config":p.spatial_config,"p_metadata":p.metadata})
+    try:return await rpc(context["user"],"create_district",{"p_world_id":str(p.world_id),"p_owner_type":p.owner_type,"p_owner_id":str(p.owner_id or context["user"].user_id),"p_name":p.name,"p_slug":p.slug,"p_description":p.description,"p_district_type":p.district_type,"p_visibility":p.visibility,"p_theme_key":p.theme_key,"p_spatial_config":p.spatial_config,"p_metadata":p.metadata})
     except SupabaseRestError as e: raise err(e,"DISTRICT_CREATE_FAILED")
 
 @router.get("/{district_id}")
@@ -58,7 +69,7 @@ async def district(district_id:UUID,context:dict=Depends(get_auth_context)):
 @router.post("/{district_id}/publish")
 async def publish(district_id:UUID,context:dict=Depends(get_auth_context)):
     try:return await rpc(context["user"],"publish_district",{"p_district_id":str(district_id)})
-    except SupabaseRestError as e:raise err(e,"DISTRICT_PUBLISH_FAILED")
+    except SupabaseRestError as e: raise err(e,"DISTRICT_PUBLISH_FAILED")
 
 @router.get("/{district_id}/members")
 async def members(district_id:UUID,context:dict=Depends(get_auth_context)):
@@ -104,3 +115,22 @@ async def zones(district_id:UUID,context:dict=Depends(get_auth_context)):
 async def create_zone(district_id:UUID,p:ZoneCreate,context:dict=Depends(get_auth_context)):
     try:return await rpc(context["user"],"create_district_zone",{"p_district_id":str(district_id),"p_zone_key":p.zone_key,"p_name":p.name,"p_zone_type":p.zone_type,"p_spatial_config":p.spatial_config,"p_metadata":p.metadata})
     except SupabaseRestError as e:raise err(e,"DISTRICT_ZONE_CREATE_FAILED")
+
+@router.post("/zones/{zone_id}/activate")
+async def activate_zone(zone_id:UUID,context:dict=Depends(get_auth_context)):
+    try:return await rpc(context["user"],"activate_district_zone",{"p_zone_id":str(zone_id)})
+    except SupabaseRestError as e:raise err(e,"DISTRICT_ZONE_ACTIVATE_FAILED")
+
+@router.get("/{district_id}/spatial-objects")
+async def spatial_objects(district_id:UUID,context:dict=Depends(get_auth_context)):
+    return {"data":await select(context["user"],"district_spatial_objects",{"select":"*","district_id":f"eq.{district_id}","order":"created_at.asc"})}
+
+@router.post("/{district_id}/spatial-objects",status_code=201)
+async def create_spatial_object(district_id:UUID,p:SpatialObjectCreate,context:dict=Depends(get_auth_context)):
+    try:return await rpc(context["user"],"create_district_spatial_object",{"p_district_id":str(district_id),"p_zone_id":str(p.zone_id) if p.zone_id else None,"p_object_type":p.object_type,"p_name":p.name,"p_slug":p.slug,"p_capacity":p.capacity,"p_availability":p.availability,"p_spatial_config":p.spatial_config,"p_presentation_config":p.presentation_config,"p_metadata":p.metadata})
+    except SupabaseRestError as e:raise err(e,"DISTRICT_SPATIAL_OBJECT_CREATE_FAILED")
+
+@router.post("/spatial-objects/{object_id}/activate")
+async def activate_spatial_object(object_id:UUID,context:dict=Depends(get_auth_context)):
+    try:return await rpc(context["user"],"activate_district_spatial_object",{"p_object_id":str(object_id)})
+    except SupabaseRestError as e:raise err(e,"DISTRICT_SPATIAL_OBJECT_ACTIVATE_FAILED")
