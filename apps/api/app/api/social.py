@@ -64,6 +64,23 @@ async def _subject(user: AuthenticatedUser, subject_type: SubjectType, subject_i
     return subject_type, resolved
 
 
+@router.get("/discover")
+async def discover_social_subjects(
+    query: str | None = Query(default=None, max_length=160),
+    limit: int = Query(default=24, ge=1, le=50),
+    context: dict = Depends(get_auth_context),
+) -> dict[str, Any]:
+    user = context["user"]
+    try:
+        rows = await rpc(user, "discover_social_subjects", {
+            "p_query": query,
+            "p_limit": limit,
+        })
+        return {"data": rows if isinstance(rows, list) else []}
+    except SupabaseRestError as exc:
+        raise _rpc_error(exc) from exc
+
+
 @router.get("/me")
 async def get_my_graph(
     relationship_type: RelationshipType | None = Query(default=None),
