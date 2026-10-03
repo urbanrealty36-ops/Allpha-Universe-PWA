@@ -8,7 +8,7 @@ from app.core.supabase_rest import SupabaseRestError,service_rpc
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 PRIVATE=(ipaddress.ip_network("10.0.0.0/8"),ipaddress.ip_network("172.16.0.0/12"),ipaddress.ip_network("192.168.0.0/16"),ipaddress.ip_network("127.0.0.0/8"),ipaddress.ip_network("169.254.0.0/16"),ipaddress.ip_network("::1/128"),ipaddress.ip_network("fc00::/7"),ipaddress.ip_network("fe80::/10"))
-PROMPTS=(r"ignore\\s+(all\\s+)?previous\\s+instructions",r"reveal\\s+(the\\s+)?system\\s+prompt",r"developer\\s+message",r"bypass\\s+(the\\s+)?safety",r"disable\\s+(security|guardrails)",r"jailbreak")
+PROMPTS=(r"ignore\s+(all\s+)?previous\s+instructions",r"reveal\s+(the\s+)?system\s+prompt",r"developer\s+message",r"bypass\s+(the\s+)?safety",r"disable\s+(security|guardrails)",r"jailbreak")
 class SecurityViolation(Exception):
  def __init__(self,code,message="Security policy rejected the request."):self.code,self.message=code,message
 def security_hash(value,pepper):return hmac.new(pepper.encode(),value.encode(),hashlib.sha256).hexdigest()
@@ -43,7 +43,7 @@ def validate_upload(filename,content_type,size,max_bytes,allowed_types):
  if size<0 or size>max_bytes or not name or name.startswith(".") or len(name)>180:raise SecurityViolation("UPLOAD_INVALID")
  if ".." in name or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._ -]*",name):raise SecurityViolation("UPLOAD_FILENAME_INVALID")
  if content_type.lower() not in allowed_types:raise SecurityViolation("UPLOAD_CONTENT_TYPE_NOT_ALLOWED")
- if re.search(r"\\.(php|phtml|phar|exe|dll|js|mjs|html|htm|svg)$",name,re.I):raise SecurityViolation("UPLOAD_ACTIVE_CONTENT_BLOCKED")
+ if re.search(r"\.(php|phtml|phar|exe|dll|js|mjs|html|htm|svg)$",name,re.I):raise SecurityViolation("UPLOAD_ACTIVE_CONTENT_BLOCKED")
 def prompt_injection_risk(text):
  if not text or len(text)>200000:return True
  return any(re.search(p,text,re.I) for p in PROMPTS)
