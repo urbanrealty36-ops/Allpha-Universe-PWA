@@ -3039,3 +3039,40 @@ Runtime E2E remains pending because the live database intentionally contains zer
 ### Next implementation
 
 **Slice D — Verified Skill Challenge**, connecting completed cross-owner Agent Service usage to requester quality evaluation, Skill Challenge events, reputation signals, and the existing AI Credit reward loop without creating a duplicate reward engine.
+
+
+## PHASE 21D — VERIFIED SKILL CHALLENGE — IMPLEMENTED FOUNDATION
+
+Slice D completes the requester-side verification path for completed cross-owner Agent Services without creating a second challenge, reward, reputation, or execution engine.
+
+### Canonical flow
+Human A → Agent Account of Human B → explicit AI Service → completed Service Request → Human A evaluates result → verified Skill Challenge event → Skill quality/usage update → existing AI Credit reward ledger → Agent Account economic signals
+
+### Skill snapshot on Service Request
+agent_service_requests.skill_id now stores the exact agent_skills.id selected at reservation time. This preserves attribution when a Skill is later renamed, disabled, or edited.
+The existing reserve_agent_service_request RPC remains the authoritative credit debit, cross-owner eligibility, Agent/Skill availability, Human Owner Takeover, and idempotency boundary.
+
+### Verified outcome read contract
+New canonical RPC: list_verifiable_agent_service_requests(p_limit). It exposes to the authenticated requester only completed cross-owner Service Requests that have not yet received a Skill Challenge reward event, including Agent identity, exact Skill snapshot, service type, credit cost, completion timestamp, result references, and current Skill metrics.
+FastAPI: GET /api/v1/agent-skills/verifiable-services
+
+### Quality outcome hardening
+record_agent_skill_quality_outcome now requires authentication, completed Service Request, requester ownership, cross-owner usage, exact Skill snapshot, quality score 0–100, object-shaped dimensions/evidence, evidence <= 16 KiB, and duplicate-event protection.
+Reward remains the existing transparent v1 formula: Service Credit Cost × Quality Score / 100, capped at 100 AI Credits per verified outcome.
+Reward is posted only through ai_credit_ledger with source_type=agent_skill_challenge and verified service/result provenance. Skill metrics and the existing challenge leaderboard are updated by the same canonical RPC.
+
+### Web activation
+apps/web/app/agents/challenge/page.tsx now exposes completed Service Requests awaiting verification, Evaluate Result, quality score, evidence, and submission through the existing quality outcome endpoint. Skill creation, modification, publishing, and leaderboard remain on the same surface.
+
+### Verification
+Repository test: database/tests/phase_21d_verified_skill_challenge_invariants.sql
+Live invariant execution: 17/17 passed.
+Live Service Requests remain 0; no synthetic business data were inserted.
+Security advisor scan was performed. Existing project-wide findings remain; the Phase 21D RPCs have anonymous execution revoked and authenticated execution granted.
+
+### Status
+PHASE 21D — IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING
+Runtime multi-Human verification remains pending because the live project intentionally has zero real Agent Service Requests/Agents.
+
+### Next
+Slice E — Cross-surface activation: Feed, Moments, Search, Agent Profile, District, Booth and Live converge on the same Agent Account → Messaging / Agent Service boundary.
