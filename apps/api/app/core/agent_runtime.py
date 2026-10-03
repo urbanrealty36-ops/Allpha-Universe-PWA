@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import time
 from typing import Any
 from uuid import UUID
@@ -122,6 +123,56 @@ def _gateway_messages(command: dict[str, Any], context: dict[str, Any]) -> list[
     return [GatewayMessage(role="system", content=system), GatewayMessage(role="user", content=command["command_text"])]
 
 
+async def _step_prompt(step: dict[str, Any], command: dict[str, Any]) -> str:
+    arguments = step.get("arguments") or {}
+    for key in ("prompt", "command", "instruction", "input"):
+        value = arguments.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return f"Execute workflow step '{step.get('step_key') or step.get('id')}' for command: {command['command_text']}. Arguments: {json.dumps(arguments, ensure_ascii=False, sort_keys=True)}"
+
+
+def _retrieval_counts(context: dict[str, Any]) -> dict[str, int]:
+    retrieval = context.get("retrieval") or {}
+    return {key: len(retrieval.get(key) or []) for key in ("memory_vector", "memory_lexical", "knowledge_vector", "knowledge_lexical")}
+
+
+async def _execute_ai_generate_step(user: AuthenticatedUser, command: dict[str, Any], step: dict[str, Any]) -> dict[str, Any]:
+    step_id = UUID(str(step["id"]))
+    prompt = await _step_prompt(step, command)
+    context = await retrieve_agent_context(user, UUID(str(command["agent_id"])), query=prompt, limit=8)
+    started_at = time.monotonic()
+    try:
+        gateway = await generate(
+            user,
+            _gateway_messages({**command, "command_text": prompt}, context),
+            agent_id=str(command["agent_id"]),
+            capabilities=["ai.generate"],
+            idempotency_key=f"agent-runtime:{command['id']}:{step_id}",
+            metadata={"command_id": str(command["id"]), "step_id": str(step_id), "workflow_step": True, "memory_rag": True},
+        )
+        result = {"text": gateway.text, "request_id": gateway.request_id, "provider_id": gateway.provider_id, "model_id": gateway.model_id, "attempt_no": gateway.attempt_no, "retrieval": _retrieval_counts(context)}
+        await update(user, "agent_task_steps", {"id": f"eq.{step_id}"}, {"status": "completed", "result": result})
+        await insert(user, "agent_tool_runs", {
+            "step_id": str(step_id), "command_id": str(command["id"]), "agent_id": str(command["agent_id"]),
+            "owner_user_id": str(command["owner_user_id"]), "tool_key": "ai.generate", "status": "completed",
+            "input_fingerprint": hashlib.sha256(prompt.encode()).hexdigest(),
+            "output_fingerprint": hashlib.sha256(gateway.text.encode()).hexdigest(), "result": result,
+            "latency_ms": int((time.monotonic() - started_at) * 1000),
+        })
+        return result
+    except (AIGatewayError, SupabaseRestError) as exc:
+        code = getattr(exc, "code", "AGENT_RUNTIME_GATEWAY_FAILED")
+        await update(user, "agent_task_steps", {"id": f"eq.{step_id}"}, {"status": "failed", "error_code": code, "error_message": str(exc)[:1000]})
+        await insert(user, "agent_tool_runs", {
+            "step_id": str(step_id), "command_id": str(command["id"]), "agent_id": str(command["agent_id"]),
+            "owner_user_id": str(command["owner_user_id"]), "tool_key": "ai.generate", "status": "failed",
+            "input_fingerprint": hashlib.sha256(prompt.encode()).hexdigest(), "error_code": code,
+            "error_message": str(exc)[:1000], "latency_ms": int((time.monotonic() - started_at) * 1000),
+        })
+        raise AgentRuntimeError(code, str(exc), getattr(exc, "status_code", 502)) from exc
+
+
 async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str, Any]:
     command = await _get_command(user, command_id)
     if command["status"] in ("completed", "waiting_approval"):
@@ -137,90 +188,45 @@ async def execute_command(user: AuthenticatedUser, command_id: UUID) -> dict[str
         if started.get("status") == "waiting_approval":
             return started
 
-        command = await _get_command(user, command_id)
         steps = await select(user, "agent_task_steps", {
-            "select": "id,tool_key,status,sequence_no",
-            "command_id": f"eq.{command_id}",
-            "status": "eq.ready",
-            "order": "sequence_no.asc",
-            "limit": "1",
+            "select": "id,step_key,tool_key,status,sequence_no,arguments,risk_level,requires_approval",
+            "command_id": f"eq.{command_id}", "status": "eq.ready", "order": "sequence_no.asc",
         })
         if not steps:
             raise AgentRuntimeError("AGENT_RUNTIME_NO_READY_STEP", "No ready runtime step exists.", 409)
-        step_id = UUID(str(steps[0]["id"]))
-        await update(user, "agent_task_steps", {"id": f"eq.{step_id}"}, {"status": "running"})
-        context = await retrieve_agent_context(user, UUID(str(command["agent_id"])), query=command["command_text"], limit=8)
-        started_at = time.monotonic()
+
+        results = []
+        for step in steps:
+            step_id = UUID(str(step["id"]))
+            tool_key = str(step.get("tool_key") or "")
+            if tool_key != "ai.generate":
+                raise AgentRuntimeError("AGENT_RUNTIME_TOOL_UNSUPPORTED", f"Workflow step '{step.get('step_key') or step_id}' is bound to unsupported tool '{tool_key}'.", 409)
+            await update(user, "agent_task_steps", {"id": f"eq.{step_id}"}, {"status": "running"})
+            result = await _execute_ai_generate_step(user, command, step)
+            results.append({"step_id": str(step_id), "step_key": step.get("step_key"), "tool_key": tool_key, "result": result})
+
+        final_text = results[-1]["result"].get("text", "") if results else ""
+        await update(user, "agent_tasks", {"command_id": f"eq.{command_id}"}, {"status": "completed", "output": {"steps": results}})
+        await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "completed", "p_result_summary": final_text[:1000]})
+        return {"status": "completed", "command_id": str(command_id), "steps": results, "result": results[-1]["result"] if results else {}}
+    except AgentRuntimeError as exc:
         try:
-            gateway = await generate(
-                user,
-                _gateway_messages(command, context),
-                agent_id=str(command["agent_id"]),
-                capabilities=["ai.generate"],
-                idempotency_key=f"agent-runtime:{command_id}",
-                metadata={"command_id": str(command_id), "memory_rag": True},
-            )
-            result = {
-                "text": gateway.text,
-                "request_id": gateway.request_id,
-                "provider_id": gateway.provider_id,
-                "model_id": gateway.model_id,
-                "attempt_no": gateway.attempt_no,
-                "retrieval": {
-                    "memory_vector": len((context.get("retrieval") or {}).get("memory_vector") or []),
-                    "memory_lexical": len((context.get("retrieval") or {}).get("memory_lexical") or []),
-                    "knowledge_vector": len((context.get("retrieval") or {}).get("knowledge_vector") or []),
-                    "knowledge_lexical": len((context.get("retrieval") or {}).get("knowledge_lexical") or []),
-                },
-            }
-            await update(user, "agent_task_steps", {"id": f"eq.{step_id}"}, {"status": "completed", "result": result})
-            await update(user, "agent_tasks", {"command_id": f"eq.{command_id}"}, {"status": "completed", "output": result})
-            await insert(user, "agent_tool_runs", {
-                "step_id": str(step_id),
-                "command_id": str(command_id),
-                "agent_id": str(command["agent_id"]),
-                "owner_user_id": str(command["owner_user_id"]),
-                "tool_key": "ai.generate",
-                "status": "completed",
-                "input_fingerprint": hashlib.sha256(command["command_text"].encode()).hexdigest(),
-                "output_fingerprint": hashlib.sha256(gateway.text.encode()).hexdigest(),
-                "result": result,
-                "latency_ms": int((time.monotonic() - started_at) * 1000),
-            })
-            await rpc(user, "transition_agent_command", {
-                "p_command_id": str(command_id),
-                "p_to_state": "completed",
-                "p_result_summary": gateway.text[:1000],
-            })
-            return {"status": "completed", "command_id": str(command_id), "step_id": str(step_id), "result": result}
-        except (AIGatewayError, SupabaseRestError) as exc:
-            code = getattr(exc, "code", "AGENT_RUNTIME_GATEWAY_FAILED")
-            await update(user, "agent_task_steps", {"id": f"eq.{step_id}"}, {"status": "failed", "error_code": code, "error_message": str(exc)[:1000]})
-            await update(user, "agent_tasks", {"command_id": f"eq.{command_id}"}, {"status": "failed", "error_code": code, "error_message": str(exc)[:1000]})
-            await insert(user, "agent_tool_runs", {
-                "step_id": str(step_id),
-                "command_id": str(command_id),
-                "agent_id": str(command["agent_id"]),
-                "owner_user_id": str(command["owner_user_id"]),
-                "tool_key": "ai.generate",
-                "status": "failed",
-                "input_fingerprint": hashlib.sha256(command["command_text"].encode()).hexdigest(),
-                "error_code": code,
-                "error_message": str(exc)[:1000],
-                "latency_ms": int((time.monotonic() - started_at) * 1000),
-            })
-            await rpc(user, "transition_agent_command", {
-                "p_command_id": str(command_id),
-                "p_to_state": "failed",
-                "p_error_code": code,
-                "p_error_message": str(exc)[:1000],
-            })
-            raise AgentRuntimeError(code, str(exc), getattr(exc, "status_code", 502)) from exc
-    except AgentRuntimeError:
+            current = await _get_command(user, command_id)
+            if current["status"] == "running" and exc.code != "AGENT_APPROVAL_REQUIRED":
+                await update(user, "agent_tasks", {"command_id": f"eq.{command_id}"}, {"status": "failed", "error_code": exc.code, "error_message": str(exc)[:1000]})
+                await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "failed", "p_error_code": exc.code, "p_error_message": str(exc)[:1000]})
+        except Exception:
+            pass
         raise
     except Exception as exc:
+        try:
+            current = await _get_command(user, command_id)
+            if current["status"] == "running":
+                await update(user, "agent_tasks", {"command_id": f"eq.{command_id}"}, {"status": "failed", "error_code": "AGENT_RUNTIME_EXECUTION_FAILED", "error_message": str(exc)[:1000]})
+                await rpc(user, "transition_agent_command", {"p_command_id": str(command_id), "p_to_state": "failed", "p_error_code": "AGENT_RUNTIME_EXECUTION_FAILED", "p_error_message": str(exc)[:1000]})
+        except Exception:
+            pass
         raise AgentRuntimeError("AGENT_RUNTIME_EXECUTION_FAILED", str(exc), 409) from exc
-
 
 async def cancel_command(user: AuthenticatedUser, command_id: UUID, reason: str | None = None) -> dict[str, Any]:
     try:
