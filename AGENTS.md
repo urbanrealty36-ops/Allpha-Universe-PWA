@@ -189,6 +189,14 @@ Rules:
 - Phase 19 is foundation-complete, not final GREEN until authenticated multi-user and enterprise ABAC E2E, realtime, build and production gates pass.
 
 
+## Platform Universe Instance Provisioning governance
+
+- The built-in platform Theme/World catalog may be activated into canonical platform Galaxy/World/District/Zone/Booth spatial instances when those records are product configuration rather than user business records.
+- Platform Universe instances use explicit platform ownership semantics and must never impersonate Human, Agent, Organization or creator ownership.
+- Platform instances may be public/active/presentation-only, but cannot grant Agent authority, permissions, capabilities, entitlements, billing, risk, approval or transaction authority.
+- Platform 3D composition must reuse existing `theme_assets`, Storage lifecycle, World Runtime asset manifest and `AllphaWorldRenderer`; no parallel asset registry or renderer.
+- Platform provisioning must derive only from published platform Theme/World Template contracts and verified real assets. It must not fabricate users, Agents, Content, commerce records or provider responses.
+
 ## Phase 20 — Booth / Tenant governance
 - Booth is a spatial tenant/venue inside a District, not a profile-page substitute and not the Live engine.
 - Exactly one owner subject is authoritative: Human, Organization, or owned AI Agent.
