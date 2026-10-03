@@ -2,11 +2,13 @@
 
 import { FormEvent, useEffect, useState, type ReactNode } from "react";
 import { apiFetch } from "../lib/api";
+import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
 type Character={id:string;character_key:string;name:string;archetype:string;description?:string|null;visual_profile?:Record<string,unknown>};
 type UserCharacter={id:string;character_key:string;display_name?:string|null;equipped:boolean;appearance:Record<string,unknown>};
 type Catalog={id:string;name:string;description?:string|null;status:string;moderation_status:string;theme_compatibility?:Record<string,unknown>};
 type Owned={id:string;equipped?:boolean;status:string};
+type Agent={id:string;name:string;status:string};
 
 export default function AvatarStudioSurface(){
   const [characters,setCharacters]=useState<Character[]>([]);
@@ -14,13 +16,16 @@ export default function AvatarStudioSurface(){
   const [uniforms,setUniforms]=useState<Catalog[]>([]);
   const [stickers,setStickers]=useState<Catalog[]>([]);
   const [cosmetics,setCosmetics]=useState<Catalog[]>([]);
+  const [agents,setAgents]=useState<Agent[]>([]);
+  const [selectedAgentId,setSelectedAgentId]=useState("");
+  const [characterAsset,setCharacterAsset]=useState<any|null>(null);
   const [selectedKey,setSelectedKey]=useState("");
   const [displayName,setDisplayName]=useState("");
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState<string|null>(null);
 
   async function load(){
-    const [catalog,chars,uni,sti,cos]=await Promise.all([
+    const [catalog,chars,uni,sti,cos,agentList]=await Promise.all([
       apiFetch<{data:{characters:Character[]}}>("/api/v1/agent-catalog"),
       apiFetch<{data:UserCharacter[]}>("/api/v1/avatar/characters"),
       apiFetch<{data:Catalog[]}>("/api/v1/avatar/uniforms/catalog"),
@@ -30,7 +35,7 @@ export default function AvatarStudioSurface(){
     setCharacters(catalog.data?.characters??[]);setOwnedCharacters(chars.data??[]);
     setUniforms(uni.data??[]);setStickers(sti.data??[]);setCosmetics(cos.data??[]);
   }
-  useEffect(()=>{void load().catch(e=>setError(e instanceof Error?e.message:"AVATAR_STUDIO_LOAD_FAILED"));},[]);
+  useEffect(()=>{void load().catch(e=>setError(e instanceof Error?e.message:"AVATAR_STUDIO_LOAD_FAILED"));},[]);\n\n  useEffect(()=>{\n    setCharacterAsset(null);\n    if(!selectedAgentId)return;\n    void apiFetch<{data:{active?:any}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character`).then(r=>setCharacterAsset(r.data?.active??null)).catch(()=>setCharacterAsset(null));\n  },[selectedAgentId]);\n\n  async function uploadAgentCharacter(file:File){\n    if(!selectedAgentId)return;setBusy(true);setError(null);\n    try{\n      if(file.type!=="model/gltf-binary"&&!file.name.toLowerCase().endsWith(".glb"))throw new Error("AGENT_CHARACTER_GLB_REQUIRED");\n      const prepared=await apiFetch<{data:{asset:{id:string;storage_bucket:string};upload:{path:string;token:string}}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character/upload-url`,{method:"POST",body:JSON.stringify({name:file.name.replace(/\\.glb$/i,""),metadata:{format:"glb",source:"avatar-studio"}})});\n      const supabase=createSupabaseBrowserClient();\n      const result=await supabase.storage.from(prepared.data.asset.storage_bucket).uploadToSignedUrl(prepared.data.upload.path,prepared.data.upload.token,file);\n      if(result.error)throw new Error(result.error.message);\n      const digest=await crypto.subtle.digest("SHA-256",await file.arrayBuffer());\n      const checksum=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");\n      await apiFetch(`/api/v1/live-assets/agents/${selectedAgentId}/character/${prepared.data.asset.id}/finalize`,{method:"POST",body:JSON.stringify({checksum_sha256:checksum})});\n      const r=await apiFetch<{data:{active?:any}}>(`/api/v1/live-assets/agents/${selectedAgentId}/character`);setCharacterAsset(r.data?.active??null);\n    }catch(e){setError(e instanceof Error?e.message:"AGENT_CHARACTER_UPLOAD_FAILED")}finally{setBusy(false)}\n  }
 
   async function createCharacter(e:FormEvent){
     e.preventDefault();if(!selectedKey)return;setBusy(true);setError(null);
@@ -70,7 +75,7 @@ export default function AvatarStudioSurface(){
             {ownedCharacters.length===0?<Empty text="Belum ada User Character milik user ini."/>:ownedCharacters.map(x=><div key={x.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 p-3"><div><p className="text-xs font-semibold">{x.display_name||x.character_key}</p><p className="text-[10px] text-slate-500">{x.character_key}</p></div>{x.equipped?<span className="rounded-full border border-emerald-300/20 px-2 py-1 text-[9px] text-emerald-200">EQUIPPED</span>:<button disabled={busy} onClick={()=>void equipCharacter(x.id)} className={smallButton}>Equip</button>}</div>)}
           </div>
         </Panel>
-        <Panel title="Uniform Catalog / Ownership">
+        <Panel title="AI Character 3D Asset">\n          <select value={selectedAgentId} onChange={e=>setSelectedAgentId(e.target.value)} className={input}><option value="">Select owned Agent</option>{agents.map(x=><option key={x.id} value={x.id}>{x.name} · {x.status}</option>)}</select>\n          {selectedAgentId&&<label className="mt-3 inline-flex cursor-pointer rounded-lg border border-cyan-300/40 px-3 py-2 text-[10px]">{busy?"Uploading…":"Upload Character GLB"}<input type="file" accept=".glb,model/gltf-binary" className="hidden" disabled={busy} onChange={e=>{const f=e.target.files?.[0];e.currentTarget.value="";if(f)void uploadAgentCharacter(f)}}/></label>}\n          <p className="mt-3 text-[10px] text-slate-500">{characterAsset?"Asset active, tetapi runtime tetap menunggu moderation approved.":"Belum ada AI Character 3D asset active + approved untuk Agent ini."}</p>\n        </Panel>\n        <Panel title="Uniform Catalog / Ownership">
           <CatalogState items={uniforms} empty="Belum ada Uniform yang published + approved."/>
           <p className="mt-4 text-[10px] text-slate-600">Ownership hanya dapat berasal dari entitlement/acquisition lifecycle. UI ini tidak memberikan item gratis secara diam-diam.</p>
         </Panel>
