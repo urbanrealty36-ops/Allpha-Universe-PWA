@@ -1,6 +1,6 @@
 begin;
 
-select plan(39);
+select plan(47);
 
 select has_table('public','communities','communities table exists');
 select has_table('public','community_memberships','membership table exists');
@@ -32,12 +32,20 @@ select has_function('public','create_community_comment',array['uuid','uuid','tex
 select has_function('public','create_community_event',array['uuid','text','uuid','text','text','timestamptz','timestamptz','text','jsonb','integer','jsonb'],'community event RPC');
 select has_function('public','rsvp_community_event',array['uuid','text','uuid'],'event RSVP RPC');
 select has_function('public','report_community_target',array['uuid','text','uuid','text','text'],'community report RPC');
+select has_function('public','create_community_topic',array['uuid','text','text','text','uuid'],'community topic RPC');
+select has_function('public','link_community_topic',array['uuid','uuid'],'community topic link RPC');
+select has_function('public','link_community_to_world',array['uuid','uuid','text'],'community world link RPC');
+select has_function('public','decide_community_moderation_case',array['uuid','text','text'],'community moderation decision RPC');
 
 select is((select prosecdef from pg_proc where oid='public.create_community(text,uuid,text,text,text,text,text,jsonb)'::regprocedure),true,'create community is security definer');
 select is((select prosecdef from pg_proc where oid='public.join_community(uuid,text,uuid)'::regprocedure),true,'join community is security definer');
 select is((select prosecdef from pg_proc where oid='public.create_community_post(uuid,uuid,text,uuid)'::regprocedure),true,'post RPC is security definer');
 select is((select prosecdef from pg_proc where oid='public.create_community_comment(uuid,uuid,text,uuid,text,uuid)'::regprocedure),true,'comment RPC is security definer');
 select is((select prosecdef from pg_proc where oid='public.report_community_target(uuid,text,uuid,text,text)'::regprocedure),true,'report RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.create_community_topic(uuid,text,text,text,uuid)'::regprocedure),true,'topic RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.link_community_topic(uuid,uuid)'::regprocedure),true,'topic link RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.link_community_to_world(uuid,uuid,text)'::regprocedure),true,'world link RPC is security definer');
+select is((select prosecdef from pg_proc where oid='public.decide_community_moderation_case(uuid,text,text)'::regprocedure),true,'moderation decision RPC is security definer');
 
 select is((select count(*) from public.communities),0::bigint,'no community seed data');
 select is((select count(*) from public.community_memberships),0::bigint,'no membership seed data');
