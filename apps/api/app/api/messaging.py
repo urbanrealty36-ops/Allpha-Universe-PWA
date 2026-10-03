@@ -288,7 +288,7 @@ async def resume_agent_service(service_request_id: UUID, context: dict = Depends
         })
         return {"data": {"request_id": str(service_request_id), "command_id": str(command_id), "status": "completed", "message": message, "generation": {"text": result_text}, "settlement": settlement,
             "content": {"id": settlement.get("generated_content_id"), "status": "draft"} if request.get("service_type") == "generate_content" and settlement.get("generated_content_id") else None,
-        }}}
+        }}
     except (SupabaseRestError, AIGatewayError, AgentRuntimeError) as exc:
         try:
             await rpc(user, "release_agent_service_request", {"p_request_id": str(service_request_id), "p_reason": getattr(exc, "code", "agent_service_resume_failed")})
