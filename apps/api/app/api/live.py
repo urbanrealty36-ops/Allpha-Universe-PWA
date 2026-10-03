@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
 from app.core.supabase_rest import SupabaseRestError, insert, select, update, rpc
+from app.core.storage import SupabaseStorageError, create_signed_upload_url, create_signed_download_url
 from app.core.agent_runtime import AgentRuntimeError, create_command, plan_command, execute_command, run_live_conversation_turn
 
 router = APIRouter(prefix="/api/v1/live", tags=["Live Stories & Streaming"])
@@ -601,3 +602,271 @@ async def cancel_live_session(session_id: UUID, context: dict = Depends(get_auth
     if not result:
         raise HTTPException(status_code=409, detail={"code": "LIVE_SESSION_CANCEL_CONFLICT"})
     return {"data": result[0]}
+
+
+
+class LiveStageBinding(BaseModel):
+    theme_id: UUID
+    stage_asset_id: UUID | None = None
+    composition: dict[str, Any] = Field(default_factory=dict)
+
+
+class LiveCameraSourceCreate(BaseModel):
+    source_type: Literal["webcam", "mobile_camera", "virtual_camera"] = "webcam"
+    device_key: str | None = Field(default=None, max_length=255)
+    facing_mode: Literal["user", "environment", "unknown"] = "user"
+    width: int | None = Field(default=None, ge=320, le=7680)
+    height: int | None = Field(default=None, ge=240, le=4320)
+    fps: float | None = Field(default=None, ge=1, le=120)
+    permission_status: Literal["prompt", "granted", "denied", "unknown"] = "granted"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class LivePresenceCheck(BaseModel):
+    camera_source_id: UUID
+    verification_method: str = Field(min_length=1, max_length=120)
+    consent: bool
+    face_present: bool
+    body_present: bool
+    liveness_passed: bool
+    face_quality: float | None = Field(default=None, ge=0, le=100)
+    body_quality: float | None = Field(default=None, ge=0, le=100)
+    evidence_metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class LiveHumanPresentation(BaseModel):
+    camera_source_id: UUID
+    presence_verification_id: UUID
+    uniform_id: UUID | None = None
+    user_uniform_id: UUID | None = None
+    custom_costume_id: UUID | None = None
+    appearance_config: dict[str, Any] = Field(default_factory=dict)
+
+
+class LiveCustomCostumeCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    category: Literal["superhero","business_shirt","suit_tie","formal","nusantara","traditional","cultural","uniform","fantasy","sci_fi","creator","custom"]
+    mime_type: str = "model/gltf-binary"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class LiveCustomCostumeFinalize(BaseModel):
+    checksum_sha256: str | None = None
+
+
+@router.post("/sessions/{session_id}/stage")
+async def bind_live_stage(session_id: UUID, payload: LiveStageBinding, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "bind_live_stage", {
+            "p_live_session_id": str(session_id),
+            "p_theme_id": str(payload.theme_id),
+            "p_stage_asset_id": str(payload.stage_asset_id) if payload.stage_asset_id else None,
+            "p_composition": payload.composition,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_STAGE_BIND_FAILED") from exc
+
+
+@router.get("/sessions/{session_id}/stage-runtime")
+async def live_stage_runtime(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        sessions = await select(context["user"], "live_sessions", {
+            "select": "id,host_user_id,experience_template_id,experience_template_version_id,status,title",
+            "id": f"eq.{session_id}", "limit": "1",
+        })
+        if not sessions:
+            raise HTTPException(status_code=404, detail={"code": "LIVE_SESSION_NOT_FOUND"})
+        bindings = await select(context["user"], "live_session_stage_bindings", {
+            "select": "*", "live_session_id": f"eq.{session_id}", "status": "eq.active", "limit": "1",
+        })
+        if not bindings:
+            return {"data": {"active": False, "stage": None}}
+        b = bindings[0]
+        asset = None
+        if b.get("stage_source") == "dedicated_stage_asset" and b.get("stage_asset_id"):
+            rows = await select(context["user"], "live_experience_stage_assets", {
+                "select": "id,template_version_id,storage_bucket,storage_path,mime_type,metadata,status,moderation_status,content_size_bytes,checksum_sha256",
+                "id": f"eq.{b['stage_asset_id']}", "status": "eq.active", "moderation_status": "eq.approved", "limit": "1",
+            })
+            asset = rows[0] if rows else None
+        else:
+            rows = await select(context["user"], "theme_assets", {
+                "select": "id,theme_id,theme_version_id,storage_bucket,storage_path,mime_type,metadata,status,moderation_status,safety_status,performance_status,content_size_bytes,checksum_sha256,live_stage_component",
+                "theme_id": f"eq.{b['theme_id']}", "asset_type": "eq.3d_scene", "status": "eq.active",
+                "moderation_status": "eq.approved", "safety_status": "eq.passed", "performance_status": "eq.passed",
+                "live_stage_component": "eq.LiveExperienceStage", "limit": "1",
+            })
+            asset = rows[0] if rows else None
+        if not asset:
+            return {"data": {"active": False, "stage": None, "reason": "LIVE_STAGE_ASSET_NOT_AVAILABLE"}}
+        try:
+            signed_url = await create_signed_download_url(context["user"], asset["storage_bucket"], asset["storage_path"], 900)
+        except SupabaseStorageError:
+            signed_url = None
+        return {"data": {
+            "active": True,
+            "stage": {
+                "binding": b,
+                "asset": asset,
+                "signed_url": signed_url,
+                "renderer": "AllphaWorldRenderer",
+                "component": "LiveExperienceStage",
+                "presentation_only": True,
+                "authority_boundary": "unchanged",
+            },
+        }}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_STAGE_RUNTIME_LOAD_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/camera")
+async def register_live_camera(session_id: UUID, payload: LiveCameraSourceCreate, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "register_live_camera_source", {
+            "p_live_session_id": str(session_id),
+            "p_source_type": payload.source_type,
+            "p_device_key": payload.device_key,
+            "p_facing_mode": payload.facing_mode,
+            "p_width": payload.width,
+            "p_height": payload.height,
+            "p_fps": payload.fps,
+            "p_permission_status": payload.permission_status,
+            "p_metadata": payload.metadata,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_CAMERA_REGISTER_FAILED") from exc
+
+
+@router.get("/sessions/{session_id}/camera")
+async def get_live_camera(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        rows = await select(context["user"], "live_session_camera_sources", {
+            "select": "id,live_session_id,owner_user_id,source_type,device_key,facing_mode,width,height,fps,permission_status,status,metadata,created_at,updated_at",
+            "live_session_id": f"eq.{session_id}", "owner_user_id": f"eq.{context['user'].user_id}",
+            "status": "eq.active", "limit": "1",
+        })
+        return {"data": rows[0] if rows else None}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_CAMERA_LOAD_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/presence-check")
+async def submit_live_presence_check(session_id: UUID, payload: LivePresenceCheck, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "submit_live_human_presence_check", {
+            "p_live_session_id": str(session_id),
+            "p_camera_source_id": str(payload.camera_source_id),
+            "p_verification_method": payload.verification_method,
+            "p_consent": payload.consent,
+            "p_face_present": payload.face_present,
+            "p_body_present": payload.body_present,
+            "p_liveness_passed": payload.liveness_passed,
+            "p_face_quality": payload.face_quality,
+            "p_body_quality": payload.body_quality,
+            "p_evidence_metadata": payload.evidence_metadata,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_PRESENCE_CHECK_FAILED") from exc
+
+
+@router.get("/sessions/{session_id}/presence-check")
+async def get_live_presence_check(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        rows = await select(context["user"], "live_human_presence_verifications", {
+            "select": "id,live_session_id,owner_user_id,camera_source_id,verification_method,consent_at,face_present,body_present,liveness_passed,face_quality,body_quality,verification_status,verified_at,expires_at,evidence_metadata",
+            "live_session_id": f"eq.{session_id}", "owner_user_id": f"eq.{context['user'].user_id}",
+            "order": "created_at.desc", "limit": "1",
+        })
+        return {"data": rows[0] if rows else None}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_PRESENCE_CHECK_LOAD_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/human-presentation")
+async def bind_live_human_presentation(session_id: UUID, payload: LiveHumanPresentation, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "bind_live_human_presentation", {
+            "p_live_session_id": str(session_id),
+            "p_camera_source_id": str(payload.camera_source_id),
+            "p_presence_verification_id": str(payload.presence_verification_id),
+            "p_uniform_id": str(payload.uniform_id) if payload.uniform_id else None,
+            "p_user_uniform_id": str(payload.user_uniform_id) if payload.user_uniform_id else None,
+            "p_custom_costume_id": str(payload.custom_costume_id) if payload.custom_costume_id else None,
+            "p_appearance_config": payload.appearance_config,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_HUMAN_PRESENTATION_BIND_FAILED") from exc
+
+
+@router.get("/sessions/{session_id}/human-presentation")
+async def get_live_human_presentation(session_id: UUID, context: dict = Depends(get_auth_context)):
+    try:
+        rows = await select(context["user"], "live_session_human_presentations", {
+            "select": "*", "live_session_id": f"eq.{session_id}", "owner_user_id": f"eq.{context['user'].user_id}", "limit": "1",
+        })
+        return {"data": rows[0] if rows else None}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_HUMAN_PRESENTATION_LOAD_FAILED") from exc
+
+
+@router.get("/costumes/catalog")
+async def live_costume_catalog(context: dict = Depends(get_auth_context)):
+    try:
+        uniforms = await select(context["user"], "uniform_catalog", {
+            "select": "id,uniform_key,name,description,asset_type,storage_bucket,storage_path,mime_type,checksum_sha256,theme_compatibility,metadata",
+            "status": "eq.published", "moderation_status": "eq.approved", "order": "name.asc", "limit": "200",
+        })
+        owned = await select(context["user"], "user_uniforms", {
+            "select": "id,user_id,uniform_id,acquired_via,entitlement_ref,metadata,status,equipped",
+            "user_id": f"eq.{context['user'].user_id}", "status": "eq.owned", "order": "updated_at.desc", "limit": "200",
+        })
+        custom = await select(context["user"], "live_human_costume_templates", {
+            "select": "id,name,category,asset_type,storage_bucket,storage_path,mime_type,metadata,moderation_status,status",
+            "owner_user_id": f"eq.{context['user'].user_id}", "status": "eq.active", "moderation_status": "eq.approved",
+            "order": "updated_at.desc", "limit": "200",
+        })
+        return {"data": {"platform_uniforms": uniforms, "owned_uniforms": owned, "custom_costumes": custom}}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COSTUME_CATALOG_LOAD_FAILED") from exc
+
+
+@router.post("/costumes/custom", status_code=201)
+async def prepare_live_custom_costume(payload: LiveCustomCostumeCreate, context: dict = Depends(get_auth_context)):
+    try:
+        record = await rpc(context["user"], "prepare_live_custom_costume", {
+            "p_name": payload.name.strip(), "p_category": payload.category,
+            "p_mime_type": payload.mime_type, "p_metadata": payload.metadata,
+        })
+        upload = await create_signed_upload_url(context["user"], record["storage_bucket"], record["storage_path"])
+        return {"data": {**record, "upload": upload}}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COSTUME_PREPARE_FAILED") from exc
+    except SupabaseStorageError as exc:
+        raise HTTPException(status_code=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 502, detail={"code": "LIVE_COSTUME_UPLOAD_URL_FAILED", "message": exc.message})
+
+
+@router.post("/costumes/custom/{costume_id}/finalize")
+async def finalize_live_custom_costume(costume_id: UUID, payload: LiveCustomCostumeFinalize, context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "finalize_live_custom_costume", {
+            "p_costume_id": str(costume_id), "p_checksum_sha256": payload.checksum_sha256,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_COSTUME_FINALIZE_FAILED") from exc
+
+
+@router.post("/sessions/{session_id}/activate-experience")
+async def activate_live_experience(session_id: UUID, collaboration_id: UUID | None = Query(default=None), context: dict = Depends(get_auth_context)):
+    try:
+        result = await rpc(context["user"], "activate_live_experience", {
+            "p_live_session_id": str(session_id),
+            "p_collaboration_id": str(collaboration_id) if collaboration_id else None,
+        })
+        return {"data": result}
+    except SupabaseRestError as exc:
+        raise err(exc, "LIVE_EXPERIENCE_ACTIVATION_FAILED") from exc
