@@ -1,15 +1,5 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Trust</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Audit Logs</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Immutable audit visibility</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
-}
+"use client";
+import { useEffect,useState } from "react";
+import { apiFetch } from "../../lib/api";
+export default function Page(){const [rows,setRows]=useState<any[]>([]);const [error,setError]=useState<string|null>(null);useEffect(()=>{void apiFetch<{data:any[]}>("/api/v1/admin/agent-authority/audit-logs").then(r=>setRows(r.data??[])).catch(e=>setError(e instanceof Error?e.message:"ADMIN_AUDIT_LOAD_FAILED"))},[]);
+return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl"><p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Trust</p><h1 className="mt-3 text-4xl font-semibold">Audit Logs</h1><p className="mt-4 text-slate-300">Immutable audit evidence from the canonical audit ledger.</p>{error&&<div className="mt-6 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>}<div className="mt-10 space-y-3">{rows.map((x:any)=><article key={x.id} className="rounded-xl border border-white/10 bg-white/[.03] p-4"><p className="text-sm">{x.action} · {x.outcome}</p><p className="mt-1 text-xs text-slate-500">{x.resource_type} · {x.created_at}</p></article>)}{!rows.length&&!error&&<p className="text-sm text-slate-500">No audit records returned.</p>}</div></div></main>}
