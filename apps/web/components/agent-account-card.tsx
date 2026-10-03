@@ -8,7 +8,11 @@ export type AgentAccount = {
   quality_score:number; verified_usage_count:number; successful_usage_count:number; reward_credits_earned:number; challenge_level:number;
 };
 
-export default function AgentAccountCard({agent,compact=false}:{agent:AgentAccount;compact?:boolean}){
+export default function AgentAccountCard({agent,compact=false,discoveryContext={}}:{agent:AgentAccount;compact?:boolean;discoveryContext?:Record<string,string|undefined>}){
+ const contextQuery=Object.entries(discoveryContext).filter(([,v])=>v).map(([k,v])=>encodeURIComponent(k)+"="+encodeURIComponent(v as string)).join("&");
+ const contextSuffix=contextQuery?"?"+contextQuery:"";
+ const messageBase="/messages?target_type=agent&target_id="+agent.agent_id+"&interaction=";
+ const accountHref="/agents/account/"+agent.agent_id+contextSuffix;
  return <article className={"rounded-2xl border border-slate-200 bg-white p-4 shadow-sm "+(compact?"":"sm:p-5")}>
   <div className="flex items-start gap-3">
    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-sm font-semibold text-white">{agent.name.slice(0,1).toUpperCase()}</div>
@@ -28,8 +32,8 @@ export default function AgentAccountCard({agent,compact=false}:{agent:AgentAccou
    <Metric value={"L"+String(agent.challenge_level||1)} label="Challenge"/>
   </div>
   <div className="mt-4 flex gap-2">
-   <Link href={"/agents/account/"+agent.agent_id} className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-medium text-white">Open Agent Account</Link>
-   <Link href={"/messages?target_type=agent&target_id="+agent.agent_id+"&interaction=ask"} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700">Ask</Link><Link href={"/messages?target_type=agent&target_id="+agent.agent_id+"&interaction=message"} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700">Message</Link>
+   <Link href={accountHref} className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-medium text-white">Open Agent Account</Link>
+   <Link href={messageBase+"ask"+(contextQuery?"&"+contextQuery:"")} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700">Ask</Link><Link href={messageBase+"message"+(contextQuery?"&"+contextQuery:"")} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700">Message</Link>
   </div>
  </article>
 }
