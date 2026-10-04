@@ -11,9 +11,9 @@ export default function OfflinePage() {
           Koneksi internet sedang tidak tersedia. Coba lagi saat jaringan kembali.
           Data dan operasi yang membutuhkan server tidak dijalankan ketika offline.
         </p>
-        <button type="button" className="pwa-runtime-button" onClick={() => window.location.reload()}>
+        <a href="/" className="pwa-runtime-button" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>
           Coba lagi
-        </button>
+        </a>
       </section>
     </main>
   );
