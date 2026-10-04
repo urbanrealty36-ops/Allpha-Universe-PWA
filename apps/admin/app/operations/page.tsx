@@ -15,7 +15,14 @@ const groups=[
 const label=(x:string)=>x.replaceAll("_"," ").replace(/\b\w/g,m=>m.toUpperCase());
 
 type Action={operation:string;label:string};
-function decisionsFor(operation:string):string[]{\n if(operation==="moderation_decision"||operation==="payout_decision")return ["approved","rejected"];\n if(operation==="payout_process")return ["processing","paid","failed"];\n if(operation==="moderate_theme")return ["approved","restricted","removed","appealed"];\n return [];\n}\n\nfunction actionsFor(resource:string,row:any):Action[]{
+function decisionsFor(operation:string):string[]{
+ if(operation==="moderation_decision"||operation==="payout_decision")return ["approved","rejected"];
+ if(operation==="payout_process")return ["processing","paid","failed"];
+ if(operation==="moderate_theme")return ["approved","restricted","removed","appealed"];
+ return [];
+}
+
+function actionsFor(resource:string,row:any):Action[]{
  if(resource==="moderation"&&row.id)return [{operation:"moderation_decision",label:"Moderate"}];
  if(resource==="payouts"&&row.id){
    if(row.status==="approved"||row.status==="processing")return [{operation:"payout_process",label:"Process payout"}];
