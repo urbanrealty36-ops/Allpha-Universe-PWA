@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {apiFetch} from "../../lib/api";
+import {apiFetch} from "../../../lib/api";
 export default function PaymentResultPage(){
  const [status,setStatus]=useState("Checking payment status…");
  useEffect(()=>{const p=new URLSearchParams(window.location.search);const id=p.get("order_id");if(!id){setStatus("Payment reference is missing.");return;}const run=async()=>{try{const r=await apiFetch<{transaction_status:string}>(`/api/v1/payments/midtrans/status/${encodeURIComponent(id)}`);setStatus(r.transaction_status==="settlement"||r.transaction_status==="capture"?"Payment received. Allpha is processing your entitlement.":`Payment status: ${r.transaction_status}`)}catch(e){setStatus(e instanceof Error?e.message:"Payment status unavailable")}};void run()},[]);
