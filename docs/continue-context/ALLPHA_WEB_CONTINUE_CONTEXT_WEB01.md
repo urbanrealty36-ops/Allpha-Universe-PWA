@@ -208,7 +208,17 @@ District Booth selections now route to /booths/{booth_id}. The existing /booths 
 
 No new renderer, spatial engine, Agent Runtime, AI Gateway, Commerce engine, billing engine, permission authority or fake business/3D data was introduced.
 
-WEB-11 source implementation is complete. Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates.
+WEB-11 source implementation and Railway build/deployment are verified. Browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-12 — Agent Experience.
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+WEB-11 final deployment evidence:
+- source commit: b45e2613d3de409a55d78414b7f25b2025b70dca
+- @allpha/web deployment: 4807026a-213e-4810-ae24-ba6d8b6a44d2
+- status: SUCCESS
+- region: asia-southeast1-eqsg3a
+- production route verified by build manifest: /booths/[booth_id]
+
+Browser/device visual QA and authenticated E2E remain pending. CW-02 is not Production GREEN.
