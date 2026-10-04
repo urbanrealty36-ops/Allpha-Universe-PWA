@@ -291,14 +291,14 @@ function UniverseHome({
           <SectionHeader eyebrow="Spatial Discovery" title="Districts to explore" action="Open 3D Universe" onClick={onWorlds} />
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {loading ? <LoadingGrid count={4} compact /> : featuredDistricts.length ? featuredDistricts.map((district) => (
-              <button key={district.id} onClick={onWorlds} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-left hover:border-cyan-300/25">
+              <a key={district.id} href={`/districts/${district.id}`} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-left hover:border-cyan-300/25">
                 <div className="flex items-center justify-between">
                   <span className="text-[9px] uppercase tracking-[0.18em] text-violet-200/55">District</span>
                   <span className="text-cyan-200/50">◎</span>
                 </div>
                 <h3 className="mt-4 font-medium">{district.name}</h3>
                 <p className="mt-1 line-clamp-2 text-[10px] leading-5 text-white/35">{district.description ?? district.district_type}</p>
-              </button>
+              </a>
             )) : <EmptyInline title="No district is available for this spatial context yet." />}
           </div>
         </section>
