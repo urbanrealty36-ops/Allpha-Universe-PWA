@@ -96,7 +96,7 @@ export default function UniverseProductExperience() {
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
-  async function loadProductData(tab: HomeTab = homeTab) {
+  async function loadProductData(tab: HomeTab = homeTab, galaxyIdOverride?: string | null) {
     setLoading(true);
     setError(null);
 
@@ -130,8 +130,9 @@ export default function UniverseProductExperience() {
     if (galaxyResult.status === "fulfilled") {
       const galaxyData = Array.isArray(galaxyResult.value.data) ? galaxyResult.value.data : [];
       setGalaxies(galaxyData);
-      const activeGalaxyId = selectedGalaxyId && galaxyData.some((galaxy) => galaxy.id === selectedGalaxyId)
-        ? selectedGalaxyId
+      const requestedGalaxyId = galaxyIdOverride ?? selectedGalaxyId;
+      const activeGalaxyId = requestedGalaxyId && galaxyData.some((galaxy) => galaxy.id === requestedGalaxyId)
+        ? requestedGalaxyId
         : galaxyData[0]?.id ?? null;
       setSelectedGalaxyId(activeGalaxyId);
       if (activeGalaxyId) {
@@ -245,9 +246,9 @@ export default function UniverseProductExperience() {
             loading={loading}
             onGalaxy={(id) => {
               setSelectedGalaxyId(id);
-              void loadProductData(homeTab);
+              void loadProductData(homeTab, id);
             }}
-            onEnterWorld={() => setView("discover")}
+            onEnterWorld={(world) => window.location.assign(`/world?world_id=${encodeURIComponent(world.id)}`)}
             onBack={() => navigateHome("universe")}
           />
         )}
