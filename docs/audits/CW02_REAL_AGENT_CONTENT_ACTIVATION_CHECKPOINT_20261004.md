@@ -227,3 +227,44 @@ Remaining evidence gates are specifically:
 5. admin moderation decision;
 6. stronger cross-user negative tests if a second authorized test identity becomes available;
 7. final build/test verification for CW-02.
+
+## Evidence Run — 2026-10-04 — Admin Boundary + Provider Readiness
+
+### Admin moderation negative authorization
+Using the single existing authenticated user (platform role = user), a transactional Agent → Content → moderation-case flow was exercised. The ordinary authenticated user attempted decide_content_moderation(...); the operation was rejected by the canonical admin permission boundary. The entire transaction was rolled back.
+
+Result: PASS — ordinary user cannot perform the admin moderation decision.
+
+Post-rollback live counts remained:
+- agents = 0
+- content_items = 0
+- content_moderation_cases = 0
+- agent_commands = 0
+- agent_tasks = 0
+- agent_task_steps = 0
+- ai_gateway_requests = 0
+- ai_gateway_attempts = 0
+- ai_usage_events = 0
+
+### AI Gateway provider readiness
+Live canonical configuration currently contains:
+- enabled provider: openai / openai_compatible
+- enabled generation model: gpt-6-luna
+- enabled embedding model: text-embedding-3-small
+- enabled routing policy: allpha-default-openai
+- generation capability: ai.generate
+- provider credential contract: server-side OPENAI_API_KEY
+
+The database configuration is present and internally consistent. However, the actual FastAPI server-side environment binding and external provider execution are not yet runtime-proven in this evidence run. No provider call was fabricated or executed solely to manufacture a GREEN result.
+
+### FastAPI source reconciliation
+Current main.py explicitly mounts the canonical agent_runtime_router, messaging_router, feed_router, discovery_router, content_router, and admin_content_moderation_router. The runtime implementation resolves the canonical sequence Command → Planner → Memory/Knowledge Retrieval → ai.generate step → AI Gateway → result/telemetry; no second runtime or AI engine was introduced.
+
+### Updated CW-02 boundary
+CW-02 remains OPEN / ACTIVATING / NOT GREEN. The remaining blockers are runtime-environment evidence rather than a missing architecture family:
+1. authenticated FastAPI HTTP session proving Planner → Execute;
+2. actual AI Gateway provider execution and telemetry;
+3. actual browser/API Feed + Discovery session;
+4. real Storage object upload → media registration → moderation approval → read;
+5. admin moderation decision using an authorized admin session;
+6. final build/test verification.
