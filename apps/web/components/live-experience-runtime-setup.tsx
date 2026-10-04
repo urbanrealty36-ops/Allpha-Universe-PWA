@@ -353,7 +353,7 @@ export default function LiveExperienceRuntimeSetup() {
     selectedSession?.status === "live" &&
     humanPresentationRuntime?.active === true &&
     presence?.verification_status === "verified" &&
-    (!presence.expires_at || Date.parse(presence.expires_at) > Date.now()) &&
+    (!presence?.expires_at || Date.parse(presence.expires_at) > Date.now()) &&
     camera?.status === "active" &&
     camera?.permission_status === "granted";
 
