@@ -1,6 +1,6 @@
 # PHASE 27C — Super Admin Domain Operations, Transaction Explorer & Master Data Management
 
-Status: IMPLEMENTED FOUNDATION / NOT GREEN
+Status: IMPLEMENTED COMPLETE / RUNTIME QA PENDING
 
 ## Scope
 
@@ -54,20 +54,23 @@ Canonical public API functions:
 - Existing Theme/Marketplace/Moderation/Payout engines remain authoritative.
 - Provider secret fields are not returned by Transaction Explorer.
 
-## Verification
-- Phase 27C public wrappers are not executable by anon.
-- Authenticated EXECUTE is present.
-- Super Admin temporary transactional role context exercised transaction explorer and Users/Billing Plans/Credit Products domain explorers.
-- Temporary role assignment was rolled back.
-- No business fixtures were persisted.
+## Completion
+- FastAPI now mounts the canonical `admin_control_plane_router`; Admin PWA requests `/api/v1/admin/control-plane/*` reach the existing permission-gated control plane.
+- Admin PWA now has a unified Control Plane shell and navigation for Overview, Analytics, Transactions, Operations, Master Data and governance surfaces.
+- Admin home resolves to the Control Plane Overview instead of bypassing the 27C surface.
+- Transaction Explorer exposes search, order/payment/provider filters, date range, pagination and structured drill-down for order, buyer, payments, sellers/items, invoice, credit purchase, commerce events and audit evidence.
+- Domain Operations exposes the complete documented read explorer and the canonical governed actions: content moderation, payout decision/processing, marketplace listing publication, theme publication and theme moderation.
+- Operation UI decision values are aligned with the canonical database enums; payout disbursement reference is distinct from operator reason.
+- Master Data lifecycle remains allowlisted and canonical: Billing Plans, Credit Products and platform World Templates; history and rollback remain audited through the existing RPCs.
+- Feature Flags and Configuration Versions retain their existing Phase 27A authoritative lifecycle; no duplicate lifecycle engine was introduced.
+- No business fixtures were added.
 
-Not GREEN:
-- Browser-level authenticated Admin E2E pending.
-- API/Admin typecheck/build/CI pending.
-- Real Marketplace → Midtrans → settlement → payout lifecycle pending.
-- Phase 26 leaked-password protection intentionally remains pending until production.
-- Final QA/CI/CD/runtime/production gates remain later phases.
+## Verification boundary
+- Supabase live state confirms all Phase 27C public wrappers exist, are executable by `authenticated` and not by `anon`.
+- Private admin functions remain permission-gated through `admin_27c_require_read/manage` and `private.has_platform_permission`.
+- Existing Phase 27C database migrations and invariants remain the canonical database implementation; no duplicate admin schema or engine was introduced.
+- Runtime credentials, browser authenticated E2E, provider E2E, CI/CD, deployment and production Green remain intentionally deferred to the final runtime/production gates.
 
-## Next
+## Next execution wave
 
-PHASE 27D — Super Admin Governance Actions, Detail Views & Cross-Domain Operational Workflows, unless repository reconciliation defines a more specific next sub-phase.
+After Phase 27C implementation is complete, continue with **Payment, Billing & Economy Completion**. Do not introduce a numeric Phase 27D unless the canonical roadmap later defines it.
