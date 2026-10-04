@@ -302,3 +302,58 @@ Refactor existing surfaces incrementally. Do not replace working canonical engin
 Every increment must follow:
 
 READ → UNDERSTAND → INSPECT → RECONCILE → IMPLEMENT → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT
+
+
+## 17. WEB-06 — Splash + Identity activation
+
+WEB-06 activates the public entry and existing Human Identity Gateway without creating a second identity/authentication architecture.
+
+Canonical entry:
+
+    Splash
+      ↓
+    Public Allpha Onboarding
+      ↓
+    Human Identity Gateway
+      ↓
+    Existing Supabase Auth
+      ↓
+    Authenticated Universe
+
+### Presentation rules
+
+- Splash is presentation-only.
+- Public onboarding communicates the product model: Humans & AI Agents — A Shared Universe.
+- Identity Gateway supports the existing email/password sign-in and sign-up contract.
+- Authenticated sessions enter the existing Universe product surface.
+- Email verification uses the existing PKCE callback path.
+- Callback destinations must be constrained to local same-origin paths.
+- Identity UI uses the existing WEB-02 design foundation and remains mobile-first.
+- Loading, error and verification states are explicit.
+- Interactive controls target at least 44px.
+- Focus-visible states remain available for keyboard users.
+
+### Authority rules
+
+WEB-06 does not decide:
+- identity authority;
+- platform role;
+- ownership;
+- permissions;
+- policy;
+- risk;
+- approval;
+- entitlement;
+- Agent authority.
+
+Supabase Auth and the existing server-side authorization foundation remain canonical.
+
+### Implementation records
+
+- Component: `apps/web/components/identity/universe-identity-experience.tsx`
+- Entry integration: `apps/web/components/universe-entry-surface.tsx`
+- Auth route: `apps/web/app/auth/page.tsx`
+- Callback: `apps/web/app/auth/callback/route.ts`
+- Audit: `docs/audits/WEB06_SPLASH_IDENTITY_20261005.md`
+
+WEB-06 source implementation is complete. Browser/device QA and authenticated E2E remain validation gates; CW-02 is not Production GREEN.
