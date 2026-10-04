@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "document": "ALLPHA_WEB_UI_UX_BASELINE",
   "date": "2026-10-05",
   "wave": "CW-02.WEB",
@@ -72,7 +72,7 @@
     "presence_engine",
     "messaging_engine"
   ],
-  "next_phase": "WEB-04",
+  "next_phase": "WEB-05",
   "phase_plan": "docs/architecture/ALLPHA_WEB_UI_UX_REFACTORING_PHASE_PLAN.md",
   "web02_architecture": "docs/architecture/ALLPHA_WEB_DESIGN_SYSTEM_FOUNDATION.md",
   "web02_audit": "docs/audits/WEB02_DESIGN_SYSTEM_FOUNDATION_20261005.md",
@@ -97,5 +97,21 @@
     "installability_note": "SVG foundation implemented; raster 192x192 and 512x512 variants remain WEB-29 install QA."
   },
   "web03_architecture": "docs/architecture/ALLPHA_WEB_PWA_FOUNDATION.md",
-  "web03_audit": "docs/audits/WEB03_PWA_FOUNDATION_20261005.md"
+  "web03_audit": "docs/audits/WEB03_PWA_FOUNDATION_20261005.md",
+  "web04_status": "CLOSED_MOBILE_NAVIGATION",
+  "web04": {
+    "component": "apps/web/components/navigation/mobile-navigation.tsx",
+    "audit": "docs/audits/WEB04_MOBILE_NAVIGATION_20261005.md",
+    "ia": [
+      "Universe",
+      "Explore",
+      "Create",
+      "Messages",
+      "My Agent"
+    ],
+    "touch_min_px": 44,
+    "safe_area": true,
+    "desktop_breakpoint": "768px",
+    "create_flow": "Agent Factory currently available; full Create Experience remains WEB-16"
+  }
 }
