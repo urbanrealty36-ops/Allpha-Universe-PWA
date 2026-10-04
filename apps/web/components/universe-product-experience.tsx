@@ -199,6 +199,7 @@ export default function UniverseProductExperience() {
         </div>
       }
     >
+      <div className="pb-20 pt-16 md:pb-0">
         {error && <RuntimeNotice message={error} onRetry={() => void loadProductData()} />}
 
         {view === "home" && (
