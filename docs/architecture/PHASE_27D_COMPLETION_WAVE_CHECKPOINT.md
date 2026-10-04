@@ -31,6 +31,15 @@ Provider secrets remain server-side and no bank-transfer provider is fabricated.
 - Existing user business data remains authoritative; no synthetic users were created.
 - Runtime/browser E2E, build/CI and production Green remain deferred.
 
+## Additional completed increment
+- Activated Security Control Plane from the existing authoritative overview RPC.
+- Upgraded Audit Logs into an evidence explorer with filtering and record drill-down.
+- Added Approval Queue surface using the existing Agent Authority overview; decisions remain in the canonical Agent Runtime approval boundary.
+- Activated Content Operations context surface and linked it to the existing moderation queue.
+- Corrected content moderation decision authorization from `admin.read` to `admin.manage`.
+- Verified canonical moderation/approval/audit/payout RPCs remain SECURITY INVOKER with authenticated/service_role ACLs.
+- No moderation cases, approval requests, risk assessments or audit fixtures were created.
+
 ## Remaining 27D completion candidates
 - Governance detail surfaces for audit/security/risk.
 - Cross-domain operational detail views beyond Users/Payouts.
