@@ -174,3 +174,41 @@ No new renderer, engine, authority layer, or fake spatial/business data was intr
 WEB-10 source implementation is complete. Railway build/deployment, browser/device QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-11 — Booth/Tenant.
+
+
+## WEB-11 implemented
+
+WEB-11 activates the dedicated Booth/Tenant experience after District Experience.
+
+Implementation:
+- apps/web/components/booth-experience-surface.tsx
+- apps/web/app/booths/[booth_id]/page.tsx
+- District integration in apps/web/components/district-experience-surface.tsx
+- audit: docs/audits/WEB11_BOOTH_TENANT_20261005.md
+
+The surface consumes the existing Booth detail, verified 3D asset, display slot, lease, District composition, Theme/World runtime, Agent Account discovery and Marketplace listing contracts.
+
+Experience includes:
+- Booth / Tenant identity
+- District / Zone / World context
+- branding and theme presentation
+- published Marketplace listings
+- AI Host / Agent Account
+- Spatial Runtime Agent interactions
+- tenancy / lease state
+- verified Booth 3D assets
+- display slots
+- Live Entry metadata
+- Supabase Realtime reconciliation
+- 5-second authoritative refresh fallback
+- low-power mode
+- 2D fallback
+
+District Booth selections now route to /booths/{booth_id}. The existing /booths Booth Builder remains the management workflow.
+
+No new renderer, spatial engine, Agent Runtime, AI Gateway, Commerce engine, billing engine, permission authority or fake business/3D data was introduced.
+
+WEB-11 source implementation is complete. Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-12 — Agent Experience.
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
