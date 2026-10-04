@@ -15,7 +15,7 @@ const groups=[
 const label=(x:string)=>x.replaceAll("_"," ").replace(/\b\w/g,m=>m.toUpperCase());
 
 type Action={operation:string;label:string};
-function actionsFor(resource:string,row:any):Action[]{
+function decisionsFor(operation:string):string[]{\n if(operation==="moderation_decision"||operation==="payout_decision")return ["approved","rejected"];\n if(operation==="payout_process")return ["processing","paid","failed"];\n if(operation==="moderate_theme")return ["approved","restricted","removed","appealed"];\n return [];\n}\n\nfunction actionsFor(resource:string,row:any):Action[]{
  if(resource==="moderation"&&row.id)return [{operation:"moderation_decision",label:"Moderate"}];
  if(resource==="payouts"&&row.id){
    if(row.status==="approved"||row.status==="processing")return [{operation:"payout_process",label:"Process payout"}];
@@ -75,7 +75,7 @@ export default function OperationsPage(){
 
   {selected&&<div className="fixed inset-0 z-50 bg-black/70 p-4 sm:p-10" onClick={()=>setSelected(null)}><div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-slate-950 p-6" onClick={e=>e.stopPropagation()}>
    <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Governed Domain Action</p><h2 className="mt-2 text-xl font-semibold">{operation}</h2><p className="mt-2 text-sm text-slate-500">{selected.id}</p>
-   {operation!=="publish_listing"&&operation!=="publish_theme"&&<select value={decision} onChange={e=>setDecision(e.target.value)} className="mt-5 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"><option value="">Select decision / outcome</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="processing">Processing</option><option value="paid">Paid</option><option value="failed">Failed</option></select>}
+   {decisionsFor(operation).length>0&&<select value={decision} onChange={e=>setDecision(e.target.value)} className="mt-5 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"><option value="">Select decision / outcome</option>{decisionsFor(operation).map(value=><option key={value} value={value}>{value.replaceAll("_"," ")}</option>)}</select>}
    {operation==="payout_process"&&<input value={disbursementReference} onChange={e=>setDisbursementReference(e.target.value)} placeholder="Disbursement reference (optional)" className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"/>}
    <textarea value={reason} onChange={e=>setReason(e.target.value)} placeholder="Operator reason (required)" rows={4} className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"/>
    <div className="mt-4 flex justify-end gap-2"><button onClick={()=>setSelected(null)} className="rounded-lg border border-white/10 px-4 py-2">Cancel</button><button disabled={busy||!reason.trim()||(operation!=="publish_listing"&&operation!=="publish_theme"&&!decision)} onClick={()=>void runOperation()} className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950">{busy?"Executing…":"Execute"}</button></div>
