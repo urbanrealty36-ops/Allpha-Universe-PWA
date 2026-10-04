@@ -416,3 +416,51 @@ Home renders server-derived state and emits navigation/action intent. It does no
 - Audit: `docs/audits/WEB07_UNIVERSE_HOME_20261005.md`
 
 WEB-07 source implementation is complete. Browser/device visual QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
+
+
+## 19. WEB-08 — Galaxy Navigator activation
+
+WEB-08 is the spatial discovery layer after Universe Home and before World Experience.
+
+### Composition
+
+    UniverseShell
+      ↓
+    Galaxy Navigator
+      ├── Navigator Header
+      ├── Search
+      ├── All / Trending / Popular / New presentation controls
+      ├── 2D Orbital Galaxy Preview
+      ├── Galaxy Selection
+      ├── World Discovery
+      └── Spatial Chain Context
+
+### Canonical data
+
+    /api/v1/universe/galaxies
+             ↓
+    selected galaxy
+             ↓
+    /api/v1/universe/worlds?galaxy_id=...
+             ↓
+    World cards
+             ↓
+    existing World surface
+
+No duplicate Galaxy/World authority is created.
+
+### Progressive spatial behavior
+
+The Navigator is usable as 2D UI first and may progressively enhance toward 2.5D/3D. It does not introduce a renderer. Actual canonical 3D presentation continues to converge on AllphaWorldRenderer.
+
+### Authority
+
+The frontend may select a Galaxy or World for navigation, but it cannot decide ownership, permission, entitlement, policy, risk, approval or execution authority.
+
+### Implementation record
+
+- Component: `apps/web/components/universe/galaxy-navigator-experience.tsx`
+- Activation: `apps/web/components/universe-product-experience.tsx`
+- Audit: `docs/audits/WEB08_GALAXY_NAVIGATOR_20261005.md`
+
+WEB-08 source implementation is complete. Build verification and browser/device QA remain validation gates. CW-02 is not Production GREEN.
