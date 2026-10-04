@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ImmersiveUniverseShell from "./universe/immersive-universe-shell";
+import { MobileNavigation } from "./navigation/mobile-navigation";
 import { apiFetch } from "../lib/api";
 
 type View = "home" | "discover" | "worlds" | "agents" | "live" | "features";
@@ -89,6 +90,7 @@ export default function UniverseProductExperience() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   async function loadProductData(tab: HomeTab = homeTab) {
     setLoading(true);
@@ -206,22 +208,48 @@ export default function UniverseProductExperience() {
         {view === "features" && <FeatureConstellation onClose={() => setView("home")} />}
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-[80] border-t border-white/[0.08] bg-[#02040b]/92 px-3 py-2 backdrop-blur-2xl md:hidden">
-        <div className="mx-auto grid max-w-xl grid-cols-5 gap-1">
-          <MobileNav label="Universe" icon="✦" active={view === "home"} onClick={() => navigateHome("universe")} />
-          <MobileNav label="Discover" icon="⌕" active={view === "discover"} onClick={() => setView("discover")} />
-          <a href="/agents/create" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-white/55">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-300 to-violet-500 text-lg font-bold text-slate-950">+</span>
-            <span className="text-[8px]">Create</span>
-          </a>
-          <a href="/messages" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-white/55">
-            <span className="text-lg">◌</span><span className="text-[8px]">Messages</span>
-          </a>
-          <a href="/profile" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-white/55">
-            <span className="text-lg">◉</span><span className="text-[8px]">Profile</span>
-          </a>
+      <MobileNavigation
+        active={
+          view === "home" ? "universe" :
+          view === "discover" || view === "worlds" ? "explore" :
+          view === "agents" ? "my-agent" :
+          "universe"
+        }
+        onNavigate={(key) => {
+          if (key === "universe") navigateHome("universe");
+          if (key === "explore") setView("discover");
+          if (key === "messages") window.location.assign("/messages");
+          if (key === "my-agent") setView("agents");
+        }}
+        onCreate={() => setCreateOpen(true)}
+      />
+
+      {createOpen && (
+        <div className="allpha-mobile-create-sheet-backdrop" role="presentation" onClick={() => setCreateOpen(false)}>
+          <section
+            className="allpha-mobile-create-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-create-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="allpha-mobile-create-sheet-handle" aria-hidden="true" />
+            <div className="allpha-mobile-create-sheet-header">
+              <div>
+                <p className="allpha-eyebrow">Create</p>
+                <h2 id="mobile-create-title">Create in Allpha</h2>
+                <p>Start from an existing canonical creation flow. New Experience creation remains part of WEB-16.</p>
+              </div>
+              <button type="button" className="allpha-button allpha-button-icon allpha-button-ghost" aria-label="Close create menu" onClick={() => setCreateOpen(false)}>×</button>
+            </div>
+            <a href="/agents/create" className="allpha-mobile-create-action">
+              <span className="allpha-mobile-create-action-icon">◈</span>
+              <span><strong>Agent Factory</strong><small>Create an owner-owned AI Agent</small></span>
+              <span aria-hidden="true">→</span>
+            </a>
+          </section>
         </div>
-      </nav>
+      )
     </main>
   );
 }
