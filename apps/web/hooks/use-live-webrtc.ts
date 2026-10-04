@@ -17,6 +17,8 @@ export type LiveWebRTCOptions = {
   video?: boolean;
   audio?: boolean;
   localStream?: MediaStream | null;
+  /** Transport may only connect after the canonical Live Experience authorization gate is satisfied. */
+  authorized?: boolean;
 };
 
 export function useLiveWebRTC({
@@ -25,6 +27,7 @@ export function useLiveWebRTC({
   video = true,
   audio = true,
   localStream: providedLocalStream = null,
+  authorized = false,
 }: LiveWebRTCOptions) {
   const supabaseRef = useRef(createSupabaseBrowserClient());
   const channelRef = useRef<ReturnType<typeof supabaseRef.current.channel> | null>(null);
@@ -40,6 +43,17 @@ export function useLiveWebRTC({
   useEffect(() => {
     let mounted = true;
     const supabase = supabaseRef.current;
+
+    // WebRTC is transport-only. The canonical Live Experience workflow remains
+    // authoritative; without its authorization result no signaling channel or
+    // peer connection is created.
+    if (!authorized) {
+      setConnected(false);
+      setError(null);
+      return () => {
+        mounted = false;
+      };
+    }
     const senderId = senderIdRef.current;
 
     const iceServers: RTCIceServer[] = [
@@ -227,7 +241,7 @@ export function useLiveWebRTC({
       if (channelRef.current) void supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     };
-  }, [sessionId, role, video, audio, providedLocalStream]);
+  }, [sessionId, role, video, audio, providedLocalStream, authorized]);
 
   return {
     localStream,
