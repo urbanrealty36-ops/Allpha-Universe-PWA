@@ -26,7 +26,7 @@ export function PwaRuntime() {
     updateAvailable: false,
     installAvailable: false,
   });
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);\n  const [installDismissed, setInstallDismissed] = useState(false);
 
   useEffect(() => {
     setState((current) => ({ ...current, online: navigator.onLine }));
@@ -123,11 +123,11 @@ export function PwaRuntime() {
     navigator.serviceWorker.controller?.postMessage({ type: "SKIP_WAITING" });
   };
 
-  if (state.online && !state.updateAvailable && !state.installAvailable) return null;
+  if (state.online && !state.updateAvailable && (!state.installAvailable || installDismissed)) return null;
 
   return (
     <div className="pwa-runtime-banner" role="status" aria-live="polite">
-      <div className="pwa-runtime-message">
+      {state.installAvailable && !installDismissed && <button type="button" className="pwa-runtime-close" aria-label="Tutup banner Pasang Allpha" onClick={() => { setInstallDismissed(true); try { window.sessionStorage.setItem("allpha-pwa-install-dismissed", "1"); } catch {} }}>×</button>}\n      <div className="pwa-runtime-message">
         {!state.online ? (
           <>
             <strong>Offline</strong>
