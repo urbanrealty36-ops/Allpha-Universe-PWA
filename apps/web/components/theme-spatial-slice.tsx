@@ -269,7 +269,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
             <select value={selectedBoothId} onChange={e => setSelectedBoothId(e.target.value)} disabled={!districtId} className={inputClass}><option value="">Select Booth for 3D asset</option>{booths.map(b => <option key={b.id} value={b.id}>{b.name} · {b.status}</option>)}</select>
             {selectedBoothId && <label className="inline-flex cursor-pointer rounded-xl border border-cyan-300/40 px-3 py-2 text-[10px]">{busy ? "Uploading…" : boothAssetUrls[selectedBoothId] ? "Replace Booth GLB" : "Upload Booth GLB"}<input type="file" accept=".glb,model/gltf-binary" className="hidden" disabled={busy} onChange={e => { const f=e.target.files?.[0]; e.currentTarget.value=""; if(f) void uploadBooth3D(f); }} /></label>}
             <p className="text-[9px] text-slate-600">{selectedBoothId && boothAssetUrls[selectedBoothId] ? "REAL BOOTH GLB ACTIVE" : "Belum ada Booth GLB active untuk Booth terpilih."}</p>
-            <form onSubmit={createBooth className="flex gap-2"><input value={boothName} onChange={e => setBoothName(e.target.value)} placeholder="New Booth name" className={inputClass}/><button disabled={busy || !districtId || !boothName.trim()} className={buttonClass}>Create</button></form>
+            <form onSubmit={createBooth} className="flex gap-2"><input value={boothName} onChange={e => setBoothName(e.target.value)} placeholder="New Booth name" className={inputClass}/><button disabled={busy || !districtId || !boothName.trim()} className={buttonClass}>Create</button></form>
           </FlowCard>
         </div>
           <FlowCard step="06" title="Feed / Content Universe" selected={content.length > 0}>
