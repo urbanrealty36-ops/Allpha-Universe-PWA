@@ -13,7 +13,8 @@
 - WEB-03: CLOSED / PWA FOUNDATION
 - WEB-05: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
 - WEB-06: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
-- Next: WEB-07 — UNIVERSE HOME
+- WEB-07: IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING
+- Next: WEB-08 — GALAXY NAVIGATOR
 - CW-02: OPEN / ACTIVATING / NOT GREEN
 
 ## WEB-04 implemented
@@ -107,3 +108,18 @@ Then WEB-08 Galaxy Navigator and the remaining progressive UI surfaces.
 READ → UNDERSTAND → INSPECT → RECONCILE REPO + SUPABASE → PLAN → IMPLEMENT → MIGRATE → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT
 
 No phase restart. No Production GREEN claim during CW-02.
+
+
+## WEB-07 implemented
+
+- Added `apps/web/components/universe/universe-home-experience.tsx` as the active authenticated Universe Home surface.
+- Reconciled the supplied Mobile PWA UI/UX concept into the canonical Home layer without implementing later screens prematurely.
+- Home includes compact identity header, Universe / Live / For You tabs, Living Universe hero, discovery categories, featured Worlds, Universe Stream, Live Experiences, Agent presence, spatial summary and 82-domain Feature Constellation entry.
+- Reused existing API data: Theme/World catalog, Discovery Home, Live templates, My Agents and Galaxy/World/District.
+- Reused existing UniverseShell and MobileNavigation.
+- Home remains fully usable without 3D/WebGL.
+- No fake business data, new renderer, new discovery engine, new Agent Runtime, new AI Gateway or authority layer was introduced.
+- Source implementation is complete; Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates.
+
+## Next
+WEB-08 — Galaxy Navigator.
