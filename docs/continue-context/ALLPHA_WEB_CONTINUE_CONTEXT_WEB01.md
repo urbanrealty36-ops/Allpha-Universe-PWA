@@ -156,3 +156,21 @@ WEB-09 — World Experience.
 Audit: `docs/audits/WEB09_WORLD_EXPERIENCE_20261005.md`
 
 Next canonical product phase: WEB-10 — District Experience.
+
+
+## WEB-10 implemented
+
+WEB-10 upgrades the existing District Experience foundation into the full canonical District surface.
+
+Implementation:
+- `apps/web/components/district-experience-surface.tsx`
+- existing route: `apps/web/app/districts/[district_id]/page.tsx`
+- audit: `docs/audits/WEB10_DISTRICT_EXPERIENCE_20261005.md`
+
+The surface composes authoritative District → Zone → Spatial Object → Booth → Agent Presence state, validates the published World Scene, reuses `AllphaWorldRenderer`, resolves verified signed 3D assets when available, supports realtime + 5-second reconciliation polling, 2D fallback, low-power mode, District entry, access request, and Agent spatial interactions.
+
+No new renderer, engine, authority layer, or fake spatial/business data was introduced.
+
+WEB-10 source implementation is complete. Railway build/deployment, browser/device QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-11 — Booth/Tenant.
