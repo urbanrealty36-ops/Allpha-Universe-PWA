@@ -573,7 +573,7 @@ export default function DistrictExperienceSurface({ districtId }: { districtId: 
           selection={selection}
           onClose={() => setSelection(null)}
           onInteraction={interact}
-          onOpenBooth={() => window.location.assign("/booths")}
+          onOpenBooth={(booth) => window.location.assign(`/booths/${encodeURIComponent(booth.id)}`)}
           onOpenAgent={(agent) => window.location.assign(`/agents/${encodeURIComponent(agent.agent_id || agent.id || "")}`)}
           onSelectZone={(zone) => setSelection({ kind: "zone", value: zone })}
         />
@@ -671,7 +671,7 @@ function SelectionSheet({
   selection: Exclude<Selection, null>;
   onClose: () => void;
   onInteraction: (kind: "conversation" | "collaboration" | "shopping" | "negotiation") => void;
-  onOpenBooth: () => void;
+  onOpenBooth: (booth: Booth) => void;
   onOpenAgent: (agent: Agent) => void;
   onSelectZone: (zone: Zone) => void;
 }) {
@@ -692,7 +692,7 @@ function SelectionSheet({
               <Info label="Zone" value={selection.value.district_zone_id ? "Zone-bound" : "District level"} />
               <Info label="Host Agent" value={selection.value.host_agent_id ? "Assigned" : "Not assigned"} />
             </div>
-            <button type="button" onClick={onOpenBooth} className="mt-5 min-h-11 rounded-xl border border-white/10 px-4 text-xs text-white/65">Open Booth / Tenant</button>
+            <button type="button" onClick={() => onOpenBooth(selection.value)} className="mt-5 min-h-11 rounded-xl border border-white/10 px-4 text-xs text-white/65">Open Booth / Tenant</button>
           </>
         ) : null}
 
