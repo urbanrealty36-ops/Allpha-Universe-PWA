@@ -8,8 +8,8 @@ This register does not restart Phases 0–27. It closes implementation/evidence 
 
 ## Completion Waves
 
-### CW-01 — Evidence Lock & Domain Completion
-Close dedicated evidence gaps for all 82 domains.
+### CW-01 — Evidence Lock & Domain Completion — CLOSED
+Final 82-domain evidence register is locked. GAP-09 and the Anti-Impersonation contract gap are closed. Runtime activation remains in CW-02–CW-08.
 
 ### CW-02 — Agent + Content Activation
 Activate legitimate owner-owned Agents and legitimate Content through canonical lifecycle.
@@ -31,6 +31,10 @@ Verify telemetry, evaluation, RLS, policy, risk, approval, audit and security bo
 
 ### CW-08 — E2E / CI / Staging / Production Green Gate
 Only this wave can produce GREEN.
+
+## CW-01 Final Lock Reference
+
+See `docs/audits/CW01_FINAL_82_DOMAIN_EVIDENCE_LOCK_REGISTER_20261004.md` for the authoritative 82-domain evidence lock, cross-domain journey lock, Anti-Impersonation contract, and wave handoff.
 
 ## Current Full-System Integration Audit
 
