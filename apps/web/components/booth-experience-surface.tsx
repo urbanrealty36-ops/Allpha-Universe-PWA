@@ -159,11 +159,6 @@ function stringConfig(config: Record<string, unknown> | undefined, key: string):
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function numberConfig(config: Record<string, unknown> | undefined, key: string): number | null {
-  const value = config?.[key];
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
 export default function BoothExperienceSurface({ boothId }: { boothId: string }) {
   const [booth, setBooth] = useState<Booth | null>(null);
   const [district, setDistrict] = useState<District | null>(null);
