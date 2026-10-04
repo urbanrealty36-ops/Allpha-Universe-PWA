@@ -100,3 +100,77 @@ CW-02 is not GREEN until authenticated runtime evidence exists. Source/API/schem
 
 ## Status
 CW-02 = OPEN / AUDITING + ACTIVATING.
+
+
+## Evidence Run — 2026-10-04
+
+### Authenticated execution harness
+- Live Supabase contains exactly 1 active Auth user.
+- No new user was created.
+- Lifecycle evidence used the existing authenticated identity through a transactional database session with `request.jwt.claim.sub` and PostgreSQL role `authenticated`.
+- Every evidence mutation was wrapped in `BEGIN ... ROLLBACK`; no Agent or Content remained persisted.
+- Post-run business counts remain: agents = 0; content_items = 0; content_media = 0; content_media_assets = 0; content_moderation_cases = 0; content_events = 0.
+
+### Agent lifecycle evidence
+Initial authenticated run exposed a real blocker:
+`create_agent_identity()` failed while inserting `agent_identities` because the shared trigger function `private.guard_agent_identity_verification()` referenced `NEW.status` even when fired for `agent_identities`, which has no `status` column.
+
+Repaired:
+- `private.guard_agent_identity_verification()` now branches on `TG_TABLE_NAME` before reading table-specific fields.
+- Credential `status` remains server-authoritative.
+- Agent Identity / Passport verification fields remain server-authoritative.
+- Migration recorded in:
+  `supabase/migrations/20261004011000_cw02_fix_agent_verification_guard_trigger.sql`
+
+Authenticated rollback evidence after repair:
+- Agent Factory `create_agent_identity` succeeded.
+- Agent row plus Identity, Persona, Passport, Policy and Budget creation completed inside the transaction.
+- Transaction rolled back; no synthetic Agent remains.
+
+### Content lifecycle evidence
+Authenticated rollback evidence after the Agent repair:
+- Agent-owned `create_content` succeeded.
+- `publish_content` succeeded for a draft public Content item with no media dependency.
+- Authenticated RLS could read the resulting event rows inside the transaction.
+- Event evidence: `created` + `published`.
+- Transaction rolled back; no synthetic Content remains.
+
+### Media RLS gap discovered and repaired
+Live policy inspection found a real SQL alias defect in `content_media_assets_read`:
+- Previous public-read branch compared `cm.media_asset_id = cm.id`, a self-reference on `content_media`.
+- Correct relationship is `cm.media_asset_id = content_media_assets.id`, joined to `content_items` for published/public authorization.
+
+Repaired live and recorded in:
+- `supabase/migrations/20261004010000_cw02_fix_content_media_asset_public_read_policy.sql`
+
+Verified live policy now requires:
+- authenticated role;
+- asset `status = active`;
+- `moderation_status = approved`;
+- asset is attached to Content;
+- attached Content is `published` and `public`;
+- or the authenticated user owns the media subject.
+
+### Current evidence boundary
+Proven:
+- authenticated Agent Factory creation path;
+- authenticated Agent dependent-row creation;
+- authenticated Agent ownership/RLS boundary at lifecycle level;
+- authenticated Agent-owned Content creation;
+- authenticated Content publication;
+- authenticated Content event visibility;
+- media public-read RLS defect identified and repaired;
+- no persistent synthetic business data introduced.
+
+Not yet proven:
+- browser/API real-session E2E from the deployed PWA;
+- Agent Runtime planner/provider execution from the newly created Agent;
+- real AI Gateway generation and telemetry;
+- Agent discovery/feed consumption in a browser session;
+- media Storage upload + approved moderation + public media read E2E;
+- moderation decision/admin approval E2E;
+- cross-user privacy/authorization negative tests;
+- CI/build/runtime production verification.
+
+## Status Update
+CW-02 remains OPEN / ACTIVATING. The evidence run is materially progressed, but CW-02 is not GREEN and must not be closed until the remaining authenticated runtime and browser/API E2E gates are proven.
