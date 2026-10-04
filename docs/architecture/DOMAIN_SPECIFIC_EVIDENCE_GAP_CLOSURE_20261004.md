@@ -4,17 +4,15 @@
 This checkpoint closes source-level evidence gaps that were previously marked PARTIAL/UNVERIFIED without creating duplicate domain engines.
 
 ## Closed at source level
-The following domains are now explicitly evidenced as **IMPLEMENTED FOUNDATION** through existing canonical engines:
+The following domains from the previous PARTIAL/UNVERIFIED set are now explicitly evidenced as **IMPLEMENTED FOUNDATION** through existing canonical engines:
 
+- Stories Engine → Content + dedicated Story extension/lifecycle
 - Trend Engine → Feed + Social + Analytics telemetry
 - Creator Economy → Commerce + Payout + Reputation
 - Event Engine → Community Engine + Live/Notification dependencies
 - Tenant Leasing & Billing → Booth/Tenant + Commerce + Billing
 - Theme Marketplace → Theme Engine + Marketplace + Moderation
-- Agent Simulation Engine → Spatial Runtime
 - Encounter Engine → Presence + Spatial Interaction + Agent Context
-- Presence Engine → Spatial Runtime + Realtime
-- Realtime World Engine → Spatial Runtime + Supabase Realtime
 - World Stream → Universe + Content + Feed
 - Identity Verification → Identity + Security + Live presence verification
 - Anti-Fraud → Risk + Commerce + Security + Audit
