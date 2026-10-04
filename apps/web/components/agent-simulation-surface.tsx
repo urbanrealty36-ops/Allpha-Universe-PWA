@@ -25,7 +25,7 @@ export default function AgentSimulationSurface(){
   }catch(e){setError(e instanceof Error?e.message:"SPATIAL_RUNTIME_LOAD_FAILED")}finally{setLoading(false)}
  }
 
- useEffect(()=>{if(worldId)void load()},[worldId,load]);
+ useEffect(()=>{if(worldId){void load();}},[worldId,load]);
 
  useEffect(()=>{
   if(!worldId)return;
