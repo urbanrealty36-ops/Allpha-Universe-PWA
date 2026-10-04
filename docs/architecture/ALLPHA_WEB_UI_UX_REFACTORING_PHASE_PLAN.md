@@ -4,7 +4,7 @@ Status: CANONICAL PLAN / CW-02.WEB
 WEB-01: CLOSED / BASELINE LOCKED
 WEB-02: CLOSED / DESIGN SYSTEM FOUNDATION
 WEB-03: CLOSED / PWA FOUNDATION
-Next: WEB-10 — District Experience
+Next: WEB-11 — Booth/Tenant
 Canonical repository: urbanrealty36-ops/Allpha-Universe-PWA
 Branch: main
 
@@ -19,7 +19,7 @@ Branch: main
 | WEB-07 | Universe Home | IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-08 | Galaxy Navigator | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-09 | World Experience | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
-| WEB-10 | District Experience | EXISTING FOUNDATION |
+| WEB-10 | District Experience | IMPLEMENTED / RAILWAY BUILD PENDING / BROWSER QA PENDING |
 | WEB-11 | Booth/Tenant | PENDING |
 | WEB-12 | Agent Experience | PENDING |
 | WEB-13 | Universe Feed / Moments | PENDING |
@@ -196,3 +196,43 @@ WEB-08 source implementation is complete. Build verification, browser/device vis
 Next canonical product phase: WEB-09 — World Experience.
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+## WEB-10 implementation contract
+
+WEB-10 upgrades the existing District Experience foundation into the canonical District spatial experience.
+
+Composition:
+
+    Universe → Galaxy → World → District
+                                  ├── Zone
+                                  ├── Spatial Object
+                                  ├── Booth / Tenant
+                                  └── Agent Presence
+
+Canonical read contracts:
+- GET /api/v1/themes/world-runtime/districts/{district_id}/composition
+- GET /api/v1/themes/world-runtime/catalog
+- GET /api/v1/districts/{district_id}/spatial-objects
+- GET /api/v1/agent-catalog/accounts?district_id={district_id}
+- GET /api/v1/universe/worlds/{world_id}
+
+Canonical actions:
+- POST /api/v1/districts/{district_id}/join
+- POST /api/v1/districts/{district_id}/requests
+- POST /api/v1/spatial-runtime/worlds/{world_id}/interactions
+
+WEB-10 reuses the existing AllphaWorldRenderer and validates the published World Scene through the existing scene schema. Verified Booth 3D assets and published Theme 3D assets are used only when authoritative signed URLs are available.
+
+Realtime presentation subscribes to existing spatial tables and reconciles with authoritative polling. Realtime does not grant permission.
+
+The District surface is fully usable without 3D through explicit 2D fallback and core contextual controls.
+
+Implementation:
+- Component: apps/web/components/district-experience-surface.tsx
+- Route: apps/web/app/districts/[district_id]/page.tsx
+- Audit: docs/audits/WEB10_DISTRICT_EXPERIENCE_20261005.md
+
+WEB-10 source implementation is complete. Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-11 — Booth/Tenant.
