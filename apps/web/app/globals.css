@@ -562,3 +562,124 @@ a { color: inherit; }
     transition: none;
   }
 }
+
+
+/* Spatial Universe visual activation */
+.allpha-spatial-chrome-top {
+  position: fixed; inset: 0 0 auto; z-index: 70;
+  display:flex; align-items:center; justify-content:space-between; gap:18px;
+  min-height:68px; padding:10px 18px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(2,4,12,.82),rgba(2,4,12,.34));
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  pointer-events:none;
+}
+.allpha-spatial-chrome-top > * { pointer-events:auto; }
+.allpha-spatial-chrome-brand { display:flex; align-items:center; gap:9px; min-width:180px; }
+.allpha-spatial-logo-mark {
+  display:grid; place-items:center; width:34px; height:34px; border-radius:11px;
+  color:#fff; font-weight:900; font-size:18px; letter-spacing:-.08em;
+  background:linear-gradient(145deg,#72e9ff,#4f63ff 55%,#8b3ffc);
+  box-shadow:0 0 30px rgba(86,198,255,.25);
+}
+.allpha-spatial-chrome-brand strong { display:block; font-size:17px; line-height:1; letter-spacing:-.08em; }
+.allpha-spatial-chrome-brand strong span { color:#67e8f9; }
+.allpha-spatial-chrome-brand small { display:block; margin-top:4px; color:rgba(210,240,255,.42); font-size:6px; font-weight:700; letter-spacing:.34em; }
+.allpha-spatial-chrome-nav { display:flex; align-items:center; gap:3px; }
+.allpha-spatial-chrome-nav a,.allpha-spatial-chrome-nav button {
+  min-height:40px; padding:0 13px; border:1px solid transparent; border-radius:999px;
+  background:transparent; color:rgba(255,255,255,.48); font:inherit; font-size:9px;
+  font-weight:700; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; cursor:pointer;
+}
+.allpha-spatial-chrome-nav a:hover,.allpha-spatial-chrome-nav a.is-active,.allpha-spatial-chrome-nav button:hover {
+  color:#fff; border-color:rgba(103,232,249,.2); background:rgba(103,232,249,.06);
+}
+.allpha-spatial-chrome-actions { display:flex; gap:5px; }
+.allpha-spatial-chrome-actions a {
+  display:grid; place-items:center; width:38px; height:38px; border:1px solid rgba(255,255,255,.08);
+  border-radius:50%; color:rgba(255,255,255,.55); background:rgba(0,0,0,.24); text-decoration:none; backdrop-filter:blur(12px);
+}
+.allpha-spatial-chrome-actions a:hover { color:#fff; border-color:rgba(103,232,249,.3); }
+.allpha-spatial-chrome-hint {
+  position:fixed; z-index:55; left:50%; top:82px; transform:translateX(-50%);
+  display:flex; align-items:center; gap:8px; padding:7px 12px; border:1px solid rgba(255,255,255,.07);
+  border-radius:999px; color:rgba(255,255,255,.28); background:rgba(2,4,12,.32); backdrop-filter:blur(12px);
+  font-size:6px; font-weight:800; letter-spacing:.22em; pointer-events:none;
+}
+.allpha-spatial-chrome-hint i { width:3px; height:3px; border-radius:50%; background:#67e8f9; box-shadow:0 0 8px #67e8f9; }
+.allpha-spatial-layer-legend {
+  position:fixed; z-index:55; left:18px; top:92px; display:flex; align-items:center; gap:7px;
+  padding:8px 11px; border:1px solid rgba(255,255,255,.07); border-radius:999px;
+  color:rgba(255,255,255,.32); background:rgba(2,4,12,.28); backdrop-filter:blur(12px);
+  font-size:7px; letter-spacing:.12em; text-transform:uppercase; pointer-events:none;
+}
+.allpha-spatial-layer-legend .is-active { color:#9deaff; }
+.allpha-spatial-layer-legend b { color:rgba(255,255,255,.14); font-weight:400; }
+.allpha-spatial-account {
+  position:fixed; z-index:65; right:18px; bottom:84px; display:flex; align-items:center; gap:5px;
+  padding:5px; border:1px solid rgba(255,255,255,.07); border-radius:999px;
+  background:rgba(2,4,12,.5); backdrop-filter:blur(16px);
+}
+.allpha-spatial-account-email { max-width:170px; padding:0 8px; overflow:hidden; color:rgba(255,255,255,.34); font-size:7px; text-overflow:ellipsis; white-space:nowrap; }
+.allpha-spatial-account a,.allpha-spatial-account button {
+  min-height:30px; padding:0 10px; border:1px solid rgba(255,255,255,.07); border-radius:999px;
+  background:rgba(255,255,255,.025); color:rgba(255,255,255,.55); font:inherit; font-size:7px; cursor:pointer; text-decoration:none;
+}
+.allpha-spatial-account a:hover,.allpha-spatial-account button:hover { color:#fff; border-color:rgba(103,232,249,.22); }
+.allpha-spatial-mobile-nav { display:none; }
+.allpha-spatial-create-backdrop {
+  position:fixed; inset:0; z-index:200; display:flex; align-items:flex-end; justify-content:center;
+  padding:14px; background:rgba(0,0,0,.64); backdrop-filter:blur(12px);
+}
+.allpha-spatial-create-sheet {
+  width:min(100%,720px); padding:20px; border:1px solid rgba(255,255,255,.1); border-radius:28px;
+  background:rgba(8,12,24,.94); box-shadow:0 30px 100px rgba(0,0,0,.5);
+}
+.allpha-spatial-create-handle { width:44px; height:4px; margin:0 auto 18px; border-radius:999px; background:rgba(255,255,255,.18); }
+.allpha-spatial-create-head { display:flex; justify-content:space-between; gap:16px; }
+.allpha-spatial-create-head h2 { margin:8px 0 6px; font-size:clamp(22px,4vw,30px); letter-spacing:-.04em; }
+.allpha-spatial-create-head p { max-width:560px; margin:0; color:rgba(255,255,255,.45); font-size:12px; line-height:1.6; }
+.allpha-spatial-create-head > button { width:44px; height:44px; flex:0 0 44px; border:1px solid rgba(255,255,255,.08); border-radius:50%; background:transparent; color:#fff; cursor:pointer; }
+.allpha-spatial-create-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:18px; }
+.allpha-spatial-create-grid a {
+  min-height:120px; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; padding:14px;
+  border:1px solid rgba(255,255,255,.08); border-radius:20px; background:linear-gradient(145deg,rgba(103,232,249,.07),rgba(124,58,237,.07));
+  color:inherit; text-decoration:none;
+}
+.allpha-spatial-create-grid a:hover { border-color:rgba(103,232,249,.25); transform:translateY(-2px); }
+.allpha-spatial-create-grid strong { font-size:13px; }
+.allpha-spatial-create-grid span { color:rgba(255,255,255,.35); font-size:9px; }
+.allpha-spatial-create-grid b { margin-top:8px; color:#9deaff; font-size:16px; }
+@media (max-width: 760px) {
+  .allpha-spatial-chrome-top { min-height:58px; padding:8px 12px; }
+  .allpha-spatial-chrome-brand { min-width:auto; }
+  .allpha-spatial-chrome-brand small,.allpha-spatial-chrome-nav,.allpha-spatial-chrome-actions a:nth-child(1),.allpha-spatial-chrome-actions a:nth-child(2),.allpha-spatial-account { display:none; }
+  .allpha-spatial-chrome-brand strong { font-size:15px; }
+  .allpha-spatial-logo-mark { width:31px; height:31px; font-size:16px; }
+  .allpha-spatial-chrome-actions { margin-left:auto; }
+  .allpha-spatial-chrome-actions a { width:38px; height:38px; }
+  .allpha-spatial-chrome-hint { top:67px; font-size:5px; }
+  .allpha-spatial-layer-legend { left:12px; top:104px; max-width:calc(100vw - 24px); overflow:auto; white-space:nowrap; }
+  .allpha-spatial-mobile-nav {
+    position:fixed; inset:auto 0 0; z-index:90; display:grid; grid-template-columns:repeat(5,1fr);
+    gap:3px; padding:7px 9px max(7px,env(safe-area-inset-bottom)); border-top:1px solid rgba(255,255,255,.08);
+    background:rgba(2,4,12,.78); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  }
+  .allpha-spatial-mobile-nav a,.allpha-spatial-mobile-nav button {
+    min-height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    border:0; border-radius:13px; background:transparent; color:rgba(255,255,255,.35); font:inherit; cursor:pointer; text-decoration:none;
+  }
+  .allpha-spatial-mobile-nav span { font-size:17px; line-height:1; }
+  .allpha-spatial-mobile-nav small { font-size:7px; font-weight:700; letter-spacing:.04em; }
+  .allpha-spatial-mobile-nav .is-active { color:#fff; background:rgba(103,232,249,.07); }
+  .allpha-spatial-mobile-nav .create span {
+    width:39px; height:39px; display:grid; place-items:center; margin-top:-17px; border:1px solid rgba(103,232,249,.35);
+    border-radius:50%; background:linear-gradient(135deg,#67e8f9,#6366f1 55%,#8b5cf6); color:#06111d; font-size:24px; font-weight:800;
+    box-shadow:0 0 35px rgba(103,232,249,.3);
+  }
+  .allpha-spatial-create-grid { grid-template-columns:1fr; }
+  .allpha-spatial-create-grid a { min-height:76px; justify-content:center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .allpha-spatial-create-grid a { transform:none!important; transition:none; }
+}
