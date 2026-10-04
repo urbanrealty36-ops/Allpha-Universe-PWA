@@ -1,15 +1,9 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Content</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Content</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Content moderation and administration</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
+"use client";
+import {useEffect,useState} from "react";
+import {apiFetch} from "../../lib/api";
+export default function Page(){
+ const [rows,setRows]=useState<any[]>([]),[error,setError]=useState<string|null>(null);
+ async function load(){setError(null);try{const r=await apiFetch<{data:any[]}>("/api/v1/admin/content-moderation/queue?limit=100");setRows(r.data??[])}catch(e){setError(e instanceof Error?e.message:"CONTENT_QUEUE_FAILED")}}
+ useEffect(()=>{void load()},[]);
+ return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl"><p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Content · Phase 27D</p><h1 className="mt-3 text-4xl font-semibold">Content Operations</h1><p className="mt-3 max-w-4xl text-slate-400">Authoritative content inventory for operational context. Moderation decisions remain in the canonical Trust & Safety queue.</p>{error&&<div className="mt-5 rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm">{error}</div>}<div className="mt-6 grid gap-4 sm:grid-cols-3"><div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="text-sm text-slate-400">Pending moderation</p><p className="mt-2 text-3xl font-semibold">{rows.length}</p></div><a href="/moderation" className="rounded-2xl border border-cyan-300/20 bg-cyan-300/5 p-5"><p className="font-semibold">Open moderation queue</p><p className="mt-2 text-sm text-slate-400">Approve or reject through the existing governed endpoint.</p></a><a href="/operations" className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="font-semibold">Domain operations</p><p className="mt-2 text-sm text-slate-400">Cross-domain administrative actions.</p></a></div><section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="text-sm text-slate-500">{rows.length===0?"No pending moderation records.":"Moderation queue contains authoritative cases; see the queue for decisions."}</p></section></div></main>;
 }
