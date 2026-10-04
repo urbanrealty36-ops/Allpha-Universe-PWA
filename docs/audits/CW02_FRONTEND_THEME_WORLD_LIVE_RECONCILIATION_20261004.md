@@ -140,3 +140,25 @@ The next increment should be a **Frontend Product UX Realization increment** ins
 ## Evidence basis
 
 This document reflects the current repository main branch and live Supabase state observed during the 2026-10-04 reconciliation. The canonical Project context already defines Theme as a presentation contract spanning Galaxy → World → District → Zone → Booth → Agent/Character → Portal → Content/AI Capsule → Live Experience Stage, with `AllphaWorldRenderer` as the canonical renderer.
+
+
+## UX reference reconciliation correction — 2026-10-05
+
+The previous Product UX increment correctly routed authenticated users into `UniverseProductExperience`, but it did not replace the anonymous `UniversePublicEntry` visual with the supplied Allpha reference UX. The supplied reference set shows a cosmic Allpha splash/onboarding surface followed by a spatial Home/Universe product surface; the previous public surface was an abstract CSS portal/map and therefore remained visibly different.
+
+This is treated as a CW-02 UX realization gap, not as a new engine or architectural phase.
+
+Implemented in `UniversePublicEntry`:
+- Allpha-branded splash hierarchy
+- cosmic/star-field backdrop
+- central spatial/cosmic visual
+- `Humans & AI Agents / A Shared Universe` positioning
+- `Get Started` and `Sign In` reference-style CTAs
+- Galaxy / World / Agent / Social / Content spatial labels
+- Universe layer panel
+- mobile-first composition matching the supplied reference direction
+- existing Supabase authentication boundary preserved
+
+Commit: `70455338782934f5f6cd64385ee0871cf9c4ae83`
+
+This does not yet claim complete parity with every supplied Home, District, Agent, Booth, Marketplace, Community, Messaging, Theme Builder and Human Control Center reference. Those remain authenticated product-surface realization work inside CW-02.
