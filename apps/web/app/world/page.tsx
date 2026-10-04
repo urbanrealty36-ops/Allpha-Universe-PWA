@@ -1,2 +1,5 @@
-import WorldPreviewSurface from "../../components/world/world-preview-surface";
-export default function Page(){return <WorldPreviewSurface/>;}
+import WorldExperience from "../../components/world/world-experience";
+
+export default function Page() {
+  return <WorldExperience />;
+}
