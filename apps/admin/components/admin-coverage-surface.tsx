@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {apiFetch} from "../app/lib/api";
+import {apiFetch} from "../lib/api";
 export default function AdminCoverageSurface({title,eyebrow,description,domainKeys=[]}:{title:string;eyebrow:string;description:string;domainKeys:string[]}){
  const [data,setData]=useState<any>(null),[error,setError]=useState<string|null>(null);
  useEffect(()=>{void apiFetch<{data:any}>("/api/v1/admin/control-plane/overview").then(r=>setData(r.data)).catch(e=>setError(e instanceof Error?e.message:"ADMIN_COVERAGE_LOAD_FAILED"))},[]);
