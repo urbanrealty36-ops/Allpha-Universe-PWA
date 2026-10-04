@@ -248,7 +248,13 @@ export default function DiscoverySurface() {
           </div>
         ) : (
           <div className="mt-6 space-y-6">
-            {data?.agents?.length ? (\n              <Section title="AI Agents" eyebrow="AGENT DISCOVERY" action="/agents/discover">\n                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{data.agents.slice(0,6).map((agent)=><AgentAccountCard key={agent.agent_id} agent={agent} compact discoveryContext={{source_surface:surface}} />)}</div>\n              </Section>\n            ) : null}\n\n            {surface === "home" && data?.worlds.length ? (
+            {data?.agents?.length ? (
+              <Section title="AI Agents" eyebrow="AGENT DISCOVERY" action="/agents/discover">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{data.agents.slice(0,6).map((agent)=><AgentAccountCard key={agent.agent_id} agent={agent} compact discoveryContext={{source_surface:surface}} />)}</div>
+              </Section>
+            ) : null}
+
+            {surface === "home" && data?.worlds.length ? (
               <Section title="Universe Scroll" eyebrow="WORLD DISCOVERY" action="/worlds">
                 <div className="flex snap-x gap-4 overflow-x-auto pb-2">
                   {data.worlds.map((world) => (
