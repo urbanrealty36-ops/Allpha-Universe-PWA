@@ -105,6 +105,7 @@ export default function LiveExperienceRuntimeSetup() {
   const [stage, setStage] = useState<StageRuntime | null>(null);
   const [camera, setCamera] = useState<CameraSource | null>(null);
   const [presence, setPresence] = useState<PresenceCheck | null>(null);
+  const [humanPresentationRuntime, setHumanPresentationRuntime] = useState<{ active: boolean; presentation?: { status?: string } | null } | null>(null);
   const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
   const [collaborationId, setCollaborationId] = useState("");
   const [costumes, setCostumes] = useState<{ platform_uniforms: Costume[]; owned_uniforms: any[]; custom_costumes: Costume[] }>({ platform_uniforms: [], owned_uniforms: [], custom_costumes: [] });
@@ -151,10 +152,11 @@ export default function LiveExperienceRuntimeSetup() {
   async function loadSessionRuntime(id: string) {
     setError(null);
     try {
-      const [stageResponse, cameraResponse, presenceResponse, collabResponse, characterResponse] = await Promise.all([
+      const [stageResponse, cameraResponse, presenceResponse, presentationResponse, collabResponse, characterResponse] = await Promise.all([
         apiFetch<{ data: StageRuntime }>(`/api/v1/live/sessions/${id}/stage-runtime`),
         apiFetch<{ data: CameraSource | null }>(`/api/v1/live/sessions/${id}/camera`),
         apiFetch<{ data: PresenceCheck | null }>(`/api/v1/live/sessions/${id}/presence-check`),
+        apiFetch<{ data: { active: boolean; presentation?: { status?: string } | null } }>(`/api/v1/live/sessions/${id}/human-presentation-runtime`),
         apiFetch<{ data: Collaboration[] }>(`/api/v1/live/sessions/${id}/collaborations`),
         apiFetch<{ data: any[] }>(`/api/v1/live/sessions/${id}/characters`),
       ]);
@@ -172,6 +174,7 @@ export default function LiveExperienceRuntimeSetup() {
       }
       setCamera(cameraResponse.data ?? null);
       setPresence(presenceResponse.data ?? null);
+      setHumanPresentationRuntime(presentationResponse.data ?? null);
       setCollaborations(collabResponse.data ?? []);
       const active = (collabResponse.data ?? []).find((c) => c.status === "active" && c.consent_status === "approved" && c.risk_decision === "allow");
       setCollaborationId(active?.id ?? "");
@@ -257,6 +260,13 @@ export default function LiveExperienceRuntimeSetup() {
     setCameraReady(false);
   }
 
+  const webRTCTransportAuthorized =
+    selectedSession?.status === "live" &&
+    humanPresentationRuntime?.active === true &&
+    presence?.verification_status === "verified" &&
+    camera?.status === "active" &&
+    camera?.permission_status === "granted";
+
   function renderWebRTCStage() {
     if (!sessionId) return null;
     return (
@@ -264,7 +274,8 @@ export default function LiveExperienceRuntimeSetup() {
         sessionId={sessionId}
         role="publisher"
         localStream={cameraStream}
-        enabled={Boolean(cameraStream)}
+        authorized={webRTCTransportAuthorized}
+        enabled={webRTCTransportAuthorized}
       />
     );
   }
