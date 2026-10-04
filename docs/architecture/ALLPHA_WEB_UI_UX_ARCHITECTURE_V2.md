@@ -561,3 +561,82 @@ The District surface never decides identity, ownership, permissions, policy, ris
 WEB-10 source implementation is complete. Build/deployment, browser/device QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
 
 Next canonical product phase: WEB-11 — Booth/Tenant.
+
+
+## 22. WEB-11 — Booth / Tenant Experience activation
+
+WEB-11 is the Booth/Tenant experience immediately after District Experience.
+
+### Composition
+
+    Universe
+      ↓
+    Galaxy
+      ↓
+    World
+      ↓
+    District
+      ↓
+    Zone
+      ↓
+    Booth / Tenant
+      ├── Identity
+      ├── Branding / Theme
+      ├── Spatial presentation
+      ├── Marketplace catalog
+      ├── AI Host
+      ├── Tenancy / Lease state
+      ├── Display Assets / Slots
+      └── Live Entry metadata
+
+### Canonical contracts
+
+The Web surface reuses existing FastAPI/Supabase contracts:
+- Booth detail
+- Booth verified 3D assets
+- Booth display slots
+- Booth leases
+- District composition
+- Theme catalog / Theme asset manifest
+- World context
+- Agent Account discovery by Booth
+- Marketplace listing discovery by Booth
+- Spatial Runtime interaction
+
+No Booth-specific authority is recreated in the Web layer.
+
+### Spatial rules
+
+- AllphaWorldRenderer remains the only canonical renderer.
+- normalizeWorldScene remains the validation boundary for the published Theme/World scene.
+- Booth GLB presentation is allowed only from the existing signed 3D asset contract.
+- Theme 3D assets are resolved through the existing World Runtime asset manifest.
+- Missing/invalid scene falls back to a fully usable 2D Booth experience.
+- Realtime updates are reconciliation/presentation only.
+
+### Agent rules
+
+The Booth AI Host is an existing Agent Account reference. WEB-11 may present the public Agent Account and emit conversation/collaboration/shopping/negotiation intent through the existing Spatial Runtime interaction contract.
+
+WEB-11 does not grant Agent authority or execute Agent work directly.
+
+### Commerce and tenancy rules
+
+Marketplace listings are rendered from the existing Commerce/Marketplace read contract. WEB-11 does not calculate prices, create payment state or execute orders.
+
+Lease records are rendered from the existing Booth tenancy contract. Browser presentation does not decide entitlement, ownership, billing or lease activation.
+
+### Web IA
+
+- District Booth selection → /booths/{booth_id}
+- /booths remains the existing Booth Builder / management workflow.
+- /booths/{booth_id} is the canonical spatial Booth/Tenant experience.
+
+### Implementation records
+
+- Component: apps/web/components/booth-experience-surface.tsx
+- Route: apps/web/app/booths/[booth_id]/page.tsx
+- District integration: apps/web/components/district-experience-surface.tsx
+- Audit: docs/audits/WEB11_BOOTH_TENANT_20261005.md
+
+WEB-11 source implementation is complete. Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
