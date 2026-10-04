@@ -15,7 +15,7 @@ Branch: main
 | WEB-03 | PWA Foundation | CLOSED |
 | WEB-04 | Mobile Navigation | CLOSED |
 | WEB-05 | Universe Shell | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-06 | Splash + Identity | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
+| WEB-06 | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-07 | Universe Home | PENDING |
 | WEB-08 | Galaxy Navigator | PENDING |
 | WEB-09 | World Experience | PENDING |
@@ -136,6 +136,7 @@ Auth route: `apps/web/app/auth/page.tsx`
 Callback hardening: `apps/web/app/auth/callback/route.ts`
 
 WEB-06 = IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING.
+Railway deployment: `3fae8141-baf4-4f3e-a693-e7d842912236` / commit `3926adcfdd53a37630089cee9ef621632140b1f9` / SUCCESS.
 Next canonical product phase: WEB-07 — Universe Home.
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
