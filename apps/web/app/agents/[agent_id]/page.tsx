@@ -1,3 +1,5 @@
+// Canonical agent dynamic route: /agents/[agent_id]. Keep all agent subroutes under this segment to avoid Next.js slug collisions.
+
 "use client";
 
 import { useEffect, useState } from "react";
