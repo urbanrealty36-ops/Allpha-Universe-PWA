@@ -512,3 +512,11 @@ This confirms that the catalog surfaces have authoritative data available, while
 CW-02 remains **OPEN / ACTIVATING / NOT GREEN**.
 
 The remaining blocker is no longer API route-shape uncertainty. The next required evidence is a real authenticated Supabase session against the running FastAPI service, followed by real Agent creation/runtime execution, real Content publication/Discovery telemetry, Storage/media lifecycle, authorized moderation, and provider execution telemetry.
+
+
+### Post-commit deployment observation
+After the runtime-hardening commit, Railway completed:
+- `@allpha/web` deployment `b6fab30e-bf7c-4c58-b9d4-8a50a288bfd1` — SUCCESS; Next.js build, TypeScript and 73-page generation completed; container reached Ready.
+- `allpha-api` deployment `66a54e22-8dd7-4582-aba7-9c95e913e453` — SUCCESS; /healthcheck passed.
+
+No Railway configuration or secret was changed by this increment.
