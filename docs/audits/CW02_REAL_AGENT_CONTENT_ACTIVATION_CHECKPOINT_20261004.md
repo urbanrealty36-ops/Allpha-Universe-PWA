@@ -354,3 +354,35 @@ Detailed CW-02.R record:
 `docs/audits/CW02R_RUNTIME_REPAIR_ACTIVATION_STABILIZATION_20261004.md`
 
 CW-02 remains **OPEN / ACTIVATING / NOT GREEN**.
+
+
+## CW-02 Web App Universe Entry & Authenticated UX Activation
+
+Implemented without architecture expansion:
+- `/` is now the canonical Universe-first Web App entry.
+- `/universe` resolves through the same entry surface so direct navigation does not diverge.
+- Anonymous users see a Universe-first public spatial entry and an identity CTA; Login/Register is not the primary landing experience.
+- Authenticated users enter the existing canonical `ImmersiveUniverseShell`.
+- Supabase Auth remains the identity/session authority.
+- Existing FastAPI + Supabase authorization remains authoritative.
+- Auth return paths are constrained to local application paths to avoid open redirects.
+- User-facing E2E Setup navigation was removed from the Universe surface; QA tooling remains available separately.
+- No duplicate Universe renderer, identity engine, API, or authority layer was introduced.
+
+Implementation record:
+`docs/audits/CW02_WEB_UNIVERSE_ENTRY_AUTHENTICATED_UX_20261004.md`
+
+Railway Web evidence:
+- CW-02 Universe-entry build completed successfully on Next.js 16.3.8 / Turbopack.
+- TypeScript check passed.
+- Static generation completed.
+- Dynamic Agent route collision remained resolved.
+- Serving `GET /` returned HTTP 200 on the active Web deployment.
+- Latest Universe-entry commits are continuing through Railway deployment observation.
+
+Boundary:
+- Web routing/build/deployment readiness: PASS.
+- Real browser-authenticated Universe session: PENDING.
+- Real Agent Runtime / AI provider execution: PENDING.
+- Storage/Moderation E2E: PENDING.
+- CW-02 overall: OPEN / ACTIVATING / NOT GREEN.
