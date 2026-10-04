@@ -182,3 +182,163 @@ a { color: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) { .pwa-offline-orbit { transition: none; } }
+
+
+/* WEB-04 Mobile Navigation */
+.allpha-mobile-nav {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 90;
+  display: block;
+  padding: 8px 10px max(8px, var(--allpha-safe-bottom));
+  border-top: 1px solid var(--allpha-border);
+  background: color-mix(in srgb, var(--allpha-space-0) 91%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+.allpha-mobile-nav-inner {
+  width: min(100%, 560px);
+  min-height: var(--allpha-mobile-nav-height);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: end;
+  gap: 4px;
+}
+.allpha-mobile-nav-item,
+.allpha-mobile-nav-create {
+  min-width: 0;
+  min-height: var(--allpha-touch-min);
+  border: 0;
+  color: var(--allpha-text-muted);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.allpha-mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: var(--allpha-radius-md);
+  font-size: 9px;
+  line-height: 1.1;
+  transition: color var(--allpha-motion-fast) var(--allpha-ease-standard), background var(--allpha-motion-fast) var(--allpha-ease-standard);
+}
+.allpha-mobile-nav-item.is-active {
+  color: var(--allpha-text);
+  background: var(--allpha-surface-light);
+}
+.allpha-mobile-nav-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 24px;
+  font-size: 17px;
+  line-height: 1;
+}
+.allpha-mobile-nav-create {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  font-size: 9px;
+  line-height: 1.1;
+}
+.allpha-mobile-nav-create-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-top: -16px;
+  border: 1px solid color-mix(in srgb, var(--allpha-cyan) 35%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--allpha-cyan), var(--allpha-violet));
+  color: var(--allpha-text-inverse);
+  box-shadow: var(--allpha-glow-cyan);
+  font-size: 23px;
+  font-weight: 800;
+}
+.allpha-mobile-create-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
+  background: rgba(0,0,0,.58);
+}
+.allpha-mobile-create-sheet {
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 18px;
+  border: 1px solid var(--allpha-border-strong);
+  border-radius: var(--allpha-radius-xl) var(--allpha-radius-xl) var(--allpha-radius-lg) var(--allpha-radius-lg);
+  background: var(--allpha-surface-glass-strong);
+  box-shadow: var(--allpha-shadow-deep);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+}
+.allpha-mobile-create-sheet-handle {
+  width: 42px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: var(--allpha-radius-full);
+  background: var(--allpha-border-strong);
+}
+.allpha-mobile-create-sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.allpha-mobile-create-sheet-header h2 {
+  margin: 8px 0 5px;
+  font-size: var(--allpha-text-xl);
+  line-height: var(--allpha-leading-tight);
+}
+.allpha-mobile-create-sheet-header p {
+  max-width: 440px;
+  margin: 0;
+  color: var(--allpha-text-secondary);
+  font-size: var(--allpha-text-sm);
+}
+.allpha-mobile-create-action {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  margin-top: 18px;
+  padding: 10px 12px;
+  border: 1px solid var(--allpha-border);
+  border-radius: var(--allpha-radius-md);
+  background: var(--allpha-surface-light);
+  color: inherit;
+  text-decoration: none;
+}
+.allpha-mobile-create-action:hover { border-color: var(--allpha-border-strong); }
+.allpha-mobile-create-action-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--allpha-violet) 18%, transparent);
+  color: var(--allpha-violet);
+}
+.allpha-mobile-create-action strong,
+.allpha-mobile-create-action small { display: block; }
+.allpha-mobile-create-action small {
+  margin-top: 3px;
+  color: var(--allpha-text-muted);
+  font-size: var(--allpha-text-xs);
+}
+@media (min-width: 768px) {
+  .allpha-mobile-nav { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .allpha-mobile-nav-item { transition: none; }
+}
