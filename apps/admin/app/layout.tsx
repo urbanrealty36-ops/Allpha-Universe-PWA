@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AdminShell } from "./admin-shell";
 
 export const metadata: Metadata = {
   title: "Allpha Admin",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body><AdminShell>{children}</AdminShell></body>
     </html>
   );
 }
