@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "document": "ALLPHA_WEB_UI_UX_BASELINE",
   "date": "2026-10-05",
   "wave": "CW-02.WEB",
@@ -72,10 +72,30 @@
     "presence_engine",
     "messaging_engine"
   ],
-  "next_phase": "WEB-03",
+  "next_phase": "WEB-04",
   "phase_plan": "docs/architecture/ALLPHA_WEB_UI_UX_REFACTORING_PHASE_PLAN.md",
   "web02_architecture": "docs/architecture/ALLPHA_WEB_DESIGN_SYSTEM_FOUNDATION.md",
   "web02_audit": "docs/audits/WEB02_DESIGN_SYSTEM_FOUNDATION_20261005.md",
   "continuation": "docs/continue-context/ALLPHA_WEB_CONTINUE_CONTEXT_WEB01.md",
-  "visual_reference": "docs/ux/references/README.md"
+  "visual_reference": "docs/ux/references/README.md",
+  "web03_status": "CLOSED_PWA_FOUNDATION",
+  "web03": {
+    "manifest": "apps/web/app/manifest.ts",
+    "runtime": "apps/web/components/pwa/pwa-runtime.tsx",
+    "service_worker": "apps/web/public/sw.js",
+    "offline_route": "apps/web/app/offline/page.tsx",
+    "icons": [
+      "apps/web/public/icons/allpha.svg",
+      "apps/web/public/icons/allpha-maskable.svg"
+    ],
+    "safety": [
+      "GET-only service-worker handling",
+      "API/auth/OAuth/callback/token-bearing URLs excluded",
+      "no offline mutation replay",
+      "no business data synthesis"
+    ],
+    "installability_note": "SVG foundation implemented; raster 192x192 and 512x512 variants remain WEB-29 install QA."
+  },
+  "web03_architecture": "docs/architecture/ALLPHA_WEB_PWA_FOUNDATION.md",
+  "web03_audit": "docs/audits/WEB03_PWA_FOUNDATION_20261005.md"
 }
