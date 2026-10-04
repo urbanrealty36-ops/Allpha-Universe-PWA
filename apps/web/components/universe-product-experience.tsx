@@ -230,7 +230,7 @@ export default function UniverseProductExperience() {
   );
 }
 
-function UniverseHomefunction UniverseHome({
+function UniverseHome({
   tab, content, themes, worlds, districts, templates, agents, loading, onTab, onWorlds, onFeatures,
 }: {
   tab: HomeTab; content: Content[]; themes: Theme[]; worlds: World[]; districts: District[];
