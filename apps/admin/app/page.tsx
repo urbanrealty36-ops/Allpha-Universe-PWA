@@ -1,2 +1,5 @@
 import { redirect } from "next/navigation";
-export default function AdminHomePage(){ redirect("/analytics"); }
+
+export default function AdminHomePage() {
+  redirect("/overview");
+}
