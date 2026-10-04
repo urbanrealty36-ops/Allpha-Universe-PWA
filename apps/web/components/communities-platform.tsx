@@ -38,7 +38,7 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
  async function loadList(){
   setLoading(true);setError(null);
   try{const r=await apiFetch<{data:Community[]}>("/api/v1/communities"+(q.trim()?"?q="+encodeURIComponent(q.trim()):""));setItems(r.data??[]);}
-  catch(e){setError(e instanceof Error?e.message:"COMMUNITIES_LOAD_FAILED")}finally{setLoading(false)}
+  catch(e){setError(e instanceof Error?String(e):"COMMUNITIES_LOAD_FAILED")}finally{setLoading(false)}
  }
  async function loadDetail(){
   if(!detailId)return;
@@ -60,19 +60,19 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
    } catch {
     setCases([]);
    }
-  }catch(e){setError(e instanceof Error?e.message:"COMMUNITY_LOAD_FAILED")}finally{setLoading(false)}
+  }catch(e){setError(e instanceof Error?String(e):"COMMUNITY_LOAD_FAILED")}finally{setLoading(false)}
  }
  useEffect(()=>{void(detailId?loadDetail():loadList())},[detailId]);
 
  async function create(e:FormEvent){
   e.preventDefault();setSaving(true);setError(null);
   try{await apiFetch("/api/v1/communities",{method:"POST",body:JSON.stringify({name,handle,description:description||null})});setName("");setHandle("");setDescription("");await loadList();}
-  catch(e){setError(e instanceof Error?e.message:"COMMUNITY_CREATE_FAILED")}finally{setSaving(false)}
+  catch(e){setError(e instanceof Error?String(e):"COMMUNITY_CREATE_FAILED")}finally{setSaving(false)}
  }
  async function action(path:string,body?:unknown){
   setSaving(true);setError(null);
   try{await apiFetch(path,{method:"POST",body:body===undefined?undefined:JSON.stringify(body)});await loadDetail();}
-  catch(e){setError(e instanceof Error?e.message:"COMMUNITY_ACTION_FAILED")}finally{setSaving(false)}
+  catch(e){setError(e instanceof Error?String(e):"COMMUNITY_ACTION_FAILED")}finally{setSaving(false)}
  }
  async function createPost(e:FormEvent){
   e.preventDefault();if(!detailId||!postContentId)return;
@@ -112,7 +112,7 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
  async function loadComments(postId:string){
   if(!detailId)return;
   try{const r=await apiFetch<{data:Comment[]}>("/api/v1/communities/"+detailId+"/posts/"+postId+"/comments");setComments(x=>({...x,[postId]:r.data??[]}));}
-  catch(e){setError(e instanceof Error?e.message:"COMMENTS_LOAD_FAILED")}
+  catch(e){setError(e instanceof Error?String(e):"COMMENTS_LOAD_FAILED")}
  }
 
  if(detailId)return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl">
