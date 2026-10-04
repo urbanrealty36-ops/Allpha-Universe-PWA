@@ -1,2 +1,0 @@
-import AgentControlSurface from "../../../../components/agent-control-surface";
-export default async function AgentControlPage({params}:{params:Promise<{id:string}>}){const{id}=await params;return <AgentControlSurface agentId={id}/>;}
