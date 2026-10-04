@@ -68,6 +68,7 @@ type Theme = {
   description?: string | null;
   category?: string | null;
   catalog_order?: number | null;
+  catalog_key?: string | null;
   tokens?: Record<string, unknown>;
   world_schema?: any;
   theme_version?: number | null;
@@ -143,7 +144,7 @@ export default function ImmersiveUniverseShell() {
   const [galaxies, setGalaxies] = useState<Galaxy[]>([]);
   const [worlds, setWorlds] = useState<World[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
-  const [booths, setBooths] = useState<Booth[]>([]);
+  const [booths, setBooths] = useState<SpatialBooth[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
   const [themePackUrl, setThemePackUrl] = useState<string | null>(null);
@@ -303,7 +304,7 @@ export default function ImmersiveUniverseShell() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "BOOTH_COMPOSITION_LOAD_FAILED");
       try {
-        const fallback = await apiFetch<{ data: Booth[] }>(
+        const fallback = await apiFetch<{ data: SpatialBooth[] }>(
           `/api/v1/booths?district_id=${district.id}&limit=100`,
         );
         setBooths(fallback.data ?? []);
@@ -474,6 +475,7 @@ export default function ImmersiveUniverseShell() {
                 portals={portals}
                 content={content}
                 activeTheme={activeTheme}
+                themePackUrl={themePackUrl}
                 selectedWorldId={selectedWorld?.id}
                 selectedDistrictId={selectedDistrict?.id}
                 selectedBoothId={selectedBooth?.id}
@@ -648,7 +650,9 @@ function ImmersiveStage({
   portals,
   content,
   activeTheme,
+  themePackUrl,
   selectedWorldId,
+  selectedDistrictId,
   selectedBoothId,
   transitioning,
   onWorld,
@@ -670,7 +674,9 @@ function ImmersiveStage({
   portals: Portal[];
   content: Content[];
   activeTheme: Theme | null;
+  themePackUrl?: string | null;
   selectedWorldId?: string;
+  selectedDistrictId?: string;
   selectedBoothId?: string;
   transitioning: boolean;
   onWorld: (world: World) => void;
