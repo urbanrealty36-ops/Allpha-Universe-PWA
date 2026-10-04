@@ -1,25 +1,18 @@
 :root {
-  --allpha-space: #070b16;
-  --allpha-space-elevated: #0d1424;
-  --allpha-surface: #111a2d;
-  --allpha-surface-strong: #17233a;
-  --allpha-text: #f7f9ff;
-  --allpha-text-secondary: #b6c0d4;
-  --allpha-text-muted: #77839a;
-  --allpha-primary: #5b7cff;
-  --allpha-cyan: #38d9ff;
-  --allpha-violet: #9b6cff;
-  --allpha-magenta: #ef6bff;
-  --allpha-aurora: #63e6be;
-  --allpha-success: #51cf66;
-  --allpha-warning: #fcc419;
-  --allpha-danger: #ff6b6b;
-  --allpha-radius-sm: 8px;
-  --allpha-radius-md: 12px;
-  --allpha-radius-lg: 18px;
-  --allpha-radius-xl: 28px;
-  --allpha-radius-full: 9999px;
-  --allpha-motion-fast: 140ms;
-  --allpha-motion-base: 220ms;
-  --allpha-motion-slow: 420ms;
+  --allpha-space-0:#03050b;--allpha-space-1:#070b16;--allpha-space-2:#0b1120;--allpha-space-3:#10182a;--allpha-space-elevated:#0d1424;
+  --allpha-space:#070b16;--allpha-surface:#111a2d;--allpha-surface-strong:#17233a;--allpha-surface-soft:rgba(17,26,45,.72);--allpha-surface-glass:rgba(12,20,36,.66);--allpha-surface-glass-strong:rgba(12,20,36,.86);--allpha-surface-light:rgba(255,255,255,.055);--allpha-surface-hover:rgba(255,255,255,.085);
+  --allpha-text:#f7f9ff;--allpha-text-secondary:#c4ccdc;--allpha-text-muted:#8490a7;--allpha-text-disabled:#59657b;--allpha-text-inverse:#07101b;
+  --allpha-primary:#6f8cff;--allpha-primary-strong:#4f6fff;--allpha-cyan:#42dcff;--allpha-violet:#a77cff;--allpha-magenta:#ee7cff;--allpha-aurora:#63e6be;--allpha-sky:#75b9ff;
+  --allpha-success:#51cf66;--allpha-warning:#fcc419;--allpha-danger:#ff6b6b;--allpha-info:#5bbcff;
+  --allpha-border:rgba(255,255,255,.09);--allpha-border-strong:rgba(255,255,255,.16);--allpha-border-focus:rgba(117,223,255,.72);--allpha-orbit:rgba(117,185,255,.34);
+  --allpha-glow-primary:0 0 42px rgba(111,140,255,.18);--allpha-glow-cyan:0 0 42px rgba(66,220,255,.16);--allpha-glow-violet:0 0 42px rgba(167,124,255,.15);--allpha-shadow-soft:0 16px 50px rgba(0,0,0,.24);--allpha-shadow-deep:0 28px 90px rgba(0,0,0,.42);
+  --allpha-font-sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--allpha-font-display:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--allpha-font-mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --allpha-text-xs:.6875rem;--allpha-text-sm:.8125rem;--allpha-text-md:.9375rem;--allpha-text-lg:1.125rem;--allpha-text-xl:1.5rem;--allpha-text-2xl:2rem;--allpha-text-3xl:clamp(2.25rem,8vw,4.5rem);--allpha-leading-tight:1.08;--allpha-leading-body:1.55;--allpha-leading-relaxed:1.7;
+  --allpha-space-1:.25rem;--allpha-space-2:.5rem;--allpha-space-3:.75rem;--allpha-space-4:1rem;--allpha-space-5:1.25rem;--allpha-space-6:1.5rem;--allpha-space-8:2rem;--allpha-space-10:2.5rem;--allpha-space-12:3rem;--allpha-space-16:4rem;--allpha-space-20:5rem;
+  --allpha-radius-xs:6px;--allpha-radius-sm:10px;--allpha-radius-md:14px;--allpha-radius-lg:20px;--allpha-radius-xl:28px;--allpha-radius-2xl:36px;--allpha-radius-full:9999px;
+  --allpha-motion-instant:90ms;--allpha-motion-fast:140ms;--allpha-motion-base:220ms;--allpha-motion-slow:420ms;--allpha-motion-spatial:680ms;--allpha-ease-standard:cubic-bezier(.2,.8,.2,1);--allpha-ease-emphasized:cubic-bezier(.16,1,.3,1);
+  --allpha-touch-min:44px;--allpha-control-height-sm:36px;--allpha-control-height-md:44px;--allpha-control-height-lg:52px;--allpha-content-max:1440px;--allpha-reading-max:760px;--allpha-mobile-nav-height:68px;--allpha-topbar-height:60px;--allpha-safe-bottom:env(safe-area-inset-bottom,0px);--allpha-safe-top:env(safe-area-inset-top,0px);
+  --allpha-experience-ambient:0;--allpha-experience-spatial:1;--allpha-experience-universe:2;--allpha-experience-immersive:3;
 }
+@media (min-width:768px){:root{--allpha-mobile-nav-height:0px;--allpha-topbar-height:68px}}
+@media (prefers-reduced-motion:reduce){:root{--allpha-motion-instant:0ms;--allpha-motion-fast:0ms;--allpha-motion-base:0ms;--allpha-motion-slow:0ms;--allpha-motion-spatial:0ms}}
