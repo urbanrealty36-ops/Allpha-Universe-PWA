@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import UniverseProductExperience from "./universe-product-experience";
+import ImmersiveUniverseShell from "./universe/immersive-universe-shell";
+import SpatialUniverseChrome from "./universe/spatial-universe-chrome";
 import { UniverseSplash } from "./identity/universe-identity-experience";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
@@ -77,7 +78,10 @@ export default function UniverseEntrySurface() {
             </button>
           </div>
         </div>
-        <UniverseProductExperience />
+        <div className="relative min-h-[100svh] overflow-hidden bg-[#03050b] text-white">
+          <ImmersiveUniverseShell />
+          <SpatialUniverseChrome email={email} onSignOut={() => void signOut()} />
+        </div>
       </main>
     );
   }
