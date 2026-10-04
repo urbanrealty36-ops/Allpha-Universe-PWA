@@ -32,22 +32,34 @@ Verify telemetry, evaluation, RLS, policy, risk, approval, audit and security bo
 ### CW-08 — E2E / CI / Staging / Production Green Gate
 Only this wave can produce GREEN.
 
-## Current execution findings
+## Current Full-System Integration Audit
 
-- Architecture is substantially implemented; no architecture restart is justified.
-- Platform catalog/topology is live and authoritative.
-- Business records remain intentionally sparse/empty; no fixtures are permitted.
-- Runtime/provider credentials remain a dependency for authenticated E2E.
-- CI evidence must be established before GREEN.
-- Known source defects found during CW-01 were repaired:
-  - `economy.py`: billing invoice ownership accessor reconciled to `user_id`.
-  - `marketplace.py`: duplicate `require_owned_order` import removed.
-- Canonical engines remain authoritative: Messaging/Agent Service/Credit, Memory/RAG, Agent Runtime, AI Gateway, Commerce Payment, Live/Character and AllphaWorldRenderer.
-- No duplicate engine was introduced by this completion wave.
+### Repairs executed
+
+1. Removed the legacy generic `domain_router` binding from `apps/api/app/main.py`. Canonical routers are now the only mounted domain authority. Commit: `6ff4aaabfe3f56cc2a927427688d969e02fede11`.
+2. Made FastAPI CORS deployment-configurable through `ALLPHA_CORS_ORIGINS`, retaining localhost as the safe default. Commit: `966339d9f80931297a4c9cf557790aa4d96b295f`.
+3. Confirmed Community Event is already a canonical Community surface, not a missing standalone engine: `/api/v1/communities/{community_id}/events` backed by `create_community_event` and `rsvp_community_event`. No duplicate Event engine created.
+4. Confirmed canonical Agent Runtime → bounded Agent Context → Memory/Knowledge/Personalization → AI Gateway → routing policy → model/provider → telemetry chain exists.
+5. Confirmed live Supabase currently has 198/198 public tables with RLS enabled, 272 public routines and 308 private routines.
+6. Confirmed Security Advisor has one remaining WARN: leaked-password protection. The previous policyless-RLS findings are closed.
+7. Confirmed Performance Advisor has 115 INFO unindexed-FK findings. No mass index migration was applied without workload evidence.
+
+### Current gates
+
+- Real authenticated Agent/Content activation.
+- Message → Ask → Generate → Credit → Runtime → Reward → Skill Challenge → Takeover E2E.
+- Theme/World/District/Zone/Booth activation into AllphaWorldRenderer.
+- Live/AI Character realtime voice/animation E2E.
+- Midtrans provider settlement.
+- Multi-owner Agent collaboration E2E.
+- External AI provider credential execution.
+- CI/build evidence.
+- Staging and production verification.
 
 ## Exit policy
 
-A domain is not GREEN because its table/API/UI/RPC exists. Completion requires the canonical evidence chain:
+A domain is not GREEN because its table/API/UI/RPC exists. Completion requires:
 
 **PRD → DB → API → Authorization → Security → Engine → Workflow → UI/UX → Telemetry → Tests → Integration → Runtime Evidence**
 
+The accompanying 82-domain audit workbook records the current evidence state and intentionally distinguishes verified source connectivity from runtime gates.
