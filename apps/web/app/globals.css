@@ -100,3 +100,85 @@ a { color: inherit; }
 @media (prefers-contrast:more) {
   .allpha-surface,.allpha-capsule,.allpha-context-sheet { border-color:var(--allpha-border-strong); }
 }
+
+
+/* WEB-03 PWA runtime */
+.pwa-runtime-banner {
+  position: fixed;
+  z-index: 1200;
+  inset: auto 12px max(12px, env(safe-area-inset-bottom)) 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 760px;
+  margin-inline: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--allpha-border, rgba(157, 234, 255, .2));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--allpha-surface-strong, #111827) 92%, transparent);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.pwa-runtime-message {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pwa-runtime-message strong { color: var(--allpha-text-primary, #fff); }
+.pwa-runtime-message span { color: var(--allpha-text-secondary, rgba(255, 255, 255, .7)); }
+.pwa-runtime-actions { flex: 0 0 auto; }
+
+.pwa-runtime-button {
+  min-height: 44px;
+  min-width: 88px;
+  padding: 0 14px;
+  border: 1px solid rgba(157, 234, 255, .28);
+  border-radius: 12px;
+  background: rgba(157, 234, 255, .12);
+  color: var(--allpha-text-primary, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pwa-runtime-button:hover { background: rgba(157, 234, 255, .18); }
+.pwa-runtime-button:focus-visible { outline: 2px solid var(--allpha-focus, #9deaff); outline-offset: 2px; }
+
+.pwa-offline-page {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  background: radial-gradient(circle at 50% 30%, rgba(107, 124, 255, .16), transparent 42%), #05070d;
+  color: #fff;
+}
+.pwa-offline-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
+  padding: clamp(24px, 7vw, 40px);
+  border: 1px solid rgba(157, 234, 255, .16);
+  border-radius: 28px;
+  background: rgba(10, 16, 32, .78);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .38);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.pwa-offline-status { display: inline-flex; margin-bottom: 14px; color: #9deaff; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.pwa-offline-card h1 { margin: 0; font-size: clamp(30px, 8vw, 48px); line-height: .98; letter-spacing: -.035em; }
+.pwa-offline-card p { margin: 18px 0 24px; color: rgba(255, 255, 255, .68); line-height: 1.6; }
+.pwa-offline-orbit { position: absolute; width: min(88vw, 560px); aspect-ratio: 1; border: 1px solid rgba(157, 234, 255, .12); border-radius: 50%; box-shadow: 0 0 80px rgba(107, 124, 255, .12); }
+
+@media (max-width: 560px) {
+  .pwa-runtime-banner { align-items: stretch; flex-direction: column; gap: 10px; }
+  .pwa-runtime-button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) { .pwa-offline-orbit { transition: none; } }
