@@ -36,7 +36,7 @@ type DistrictSpatialObject = {
   name: string;
   status: string;
   capacity?: number | null;
-  availability?: string;
+  availability?: string | null;
   spatial_config?: Record<string, unknown>;
 };
 
