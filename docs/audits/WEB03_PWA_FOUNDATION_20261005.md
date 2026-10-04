@@ -26,6 +26,7 @@ WEB-03 establishes the installable PWA/runtime foundation for the existing Allph
 
 - Only GET requests are handled by the service worker.
 - API, auth, OAuth/callback and token-bearing URLs are excluded.
+- Authenticated/private navigation HTML is not cached by the service worker.
 - No mutation queue or offline replay was introduced.
 - No business data is synthesized.
 - Offline state is explicitly presented as a reachability condition.
@@ -45,3 +46,11 @@ WEB-03 does not claim:
 - Production GREEN.
 
 Those validations belong to later QA/runtime phases.
+
+
+## Build/runtime evidence
+
+- Initial WEB-03 build exposed a server-component boundary error on `/offline`; the route was corrected to use a normal anchor instead of a server-side event handler.
+- Railway Web deployment `4f4079bb-ecdd-4cf5-891f-aeb4351f2099` reached SUCCESS after the correction.
+- The subsequent service-worker privacy hardening commit is `4d4ff5027bc816abbe1bdfde76f5a893e76d5a7e`; its Railway rollout is subject to the normal deployment lifecycle.
+- This is controlled runtime verification, not final Production GREEN.
