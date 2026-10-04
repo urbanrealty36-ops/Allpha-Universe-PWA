@@ -107,7 +107,8 @@ export default function LiveStreamingCollaboration() {
   const [conversationText, setConversationText] = useState("");
   const [viewerId, setViewerId] = useState("");
   const [audiencePresence, setAudiencePresence] = useState(0);
-  const [realtimeStatus, setRealtimeStatus] = useState("disconnected");\n  const [liveHostAgent, setLiveHostAgent] = useState<AgentAccount|null>(null);
+  const [realtimeStatus, setRealtimeStatus] = useState("disconnected");
+  const [liveHostAgent, setLiveHostAgent] = useState<AgentAccount|null>(null);
 
   useEffect(() => {
     const session = sessions.find(s => s.id === selectedLiveSessionId);
