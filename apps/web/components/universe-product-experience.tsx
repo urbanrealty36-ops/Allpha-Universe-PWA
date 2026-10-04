@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ImmersiveUniverseShell from "./universe/immersive-universe-shell";
+import UniverseHomeExperience from "./universe/universe-home-experience";
 import UniverseShell, { type UniverseShellKey } from "./universe/universe-shell";
 import { apiFetch } from "../lib/api";
 
@@ -203,7 +204,7 @@ export default function UniverseProductExperience() {
         {error && <RuntimeNotice message={error} onRetry={() => void loadProductData()} />}
 
         {view === "home" && (
-          <UniverseHome
+          <UniverseHomeExperience
             tab={homeTab}
             content={content}
             themes={themes}
