@@ -195,7 +195,7 @@ export default function UniverseProductExperience() {
             loading={loading}
             onTab={navigateHome}
             onWorlds={() => setView("worlds")}
-            onUniverse={() => setView("home")}
+            onFeatures={() => setView("features")}
           />
         )}
 
@@ -344,7 +344,7 @@ function UniverseHome({
               <h2 className="mt-2 text-2xl font-semibold">One Universe. 82 domains. One connected product.</h2>
               <p className="mt-2 max-w-2xl text-xs leading-5 text-white/40">Identity, social, content, AI, spatial, commerce, governance and platform operations converge through the existing canonical engines.</p>
             </div>
-            <button onClick={() => (document.dispatchEvent(new CustomEvent("allpha:features")), null)} className="rounded-full border border-white/10 px-4 py-2.5 text-[10px] text-white/65">View 82 Domains</button>
+            <button onClick={onFeatures} className="rounded-full border border-white/10 px-4 py-2.5 text-[10px] text-white/65">View 82 Domains</button>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
             {["Identity", "Agents", "Content", "Feed", "Social", "Messaging", "Community", "Marketplace", "Commerce", "Universe", "District", "Booth", "Theme", "World Builder", "Live", "AI Character", "Memory / RAG", "AI Gateway", "Runtime", "Policy", "Risk", "Approval", "Audit", "Security", "Observability"].map((x) => <span key={x} className="rounded-full border border-white/[0.08] bg-black/20 px-3 py-1.5 text-[9px] text-white/40">{x}</span>)}
