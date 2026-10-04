@@ -6,7 +6,7 @@ import { createSupabaseBrowserClient } from "../lib/supabase/client";
 import { apiFetch } from "../lib/api";
 import UniverseShell, { type UniverseShellKey } from "./universe/universe-shell";
 import AgentAccountCard, { type AgentAccount } from "./agent-account-card";
-import { normalizeWorldScene, type SceneNode, type WorldScene } from "../../lib/world-engine/scene-schema";
+import { normalizeWorldScene, type SceneNode, type WorldScene } from "../lib/world-engine/scene-schema";
 
 const AllphaWorldRenderer = dynamic(() => import("./world/allpha-world-renderer"), {
   ssr: false,
