@@ -249,7 +249,7 @@ export default function UniverseProductExperience() {
             </a>
           </section>
         </div>
-      )
+      )}
     </main>
   );
 }
