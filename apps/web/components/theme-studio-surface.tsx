@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { normalizeWorldScene, type WorldScene } from "../lib/world-engine/scene-schema";
-import ThemeSpatialSlice from "./theme-spatial-slice";\nimport LiveExperienceVerticalSlice from "./live-experience-vertical-slice";
+import ThemeSpatialSlice from "./theme-spatial-slice";
+import LiveExperienceVerticalSlice from "./live-experience-vertical-slice";
 import AvatarStudioSurface from "./avatar-studio-surface";
 
 const AllphaWorldRenderer = dynamic(() => import("./world/allpha-world-renderer"), {
@@ -283,7 +284,11 @@ export default function ThemeStudioSurface() {
               </div>
             </div>
 
-            <ThemeSpatialSlice theme={selected} />\n\n            <LiveExperienceVerticalSlice theme={selected} />\n\n            <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-5">
+            <ThemeSpatialSlice theme={selected} />
+
+            <LiveExperienceVerticalSlice theme={selected} />
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-xl font-semibold">Theme Activation Workflow</h2>
