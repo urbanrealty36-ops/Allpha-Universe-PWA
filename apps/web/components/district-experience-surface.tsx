@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 import { apiFetch } from "../lib/api";
@@ -195,7 +195,7 @@ export default function DistrictExperienceSurface({ districtId }: { districtId: 
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setInterval> | null = null;
-    let channel: ReturnType<ReturnType<typeof createSupabaseBrowserClient>["channel"]> | null = null;
+    let channel: any = null;
 
     try {
       const supabase = createSupabaseBrowserClient();
@@ -740,7 +740,7 @@ function SelectionSheet({
   );
 }
 
-function Panel({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
+function Panel({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
   return (
     <section className="rounded-[28px] border border-white/[.08] bg-white/[.02] p-5">
       <p className="text-[8px] uppercase tracking-[.26em] text-cyan-200/50">{eyebrow}</p>
