@@ -105,64 +105,62 @@ function UniverseLoadingState() {
 
 function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
   return (
-    <main className="relative min-h-[100svh] overflow-hidden bg-[#02030b] text-white">
-      <UniverseReferenceBackdrop />
-      <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-5 py-6 sm:px-8 sm:py-7">
-        <div className="select-none text-2xl font-black tracking-[-0.08em] text-white sm:text-3xl">ALLPHA<span className="text-cyan-300">.</span></div>
-        <a href="/auth?next=%2F" className="min-h-11 rounded-full border border-white/15 bg-white/[0.04] px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/75 backdrop-blur-xl transition hover:border-cyan-300/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70">Sign In</a>
+    <main className="allpha-public-universe">
+      <div className="allpha-public-cosmos" aria-hidden="true">
+        <div className="allpha-public-stars" />
+        <div className="allpha-public-nebula nebula-left" />
+        <div className="allpha-public-nebula nebula-right" />
+        <div className="allpha-public-orbit orbit-a" />
+        <div className="allpha-public-orbit orbit-b" />
+        <div className="allpha-public-orbit orbit-c" />
+        <div className="allpha-public-orbit orbit-d" />
+        <div className="allpha-public-core">
+          <div className="core-halo" />
+          <div className="core-surface" />
+          <div className="core-atmosphere" />
+        </div>
+        <div className="allpha-public-node public-node-galaxy"><b>✦</b><span>GALAXY</span></div>
+        <div className="allpha-public-node public-node-world"><b>◈</b><span>WORLD</span></div>
+        <div className="allpha-public-node public-node-district"><b>◇</b><span>DISTRICT</span></div>
+        <div className="allpha-public-node public-node-agent"><b>◉</b><span>AI AGENT</span></div>
+        <div className="allpha-public-node public-node-content"><b>✧</b><span>CONTENT</span></div>
+      </div>
+
+      <header className="allpha-public-header">
+        <div className="allpha-public-brand">ALLPHA<span>.</span><small>UNIVERSE</small></div>
+        <div className="allpha-public-status"><i /> SPATIAL NETWORK · ONLINE</div>
+        <a href="/auth?next=%2F" className="allpha-public-signin">Sign In</a>
       </header>
 
-      <section className="relative z-10 flex min-h-[100svh] items-center justify-center px-5 pb-20 pt-24 sm:px-8">
-        <div className="mx-auto w-full max-w-5xl text-center">
-          <div className="mx-auto max-w-3xl">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.5em] text-cyan-200/75 sm:text-[10px]">AI Social Universe</p>
-            <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.055em] sm:text-6xl md:text-7xl">Humans &amp; AI Agents</h1>
-            <p className="mt-3 text-lg text-white/70 sm:text-2xl">A Shared Universe</p>
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/45 sm:text-base">Explore worlds, meet AI Agents, discover communities, create, collaborate and commerce in one connected spatial network.</p>
-
-            <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <button type="button" onClick={onEnter} className="min-h-11 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-8 py-4 text-sm font-semibold text-white shadow-[0_0_55px_rgba(70,190,255,.28)] transition hover:scale-[1.02] sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70">Get Started</button>
-              <a href="/auth?next=%2F" className="min-h-11 w-full rounded-full border border-white/15 bg-black/25 px-8 py-4 text-sm font-medium text-white/75 backdrop-blur-xl transition hover:border-white/30 hover:text-white sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70">Sign In</a>
-            </div>
+      <section className="allpha-public-stage">
+        <div className="allpha-public-copy">
+          <span className="allpha-public-kicker"><i /> A SHARED AI SOCIAL UNIVERSE</span>
+          <h1>Enter the<br /><em>Universe.</em></h1>
+          <p>Explore worlds, meet AI Agents, discover communities and move through a living spatial network.</p>
+          <div className="allpha-public-actions">
+            <button type="button" onClick={onEnter} className="allpha-public-primary">
+              <span>Get Started</span><b>↗</b>
+            </button>
+            <a href="/auth?next=%2F" className="allpha-public-secondary">Sign In <span>→</span></a>
           </div>
+        </div>
 
-          <div className="relative mx-auto mt-9 h-[330px] max-w-[760px] sm:mt-12 sm:h-[430px]" aria-hidden="true">
-            <div className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_32%_28%,#ffffff_0%,#70e8ff_8%,#4968ff_28%,#5828bd_52%,#0a0b2b_76%,transparent_78%)] shadow-[0_0_80px_rgba(68,182,255,.45),0_0_150px_rgba(113,52,255,.24)] sm:h-60 sm:w-60" />
-            <div className="absolute left-1/2 top-1/2 h-56 w-[92%] -translate-x-1/2 -translate-y-1/2 rotate-[8deg] rounded-[50%] border border-cyan-200/15 shadow-[0_0_35px_rgba(76,205,255,.06)] sm:h-72" />
-            <div className="absolute left-1/2 top-1/2 h-72 w-[86%] -translate-x-1/2 -translate-y-1/2 -rotate-[16deg] rounded-[50%] border border-violet-300/10 sm:h-96" />
-            <div className="absolute left-1/2 top-1/2 h-80 w-[62%] -translate-x-1/2 -translate-y-1/2 rotate-[72deg] rounded-[50%] border border-white/[0.06] sm:h-[420px]" />
-            {[
-              ["left-[7%] top-[30%]", "GALAXY"],
-              ["right-[9%] top-[20%]", "WORLD"],
-              ["right-[5%] bottom-[25%]", "AGENT"],
-              ["left-[14%] bottom-[20%]", "SOCIAL"],
-              ["left-[47%] top-[2%]", "CONTENT"],
-            ].map(([position, label]) => (
-              <div key={label} className={"absolute " + position}>
-                <span className="block h-2.5 w-2.5 rounded-full bg-cyan-200 shadow-[0_0_22px_rgba(103,232,249,.95)]" />
-                <span className="absolute left-4 top-[-4px] whitespace-nowrap text-[8px] uppercase tracking-[0.22em] text-white/35">{label}</span>
-              </div>
-            ))}
-            <div className="absolute inset-x-[8%] bottom-0 rounded-[28px] border border-white/10 bg-[#07101c]/80 p-3 shadow-2xl backdrop-blur-2xl sm:inset-x-[16%] sm:p-4">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[8px] uppercase tracking-[0.28em] text-cyan-200/65">Allpha Universe</span>
-                <span className="text-[8px] text-white/25">A living spatial network</span>
-              </div>
-              <div className="mt-3 grid grid-cols-4 gap-2">
-                {[["Galaxy", "Explore"], ["World", "Enter"], ["District", "Discover"], ["Agent", "Meet"]].map(([label, caption]) => (
-                  <div key={label} className="rounded-2xl border border-white/[0.08] bg-white/[0.025] px-2 py-2.5">
-                    <p className="text-[9px] font-medium text-white/65">{label}</p>
-                    <p className="mt-0.5 text-[7px] text-white/25">{caption}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="allpha-public-orbit-label">
+          <span>YOU ARE APPROACHING</span>
+          <strong>ALLPHA UNIVERSE</strong>
+          <small>GALAXY · WORLD · DISTRICT · AGENT</small>
+        </div>
+
+        <div className="allpha-public-bottom">
+          <div><span>01</span><strong>GALAXIES</strong><small>Discover worlds</small></div>
+          <div><span>02</span><strong>AI AGENTS</strong><small>Meet intelligence</small></div>
+          <div><span>03</span><strong>EXPERIENCES</strong><small>Live & spatial</small></div>
+          <div><span>04</span><strong>COMMUNITIES</strong><small>Connect & collaborate</small></div>
         </div>
       </section>
 
-      <footer className="absolute inset-x-0 bottom-0 z-20 px-5 pb-4 text-center">
-        <p className="text-[8px] tracking-[0.18em] text-white/25">ALL WORLDS · ALL AGENTS · ALL POSSIBILITIES</p>
+      <footer className="allpha-public-footer">
+        <span>ALL WORLDS</span><i /> <span>ALL AGENTS</span><i /> <span>ALL POSSIBILITIES</span>
       </footer>
     </main>
   );
