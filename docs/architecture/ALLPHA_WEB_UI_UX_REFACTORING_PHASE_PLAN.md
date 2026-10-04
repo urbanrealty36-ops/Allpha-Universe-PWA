@@ -4,7 +4,7 @@ Status: CANONICAL PLAN / CW-02.WEB
 WEB-01: CLOSED / BASELINE LOCKED
 WEB-02: CLOSED / DESIGN SYSTEM FOUNDATION
 WEB-03: CLOSED / PWA FOUNDATION
-Next: WEB-04 — Mobile Navigation
+Next: WEB-07 — Universe Home
 Canonical repository: urbanrealty36-ops/Allpha-Universe-PWA
 Branch: main
 
@@ -14,8 +14,8 @@ Branch: main
 | WEB-02 | Design System Foundation | CLOSED |
 | WEB-03 | PWA Foundation | CLOSED |
 | WEB-04 | Mobile Navigation | CLOSED |
-| WEB-05 | Universe Shell | PENDING |
-| WEB-06 | Splash + Identity | PENDING |
+| WEB-05 | Universe Shell | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
+| WEB-06 | Splash + Identity | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-07 | Universe Home | PENDING |
 | WEB-08 | Galaxy Navigator | PENDING |
 | WEB-09 | World Experience | PENDING |
@@ -104,4 +104,38 @@ Architecture: docs/architecture/ALLPHA_WEB_PWA_FOUNDATION.md
 Audit: docs/audits/WEB03_PWA_FOUNDATION_20261005.md
 
 WEB-03 = CLOSED / FOUNDATION IMPLEMENTED
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+## WEB-05 records
+
+Audit: `docs/audits/WEB05_UNIVERSE_SHELL_20261005.md`
+
+WEB-05 = IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING.
+The implementation is on `main` and preserves the canonical UniverseShell, existing engines and authority boundaries. Railway deployment succeeded for the final WEB-05 commit. Browser/device visual QA and authenticated E2E remain pending.
+
+## WEB-06 implementation contract
+
+- Splash is the public Allpha entry experience and does not make identity or authorization decisions.
+- Anonymous entry progresses through Splash → public Universe onboarding → Human Identity Gateway.
+- Authenticated users continue directly into the existing Universe product surface.
+- Human Identity uses the existing Supabase Auth browser/server boundary; no second authentication engine was introduced.
+- Sign-in and sign-up use the existing email/password contract.
+- PKCE callback remains the existing callback route and now validates the local `next` redirect.
+- Email verification redirects through the existing callback route while preserving a safe local destination.
+- Identity UI uses the WEB-02 visual foundation: cinematic/deep-space surfaces, responsive layout, 44px touch targets, focus states and accessible status/error states.
+- Frontend does not decide role, ownership, permission, policy, risk, approval, entitlement or Agent authority.
+- No business seed data, new schema, RPC, AI Gateway, Agent Runtime, Theme/World engine or renderer was added.
+
+## WEB-06 records
+
+Audit: `docs/audits/WEB06_SPLASH_IDENTITY_20261005.md`
+Component: `apps/web/components/identity/universe-identity-experience.tsx`
+Entry integration: `apps/web/components/universe-entry-surface.tsx`
+Auth route: `apps/web/app/auth/page.tsx`
+Callback hardening: `apps/web/app/auth/callback/route.ts`
+
+WEB-06 = IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING.
+Next canonical product phase: WEB-07 — Universe Home.
+
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
