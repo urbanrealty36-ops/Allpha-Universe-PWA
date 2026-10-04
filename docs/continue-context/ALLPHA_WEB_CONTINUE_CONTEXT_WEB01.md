@@ -139,3 +139,20 @@ WEB-08 — Galaxy Navigator.
 
 ## Next
 WEB-09 — World Experience.
+
+
+## WEB-09 implemented
+
+- Added `apps/web/components/world/world-experience.tsx`.
+- Activated `apps/web/app/world/page.tsx`.
+- World identity is loaded from `GET /api/v1/universe/worlds/{world_id}`.
+- Districts, linked Agents, Content, Portals and Presence reuse existing World API contracts.
+- Published Theme/World schema is reused for the existing `AllphaWorldRenderer`.
+- Enter World uses the existing authoritative join contract.
+- No synthetic membership, agent, content, district or portal counts are introduced.
+- Missing Scene remains an explicit state; no fake scene is generated.
+- Source implementation is complete; Railway build/deployment, browser/device QA and authenticated E2E remain validation gates.
+
+Audit: `docs/audits/WEB09_WORLD_EXPERIENCE_20261005.md`
+
+Next canonical product phase: WEB-10 — District Experience.
