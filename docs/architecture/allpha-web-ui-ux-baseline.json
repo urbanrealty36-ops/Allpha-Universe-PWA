@@ -1,18 +1,18 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "document": "ALLPHA_WEB_UI_UX_BASELINE",
   "date": "2026-10-05",
   "wave": "CW-02.WEB",
   "web01_status": "CLOSED_BASELINE_LOCKED",
+  "web02_status": "CLOSED_DESIGN_SYSTEM_FOUNDATION",
   "cw02_status": "OPEN_ACTIVATING_NOT_GREEN",
   "repository": {
     "full_name": "urbanrealty36-ops/Allpha-Universe-PWA",
-    "branch": "main",
-    "baseline_start_commit": "3dd44cb487d03b1ae6dc063deabb4c8e9668c523"
+    "branch": "main"
   },
   "product_contract": {
     "primary": "Mobile-First Installable PWA",
-    "desktop": "Responsive expansion of the same product",
+    "desktop": "Responsive expansion of same product",
     "experience_modes": [
       "ambient",
       "spatial",
@@ -25,6 +25,7 @@
       "spatial",
       "3D"
     ],
+    "touch_min_px": 44,
     "spatial_hierarchy": [
       "Universe",
       "Galaxy",
@@ -36,6 +37,12 @@
       "Content/Capsule",
       "Live/Experience"
     ]
+  },
+  "web02": {
+    "tokens": "packages/design-tokens/tokens.css",
+    "primitives": "apps/web/components/ui/allpha-primitives.tsx",
+    "inspection_route": "/design-system",
+    "foundation_css": "apps/web/app/globals.css"
   },
   "canonical_reuse": [
     "Supabase Auth",
@@ -65,34 +72,10 @@
     "presence_engine",
     "messaging_engine"
   ],
-  "current_entry": {
-    "root": "UniverseEntrySurface",
-    "authenticated": "UniverseProductExperience"
-  },
-  "existing_spatial_foundation": [
-    "UniverseProductExperience",
-    "ImmersiveUniverseShell",
-    "AllphaWorldRenderer",
-    "DistrictExperienceSurface",
-    "district route",
-    "Theme/World runtime catalog",
-    "Realtime District presence",
-    "Booth interaction",
-    "Agent interaction"
-  ],
-  "pwa_target": {
-    "manifest": true,
-    "installable": true,
-    "service_worker": true,
-    "offline_shell": true,
-    "update_lifecycle": true,
-    "server_operations_never_fabricated_offline": true
-  },
-  "next_phase": "WEB-02",
+  "next_phase": "WEB-03",
   "phase_plan": "docs/architecture/ALLPHA_WEB_UI_UX_REFACTORING_PHASE_PLAN.md",
-  "architecture": "docs/architecture/ALLPHA_WEB_UI_UX_ARCHITECTURE_V2.md",
-  "audit": "docs/audits/WEB01_BASELINE_FRONTEND_RECONCILIATION_20261005.md",
+  "web02_architecture": "docs/architecture/ALLPHA_WEB_DESIGN_SYSTEM_FOUNDATION.md",
+  "web02_audit": "docs/audits/WEB02_DESIGN_SYSTEM_FOUNDATION_20261005.md",
   "continuation": "docs/continue-context/ALLPHA_WEB_CONTINUE_CONTEXT_WEB01.md",
-  "visual_reference": "docs/ux/references/README.md",
-  "visual_companion": "docs/ux/references/ALLPHA_MOBILE_FIRST_PWA_REFERENCE_BOARD.svg"
+  "visual_reference": "docs/ux/references/README.md"
 }
