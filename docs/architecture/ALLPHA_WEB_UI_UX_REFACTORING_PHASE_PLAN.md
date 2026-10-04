@@ -4,7 +4,7 @@ Status: CANONICAL PLAN / CW-02.WEB
 WEB-01: CLOSED / BASELINE LOCKED
 WEB-02: CLOSED / DESIGN SYSTEM FOUNDATION
 WEB-03: CLOSED / PWA FOUNDATION
-Next: WEB-07 — Universe Home
+Next: WEB-08 — Galaxy Navigator
 Canonical repository: urbanrealty36-ops/Allpha-Universe-PWA
 Branch: main
 
@@ -16,7 +16,7 @@ Branch: main
 | WEB-04 | Mobile Navigation | CLOSED |
 | WEB-05 | Universe Shell | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-06 | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-07 | Universe Home | PENDING |
+| WEB-07 | Universe Home | IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-08 | Galaxy Navigator | PENDING |
 | WEB-09 | World Experience | PENDING |
 | WEB-10 | District Experience | EXISTING FOUNDATION |
@@ -138,5 +138,36 @@ Callback hardening: `apps/web/app/auth/callback/route.ts`
 WEB-06 = IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING.
 Railway deployment: `3fae8141-baf4-4f3e-a693-e7d842912236` / commit `3926adcfdd53a37630089cee9ef621632140b1f9` / SUCCESS.
 Next canonical product phase: WEB-07 — Universe Home.
+
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+## WEB-07 implementation contract
+
+- Universe Home is the first authenticated product destination after WEB-06 Identity.
+- Mobile-first PWA presentation follows the supplied Allpha Mobile PWA UI/UX concept.
+- Header exposes compact Allpha identity, notifications and profile.
+- Home discovery tabs are Universe, Live and For You.
+- Hero presents the Living Universe concept and routes to existing Universe/Agent surfaces.
+- Discovery categories are presentation/navigation affordances only.
+- Featured World cards use the existing Theme/World catalog.
+- Universe Stream uses the existing Discovery/Home API.
+- Live cards use the existing Live Template catalog.
+- Agent cards use the existing owner-owned Agent API.
+- Spatial counts use existing World/District records.
+- 82 domains are exposed as a Feature Constellation entry, not 82 navigation items.
+- Progressive enhancement is preserved: Home is fully usable without WebGL/3D.
+- Existing UniverseShell and MobileNavigation remain canonical.
+- No second renderer, Feed/Discovery engine, Recommendation engine, Agent Runtime, AI Gateway, Theme/World engine or authority layer is introduced.
+
+## WEB-07 records
+
+Audit: `docs/audits/WEB07_UNIVERSE_HOME_20261005.md`
+Component: `apps/web/components/universe/universe-home-experience.tsx`
+Activation: `apps/web/components/universe-product-experience.tsx`
+
+WEB-07 source implementation is complete. Build/deployment verification, browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-08 — Galaxy Navigator.
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
