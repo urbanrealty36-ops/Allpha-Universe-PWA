@@ -49,3 +49,18 @@ Latest implementation commit:
 `cdc12c31d951b408b5251593d723012164e229ca`
 
 GitHub combined status for that commit currently returns no status records; no CI GREEN claim is made.
+
+
+## Live WebRTC / Live Experience Stage
+Browser transport is now source-implemented without creating a second Live engine:
+- Browser media: `navigator.mediaDevices.getUserMedia`
+- Transport: `RTCPeerConnection`
+- Signaling: private Supabase Realtime Broadcast channel `live-webrtc:<session_id>`
+- Authorization: Realtime SELECT/INSERT policies limited to Live host/owner/active viewer
+- Multi-viewer publisher peer map implemented
+- Late-viewer ready/offer negotiation implemented
+- ICE candidate buffering implemented
+- Optional TURN environment variables documented for production NAT traversal
+- UI mounted into canonical Live Experience Runtime / LiveExperienceStage surface
+
+WebRTC is **source implemented, runtime unverified** until authenticated browser-to-browser testing proves camera, microphone, signaling, ICE, TURN, reconnection and mobile PWA behavior.
