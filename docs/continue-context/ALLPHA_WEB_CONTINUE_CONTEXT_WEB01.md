@@ -11,7 +11,9 @@
 - WEB-01: CLOSED / BASELINE LOCKED
 - WEB-02: CLOSED / DESIGN SYSTEM FOUNDATION
 - WEB-03: CLOSED / PWA FOUNDATION
-- Next: WEB-04 — MOBILE NAVIGATION
+- WEB-05: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
+- WEB-06: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
+- Next: WEB-07 — UNIVERSE HOME
 - CW-02: OPEN / ACTIVATING / NOT GREEN
 
 ## WEB-04 implemented
@@ -78,9 +80,28 @@ No second renderer, Feed/Discovery engine, Recommendation engine, Agent Runtime,
 No fake business data.
 Frontend is never authoritative for identity, ownership, permission, policy, risk, approval, billing, payment, entitlement or execution.
 
+## WEB-05 implemented
+- Added canonical `UniverseShell` composition around the existing product experience.
+- Desktop IA: Universe, Social, Explore, Communities, Missions, Marketplace, My Agent and Create.
+- Reused WEB-04 mobile IA: Universe, Explore, Create, Messages, My Agent.
+- Added Universe Canvas, Overlay, Context Dock and Command Bar composition slots.
+- Preserved existing AllphaWorldRenderer, Feed/Discovery, Theme/World, Agent Runtime, Live and API contracts.
+- Railway build/deployment succeeded for final WEB-05 commit; browser/device visual QA and authenticated E2E remain pending.
+
+## WEB-06 implemented
+- Added `apps/web/components/identity/universe-identity-experience.tsx` as the canonical Splash + Human Identity presentation surface.
+- Public entry now follows Splash → Allpha onboarding → existing Human Identity Gateway.
+- Authenticated users bypass the anonymous splash and continue directly into the existing Universe product experience.
+- Reused the existing Supabase Auth browser/server boundary and email/password sign-in/sign-up contract.
+- Preserved PKCE callback exchange and hardened the callback `next` redirect to same-origin local paths only.
+- Sign-up email verification preserves the safe requested destination through the existing callback route.
+- Added responsive identity UI, 44px controls, focus-visible states and explicit loading/error/verification feedback.
+- No new identity engine, authority layer, database schema, RPC, business seed data or renderer was introduced.
+- Railway build/deployment verification is required before treating this phase as implementation-complete; browser/device visual QA and authenticated E2E remain pending.
+
 ## Next
-WEB-05 — Universe Shell.
-Then WEB-06 Splash + Identity and the remaining progressive UI surfaces.
+WEB-07 — Universe Home.
+Then WEB-08 Galaxy Navigator and the remaining progressive UI surfaces.
 
 ## Operating mode
 READ → UNDERSTAND → INSPECT → RECONCILE REPO + SUPABASE → PLAN → IMPLEMENT → MIGRATE → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT
