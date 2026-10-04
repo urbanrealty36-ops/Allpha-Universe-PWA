@@ -85,6 +85,7 @@ type Costume = {
   description?: string | null;
   status?: string;
   moderation_status?: string;
+  metadata?: Record<string, unknown>;
 };
 
 const card = "rounded-[var(--allpha-radius-lg)] border border-white/10 bg-[var(--allpha-surface)]";
@@ -118,7 +119,7 @@ export default function LiveExperienceRuntimeSetup() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [voicePerformance, setVoicePerformance] = useState<{ state: "idle" | "listening" | "thinking" | "speaking"; speaking: boolean; level: number; userSpeaking: boolean }>({ state: "idle", speaking: false, level: 0, userSpeaking: false });
+  const [voicePerformance, setVoicePerformance] = useState<{ state: "idle" | "listening" | "thinking" | "speaking" | "emphasis" | "greeting" | "acknowledge" | "farewell"; speaking: boolean; level: number; userSpeaking: boolean }>({ state: "idle", speaking: false, level: 0, userSpeaking: false });
 
   const selectedSession = useMemo(() => sessions.find((s) => s.id === sessionId) ?? null, [sessions, sessionId]);
   const activeCollaboration = collaborations.find((c) => c.status === "active" && c.consent_status === "approved" && c.risk_decision === "allow");
@@ -138,7 +139,7 @@ export default function LiveExperienceRuntimeSetup() {
   useEffect(() => {
     if (!sessionId) return;
     let disposed = false;
-    let expiryTimer: ReturnType<typeof window.setTimeout> | null = null;
+    let expiryTimer: number | null = null;
 
     const clearExpiryTimer = () => {
       if (expiryTimer !== null) {
