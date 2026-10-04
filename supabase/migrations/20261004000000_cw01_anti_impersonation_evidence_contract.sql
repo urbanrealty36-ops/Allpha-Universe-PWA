@@ -93,7 +93,8 @@ as $$
   )
 $$;
 
-revoke all on function public.record_anti_impersonation_evidence(text,uuid,text,jsonb,text,timestamptz,timestamptz) from public;
+revoke execute on function public.record_anti_impersonation_evidence(text,uuid,text,jsonb,text,timestamptz,timestamptz) from anon;
+revoke execute on function public.record_anti_impersonation_evidence(text,uuid,text,jsonb,text,timestamptz,timestamptz) from public;
 grant execute on function public.record_anti_impersonation_evidence(text,uuid,text,jsonb,text,timestamptz,timestamptz) to authenticated;
 
 create or replace function public.evaluate_anti_impersonation_claim(
@@ -129,5 +130,6 @@ as $$
   )
 $$;
 
-revoke all on function public.evaluate_anti_impersonation_claim(text,uuid,text) from public;
+revoke execute on function public.evaluate_anti_impersonation_claim(text,uuid,text) from anon;
+revoke execute on function public.evaluate_anti_impersonation_claim(text,uuid,text) from public;
 grant execute on function public.evaluate_anti_impersonation_claim(text,uuid,text) to authenticated;
