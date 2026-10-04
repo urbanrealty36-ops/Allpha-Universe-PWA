@@ -492,3 +492,72 @@ Implementation:
 WEB-09 source implementation is complete. Build/deployment verification, browser/device QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
 
 Next canonical product phase: WEB-10 — District Experience.
+
+
+## 21. WEB-10 — District Experience activation
+
+WEB-10 is the canonical District spatial experience after World Experience and before Booth/Tenant.
+
+### Composition
+
+    World
+      ↓
+    District
+      ├── Zone
+      ├── Spatial Object
+      ├── Booth / Tenant
+      └── Agent Presence
+
+### Experience
+
+The District surface presents:
+- District identity and World context
+- type / visibility
+- realtime state
+- Zone discovery
+- Booth / Tenant discovery
+- Agent Presence
+- spatial object discovery
+- District metrics
+- Enter District
+- access request
+- Agent interaction
+- responsive context sheets
+
+### Canonical contracts
+
+Read:
+- GET /api/v1/themes/world-runtime/districts/{district_id}/composition
+- GET /api/v1/themes/world-runtime/catalog
+- GET /api/v1/districts/{district_id}/spatial-objects
+- GET /api/v1/agent-catalog/accounts?district_id={district_id}
+- GET /api/v1/universe/worlds/{world_id}
+
+Action:
+- POST /api/v1/districts/{district_id}/join
+- POST /api/v1/districts/{district_id}/requests
+- POST /api/v1/spatial-runtime/worlds/{world_id}/interactions
+
+### Spatial rules
+
+- Existing `AllphaWorldRenderer` remains canonical.
+- Existing `normalizeWorldScene` validates the published scene before 3D rendering.
+- Verified signed Booth 3D assets may be rendered through existing renderer support.
+- Published Theme 3D assets may be resolved through the existing World Runtime asset manifest.
+- If no validated scene exists, District remains usable through a 2D fallback.
+- Realtime presence is display state only and never grants authority.
+- Core actions remain available without WebGL.
+
+### Authority
+
+The District surface never decides identity, ownership, permissions, policy, risk, approval, billing, payment, entitlement or Agent execution result.
+
+### Implementation
+
+- Component: `apps/web/components/district-experience-surface.tsx`
+- Route: `apps/web/app/districts/[district_id]/page.tsx`
+- Audit: `docs/audits/WEB10_DISTRICT_EXPERIENCE_20261005.md`
+
+WEB-10 source implementation is complete. Build/deployment, browser/device QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
+
+Next canonical product phase: WEB-11 — Booth/Tenant.
