@@ -26,7 +26,8 @@ export function PwaRuntime() {
     updateAvailable: false,
     installAvailable: false,
   });
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);\n  const [installDismissed, setInstallDismissed] = useState(false);
+  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installDismissed, setInstallDismissed] = useState(false);
 
   useEffect(() => {
     setState((current) => ({ ...current, online: navigator.onLine }));
@@ -127,7 +128,8 @@ export function PwaRuntime() {
 
   return (
     <div className="pwa-runtime-banner" role="status" aria-live="polite">
-      {state.installAvailable && !installDismissed && <button type="button" className="pwa-runtime-close" aria-label="Tutup banner Pasang Allpha" onClick={() => { setInstallDismissed(true); try { window.sessionStorage.setItem("allpha-pwa-install-dismissed", "1"); } catch {} }}>×</button>}\n      <div className="pwa-runtime-message">
+      {state.installAvailable && !installDismissed && <button type="button" className="pwa-runtime-close" aria-label="Tutup banner Pasang Allpha" onClick={() => { setInstallDismissed(true); try { window.sessionStorage.setItem("allpha-pwa-install-dismissed", "1"); } catch {} }}>×</button>}
+      <div className="pwa-runtime-message">
         {!state.online ? (
           <>
             <strong>Offline</strong>
