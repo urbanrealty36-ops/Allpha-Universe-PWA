@@ -207,3 +207,45 @@ Railway deployment for commit `4ea712128ca9ecce7cb9e3072eb9fcac8e5d3d84` reached
 - image export/deployment still in progress at checkpoint time
 
 Therefore this increment is **implemented and build-verified, but not runtime-GREEN** until the deployment becomes reachable and authenticated browser evidence is captured.
+
+
+## CW-02 — District → Realtime District → Booth/Tenant → Agent Interaction increment
+
+### Inspected canonical dependencies
+- apps/api/app/api/universe.py — Universe Galaxy/World reads and existing Agent Presence contract
+- apps/api/app/api/districts.py — District / Zone / Spatial Object authority
+- apps/api/app/api/world_runtime.py — canonical District Composition adapter, District → Zone → Booth projection, agent_spatial_states projection, verified Theme asset manifest
+- apps/api/app/api/spatial_runtime.py — spatial state, simulation state and spatial interactions
+- apps/api/app/api/agent_catalog.py — District-scoped public Agent discovery and public Agent Account contract
+- apps/web/components/world/allpha-world-renderer.tsx — canonical renderer reused; no second renderer created
+- existing District / Booth surfaces remain management/builder surfaces and are not duplicated.
+
+### Implemented
+- apps/web/components/district-experience-surface.tsx
+- apps/web/app/districts/[district_id]/page.tsx
+- Universe Home District cards now link directly to the spatial District experience.
+
+### Product flow
+Universe Home → District Selection → District Spatial Experience → Realtime Presence → Booth/Tenant → Agent Interaction
+
+### Realtime behavior
+The District surface subscribes to Supabase Realtime changes for existing agent_spatial_states and District-scoped booths, while retaining a 5-second authoritative API refresh fallback. Realtime is presentation synchronization only; FastAPI/Supabase/RLS remain authoritative.
+
+### Booth/Tenant
+Selecting a Booth opens its spatial detail and exposes the existing Booth/Tenant management surface. No second tenant state or commerce authority was created.
+
+### Agent Interaction
+Selecting a real Agent from spatial presence opens an Agent Interaction panel. Conversation/collaboration/shopping/negotiation requests are sent to the existing Spatial Runtime interaction API using the authenticated Human session. No synthetic Agent or interaction is generated.
+
+### Reference alignment
+The District experience uses the supplied spatial/cosmic visual direction: immersive 3D scene, minimal glass HUD, persistent Allpha identity, spatial status, responsive overlays and contextual Booth/Agent panels.
+
+### Verification
+Railway Web deployment for commit ad8439a46992096f95eee43c3a47f5ffd77885ac:
+- Next.js compile: PASS
+- TypeScript: PASS
+- static generation: 73/73 PASS
+- /districts/[district_id] present in route map
+- image publish completed; container deployment still settling at checkpoint time.
+
+Status: IMPLEMENTED / BUILD VERIFIED / RUNTIME AUTHENTICATED DISTRICT E2E PENDING.
