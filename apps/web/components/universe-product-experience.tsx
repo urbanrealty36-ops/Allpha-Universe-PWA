@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ImmersiveUniverseShell from "./universe/immersive-universe-shell";
-import { MobileNavigation } from "./navigation/mobile-navigation";
+import UniverseShell, { type UniverseShellKey } from "./universe/universe-shell";
 import { apiFetch } from "../lib/api";
 
 type View = "home" | "discover" | "worlds" | "agents" | "live" | "features";
@@ -225,7 +225,33 @@ export default function UniverseProductExperience() {
         {view === "features" && <FeatureConstellation onClose={() => setView("home")} />}
       </div>
 
-      {createSheet}
+      {createOpen && (
+        <div className="allpha-mobile-create-sheet-backdrop" role="presentation" onClick={() => setCreateOpen(false)}>
+          <section
+            className="allpha-mobile-create-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-create-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="allpha-mobile-create-sheet-handle" aria-hidden="true" />
+            <div className="allpha-mobile-create-sheet-header">
+              <div>
+                <p className="allpha-eyebrow">Create</p>
+                <h2 id="mobile-create-title">Create in Allpha</h2>
+                <p>Start from an existing canonical creation flow. New Experience creation remains part of WEB-16.</p>
+              </div>
+              <button type="button" className="allpha-button allpha-button-icon allpha-button-ghost" aria-label="Close create menu" onClick={() => setCreateOpen(false)}>×</button>
+            </div>
+            <a href="/agents/create" className="allpha-mobile-create-action">
+              <span className="allpha-mobile-create-action-icon">◈</span>
+              <span><strong>Agent Factory</strong><small>Create an owner-owned AI Agent</small></span>
+              <span aria-hidden="true">→</span>
+            </a>
+          </section>
+        </div>
+      )}
+
     </UniverseShell>
   );
 }
