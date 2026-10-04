@@ -47,7 +47,7 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
 
   const scene = useMemo<WorldScene | null>(() => theme ? normalizeWorldScene(theme.world_schema) : null, [theme]);
 
-  async function loadGalaxies() {
+  async function loadContent() {\n    const r = await apiFetch<{ data: Content[] }>("/api/v1/content?limit=100");\n    setContent(r.data ?? []);\n  }\n  async function loadGalaxies() {
     const r = await apiFetch<{ data: Galaxy[] }>("/api/v1/universe/galaxies");
     setGalaxies(r.data ?? []);
   }
