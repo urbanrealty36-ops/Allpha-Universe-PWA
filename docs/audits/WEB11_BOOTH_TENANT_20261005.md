@@ -128,7 +128,12 @@ No fake business data or fake 3D assets were introduced.
 
 Source implementation is complete.
 
-Railway build/deployment remains pending.
+Railway build/deployment is verified:
+Browser/device visual QA and authenticated E2E remain pending.
+- Deployment: `4807026a-213e-4810-ae24-ba6d8b6a44d2`
+- Commit: `b45e2613d3de409a55d78414b7f25b2025b70dca`
+- Region: `asia-southeast1-eqsg3a`
+
 Browser/device visual QA and authenticated E2E remain pending.
 Production GREEN is not claimed.
 
