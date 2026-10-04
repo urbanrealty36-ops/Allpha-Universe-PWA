@@ -152,37 +152,53 @@ export default function UniverseProductExperience() {
     void loadProductData(tab);
   }
 
+  const shellActive: UniverseShellKey =
+    view === "home" ? "universe" :
+    view === "discover" || view === "worlds" ? "explore" :
+    view === "agents" ? "my-agent" :
+    view === "live" ? "social" :
+    "universe";
+
+  function navigateShell(key: UniverseShellKey) {
+    if (key === "universe") {
+      navigateHome("universe");
+      return;
+    }
+    if (key === "explore") {
+      setView("discover");
+      return;
+    }
+    if (key === "my-agent") {
+      setView("agents");
+      return;
+    }
+    if (key === "create") {
+      setCreateOpen(true);
+      return;
+    }
+    const routes: Partial<Record<UniverseShellKey, string>> = {
+      social: "/social",
+      communities: "/communities",
+      missions: "/missions",
+      marketplace: "/marketplace",
+    };
+    const href = routes[key];
+    if (href) window.location.assign(href);
+  }
+
   return (
-    <main className="min-h-screen bg-[#02040b] text-white">
-      <header className="fixed inset-x-0 top-0 z-[80] border-b border-white/[0.07] bg-[#02040b]/75 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 sm:px-6">
-          <button onClick={() => navigateHome("universe")} className="shrink-0 text-2xl font-black tracking-[-0.08em]">
-            ALLPHA<span className="text-cyan-300">.</span>
-          </button>
-
-          <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
-            {topNav.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => item.key === "live" ? setView("live") : navigateHome(item.key as HomeTab)}
-                className={`rounded-full px-4 py-2 text-[10px] font-medium uppercase tracking-[0.14em] transition ${(view === "live" && item.key === "live") || (view === "home" && homeTab === item.key) ? "bg-white/[0.09] text-white" : "text-white/45 hover:text-white"}`}
-              >
-                {item.label}
-              </button>
-            ))}
-            <button onClick={() => setView("worlds")} className="rounded-full px-4 py-2 text-[10px] uppercase tracking-[0.14em] text-white/45 hover:text-white">Worlds</button>
-            <button onClick={() => setView("agents")} className="rounded-full px-4 py-2 text-[10px] uppercase tracking-[0.14em] text-white/45 hover:text-white">Agents</button>
-            <button onClick={() => setView("features")} className="rounded-full px-4 py-2 text-[10px] uppercase tracking-[0.14em] text-cyan-200/60 hover:text-cyan-100">All Features</button>
-          </nav>
-
-          <div className="ml-auto flex items-center gap-2">
-            <a href="/messages" className="hidden rounded-full border border-white/10 px-3 py-2 text-[10px] text-white/55 hover:text-white sm:block">Messages</a>
-            <a href="/profile" className="rounded-full border border-white/10 px-3 py-2 text-[10px] text-white/65 hover:border-cyan-300/30 hover:text-white">Profile</a>
-          </div>
+    <UniverseShell
+      active={shellActive}
+      onNavigate={navigateShell}
+      onCreate={() => setCreateOpen(true)}
+      contextDock={
+        <div className="allpha-universe-context-content">
+          <span className="allpha-eyebrow">Universe Context</span>
+          <strong>{view === "home" ? (homeTab === "universe" ? "Living Universe" : homeTab.replace("_", " ")) : view}</strong>
+          <span>Canonical engines remain authoritative.</span>
         </div>
-      </header>
-
-      <div className="pb-20 pt-16 md:pb-0">
+      }
+    >
         {error && <RuntimeNotice message={error} onRetry={() => void loadProductData()} />}
 
         {view === "home" && (
@@ -208,53 +224,12 @@ export default function UniverseProductExperience() {
         {view === "features" && <FeatureConstellation onClose={() => setView("home")} />}
       </div>
 
-      <MobileNavigation
-        active={
-          view === "home" ? "universe" :
-          view === "discover" || view === "worlds" ? "explore" :
-          view === "agents" ? "my-agent" :
-          "universe"
-        }
-        onNavigate={(key) => {
-          if (key === "universe") navigateHome("universe");
-          if (key === "explore") setView("discover");
-          if (key === "messages") window.location.assign("/messages");
-          if (key === "my-agent") setView("agents");
-        }}
-        onCreate={() => setCreateOpen(true)}
-      />
-
-      {createOpen && (
-        <div className="allpha-mobile-create-sheet-backdrop" role="presentation" onClick={() => setCreateOpen(false)}>
-          <section
-            className="allpha-mobile-create-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="mobile-create-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="allpha-mobile-create-sheet-handle" aria-hidden="true" />
-            <div className="allpha-mobile-create-sheet-header">
-              <div>
-                <p className="allpha-eyebrow">Create</p>
-                <h2 id="mobile-create-title">Create in Allpha</h2>
-                <p>Start from an existing canonical creation flow. New Experience creation remains part of WEB-16.</p>
-              </div>
-              <button type="button" className="allpha-button allpha-button-icon allpha-button-ghost" aria-label="Close create menu" onClick={() => setCreateOpen(false)}>×</button>
-            </div>
-            <a href="/agents/create" className="allpha-mobile-create-action">
-              <span className="allpha-mobile-create-action-icon">◈</span>
-              <span><strong>Agent Factory</strong><small>Create an owner-owned AI Agent</small></span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </section>
-        </div>
-      )}
-    </main>
+      {createSheet}
+    </UniverseShell>
   );
 }
 
-function UniverseHome({
+function UniverseHomefunction UniverseHome({
   tab, content, themes, worlds, districts, templates, agents, loading, onTab, onWorlds, onFeatures,
 }: {
   tab: HomeTab; content: Content[]; themes: Theme[]; worlds: World[]; districts: District[];
