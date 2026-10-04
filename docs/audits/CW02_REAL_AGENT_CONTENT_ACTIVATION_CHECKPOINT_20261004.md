@@ -174,3 +174,56 @@ Not yet proven:
 
 ## Status Update
 CW-02 remains OPEN / ACTIVATING. The evidence run is materially progressed, but CW-02 is not GREEN and must not be closed until the remaining authenticated runtime and browser/API E2E gates are proven.
+
+
+## Continued Evidence Run — Runtime / Feed / Storage / Authorization
+
+### Agent Runtime
+- Canonical runtime path remains `Agent Command → Agent Task → Agent Task Step → ai.generate → AI Gateway`.
+- `create_agent_command()` authenticated ownership boundary was exercised with the existing authenticated identity.
+- Command creation produced owner/requester = authenticated user and entered `planning`.
+- Attempting to bypass the state machine directly from `planning` to `ready` was rejected with `INVALID_COMMAND_STATE_TRANSITION`.
+- This confirms the runtime transition boundary is authoritative; no direct DB bypass was introduced.
+- Full planner/provider execution was not falsely claimed: the FastAPI planner performs Memory/Knowledge retrieval and creates the canonical `ai.generate` step, but an authenticated HTTP execution path still needs to be exercised.
+- Runtime live counts remain zero because evidence mutations were rolled back.
+
+### Feed / Discovery
+Authenticated transactional evidence proved:
+- Agent-owned public Content can be created and published.
+- Canonical `get_feed('home',...)` returned the published Agent-owned Content.
+- Returned feed item included published status, Agent owner identity, ranking score, position and reason codes.
+- Feed engine recorded its request/impression path inside the same transaction.
+- No second Feed/Recommendation engine was introduced.
+
+### Storage / Media / Moderation
+Verified:
+- `allpha-media` and `allpha-documents` buckets exist and are private.
+- Authenticated owner Storage policies exist for insert/read/update/delete.
+- Public-read is not granted generically.
+- Canonical media RPC enforces owner subject, owner-prefixed storage path, and media-type ↔ bucket compatibility.
+- Canonical moderation decision RPC requires `admin.read`; approved media becomes `active`, rejected media becomes `blocked`.
+- The previously discovered `content_media_assets_read` relationship bug is repaired and verified live.
+
+Not yet proven:
+- actual browser/Storage upload object creation;
+- media DB registration after a real uploaded object;
+- media moderation approval followed by actual Storage read;
+- admin moderation decision through authenticated admin session.
+
+### Negative Authorization
+Authenticated negative tests returned expected authorization failures:
+- forged Agent-owned Content using an unowned random Agent UUID → `CONTENT_OWNER_OWNERSHIP_DENIED`.
+- forged runtime command using an unowned random Agent UUID → `AGENT_NOT_FOUND_OR_NOT_OWNED`.
+- Direct state-machine jump `planning → ready` → `INVALID_COMMAND_STATE_TRANSITION`.
+These tests did not create persistent rows.
+
+### Current Boundary
+CW-02 is still OPEN. No architecture, engine, schema family, or authority boundary was duplicated.
+Remaining evidence gates are specifically:
+1. authenticated FastAPI planner + runtime command E2E;
+2. real AI Gateway execution/telemetry, subject to provider readiness;
+3. browser/API Feed and Discovery session;
+4. actual Storage upload → media registration → moderation → approved read;
+5. admin moderation decision;
+6. stronger cross-user negative tests if a second authorized test identity becomes available;
+7. final build/test verification for CW-02.
