@@ -1,7 +1,7 @@
 # WEB-06 — Splash + Identity Implementation Audit
 
 Date: 2026-10-05
-Status: IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING
+Status: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
 Wave: CW-02.WEB
 Previous: WEB-05
 Next: WEB-07 — Universe Home
@@ -121,13 +121,26 @@ Code-level reconciliation completed against:
 - existing `apps/web/lib/supabase/*`
 - existing `apps/web/components/universe-entry-surface.tsx`
 
-Build/deployment verification must be completed against the canonical Railway Web service after these commits.
+Build/deployment verification completed against the canonical Railway Web service.
 
 Browser/device visual QA and authenticated E2E cannot be claimed from code inspection alone and remain pending.
 
+## Deployment evidence
+
+Railway:
+- project: `serene-youth`
+- service: `@allpha/web`
+- environment: `production`
+- final implementation commit: `3926adcfdd53a37630089cee9ef621632140b1f9`
+- deployment: `3fae8141-baf4-4f3e-a693-e7d842912236`
+- status: SUCCESS
+- region: `asia-southeast1-eqsg3a`
+
+Railway build logs completed TypeScript compilation and generated all 76 application routes successfully. The Web deployment then reached SUCCESS.
+
 ## Completion classification
 
-WEB-06 is **IMPLEMENTED** at source level.
+WEB-06 is **IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED**.
 
 It is **not Production GREEN**.
 
