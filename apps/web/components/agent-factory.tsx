@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
 type Skill={skill_key:string;name:string;description?:string|null;category:string;risk_level:string};
 type AgentType={type_key:string;name:string;description?:string|null;category:string;default_skill_keys:string[];recommended_capability_keys:string[];default_autonomy_level:string;risk_profile:string};
@@ -17,11 +18,29 @@ const input="w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 
 const card="rounded-2xl border border-white/10 bg-white/[0.035] p-5";
 
 export default function AgentFactory(){
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const [onboardingContext,setOnboardingContext] = useState<any>(null);
   const [step,setStep]=useState(0),[types,setTypes]=useState<AgentType[]>([]),[skills,setSkills]=useState<Skill[]>([]),[characters,setCharacters]=useState<Character[]>([]);
   const [resources,setResources]=useState<Resource[]>([]),[districts,setDistricts]=useState<Resource[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[creating,setCreating]=useState(false),[created,setCreated]=useState<any>(null),[skillQuery,setSkillQuery]=useState("");
   const [form,setForm]=useState({name:"",handle:"",description:"",type:"",character:"",skills:[] as string[],mode:"social",scope:"universe",resourceId:"",districtId:"",autonomy:"recommend",maxSpend:"",dailySpend:"",monthlySpend:"",approvalAbove:"",visibility:"public"});
 
-  useEffect(()=>{void loadCatalog()},[]);
+  useEffect(()=>{void loadCatalog(); void loadOnboardingContext()},[]);
+  async function loadOnboardingContext(){
+    try{
+      const params = new URLSearchParams(window.location.search);
+      if(params.get("from") !== "onboarding") return;
+      const { data } = await supabase.auth.getUser();
+      const ctx = data.user?.user_metadata?.allpha_onboarding ?? null;
+      setOnboardingContext(ctx);
+      if(ctx){
+        setForm(f=>({
+          ...f,
+          name: f.name || ctx.agent?.name || "",
+          description: f.description || ctx.agent?.role || "",
+        }));
+      }
+    }catch{}
+  }
   async function loadCatalog(){try{const r=await apiFetch<{data:{types:AgentType[];skills:Skill[];characters:Character[]}}>("/api/v1/agent-catalog");setTypes(r.data.types);setSkills(r.data.skills);setCharacters(r.data.characters)}catch(e){setError(e instanceof Error?e.message:"AGENT_FACTORY_LOAD_FAILED")}finally{setLoading(false)}}
 
   useEffect(()=>{
@@ -54,7 +73,43 @@ export default function AgentFactory(){
         max_spend_per_action:form.maxSpend?Number(form.maxSpend):null,daily_spend_limit:form.dailySpend?Number(form.dailySpend):null,
         monthly_spend_limit:form.monthlySpend?Number(form.monthlySpend):null,requires_approval_above:form.approvalAbove?Number(form.approvalAbove):null
       })});
-      setCreated(r.data);setStep(7);
+      setCreated(r.data);
+      const agentId = r.data?.agent?.id;
+      if(agentId && onboardingContext){
+        const identity = onboardingContext.identity ?? {};
+        const interests = onboardingContext.interests ?? {};
+        const goals = onboardingContext.goals ?? {};
+        const communication = onboardingContext.communication ?? {};
+        const agent = onboardingContext.agent ?? {};
+        const memory = onboardingContext.memory ?? {};
+        const contextText = [
+          identity.name ? "Human name: " + identity.name : "",
+          identity.role ? "Role: " + identity.role : "",
+          interests.interests ? "Interests: " + interests.interests : "",
+          interests.passion ? "Passion: " + interests.passion : "",
+          goals.goal ? "Main goal: " + goals.goal : "",
+          goals.future ? "12-month direction: " + goals.future : "",
+          communication.style ? "Communication preference: " + communication.style : "",
+          communication.language ? "Preferred language: " + communication.language : "",
+          agent.role ? "Requested Agent role: " + agent.role : "",
+          memory.knowledge ? "Important human context: " + memory.knowledge : "",
+          memory.avoid ? "Avoid / boundaries: " + memory.avoid : "",
+        ].filter(Boolean).join("\n");
+        if(contextText){
+          await apiFetch(`/api/v1/agents/${agentId}/memory`,{method:"POST",body:JSON.stringify({
+            memory_type:"onboarding_context", content:contextText, sensitivity:"private",
+            metadata:{created_from:"universe-onboarding",completed_at:onboardingContext.completed_at||null},
+            source_type:"user_explicit"
+          })});
+          await apiFetch(`/api/v1/agents/${agentId}/knowledge`,{method:"POST",body:JSON.stringify({
+            title:"Human Onboarding Context", content:contextText,
+            provenance:{created_from:"universe-onboarding",completed_at:onboardingContext.completed_at||null},
+            visibility:"private"
+          })});
+        }
+        await supabase.auth.updateUser({data:{allpha_onboarding:{...onboardingContext,agent_activated_at:new Date().toISOString()}}});
+      }
+      setStep(7);
     }catch(e){setError(e instanceof Error?e.message:"AGENT_CREATE_FAILED")}finally{setCreating(false)}
   }
 
