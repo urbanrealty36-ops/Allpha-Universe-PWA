@@ -4,7 +4,7 @@ RUN corepack enable && corepack prepare pnpm@10.17.1 --activate
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 COPY apps/admin/package.json apps/admin/package.json
 COPY packages packages
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 FROM node:22-alpine AS builder
 WORKDIR /app
