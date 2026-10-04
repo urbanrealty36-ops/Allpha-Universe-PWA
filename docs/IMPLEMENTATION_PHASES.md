@@ -17,6 +17,10 @@ Implementation is performed directly on `main`. `AGENTS.md` is binding.
 - Loading, empty, not-configured, permission-denied, and error states are legitimate; invented records are prohibited.
 - QA, CI/CD, runtime, production and deployment are final gates only.
 
+## Canonical Architecture Baseline Lock
+
+As of 2026-10-04, implementation planning is governed by [ALLPHA_CANONICAL_ARCHITECTURE_BASELINE_LOCK_v1.0.0.md](./architecture/ALLPHA_CANONICAL_ARCHITECTURE_BASELINE_LOCK_v1.0.0.md) and its machine-readable companion [allpha-canonical-architecture-baseline.json](./architecture/allpha-canonical-architecture-baseline.json). Future phases must perform targeted delta reconciliation against this lock rather than restarting full architecture discovery. The Admin domain-evidence registry is an evidence surface and must remain reconciled with the lock.
+
 ## Full delivery sequence
 
 ### PHASE 00 — Governance & Repository Foundation
