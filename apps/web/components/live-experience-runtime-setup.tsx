@@ -488,6 +488,8 @@ export default function LiveExperienceRuntimeSetup() {
           </div>
         </div>
 
+        {renderWebRTCStage()}
+
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
           <div className={card + " p-4"}>
             <div className="mb-3 font-medium">1 · Real Camera Perangkat Human</div>
