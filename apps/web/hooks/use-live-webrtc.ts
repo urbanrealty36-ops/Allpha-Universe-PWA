@@ -44,17 +44,35 @@ export function useLiveWebRTC({
     let mounted = true;
     const supabase = supabaseRef.current;
 
+    const closeTransport = () => {
+      for (const pc of peersRef.current.values()) pc.close();
+      peersRef.current.clear();
+      pendingIceRef.current.clear();
+      if (!providedLocalStream) {
+        localStreamRef.current?.getTracks().forEach((track) => track.stop());
+      }
+      localStreamRef.current = null;
+      setLocalStream(null);
+      setRemoteStreams({});
+      setConnected(false);
+      const channel = channelRef.current;
+      channelRef.current = null;
+      if (channel) void supabase.removeChannel(channel);
+    };
+
     // WebRTC is transport-only. The canonical Live Experience workflow remains
     // authoritative; without its authorization result no signaling channel or
-    // peer connection is created.
+    // peer connection is created. Revocation also closes the transport
+    // deterministically; it never changes the underlying authorization workflow.
     if (!authorized) {
-      setConnected(false);
+      closeTransport();
       setError(null);
       return () => {
         mounted = false;
       };
     }
     const senderId = senderIdRef.current;
+    const isActive = () => mounted && authorized;
 
     const iceServers: RTCIceServer[] = [
       { urls: "stun:stun.l.google.com:19302" },
@@ -68,6 +86,7 @@ export function useLiveWebRTC({
     }
 
     const send = async (signal: Omit<Signal, "sender">) => {
+      if (!isActive()) throw new Error("LIVE_WEBRTC_TRANSPORT_REVOKED");
       const channel = channelRef.current;
       if (!channel) throw new Error("LIVE_WEBRTC_CHANNEL_NOT_READY");
       await channel.send({
@@ -110,7 +129,7 @@ export function useLiveWebRTC({
       };
 
       pc.onicecandidate = async (event) => {
-        if (!event.candidate) return;
+        if (!event.candidate || !isActive()) return;
         try {
           await send({
             type: "ice",
@@ -129,6 +148,7 @@ export function useLiveWebRTC({
       try {
         const { data } = await supabase.auth.getSession();
         if (!data.session) throw new Error("AUTH_REQUIRED");
+        if (!isActive()) return;
 
         if (role === "publisher") {
           const stream =
@@ -137,10 +157,15 @@ export function useLiveWebRTC({
               video,
               audio,
             }));
+          if (!isActive()) {
+            if (!providedLocalStream) stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
           localStreamRef.current = stream;
-          if (mounted) setLocalStream(stream);
+          setLocalStream(stream);
         }
 
+        if (!isActive()) return;
         const channel = supabase.channel(`live-webrtc:${sessionId}`, {
           config: {
             private: true,
@@ -148,8 +173,13 @@ export function useLiveWebRTC({
           },
         });
         channelRef.current = channel;
+        if (!isActive()) {
+          closeTransport();
+          return;
+        }
 
         channel.on("broadcast", { event: "webrtc-signal" }, async ({ payload }) => {
+          if (!isActive()) return;
           const signal = payload as Signal;
           if (!signal || signal.sender === senderId) return;
           if (signal.target && signal.target !== senderId) return;
@@ -215,15 +245,19 @@ export function useLiveWebRTC({
         });
 
         const status = await channel.subscribe();
+        if (!isActive()) {
+          closeTransport();
+          return;
+        }
         if (status !== "SUBSCRIBED") {
           throw new Error(`REALTIME_SUBSCRIBE_${status}`);
         }
 
-        if (role === "viewer") {
+        if (role === "viewer" && isActive()) {
           await send({ type: "ready" });
         }
       } catch (e) {
-        if (mounted) setError(e instanceof Error ? e.message : "WEBRTC_INIT_FAILED");
+        if (isActive()) setError(e instanceof Error ? e.message : "WEBRTC_INIT_FAILED");
       }
     };
 
@@ -231,15 +265,7 @@ export function useLiveWebRTC({
 
     return () => {
       mounted = false;
-      for (const pc of peersRef.current.values()) pc.close();
-      peersRef.current.clear();
-      pendingIceRef.current.clear();
-      if (!providedLocalStream) {
-        localStreamRef.current?.getTracks().forEach((track) => track.stop());
-      }
-      localStreamRef.current = null;
-      if (channelRef.current) void supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
+      closeTransport();
     };
   }, [sessionId, role, video, audio, providedLocalStream, authorized]);
 
