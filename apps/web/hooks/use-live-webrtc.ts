@@ -6,7 +6,7 @@ import { createSupabaseBrowserClient } from "../lib/supabase/client";
 type Role = "publisher" | "viewer";
 
 type Signal = {
-  type: "offer" | "answer" | "ice" | "leave";
+  type: "offer" | "answer" | "ice" | "leave" | "ready";
   sender: string;
   target?: string;
   payload?: RTCSessionDescriptionInit | RTCIceCandidateInit;
@@ -17,9 +17,10 @@ export type LiveWebRTCOptions = {
   role: Role;
   video?: boolean;
   audio?: boolean;
+  localStream?: MediaStream | null;
 };
 
-export function useLiveWebRTC({ sessionId, role, video = true, audio = true }: LiveWebRTCOptions) {
+export function useLiveWebRTC({ sessionId, role, video = true, audio = true, localStream: providedLocalStream = null }: LiveWebRTCOptions) {
   const supabaseRef = useRef(createSupabaseBrowserClient());
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<ReturnType<typeof supabaseRef.current.channel> | null>(null);
@@ -28,6 +29,7 @@ export function useLiveWebRTC({ sessionId, role, video = true, audio = true }: L
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
 
   const publishSignal = useCallback(async (signal: Omit<Signal, "sender">) => {
     const channel = channelRef.current;
@@ -65,29 +67,37 @@ export function useLiveWebRTC({ sessionId, role, video = true, audio = true }: L
         };
 
         if (role === "publisher") {
-          const stream = await navigator.mediaDevices.getUserMedia({ video, audio });
+          const stream = providedLocalStream ?? await navigator.mediaDevices.getUserMedia({ video, audio });
           localStreamRef.current = stream;
           if (mounted) setLocalStream(stream);
           stream.getTracks().forEach((track) => pc?.addTrack(track, stream));
         }
 
-        const channel = supabase.channel(`live-webrtc:${sessionId}`, { config: { broadcast: { self: false } } });
+        const channel = supabase.channel(`live-webrtc:${sessionId}`, { config: { private: true, broadcast: { self: false } } });
         channelRef.current = channel;
 
         channel.on("broadcast", { event: "webrtc-signal" }, async ({ payload }) => {
           const signal = payload as Signal;
           if (!signal || signal.sender === senderId || (signal.target && signal.target !== senderId)) return;
           try {
-            if (signal.type === "offer" && role === "viewer") {
+            if (signal.type === "ready" && role === "publisher") {
+              const offer = await pc?.createOffer();
+              if (!offer) return;
+              await pc?.setLocalDescription(offer);
+              await channel.send({ type: "broadcast", event: "webrtc-signal", payload: { type: "offer", sender: senderId, target: signal.sender, payload: offer } });
+            } else if (signal.type === "offer" && role === "viewer") {
               await pc?.setRemoteDescription(signal.payload as RTCSessionDescriptionInit);
+              for (const candidate of pendingIceRef.current.splice(0)) await pc?.addIceCandidate(candidate);
               const answer = await pc?.createAnswer();
               if (!answer) return;
               await pc.setLocalDescription(answer);
               await channel.send({ type: "broadcast", event: "webrtc-signal", payload: { type: "answer", sender: senderId, target: signal.sender, payload: answer } });
             } else if (signal.type === "answer" && role === "publisher") {
               await pc?.setRemoteDescription(signal.payload as RTCSessionDescriptionInit);
+              for (const candidate of pendingIceRef.current.splice(0)) await pc?.addIceCandidate(candidate);
             } else if (signal.type === "ice") {
-              await pc?.addIceCandidate(signal.payload as RTCIceCandidateInit);
+              const candidate = signal.payload as RTCIceCandidateInit;
+              if (pc?.remoteDescription) await pc.addIceCandidate(candidate); else pendingIceRef.current.push(candidate);
             }
           } catch (e) {
             if (mounted) setError(e instanceof Error ? e.message : "WEBRTC_SIGNAL_ERROR");
@@ -104,9 +114,9 @@ export function useLiveWebRTC({ sessionId, role, video = true, audio = true }: L
         if (status !== "SUBSCRIBED") throw new Error(`REALTIME_SUBSCRIBE_${status}`);
 
         if (role === "publisher") {
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          await channel.send({ type: "broadcast", event: "webrtc-signal", payload: { type: "offer", sender: senderId, payload: offer } });
+          // Wait for a viewer-ready signal so late joiners receive a fresh offer.
+        } else {
+          await channel.send({ type: "broadcast", event: "webrtc-signal", payload: { type: "ready", sender: senderId } });
         }
       } catch (e) {
         if (mounted) setError(e instanceof Error ? e.message : "WEBRTC_INIT_FAILED");
