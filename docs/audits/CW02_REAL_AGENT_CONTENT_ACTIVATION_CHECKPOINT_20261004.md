@@ -323,3 +323,34 @@ Therefore:
 ### Updated conclusion
 CW-02 remains OPEN / ACTIVATING / NOT GREEN. The next evidence action is to run this harness against the actual running FastAPI service with a real authenticated Supabase session and, where available, a real owned Agent. No architecture expansion is justified.
 
+
+
+## CW-02.R — Runtime Repair & Activation Stabilization
+
+### Source/runtime repairs completed
+The Railway observation cycle exposed concrete source/configuration blockers. They were repaired without introducing new architecture:
+- `apps/api/app/api/memory_knowledge.py` — malformed escaped newline in import repaired.
+- `apps/api/app/api/economy.py` — malformed escaped newlines in billing subscription routes normalized.
+- `apps/api/app/api/security.py` — indentation corruption and escaped-newline route corruption repaired.
+- `apps/web/components/theme-spatial-slice.tsx` — malformed escaped newlines repaired.
+- `apps/web/components/communities-platform.tsx` — production type-safe error normalization.
+- `apps/web/components/universe/immersive-universe-shell.tsx` — Theme/World/Booth spatial type contracts reconciled.
+- `apps/web/components/world/allpha-world-renderer.tsx` — district/animation prop contract reconciled.
+- `apps/web/hooks/use-live-webrtc.ts` — Supabase Realtime subscribe status handled through the canonical callback contract.
+- Railway API `PORT=8000` set so the healthcheck targets the same port as the canonical Uvicorn listener.
+
+### Railway runtime evidence
+- API deployment `b1d113c3-818c-4ab9-8790-6dcde4e29863` — SUCCESS / ONLINE.
+- Web deployment `a8b63323-04cb-49d2-8872-f967f5a0dd59` — SUCCESS / ONLINE.
+- Admin deployment `e2139815-28fd-4a06-942a-da5e32e895de` — SUCCESS / ONLINE.
+- API `GET /health` — HTTP 200 confirmed.
+- Railway healthcheck completed successfully after the `PORT=8000` repair.
+- Unauthenticated runtime activation is still governed by the canonical FastAPI authentication boundary and is expected to return 401.
+
+### Remaining CW-02.R gate
+Authenticated runtime activation is still pending because the evidence environment does not contain a real user access token/real owned Agent for the external FastAPI harness. No fake token, user, Agent, provider output, or business data was introduced.
+
+Detailed CW-02.R record:
+`docs/audits/CW02R_RUNTIME_REPAIR_ACTIVATION_STABILIZATION_20261004.md`
+
+CW-02 remains **OPEN / ACTIVATING / NOT GREEN**.
