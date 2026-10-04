@@ -6,7 +6,8 @@ from pydantic import BaseModel, Field
 
 from app.api.dependencies import get_auth_context
 from app.core.auth import AuthenticatedUser
-from app.core.ai_gateway import AIGatewayError, embed_text\nfrom app.core.supabase_rest import insert, rpc, select, update
+from app.core.ai_gateway import AIGatewayError, embed_text
+from app.core.supabase_rest import insert, rpc, select, update
 
 
 router = APIRouter(prefix="/api/v1/agents", tags=["Agent Memory & Knowledge"])
