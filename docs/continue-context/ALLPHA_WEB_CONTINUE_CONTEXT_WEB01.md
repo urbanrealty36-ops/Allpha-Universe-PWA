@@ -14,7 +14,8 @@
 - WEB-05: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
 - WEB-06: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
 - WEB-07: IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING
-- Next: WEB-08 — GALAXY NAVIGATOR
+- WEB-08: IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING
+- Next: WEB-09 — WORLD EXPERIENCE
 - CW-02: OPEN / ACTIVATING / NOT GREEN
 
 ## WEB-04 implemented
@@ -123,3 +124,18 @@ No phase restart. No Production GREEN claim during CW-02.
 
 ## Next
 WEB-08 — Galaxy Navigator.
+
+
+## WEB-08 implemented
+
+- Added `apps/web/components/universe/galaxy-navigator-experience.tsx`.
+- Activated Galaxy Navigator from the existing UniverseProductExperience.
+- Reused `/api/v1/universe/galaxies` and `/api/v1/universe/worlds?galaxy_id=...`.
+- Galaxy selection is bound to the selected authoritative Galaxy ID.
+- World cards delegate to the existing `/world?world_id=...` surface.
+- Added mobile-first search, Galaxy selection, orbital spatial preview, World discovery, metrics and responsive presentation.
+- No fake Galaxy/World business data, new renderer, new discovery engine, ranking engine, Agent Runtime, AI Gateway or authority layer was introduced.
+- Source implementation is complete; Railway build verification, browser/device visual QA and authenticated E2E remain validation gates.
+
+## Next
+WEB-09 — World Experience.
