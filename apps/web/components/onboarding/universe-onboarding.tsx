@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "../lib/supabase/client";
+import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 
 const steps=[
  {key:"identity",eyebrow:"01 · IDENTITY ORBIT",title:"Who are you in this Universe?",hint:"Start with the human behind the Agent.",fields:[["name","Your name","What should Allpha call you?","text"],["role","What do you do?","Profession, business or role","text"]]},
