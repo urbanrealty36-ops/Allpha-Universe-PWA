@@ -683,7 +683,6 @@ export default function LiveExperienceRuntimeSetup() {
               </div>
             ) : null}
           </div>
-          </div>
         </div>
 
         {error && <div className="mt-4 rounded-lg border border-red-300/20 bg-red-300/10 p-3 text-sm text-red-200">{error}</div>}
