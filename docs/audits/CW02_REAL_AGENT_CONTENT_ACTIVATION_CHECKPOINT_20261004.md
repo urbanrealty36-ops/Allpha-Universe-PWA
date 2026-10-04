@@ -386,3 +386,50 @@ Boundary:
 - Real Agent Runtime / AI provider execution: PENDING.
 - Storage/Moderation E2E: PENDING.
 - CW-02 overall: OPEN / ACTIVATING / NOT GREEN.
+
+
+## CW-02 — Frontend Product UX Realization
+
+Implemented after the frontend + Theme/World/Live reconciliation. No new wave, engine, schema family, renderer, or authority boundary was introduced.
+
+### Product surface activation
+- Authenticated `/` and `/universe` now enter `UniverseProductExperience`.
+- Added responsive product navigation: Universe, Discover, Worlds, Agents, Live.
+- Desktop uses a compact spatial command/navigation chrome; mobile uses a bottom navigation surface.
+- Universe view continues to use the existing canonical `ImmersiveUniverseShell` and `AllphaWorldRenderer`.
+- Discover view reads the existing Discovery home API and renders only authoritative returned Content.
+- Worlds view reads the existing published Theme/World runtime catalog and provides visual destination selection without creating duplicate Theme/World records.
+- Agents view reads `/api/v1/agents/me`; zero Agents remains an explicit empty state rather than synthetic data.
+- Live view reads published Live Experience Templates and routes creation to the existing Live Studio.
+
+### Existing canonical product surfaces reused
+- Agent Factory remains `/agents/create` and the existing `AgentFactory` implementation.
+- Theme Studio remains `/theme-studio` and reuses the existing Theme/World/3D workflow.
+- Live Studio remains `/live` and reuses the existing Live Session, Agent Collaboration, Character Binding, Runtime and Realtime contracts.
+- No second renderer, Theme Engine, World Engine, Live Engine, Character Engine, Agent Runtime, Feed Engine or AI Gateway was introduced.
+
+### Live runtime reconciliation remains explicit
+Live Supabase state observed during this increment:
+- live stage assets = 0;
+- live character assets = 34 active;
+- live character asset contracts = 34 active;
+- live sessions = 0;
+- stage bindings = 0;
+- character bindings = 0;
+- camera sources = 0;
+- human presentations = 0;
+- voice bindings = 0;
+- Agents = 0.
+
+Therefore the UI now exposes the correct product paths but does not claim Live/Agent runtime completion. The zero Live Stage Asset count remains a concrete runtime activation boundary.
+
+### Source commits
+- `a4d40f7631c39783bf488da8e6b96c993d3caa6a` — add CW-02 Universe Product UX surface.
+- `0816f7a926ec14e3cdb73751f91f166c0ac0bd29` — route authenticated Universe entry into Product UX.
+
+### Railway observation
+The Web service automatically started deployment observation for both implementation commits. The latest deployment observed is building from `0816f7a926ec14e3cdb73751f91f166c0ac0bd29`. This is controlled runtime observation only, not Production GREEN.
+
+### Current boundary
+CW-02 remains **OPEN / ACTIVATING / NOT GREEN**.
+Remaining closure evidence includes authenticated browser/session verification, real Agent creation/runtime execution, provider execution/telemetry, Feed/Discovery runtime verification, real Storage/media/moderation lifecycle, authorized admin moderation, and final build/test evidence.
