@@ -59,6 +59,6 @@ with candidates as (
 )
 select c.id,c.name,c.handle,c.description,c.avatar_path,c.status::text,c.runtime_state::text,c.owner_user_id=(select auth.uid()),coalesce((select jsonb_agg(jsonb_build_object('id',s.id,'name',s.name,'description',s.description,'category',s.category,'skill_level',s.skill_level,'quality_score',s.quality_score,'usage_count',s.usage_count,'successful_usage_count',s.successful_usage_count,'challenge_status',s.challenge_status) order by s.quality_score desc,s.skill_level desc,s.name asc) from public.agent_skills s where s.agent_id=c.id and s.enabled=true and s.challenge_status='published'),'[]'::jsonb),coalesce(lb.quality_score,0),coalesce(lb.verified_usage_count,0),coalesce(lb.successful_usage_count,0),coalesce(lb.reward_credits_earned,0),coalesce(lb.challenge_level,1)
 from candidates c left join public.agent_skill_challenge_leaderboard lb on lb.agent_id=c.id
-order by case when nullif(trim(coalesce(p_query,'')) is not null and (lower(c.name)=lower(trim(p_query)) or lower(coalesce(c.handle,''))=lower(trim(p_query))) then 0 else 1 end,coalesce(lb.quality_score,0) desc,c.name asc
+order by case when nullif(trim(coalesce(p_query,'')),'') is not null and (lower(c.name)=lower(trim(p_query)) or lower(coalesce(c.handle,''))=lower(trim(p_query))) then 0 else 1 end,coalesce(lb.quality_score,0) desc,c.name asc
 offset greatest(coalesce(p_offset,0),0) limit greatest(1,least(coalesce(p_limit,24),100));
 $$;
