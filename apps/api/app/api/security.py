@@ -16,7 +16,20 @@ async def register_device(payload:DeviceRegistration,request:Request,context:dic
  ua=request.headers.get("user-agent","unknown")
  return await rpc(context["user"],"register_security_device",{"p_device_label":payload.device_label,"p_user_agent_hash":security_hash(ua,s.security_pepper),"p_ip_hash":security_hash(client_ip(request),s.security_pepper)})
 @router.post("/devices/{device_id}/revoke")
-async def revoke_device(device_id:str,context:dict=Depends(get_auth_context)):rows=await select(context["user"],"security_devices",{"select":"id","id":f"eq.{device_id}","user_id":f"eq.{context['user'].user_id}","limit":"1"})
- if not rows:return {"status":"not_found"}
- return await update(context["user"],"security_devices",{"id":f"eq.{device_id}","user_id":f"eq.{context['user'].user_id}"},{"revoked_at":__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()})
-\n@router.post("/sessions/{session_id}/revoke",status_code=201)\nasync def revoke_session(session_id:str,payload:SessionRevocation,context:dict=Depends(get_auth_context)):\n return await rpc(context["user"],"revoke_security_session",{"p_session_id":session_id,"p_reason":payload.reason})\n
+async def revoke_device(device_id: str, context: dict = Depends(get_auth_context)):
+ rows = await select(context["user"], "security_devices", {
+  "select": "id",
+  "id": f"eq.{device_id}",
+  "user_id": f"eq.{context['user'].user_id}",
+  "limit": "1",
+ })
+ if not rows:
+  return {"status": "not_found"}
+ return await update(context["user"], "security_devices", {
+  "id": f"eq.{device_id}",
+  "user_id": f"eq.{context['user'].user_id}",
+ }, {"revoked_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()})
+
+@router.post("/sessions/{session_id}/revoke", status_code=201)
+async def revoke_session(session_id: str, payload: SessionRevocation, context: dict = Depends(get_auth_context)):
+ return await rpc(context["user"], "revoke_security_session", {"p_session_id": session_id, "p_reason": payload.reason})
