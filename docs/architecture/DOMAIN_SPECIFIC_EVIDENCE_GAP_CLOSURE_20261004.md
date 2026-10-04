@@ -25,9 +25,8 @@ The following domains are now explicitly evidenced as **IMPLEMENTED FOUNDATION**
 - Evaluation Engine → Agent Skills + Runtime Outcomes + Reviews + Telemetry
 
 ## Explicitly still open
-1. **Stories Engine** — no dedicated story lifecycle persistence/contract was found; remains composed Content/Live.
-2. **Anti-Impersonation** — identity/security primitives exist, but no dedicated anti-impersonation policy/evidence contract was found.
-3. **E2E Test / QA Engine** — source/test foundation exists, but authenticated E2E, CI, staging and production evidence is intentionally deferred to the runtime credential gate.
+1. **Anti-Impersonation** — identity/security primitives exist, but no dedicated anti-impersonation policy/evidence contract was found.
+2. **E2E Test / QA Engine** — source/test foundation exists, but authenticated E2E, CI, staging and production evidence is intentionally deferred to the runtime credential gate.
 
 ## New canonical evidence surface
 - FastAPI: `/api/v1/admin/domain-evidence`
