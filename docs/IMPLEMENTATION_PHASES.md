@@ -1607,3 +1607,24 @@ Not GREEN:
 - Final QA/CI/CD/runtime/production gates remain later phases.
 
 Next: **PHASE 27D — Super Admin Governance Actions, Detail Views & Cross-Domain Operational Workflows**.
+
+## FULL COMPLETION WAVE — CW-01 → CW-08
+
+The platform does not restart Phases 0–27. Completion is executed as cross-domain closure waves:
+
+- **CW-01 Evidence Lock & Domain Completion** — reconcile all 82 domains against Master Context, Master PRD, architecture, repo, DB, migrations, RPC/functions, authorization/RLS, FastAPI, PWA, Admin, Realtime, telemetry, tests, dependencies and runtime evidence.
+- **CW-02 Agent + Content Activation** — activate legitimate owner-owned Agents and Content through canonical lifecycle; no fixtures.
+- **CW-03 Messaging / Agent Service / Skill Challenge** — Message → Ask → Generate → AI Credit → Agent Runtime → AI Gateway → result → owner reward → Skill Challenge → takeover, using the existing canonical Messaging/Agent Service/Credit engine.
+- **CW-04 World / Theme / 3D Activation** — Theme → World Template → World → District → Zone → Booth → AllphaWorldRenderer, including stage/character bindings.
+- **CW-05 Live / AI Character Runtime** — Live Session → Human Presentation → owned Agent → Character Asset Contract → Voice/Animation → Renderer.
+- **CW-06 Commerce / Billing / Creator Economy** — Commerce → Payment → Billing → Entitlement → Revenue/Payout, with Midtrans/idempotency verification.
+- **CW-07 Observability / Evaluation / Security** — telemetry, evaluation, RLS, policy, risk, approval, audit and security verification.
+- **CW-08 E2E / CI / Staging / Production Green Gate** — authenticated E2E, CI/CD, staging, production smoke tests and final GREEN.
+
+### Completion rule
+
+A domain is not complete because a table/API/UI/RPC exists. The canonical completion chain is:
+
+**PRD → DB → API → Authorization → Security → Engine → Workflow → UI/UX → Telemetry → Tests → Integration → Runtime Evidence**
+
+`RUNTIME VERIFIED` and `GREEN` must never be inferred from source/schema evidence alone.
