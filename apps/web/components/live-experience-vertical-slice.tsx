@@ -275,7 +275,7 @@ export default function LiveExperienceVerticalSlice({ theme }: { theme: Theme | 
         <div className="h-[560px]">
           {scene ? <AllphaWorldRenderer scene={scene} tokens={theme?.tokens} booths={boothNodes} presence={selectedAgentPresence} themePackUrl={themePackUrl} liveStageUrl={stageUrl} agentCharacterUrl={characterUrl} /> : <div className="flex h-full items-center justify-center text-sm text-slate-500">No validated Theme Scene.</div>}
         </div>
-        {result && <pre className="max-h-40 overflow-auto border-t border-white/10 p-3 text-[9px] text-slate-500">{JSON.stringify(result, null, 2)}</pre>}
+        {result !== null && <pre className="max-h-40 overflow-auto border-t border-white/10 p-3 text-[9px] text-slate-500">{JSON.stringify(result, null, 2)}</pre>}
       </div>
     </div>
   </section>;
