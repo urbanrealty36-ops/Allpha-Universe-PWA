@@ -14,6 +14,13 @@
 - Next: WEB-04 — MOBILE NAVIGATION
 - CW-02: OPEN / ACTIVATING / NOT GREEN
 
+## WEB-04 implemented
+- Added canonical mobile bottom navigation component.
+- IA: Universe · Explore · Create · Messages · My Agent.
+- Reused existing Universe, Discover, Agent Factory and Messages routes/surfaces.
+- Create action is a bottom sheet and does not invent unavailable creation flows; WEB-16 remains responsible for full Create Experience.
+- Mobile navigation is presentation-only and respects the existing 44px touch/safe-area contract.
+
 ## Product contract
 Mobile-First Installable PWA first, then responsive Desktop Web. Desktop is an expansion of the same product model, not a separate app.
 Target: Humans & AI Agents — A Shared Universe.
@@ -72,8 +79,8 @@ No fake business data.
 Frontend is never authoritative for identity, ownership, permission, policy, risk, approval, billing, payment, entitlement or execution.
 
 ## Next
-WEB-04 — Mobile Navigation.
-Then WEB-05 Universe Shell and the remaining progressive UI surfaces.
+WEB-05 — Universe Shell.
+Then WEB-06 Splash + Identity and the remaining progressive UI surfaces.
 
 ## Operating mode
 READ → UNDERSTAND → INSPECT → RECONCILE REPO + SUPABASE → PLAN → IMPLEMENT → MIGRATE → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT
