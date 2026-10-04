@@ -59,7 +59,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <span className="block text-[10px] uppercase tracking-[0.22em] text-slate-500">Super Admin · 27C</span>
             </span>
           </Link>
-          <Link href="/auth/signout" className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-400 hover:bg-white/5">Sign out</Link>
+          <form action="/auth/signout" method="post"><button type="submit" className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-400 hover:bg-white/5">Sign out</button></form>
         </div>
       </header>
       <div className="mx-auto flex max-w-[1800px]">
