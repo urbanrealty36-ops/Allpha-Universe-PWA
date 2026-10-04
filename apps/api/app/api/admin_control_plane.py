@@ -141,6 +141,18 @@ async def admin_transaction_detail(
         raise _error(exc, "ADMIN_TRANSACTION_DETAIL_FAILED") from exc
 
 
+@router.get("/payouts")
+async def admin_payout_requests(
+    status: str | None = Query(default=None, max_length=64),
+    limit: int = Query(default=100, ge=1, le=200),
+    context: dict[str, Any] = Depends(require_permission("admin.read")),
+) -> dict[str, Any]:
+    try:
+        return {"data": await rpc(context["user"], "get_admin_payout_requests", {"p_status": status, "p_limit": limit})}
+    except SupabaseRestError as exc:
+        raise _error(exc, "ADMIN_PAYOUT_REQUESTS_FAILED") from exc
+
+
 @router.get("/domains/{resource}")
 async def admin_domain_records(
     resource: str,
