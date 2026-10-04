@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {apiFetch} from "../lib/api";
+import {apiFetch} from "../../lib/api";
 type Credit={id:string;name:string;description:string|null;credits:number;price_amount:number;currency:string};
 type Plan={id:string;name:string;description:string|null;interval_unit:string;interval_count:number;price_amount:number;currency:string;included_credits:number};
 type Summary={credit_balance:number;active_subscription:{id:string;plan_id:string;status:string;current_period_start:string;current_period_end:string}|null};
