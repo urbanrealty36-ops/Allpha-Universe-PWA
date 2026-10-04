@@ -19,7 +19,7 @@ Branch: main
 | WEB-07 | Universe Home | IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-08 | Galaxy Navigator | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-09 | World Experience | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
-| WEB-10 | District Experience | IMPLEMENTED / RAILWAY BUILD PENDING / BROWSER QA PENDING |
+| WEB-10 | District Experience | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-11 | Booth/Tenant | IMPLEMENTED / RAILWAY BUILD PENDING / BROWSER QA PENDING |
 | WEB-12 | Agent Experience | PENDING |
 | WEB-13 | Universe Feed / Moments | PENDING |
@@ -283,6 +283,6 @@ Implementation:
 - District integration: apps/web/components/district-experience-surface.tsx
 - Audit: docs/audits/WEB11_BOOTH_TENANT_20261005.md
 
-WEB-11 source implementation is complete. Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates.
+WEB-11 source implementation and Railway build/deployment are verified. Browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-12 — Agent Experience.
