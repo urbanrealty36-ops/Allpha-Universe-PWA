@@ -31,6 +31,7 @@ from app.api.agent_intelligence import router as agent_intelligence_router
 from app.api.admin_agent_authority import router as admin_agent_authority_router
 from app.api.admin_content_moderation import router as admin_content_moderation_router
 from app.api.admin_control_plane import router as admin_control_plane_router
+from app.api.admin_domain_evidence import router as admin_domain_evidence_router
 from app.api.health import router as health_router
 from app.api.runtime_activation import router as runtime_activation_router
 from app.api.identity import router as identity_router
@@ -77,6 +78,7 @@ for _router in [
     admin_agent_authority_router,
     admin_content_moderation_router,
     admin_control_plane_router,
+    admin_domain_evidence_router,
     identity_router,
     memory_knowledge_router,
     messaging_router,
