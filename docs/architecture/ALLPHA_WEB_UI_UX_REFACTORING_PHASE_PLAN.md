@@ -4,7 +4,7 @@ Status: CANONICAL PLAN / CW-02.WEB
 WEB-01: CLOSED / BASELINE LOCKED
 WEB-02: CLOSED / DESIGN SYSTEM FOUNDATION
 WEB-03: CLOSED / PWA FOUNDATION
-Next: WEB-08 — Galaxy Navigator
+Next: WEB-09 — World Experience
 Canonical repository: urbanrealty36-ops/Allpha-Universe-PWA
 Branch: main
 
@@ -17,7 +17,7 @@ Branch: main
 | WEB-05 | Universe Shell | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-06 | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-07 | Universe Home | IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
-| WEB-08 | Galaxy Navigator | PENDING |
+| WEB-08 | Galaxy Navigator | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-09 | World Experience | PENDING |
 | WEB-10 | District Experience | EXISTING FOUNDATION |
 | WEB-11 | Booth/Tenant | PENDING |
@@ -169,5 +169,30 @@ Activation: `apps/web/components/universe-product-experience.tsx`
 WEB-07 source implementation is complete. Build/deployment verification, browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-08 — Galaxy Navigator.
+
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+## WEB-08 implementation contract
+
+- Galaxy Navigator is the spatial discovery layer between Universe Home and World Experience.
+- It follows the supplied Mobile PWA concept's Galaxy / World Navigator direction.
+- It loads authoritative Galaxies from `/api/v1/universe/galaxies`.
+- Selecting a Galaxy loads Worlds through the existing `/api/v1/universe/worlds?galaxy_id=...` contract.
+- Search filters currently loaded World records only; it does not create a second search engine.
+- Navigator filters are presentation state unless the canonical discovery API later exposes authoritative ranking semantics.
+- Spatial preview is progressive 2D/2.5D presentation and does not replace AllphaWorldRenderer.
+- World selection delegates into the existing World surface and leaves detailed World Experience to WEB-09.
+- No second renderer, Feed/Discovery engine, Recommendation engine, Agent Runtime, AI Gateway, Theme/World engine or authority layer is introduced.
+
+## WEB-08 records
+
+Audit: `docs/audits/WEB08_GALAXY_NAVIGATOR_20261005.md`
+Component: `apps/web/components/universe/galaxy-navigator-experience.tsx`
+Activation: `apps/web/components/universe-product-experience.tsx`
+
+WEB-08 source implementation is complete. Build verification, browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-09 — World Experience.
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
