@@ -59,6 +59,22 @@ The implementation artifact contains the canonical 25-theme GLB pack with the re
 
 The pack is an implementation artifact. Storage upload/finalization remains a controlled platform-admin lifecycle and is not silently treated as a runtime success.
 
+
+## Live WebRTC transport lifecycle hardening
+
+The browser WebRTC transport now remains strictly downstream of the existing Live authorization workflow.
+
+Runtime behavior:
+- Presence expiry is scheduled from the canonical `expires_at` timestamp and locally closes the transport gate when the timestamp passes.
+- Live Session, Human Presentation and Camera runtime state are refreshed every 5 seconds from the existing canonical API surfaces.
+- Returning the document to foreground triggers an immediate authorization refresh.
+- Refresh failure is fail-closed at the transport boundary; it does not mutate domain authorization.
+- When the derived authorization gate becomes false, the WebRTC hook closes all `RTCPeerConnection` instances, clears pending ICE, removes the private Realtime signaling channel and clears remote transport state.
+- Async initialization is cancellation-safe so an in-flight `getUserMedia`/Realtime subscription cannot recreate transport after authorization has been revoked.
+- No Live workflow gate, Presence verification rule, Human Presentation rule, collaboration authorization, Agent Runtime boundary or Realtime RLS policy was changed in this hardening step.
+
+The database authorization boundary remains the existing migration `20261004033939_phase_22_live_webrtc_authorized_participant_transport`, with `live_webrtc_receive`/`live_webrtc_send` still delegating to `private.authorize_live_webrtc_participant__allpha_sd`.
+
 ## Explicitly NOT done yet
 
 - real provider credential E2E
