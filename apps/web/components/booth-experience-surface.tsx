@@ -346,7 +346,6 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
 
   const boothNode = useMemo<SceneNode | null>(() => {
     if (!booth) return null;
-    const projection = district ? null : null;
     const configured =
       (booth.scene_config?.position as { x: number; y: number; z: number } | undefined) ??
       (booth.display_config?.position as { x: number; y: number; z: number } | undefined) ??
@@ -369,7 +368,7 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
       },
       presentation_only: true,
     };
-  }, [booth, assets, district]);
+  }, [booth, assets]);
 
   const hostPresence = useMemo(() => presence.map((item) => ({
     id: item.id,
@@ -386,7 +385,6 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
   );
 
   const tagline = stringConfig(booth?.branding_config, "tagline");
-  const accent = stringConfig(booth?.branding_config, "accent");
   const liveSessionId =
     stringConfig(booth?.live_entry_config, "session_id") ??
     stringConfig(booth?.live_entry_config, "live_session_id");
