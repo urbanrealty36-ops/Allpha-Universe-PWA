@@ -15,13 +15,13 @@ router = APIRouter(
 DOMAIN_EVIDENCE = [
     {
         "domain": "Stories Engine",
-        "status": "PARTIAL",
-        "canonical_engine": "Content + Live",
-        "db": ["content_items", "content_media", "content_events", "live_sessions"],
-        "rpc": ["create_content", "publish_content", "record_content_event"],
-        "api": ["/api/v1/content", "/api/v1/live"],
-        "ui": ["Content surfaces", "Live surfaces"],
-        "gap": "No story-specific persistence/contract was found; story semantics remain content/live composed.",
+        "status": "IMPLEMENTED FOUNDATION",
+        "canonical_engine": "Content + Live Experience",
+        "db": ["stories", "content_items", "content_media"],
+        "rpc": ["create_story", "publish_story", "private.expire_stories__allpha_sd"],
+        "api": ["/api/v1/stories"],
+        "ui": ["Stories"],
+        "gap": "Canonical Stories persistence and API contract are implemented; authenticated runtime/E2E remains a separate gate.",
         "runtime_gate": True,
     },
     {
@@ -147,13 +147,13 @@ DOMAIN_EVIDENCE = [
     },
     {
         "domain": "Anti-Impersonation",
-        "status": "FOUNDATION",
+        "status": "IMPLEMENTED FOUNDATION",
         "canonical_engine": "Identity Verification + Agent Identity + Security",
-        "db": ["identities", "agent_identities", "security_events", "audit_logs"],
-        "rpc": ["get_agent_authority_snapshot", "refresh_agent_passport"],
-        "api": ["/api/v1/identity", "/api/v1/security"],
-        "ui": ["Identity/Security"],
-        "gap": "No dedicated anti-impersonation policy/evidence contract was found; must be closed before security GREEN.",
+        "db": ["anti_impersonation_evidence", "identities", "agent_identities", "agent_passports", "live_human_presence_verifications"],
+        "rpc": ["get_anti_impersonation_evidence", "get_public_agent_account", "discover_public_agent_accounts"],
+        "api": ["/api/v1/identity", "/api/v1/security", "/api/v1/agents"],
+        "ui": ["Identity/Security", "Public Agent"],
+        "gap": "Canonical evidence and verified public-Agent exposure are implemented; authenticated runtime verification remains a separate gate.",
         "runtime_gate": True,
     },
     {
@@ -243,7 +243,7 @@ async def domain_evidence(
     return {
         "data": {
             "generated_at": "source-registry",
-            "registry_version": "20261004.1",
+            "registry_version": "20261004.2",
             "note": "Source-level evidence registry only; runtime/provider gates remain explicit.",
             "domains": DOMAIN_EVIDENCE,
         }
