@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.security import SecurityHeadersMiddleware
@@ -42,10 +46,17 @@ from app.api.social import router as social_router
 from app.api.avatar import router as avatar_router
 from app.api.live_assets import router as live_assets_router
 
+
+def _cors_origins() -> list[str]:
+    raw = os.getenv("ALLPHA_CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
+    origins = [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
+    return origins or ["http://localhost:3000"]
+
+
 app = FastAPI(title="Allpha Universe API", version="0.1.0", docs_url="/docs", redoc_url="/redoc")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Request-ID", "X-CSRF-Token"],
