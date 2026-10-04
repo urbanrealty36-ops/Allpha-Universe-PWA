@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "../app/lib/api";
+import { apiFetch } from "../lib/api";
 
 type Props = {
   resource: string;
