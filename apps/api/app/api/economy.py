@@ -199,7 +199,7 @@ async def my_subscriptions(context: dict = Depends(get_auth_context)) -> dict[st
 
 @router.post("/api/v1/billing/subscriptions/{subscription_id}/cancel", status_code=200)\nasync def cancel_subscription(subscription_id: UUID, context: dict = Depends(get_auth_context)) -> Any:\n    try:\n        return await rpc(context["user"], "cancel_my_subscription", {"p_subscription_id": str(subscription_id)})\n    except SupabaseRestError as exc:\n        raise HTTPException(status_code=exc.status_code if exc.status_code in {400, 401, 403, 404, 409, 422} else 500, detail={"code": "SUBSCRIPTION_CANCEL_FAILED", "message": exc.message}) from exc\n\n@router.get("/api/v1/billing/invoices")
 async def my_invoices(context: dict = Depends(get_auth_context)) -> dict[str, Any]:
-    rows = await select(context["user"], "billing_invoices", {"select": "id,invoice_number,subscription_id,order_id,status,amount,currency,period_start,period_end,due_at,paid_at,created_at", "user_id": f"eq.{context['user'].id}", "order": "created_at.desc", "limit": "100"})
+    rows = await select(context["user"], "billing_invoices", {"select": "id,invoice_number,subscription_id,order_id,status,amount,currency,period_start,period_end,due_at,paid_at,created_at", "user_id": f"eq.{context['user'].user_id}", "order": "created_at.desc", "limit": "100"})
     return {"data": rows}
 
 @router.post("/api/v1/payments/midtrans/notification")
