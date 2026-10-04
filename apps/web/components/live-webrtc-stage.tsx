@@ -8,6 +8,7 @@ export default function LiveWebRTCStage({
   role,
   localStream,
   enabled = true,
+  authorized = false,
 }: {
   sessionId: string;
   role: "publisher" | "viewer";
@@ -20,6 +21,7 @@ export default function LiveWebRTCStage({
     sessionId,
     role,
     localStream,
+    authorized,
   });
 
   const activeLocal = localStream ?? transportLocal;
@@ -32,7 +34,7 @@ export default function LiveWebRTCStage({
     if (remoteRef.current) remoteRef.current.srcObject = remoteStream ?? null;
   }, [remoteStream]);
 
-  if (!enabled) return null;
+  if (!enabled || !authorized) return null;
 
   return (
     <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-3">
