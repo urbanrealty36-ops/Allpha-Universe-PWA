@@ -1170,14 +1170,14 @@ Remaining:
 ### PHASE 27 — Super Admin Control Plane
 Overview, Users, Agents, Content, Communities, Universe, Galaxies, Worlds, Districts, Booths, Themes, Marketplace, Missions, Events, Plans, Features, Entitlements, Pricing, Revenue, Billing, Credits, AI Providers, Model Router, AI Policies, Agent Policies, Security, Risk, Moderation, Reports, Audit Logs, Feature Flags, Settings, Localization, Notifications, Analytics, Observability, E2E/QA and Configuration Versions.
 
-### PHASE 28 — Analytics, Observability & Operational Intelligence
-Product/Agent/content/recommendation events, AI usage, cost, latency, errors, audit telemetry, business metrics, health signals, trace correlation and dashboards.
+### PHASE 28 — Analytics, Observability & Operational Intelligence — COMPLETION WAVE ACTIVE
+Product/Agent/content/recommendation events, AI usage, cost, latency, errors, audit telemetry, business metrics, health signals, trace correlation and dashboards. Existing Admin Analytics and Security Control Plane are now composed into the Super Admin Observability surface. Runtime telemetry remains source-of-truth driven and no synthetic telemetry is created.
 
-### PHASE 29 — API Integration & Local End-to-End Wiring
-Web→API, Admin→API, API→Supabase, AI Gateway, workflow engine, storage, realtime, auth propagation, authorization, errors, idempotency, local environment contracts and real data only.
+### PHASE 29 — API Integration & Local End-to-End Wiring — COMPLETION WAVE ACTIVE
+Web→API, Admin→API, API→Supabase, AI Gateway, workflow engine, storage, realtime, auth propagation, authorization, errors, idempotency, local environment contracts and real data only. Product Activation Center now composes canonical Web API contracts across Agent, Memory/Knowledge, Workflow/Mission, Universe, Theme/3D, World Builder, Content/Discovery, Marketplace, Live and Billing/Economy.
 
-### PHASE 30 — Full Feature Activation
-Every UI surface connected to its API contract, persistence, workflow, realtime, authorization, audit and analytics; remove non-functional stubs and verify prohibited-data audit.
+### PHASE 30 — Full Feature Activation — COMPLETION WAVE ACTIVE
+Every UI surface connected to its API contract, persistence, workflow, realtime, authorization, audit and analytics; remove non-functional stubs and verify prohibited-data audit. World Preview now requires explicit Theme selection, Observability is an active canonical telemetry surface, and the remaining completion wave is focused on cross-domain state/navigation reconciliation before Phase 31 runtime QA.
 
 ### PHASE 31 — End-to-End QA & Security Verification
 Unit, integration, API contract, database/RLS, auth/authz, workflow, Agent command, approval, commerce idempotency, security, prompt injection, abuse/moderation, accessibility, visual regression, mobile/desktop and critical E2E.
