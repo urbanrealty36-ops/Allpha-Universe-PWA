@@ -64,28 +64,49 @@ export default function UniverseProductExperience() {
   async function loadProductData() {
     setLoading(true);
     setError(null);
-    try {
-      const [themeResult, discoveryResult, liveResult, agentResult] = await Promise.all([
-        apiFetch<{ data: Theme[] }>("/api/v1/themes/world-runtime/catalog"),
-        apiFetch<{ content?: Content[]; data?: Content[] }>("/api/v1/discovery/home?surface=home&limit=12"),
-        apiFetch<{ data: LiveTemplate[] }>("/api/v1/live/templates?source=platform&limit=12"),
-        apiFetch<{ data: Agent[] }>("/api/v1/agents/me"),
-      ]);
 
-      setThemes(themeResult.data ?? []);
-      const discovery = Array.isArray(discoveryResult.content)
-        ? discoveryResult.content
-        : Array.isArray(discoveryResult.data)
-          ? discoveryResult.data
+    const results = await Promise.allSettled([
+      apiFetch<{ data: Theme[] }>("/api/v1/themes/world-runtime/catalog"),
+      apiFetch<{ content?: Content[]; data?: Content[] }>("/api/v1/discovery/home?surface=home&limit=12"),
+      apiFetch<{ data: LiveTemplate[] }>("/api/v1/live/templates?source=platform&limit=12"),
+      apiFetch<{ data: Agent[] }>("/api/v1/agents/me"),
+    ]);
+
+    const errors: string[] = [];
+
+    const [themeResult, discoveryResult, liveResult, agentResult] = results;
+
+    if (themeResult.status === "fulfilled") {
+      setThemes(Array.isArray(themeResult.value.data) ? themeResult.value.data : []);
+    } else {
+      errors.push("WORLD_CATALOG_UNAVAILABLE");
+    }
+
+    if (discoveryResult.status === "fulfilled") {
+      const discovery = Array.isArray(discoveryResult.value.content)
+        ? discoveryResult.value.content
+        : Array.isArray(discoveryResult.value.data)
+          ? discoveryResult.value.data
           : [];
       setContent(discovery);
-      setTemplates(liveResult.data ?? []);
-      setAgents(agentResult.data ?? []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "UNIVERSE_PRODUCT_LOAD_FAILED");
-    } finally {
-      setLoading(false);
+    } else {
+      errors.push("DISCOVERY_UNAVAILABLE");
     }
+
+    if (liveResult.status === "fulfilled") {
+      setTemplates(Array.isArray(liveResult.value.data) ? liveResult.value.data : []);
+    } else {
+      errors.push("LIVE_CATALOG_UNAVAILABLE");
+    }
+
+    if (agentResult.status === "fulfilled") {
+      setAgents(Array.isArray(agentResult.value.data) ? agentResult.value.data : []);
+    } else {
+      errors.push("AGENT_SPACE_UNAVAILABLE");
+    }
+
+    setError(errors.length ? errors.join(" · ") : null);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -120,8 +141,18 @@ export default function UniverseProductExperience() {
       <div className="pb-16 pt-14 md:pb-0">
         {error && (
           <div className="relative z-50 mx-auto max-w-7xl px-4 pt-3 sm:px-6">
-            <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-xs text-red-100">
-              {error}
+            <div className="flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] px-4 py-3 text-xs text-amber-50 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium">Some Universe surfaces are temporarily unavailable.</p>
+                <p className="mt-1 text-amber-100/55">{error}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void loadProductData()}
+                className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] text-white/70 hover:text-white"
+              >
+                Retry
+              </button>
             </div>
           </div>
         )}
