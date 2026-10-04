@@ -56,7 +56,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-300/30 bg-cyan-300/10 text-sm font-bold text-cyan-200">A</span>
             <span>
               <span className="block text-sm font-semibold">Allpha Control Plane</span>
-              <span className="block text-[10px] uppercase tracking-[0.22em] text-slate-500">Super Admin · 27C</span>
+              <span className="block text-[10px] uppercase tracking-[0.22em] text-slate-500">Super Admin · 27D</span>
             </span>
           </Link>
           <form action="/auth/signout" method="post"><button type="submit" className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-400 hover:bg-white/5">Sign out</button></form>
