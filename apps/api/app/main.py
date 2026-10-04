@@ -22,6 +22,7 @@ from app.api.world_builder import router as world_builder_router
 from app.api.world_runtime import router as world_runtime_router
 from app.api.auth import router as auth_router
 from app.api.content import router as content_router
+from app.api.stories import router as stories_router
 from app.api.communities import router as communities_router
 from app.api.feed import router as feed_router
 from app.api.discovery import router as discovery_router
@@ -69,6 +70,7 @@ for _router in [
     runtime_activation_router,
     auth_router,
     content_router,
+    stories_router,
     communities_router,
     feed_router,
     discovery_router,
