@@ -13,6 +13,7 @@ const groups = [
       ["/operations", "Operations"],
       ["/approvals", "Approvals"],
       ["/master-data", "Master Data"],
+      ["/domain-evidence", "Domain Evidence"],
     ],
   },
   {
