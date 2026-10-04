@@ -21,7 +21,6 @@ const groups = [
       ["/feature-flags", "Feature Flags"],
       ["/config-versions", "Config Versions"],
       ["/audit-logs", "Audit Logs"],
-      ["/approvals", "Approvals"],
       ["/security", "Security"],
       ["/risk", "Risk"],
     ],
