@@ -13,7 +13,7 @@ Branch: main
 | WEB-01 | Baseline & Frontend Reconciliation | CLOSED |
 | WEB-02 | Design System Foundation | CLOSED |
 | WEB-03 | PWA Foundation | CLOSED |
-| WEB-04 | Mobile Navigation | NEXT |
+| WEB-04 | Mobile Navigation | CLOSED |
 | WEB-05 | Universe Shell | PENDING |
 | WEB-06 | Splash + Identity | PENDING |
 | WEB-07 | Universe Home | PENDING |
@@ -45,6 +45,14 @@ Branch: main
 | WEB-33 | Runtime Validation | PENDING |
 | WEB-34 | CW-02 Closure Evidence | PENDING |
 
+## WEB-04 implementation contract
+
+- Canonical mobile IA: Universe · Explore · Create · Messages · My Agent.
+- One mobile bottom navigation for the existing Web/PWA product.
+- 44px touch target, safe-area aware, mobile-only presentation.
+- Create opens a presentation-only action sheet; Agent Factory is the currently available creation route. Full Create Experience remains WEB-16.
+- Navigation emits UI intent only and never becomes an authority source.
+
 ## WEB-02 foundation contract
 
 Experience modes: Ambient / Spatial / Universe / Experience.
@@ -70,6 +78,14 @@ Continue context: docs/continue-context/ALLPHA_WEB_CONTINUE_CONTEXT_WEB01.md
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
 
+
+## WEB-04 records
+
+Audit: docs/audits/WEB04_MOBILE_NAVIGATION_20261005.md
+Component: apps/web/components/navigation/mobile-navigation.tsx
+
+WEB-04 = CLOSED / MOBILE NAVIGATION IMPLEMENTED
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
 
 ## WEB-03 foundation contract
 
