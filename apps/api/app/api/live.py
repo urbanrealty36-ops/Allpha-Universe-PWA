@@ -269,7 +269,8 @@ async def end_live_collaboration(collaboration_id: UUID, context: dict = Depends
         return {"data": result}
     except SupabaseRestError as exc:
         raise err(exc, "LIVE_COLLAB_END_FAILED") from exc
-\n
+
+
 class LiveRuntimeCommandCreate(BaseModel):
     command: str = Field(min_length=1, max_length=20000)
     capabilities: list[str] = Field(default_factory=lambda: ["ai.generate"], max_length=32)
