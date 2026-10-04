@@ -152,7 +152,8 @@ export default function LiveExperienceRuntimeSetup() {
       const expiresAt = nextPresence?.expires_at ? Date.parse(nextPresence.expires_at) : NaN;
       if (!Number.isFinite(expiresAt)) return;
 
-      const delay = Math.max(0, expiresAt - Date.now());
+      if (expiresAt <= Date.now()) return;
+      const delay = expiresAt - Date.now();
       expiryTimer = window.setTimeout(() => {
         if (disposed) return;
         // Local runtime projection only: once the canonical expiry timestamp
@@ -201,8 +202,13 @@ export default function LiveExperienceRuntimeSetup() {
           return;
         }
       } catch {
-        // A transient refresh failure must not grant transport authorization.
-        // The last canonical state remains visible until the next refresh.
+        // Fail closed at the transport boundary. This does not revoke the
+        // domain authorization; it only prevents stale client state from
+        // keeping a WebRTC transport alive while canonical state is unknown.
+        if (!disposed) {
+          setHumanPresentationRuntime((current) => current ? { ...current, active: false } : current);
+          setMessage("Live authorization refresh gagal; WebRTC transport ditutup sementara sampai canonical state berhasil dibaca kembali.");
+        }
       }
     }
 
