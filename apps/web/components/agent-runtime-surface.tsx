@@ -20,6 +20,7 @@ type Command = {
 
 export default function AgentRuntimeSurface() {
   const [commands, setCommands] = useState<Command[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [agentId, setAgentId] = useState("");
   const [command, setCommand] = useState("");
   const [selected, setSelected] = useState<Command | null>(null);
@@ -31,8 +32,12 @@ export default function AgentRuntimeSurface() {
   async function load() {
     setLoading(true);
     try {
-      const response = await apiFetch<{ data: Command[] }>("/api/v1/agent-runtime/commands?limit=50");
+      const [response, owned] = await Promise.all([
+        apiFetch<{ data: Command[] }>("/api/v1/agent-runtime/commands?limit=50"),
+        apiFetch<{ data: Agent[] }>("/api/v1/agents/me"),
+      ]);
       setCommands(response.data ?? []);
+      setAgents(owned.data ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "AGENT_RUNTIME_LOAD_FAILED");
     } finally {
