@@ -72,7 +72,9 @@ export default function AgentMemoryKnowledgeSurface({ agentId }: { agentId: stri
     finally { setBusy(false); }
   }
 
-  async function generateMemoryEmbedding(id: string) { setBusy(true); setError(null); try { await apiFetch(`/api/v1/agents/${agentId}/memory/${id}/embedding/generate`, { method: "POST" }); await load(); } catch (e) { setError(e instanceof Error ? e.message : "MEMORY_EMBEDDING_FAILED"); } finally { setBusy(false); } }\n\n  async function memoryAction(id: string, action: "review" | "delete") {
+  async function generateMemoryEmbedding(id: string) { setBusy(true); setError(null); try { await apiFetch(`/api/v1/agents/${agentId}/memory/${id}/embedding/generate`, { method: "POST" }); await load(); } catch (e) { setError(e instanceof Error ? e.message : "MEMORY_EMBEDDING_FAILED"); } finally { setBusy(false); } }
+
+  async function memoryAction(id: string, action: "review" | "delete") {
     setBusy(true); setError(null);
     try {
       await apiFetch(`/api/v1/agents/${agentId}/memory/${id}${action === "review" ? "/review" : ""}`, {
@@ -130,7 +132,9 @@ export default function AgentMemoryKnowledgeSurface({ agentId }: { agentId: stri
     finally { setBusy(false); }
   }
 
-  async function generateChunkEmbedding(id: string) { setBusy(true); setError(null); try { await apiFetch(`/api/v1/agents/${agentId}/knowledge/${selectedKnowledge?.id}/chunks/${id}/embedding/generate`, { method: "POST" }); if (selectedKnowledge) await openKnowledge(selectedKnowledge); } catch (e) { setError(e instanceof Error ? e.message : "KNOWLEDGE_EMBEDDING_FAILED"); } finally { setBusy(false); } }\n\n  async function deleteKnowledge(id: string) {
+  async function generateChunkEmbedding(id: string) { setBusy(true); setError(null); try { await apiFetch(`/api/v1/agents/${agentId}/knowledge/${selectedKnowledge?.id}/chunks/${id}/embedding/generate`, { method: "POST" }); if (selectedKnowledge) await openKnowledge(selectedKnowledge); } catch (e) { setError(e instanceof Error ? e.message : "KNOWLEDGE_EMBEDDING_FAILED"); } finally { setBusy(false); } }
+
+  async function deleteKnowledge(id: string) {
     setBusy(true); setError(null);
     try {
       await apiFetch(`/api/v1/agents/${agentId}/knowledge/${id}`, { method: "DELETE" });
@@ -182,7 +186,8 @@ export default function AgentMemoryKnowledgeSurface({ agentId }: { agentId: stri
                     <p className="mt-2 text-[10px] text-slate-600">{new Date(item.created_at).toLocaleString()} · {item.reviewed_at ? "reviewed" : "not reviewed"}</p>
                     <div className="mt-3 flex gap-2">
                       {!item.reviewed_at && <button disabled={busy} onClick={() => void memoryAction(item.id, "review")} className={button}>Review</button>}
-                      <button disabled={busy} onClick={() => void generateMemoryEmbedding(item.id)} className={button}>Generate Embedding</button>\n                      <button disabled={busy} onClick={() => void memoryAction(item.id, "delete")} className={button}>Delete</button>
+                      <button disabled={busy} onClick={() => void generateMemoryEmbedding(item.id)} className={button}>Generate Embedding</button>
+                      <button disabled={busy} onClick={() => void memoryAction(item.id, "delete")} className={button}>Delete</button>
                     </div>
                   </article>
                 ))}
@@ -229,7 +234,8 @@ export default function AgentMemoryKnowledgeSurface({ agentId }: { agentId: stri
                   {chunks.length === 0 ? <p className="text-sm text-slate-500">No chunks yet.</p> : chunks.map((chunk) => (
                     <article key={chunk.id} className="rounded-xl border border-white/10 p-4">
                       <span className="text-[10px] uppercase tracking-wider text-slate-500">Chunk {chunk.chunk_index}</span>
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{chunk.content}</p>\n                      <button disabled={busy} onClick={() => void generateChunkEmbedding(chunk.id)} className={button}>Generate Embedding</button>
+                      <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{chunk.content}</p>
+                      <button disabled={busy} onClick={() => void generateChunkEmbedding(chunk.id)} className={button}>Generate Embedding</button>
                     </article>
                   ))}
                 </div>
