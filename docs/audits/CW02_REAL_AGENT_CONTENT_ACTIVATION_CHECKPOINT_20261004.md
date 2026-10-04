@@ -433,3 +433,82 @@ The Web service automatically started deployment observation for both implementa
 ### Current boundary
 CW-02 remains **OPEN / ACTIVATING / NOT GREEN**.
 Remaining closure evidence includes authenticated browser/session verification, real Agent creation/runtime execution, provider execution/telemetry, Feed/Discovery runtime verification, real Storage/media/moderation lifecycle, authorized admin moderation, and final build/test evidence.
+
+
+## CW-02 — Runtime Activation & End-to-End Reconciliation — 2026-10-04
+
+### Contract reconciliation completed
+The current Web Product UX contracts were reconciled against the live FastAPI source rather than inferred from frontend types:
+
+- `GET /api/v1/themes/world-runtime/catalog` returns `{ data: [...] }`.
+- `GET /api/v1/discovery/home` returns a composed response with `content`, `worlds`, `communities`, `live`, `agents` and navigation/source metadata.
+- `GET /api/v1/live/templates` returns `{ data: [...] }`.
+- `GET /api/v1/agents/me` returns `{ data: [...] }`.
+- All four routes use the existing `get_auth_context` boundary.
+- `apiFetch` sends the real Supabase access token as a Bearer token to the canonical Railway FastAPI service.
+
+### Frontend runtime hardening
+`apps/web/components/universe-product-experience.tsx` was hardened so the four product surfaces are reconciled independently with `Promise.allSettled`.
+
+This prevents a single domain/API failure from hiding otherwise healthy Universe, Worlds, Agents or Live surfaces. The UI now:
+- preserves successfully loaded authoritative data;
+- reports unavailable domains explicitly;
+- provides a retry action;
+- never fills failed domains with synthetic business data.
+
+Implementation commit:
+`540cab9234a2ded2f05fd111bc0ae01e2f2eb399`
+
+### E2E evidence harness
+Added:
+`apps/api/tests/cw02_runtime_activation_e2e_reconciliation.py`
+
+The harness verifies:
+1. public API health;
+2. unauthenticated rejection for canonical protected runtime/product routes;
+3. authenticated World catalog contract;
+4. authenticated Discovery contract;
+5. authenticated Live template contract;
+6. authenticated owned-Agent list contract;
+7. authenticated Runtime Activation contract;
+8. authenticated Agent Runtime command listing;
+9. optional real owned-Agent read;
+10. optional real owned-Agent command → plan → execute path.
+
+It does not fabricate an identity, Agent, Content, token, provider result or business transaction.
+
+Harness commit:
+`4e93255678ea7ae2f838b294eea04d9711d8efd8`
+
+### Controlled Railway runtime observation
+Current Railway observation:
+- `allpha-api`: deployment `c65967b5-d46b-4eaa-85b8-20ccd22cc0db` = SUCCESS.
+- API `GET /health` = HTTP 200.
+- Protected World/Discovery/Live/Agent endpoints = HTTP 401 without a Supabase access token, as required.
+- `@allpha/web`: deployment `f11d6800-c119-41a3-af1d-4804c35322f2` = SUCCESS.
+- `@allpha/admin`: deployment `e2139815-28fd-4a06-942a-da5e32e895de` = SUCCESS.
+
+These observations are controlled runtime evidence only and are not Production GREEN.
+
+### Live Supabase reconciliation
+Current live counts:
+- published platform Themes: 25
+- published platform World Templates: 25
+- published platform Live Experience Templates: 25
+- Agents: 0
+- Content items: 0
+- Live Sessions: 0
+- Live Experience Stage Assets: 0
+- active Live Character Assets: 34
+- active Live Character Asset Contracts: 34
+- Stage Bindings: 0
+- Camera Sources: 0
+- Human Presentations: 0
+- Voice Bindings: 0
+
+This confirms that the catalog surfaces have authoritative data available, while real Agent/Content/Live runtime activation remains genuinely empty.
+
+### Current gate
+CW-02 remains **OPEN / ACTIVATING / NOT GREEN**.
+
+The remaining blocker is no longer API route-shape uncertainty. The next required evidence is a real authenticated Supabase session against the running FastAPI service, followed by real Agent creation/runtime execution, real Content publication/Discovery telemetry, Storage/media lifecycle, authorized moderation, and provider execution telemetry.
