@@ -464,3 +464,31 @@ The frontend may select a Galaxy or World for navigation, but it cannot decide o
 - Audit: `docs/audits/WEB08_GALAXY_NAVIGATOR_20261005.md`
 
 WEB-08 source implementation is complete. Build verification and browser/device QA remain validation gates. CW-02 is not Production GREEN.
+
+## 20. WEB-09 — World Experience activation
+
+WEB-09 is the World Detail / World Experience layer after Galaxy Navigator and before District Experience.
+
+Canonical data contracts:
+- GET /api/v1/universe/worlds/{world_id}
+- GET /api/v1/districts?world_id={world_id}
+- GET /api/v1/universe/worlds/{world_id}/agents
+- GET /api/v1/universe/worlds/{world_id}/content
+- GET /api/v1/universe/worlds/{world_id}/portals
+- GET /api/v1/universe/worlds/{world_id}/presence
+- GET /api/v1/themes/world-runtime/catalog
+
+The World Experience presents World identity, description, Enter World, Districts / People / Live / Content tabs, authoritative linked-record counts, and the existing AllphaWorldRenderer when a published Theme world schema is available.
+
+Enter World uses the existing POST /api/v1/universe/worlds/{world_id}/join contract. Frontend state changes only after successful server acceptance.
+
+No second renderer, discovery engine, recommendation engine, authority layer, Theme/World engine, Agent Runtime or AI Gateway is introduced.
+
+Implementation:
+- Component: apps/web/components/world/world-experience.tsx
+- Route: apps/web/app/world/page.tsx
+- Audit: docs/audits/WEB09_WORLD_EXPERIENCE_20261005.md
+
+WEB-09 source implementation is complete. Build/deployment verification, browser/device QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
+
+Next canonical product phase: WEB-10 — District Experience.
