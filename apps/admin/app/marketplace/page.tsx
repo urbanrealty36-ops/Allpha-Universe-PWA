@@ -1,15 +1,2 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Commerce</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Marketplace</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">Marketplace administration</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
-}
+import AdminDomainExplorer from "../../components/admin-domain-explorer";
+export default function Page(){return <AdminDomainExplorer resource="marketplace_listings" title="Marketplace" eyebrow="Commerce" description="Authoritative marketplace listing inventory, status and moderation evidence from the existing control-plane RPC." columns={["id","title","listing_type","seller_type","price_amount","currency","status","moderation_status","created_at"]}/>}
