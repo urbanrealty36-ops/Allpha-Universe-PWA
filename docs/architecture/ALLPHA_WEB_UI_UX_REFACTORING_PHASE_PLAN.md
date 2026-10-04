@@ -20,7 +20,7 @@ Branch: main
 | WEB-08 | Galaxy Navigator | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-09 | World Experience | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-10 | District Experience | IMPLEMENTED / RAILWAY BUILD PENDING / BROWSER QA PENDING |
-| WEB-11 | Booth/Tenant | PENDING |
+| WEB-11 | Booth/Tenant | IMPLEMENTED / RAILWAY BUILD PENDING / BROWSER QA PENDING |
 | WEB-12 | Agent Experience | PENDING |
 | WEB-13 | Universe Feed / Moments | PENDING |
 | WEB-14 | Content Capsule | PENDING |
@@ -236,3 +236,53 @@ Implementation:
 WEB-10 source implementation is complete. Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-11 — Booth/Tenant.
+
+
+## WEB-11 implementation contract
+
+WEB-11 activates the Booth/Tenant experience after District Experience.
+
+Composition:
+
+    Universe → Galaxy → World → District → Zone → Booth / Tenant
+                                                    ├── Identity
+                                                    ├── Branding / Theme
+                                                    ├── Spatial 3D
+                                                    ├── Marketplace Catalog
+                                                    ├── AI Host
+                                                    ├── Tenancy / Lease State
+                                                    ├── Live Entry metadata
+                                                    └── Display Assets / Slots
+
+Canonical read contracts:
+- GET /api/v1/booths/{booth_id}
+- GET /api/v1/booths/{booth_id}/assets/3d
+- GET /api/v1/booths/{booth_id}/slots
+- GET /api/v1/booths/{booth_id}/leases
+- GET /api/v1/themes/world-runtime/districts/{district_id}/composition
+- GET /api/v1/themes/world-runtime/catalog
+- GET /api/v1/themes/world-runtime/themes/{theme_id}/asset-manifest
+- GET /api/v1/universe/worlds/{world_id}
+- GET /api/v1/agent-catalog/accounts?booth_id={booth_id}
+- GET /api/v1/marketplace/listings?booth_id={booth_id}
+
+Canonical interaction contract:
+- POST /api/v1/spatial-runtime/worlds/{world_id}/interactions
+
+WEB-11 reuses the existing AllphaWorldRenderer and normalizeWorldScene contract. Verified signed Booth 3D assets are presentation inputs only. If no validated scene is available, Booth remains usable through a 2D fallback.
+
+The existing /booths Booth Builder is retained as the management surface. WEB-11 adds the dedicated /booths/{booth_id} spatial/public experience and routes District Booth selections into it.
+
+Marketplace listing data is presentation-only; order/payment remains with the existing Commerce/Marketplace engine. Lease state is displayed from the authoritative Booth tenancy contract.
+
+No new renderer, spatial engine, Agent Runtime, AI Gateway, Commerce engine, billing engine or authority layer is introduced.
+
+Implementation:
+- Component: apps/web/components/booth-experience-surface.tsx
+- Route: apps/web/app/booths/[booth_id]/page.tsx
+- District integration: apps/web/components/district-experience-surface.tsx
+- Audit: docs/audits/WEB11_BOOTH_TENANT_20261005.md
+
+WEB-11 source implementation is complete. Railway build/deployment, browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-12 — Agent Experience.
