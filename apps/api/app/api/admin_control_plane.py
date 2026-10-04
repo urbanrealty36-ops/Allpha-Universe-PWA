@@ -135,30 +135,8 @@ async def admin_transaction_context(
     order_id: UUID,
     context: dict[str, Any] = Depends(require_permission("admin.read")),
 ) -> dict[str, Any]:
-    """Aggregate existing governed domain evidence related to a transaction/order."""
     try:
-        user = context["user"]
-        order_id_str = str(order_id)
-        approvals = await rpc(user, "get_admin_domain_records", {
-            "p_resource": "approvals", "p_q": order_id_str, "p_status": None, "p_limit": 50, "p_offset": 0,
-        })
-        risk = await rpc(user, "get_admin_domain_records", {
-            "p_resource": "risk", "p_q": order_id_str, "p_status": None, "p_limit": 50, "p_offset": 0,
-        })
-        payouts = await rpc(user, "get_admin_domain_records", {
-            "p_resource": "payouts", "p_q": order_id_str, "p_status": None, "p_limit": 50, "p_offset": 0,
-        })
-        audit = await rpc(user, "get_admin_audit_logs", {"p_limit": 200})
-        audit_rows = [x for x in (audit if isinstance(audit, list) else []) if str(x.get("resource_id") or "") == order_id_str]
-        return {
-            "data": {
-                "order_id": order_id_str,
-                "approvals": approvals,
-                "risk": risk,
-                "payouts": payouts,
-                "audit": audit_rows,
-            }
-        }
+        return {"data": await rpc(context["user"], "get_admin_transaction_governance_context", {"p_order_id": str(order_id)})}
     except SupabaseRestError as exc:
         raise _error(exc, "ADMIN_TRANSACTION_CONTEXT_FAILED") from exc
 
