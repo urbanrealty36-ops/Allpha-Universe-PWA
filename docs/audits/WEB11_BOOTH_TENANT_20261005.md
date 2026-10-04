@@ -1,7 +1,7 @@
 # WEB-11 — Booth / Tenant Experience Implementation Audit
 
 Date: 2026-10-05
-Status: IMPLEMENTED / RAILWAY BUILD PENDING / BROWSER QA PENDING
+Status: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
 Wave: CW-02.WEB
 Previous: WEB-10 — District Experience
 Next: WEB-12 — Agent Experience
@@ -137,3 +137,22 @@ Production GREEN is not claimed.
 WEB-11 source implementation is complete.
 Next canonical product phase: WEB-12 — Agent Experience.
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+## Railway evidence
+
+Final WEB-11 source commit:
+- b45e2613d3de409a55d78414b7f25b2025b70dca
+
+Final @allpha/web deployment:
+- 4807026a-213e-4810-ae24-ba6d8b6a44d2
+- status: SUCCESS
+- region: asia-southeast1-eqsg3a
+
+Build output confirmed:
+- Next production build compiled successfully
+- TypeScript completed successfully
+- 76 static pages generated
+- route /booths/[booth_id] present in the production route manifest
+
+Browser/device visual QA and authenticated E2E remain pending. Production GREEN is not claimed.
