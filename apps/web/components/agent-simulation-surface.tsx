@@ -23,7 +23,7 @@ export default function AgentSimulationSurface(){
    setStatesData(s.data||[]);setSessions(ss.data||[]);
    const active=(ss.data||[]).find(v=>["starting","running","paused"].includes(v.status));setSession(active||null);
   }catch(e){setError(e instanceof Error?e.message:"SPATIAL_RUNTIME_LOAD_FAILED")}finally{setLoading(false)}
- }
+ },[worldId]);
 
  useEffect(()=>{if(worldId){void load();}},[worldId,load]);
 
