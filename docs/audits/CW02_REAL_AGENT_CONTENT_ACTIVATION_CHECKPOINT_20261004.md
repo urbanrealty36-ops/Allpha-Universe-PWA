@@ -288,3 +288,38 @@ The monorepo defines web/admin build scripts and the API declares FastAPI depend
 
 ### Conclusion
 CW-02 remains OPEN / ACTIVATING / NOT GREEN. No architecture or engine was added. The remaining work is evidence execution: authenticated HTTP runtime + real AI Gateway call, real Storage object lifecycle + moderation read, authorized admin decision, browser/API Feed/Discovery verification, and final build/test verification.
+
+## Evidence Run — 2026-10-04 — Authenticated HTTP Harness Added
+
+### Harness
+Added repository-backed harness:
+- `apps/api/tests/cw02_authenticated_runtime_evidence.py`
+- commit: `772bd9ec80f0b5ac93bb86fae9c51faa455a0909`
+
+The harness targets the existing FastAPI runtime only. It does not create schema, RPC, engine, Agent, Content, Storage object, or mock identity.
+
+Checks implemented:
+1. `GET /health` confirms the target is the Allpha FastAPI service.
+2. `GET /api/v1/runtime/activation` without Bearer token must return 401.
+3. Authenticated `GET /api/v1/runtime/activation` must return canonical activation evidence.
+4. Authenticated `GET /api/v1/agent-runtime/commands` must be readable.
+5. If `ALLPHA_AGENT_ID` is explicitly supplied for a real owned Agent, the harness exercises command creation → planning → execution through the existing runtime.
+6. If `ALLPHA_EXPECT_PERSISTED=true`, missing real Agent ID is treated as a blocker rather than replaced with synthetic data.
+
+Required runtime inputs are deliberately externalized:
+- `ALLPHA_API_URL` = actual running FastAPI base URL
+- `ALLPHA_ACCESS_TOKEN` = real Supabase authenticated access token
+- optional `ALLPHA_AGENT_ID` = real owned Agent UUID
+
+### Execution boundary
+The harness could be committed and statically reconciled against the current API contracts, but it was **not falsely marked executed against a live FastAPI URL** because no deployed API base URL and real user access token are available in the current evidence environment. Supabase project connectivity alone does not prove the external FastAPI runtime.
+
+Therefore:
+- Harness implementation: PASS
+- Authenticated HTTP execution: PENDING ENVIRONMENT INPUT
+- Planner/provider execution: PENDING authenticated HTTP run
+- No fake token, Agent, Content, or provider result was generated.
+
+### Updated conclusion
+CW-02 remains OPEN / ACTIVATING / NOT GREEN. The next evidence action is to run this harness against the actual running FastAPI service with a real authenticated Supabase session and, where available, a real owned Agent. No architecture expansion is justified.
+
