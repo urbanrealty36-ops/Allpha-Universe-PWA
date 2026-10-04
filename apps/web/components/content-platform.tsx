@@ -15,7 +15,13 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
   const [body,setBody] = useState("");
   const [excerpt,setExcerpt] = useState("");
   const [visibility,setVisibility] = useState("public");
-  const [loading,setLoading] = useState(true);\n  const [topics,setTopics] = useState<any[]>([]);\n  const [revisions,setRevisions] = useState<any[]>([]);\n  const [events,setEvents] = useState<any[]>([]);\n  const [topicCatalog,setTopicCatalog] = useState<any[]>([]);\n  const [mediaState,setMediaState] = useState<any[]>([]);\n  const [selectedTopic,setSelectedTopic] = useState("");
+  const [loading,setLoading] = useState(true);
+  const [topics,setTopics] = useState<any[]>([]);
+  const [revisions,setRevisions] = useState<any[]>([]);
+  const [events,setEvents] = useState<any[]>([]);
+  const [topicCatalog,setTopicCatalog] = useState<any[]>([]);
+  const [mediaState,setMediaState] = useState<any[]>([]);
+  const [selectedTopic,setSelectedTopic] = useState("");
   const [saving,setSaving] = useState(false);
   const [error,setError] = useState<string|null>(null);
 
@@ -24,7 +30,15 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
     try {
       if (detailId) {
         const r = await apiFetch<{data:Content}>("/api/v1/content/" + detailId);
-        setSelected(r.data);\n        const [t,rv,ev,cat,ms] = await Promise.all([\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/topics"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/revisions"),\n          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/events"),\n          apiFetch<{data:any[]}>("/api/v1/content/topics"),\n          apiFetch<{data:any[]}>(`/api/v1/content/${detailId}/media-state`)\n        ]);\n        setTopics(t.data||[]); setRevisions(rv.data||[]); setEvents(ev.data||[]); setTopicCatalog(cat.data||[]); setMediaState(ms.data||[]);
+        setSelected(r.data);
+        const [t,rv,ev,cat,ms] = await Promise.all([
+          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/topics"),
+          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/revisions"),
+          apiFetch<{data:any[]}>("/api/v1/content/"+detailId+"/events"),
+          apiFetch<{data:any[]}>("/api/v1/content/topics"),
+          apiFetch<{data:any[]}>(`/api/v1/content/${detailId}/media-state`)
+        ]);
+        setTopics(t.data||[]); setRevisions(rv.data||[]); setEvents(ev.data||[]); setTopicCatalog(cat.data||[]); setMediaState(ms.data||[]);
       } else {
         const r = await apiFetch<{data:Content[]}>("/api/v1/content?mine=true");
         setItems(r.data);
@@ -44,7 +58,9 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
     finally { setSaving(false); }
   }
 
-  async function submitModeration(id:string) { setSaving(true); setError(null); try { await apiFetch(`/api/v1/content/${id}/submit-moderation`, {method:"POST"}); await load(); } catch(e) { setError(e instanceof Error ? e.message : "CONTENT_MODERATION_SUBMIT_FAILED"); } finally { setSaving(false); } }\n\n  async function action(id:string, actionName:"publish"|"archive") {
+  async function submitModeration(id:string) { setSaving(true); setError(null); try { await apiFetch(`/api/v1/content/${id}/submit-moderation`, {method:"POST"}); await load(); } catch(e) { setError(e instanceof Error ? e.message : "CONTENT_MODERATION_SUBMIT_FAILED"); } finally { setSaving(false); } }
+
+  async function action(id:string, actionName:"publish"|"archive") {
     setSaving(true); setError(null);
     try { await apiFetch("/api/v1/content/" + id + "/" + actionName, {method:"POST"}); await load(); }
     catch (e) { setError(e instanceof Error ? e.message : "CONTENT_ACTION_FAILED"); }
