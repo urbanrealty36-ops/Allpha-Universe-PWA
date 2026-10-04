@@ -14,6 +14,7 @@ export default function LiveWebRTCStage({
   role: "publisher" | "viewer";
   localStream?: MediaStream | null;
   enabled?: boolean;
+  authorized?: boolean;
 }) {
   const localRef = useRef<HTMLVideoElement | null>(null);
   const remoteRef = useRef<HTMLVideoElement | null>(null);
