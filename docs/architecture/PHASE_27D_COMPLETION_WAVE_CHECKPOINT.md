@@ -1,6 +1,6 @@
 # Phase 27D — Super Admin Governance Actions, Detail Views & Cross-Domain Operational Workflows
 
-Status: IN PROGRESS / IMPLEMENTED INCREMENTS
+Status: IMPLEMENTATION COMPLETE / RUNTIME QA PENDING
 
 ## Scope
 Phase 27D continues the canonical Phase 27 Control Plane after Phase 27C. It does not replace the existing Control Plane, payment/economy, payout, authorization, audit, risk or domain engines.
@@ -79,8 +79,28 @@ Provider secrets remain server-side and no bank-transfer provider is fabricated.
 - Live business data remains authoritative and empty where no real business activity exists.
 - Runtime/browser E2E, build/CI and production Green remain deferred.
 
-## Remaining 27D completion candidates
-- Rich cross-domain detail linking from transaction/order → payment → invoice/credit/subscription → payout/approval/risk/audit where canonical IDs are present.
-- Reconcile any remaining Super Admin placeholders (especially domains not yet activated in the UI) against the existing canonical resource list.
-- Governance/security hardening findings that are appropriate for the final production hardening gate.
-- Full API/PWA/Admin build and authenticated browser E2E at the final runtime gate.
+## Completion wave result
+### Cross-domain transaction governance
+- Added canonical `get_admin_transaction_governance_context(uuid)` RPC.
+- The RPC links an order to approval requests, risk assessments, payout requests via approval binding, and related audit evidence.
+- The RPC is SECURITY INVOKER publicly with authenticated + service_role ACL; its private implementation remains SECURITY DEFINER and checks the existing `admin_27c_require_read` boundary.
+- Transaction Explorer now loads this governed context when opening an order drill-down.
+- Payment, billing, economy and payout engines were not duplicated or rewritten.
+
+### Super Admin reconciliation
+- Activated canonical Admin explorers for Marketplace, Worlds, Districts, Booths, Credits, Galaxies, Plans, Pricing, Configuration Versions, Risk and Approvals.
+- Reconciled legacy placeholder routes (Communities, Events, Missions, Notifications, Observability, Agent Policies, AI Policies, AI Providers, Entitlements, Features, Reports, Revenue, System Settings, Universe, Localization and E2E/QA) into authoritative coverage/control-plane surfaces.
+- Unsupported legacy domains are explicitly read-only coverage surfaces rather than fabricated CRUD. This preserves architectural authority and prevents duplicate engines.
+- No synthetic business records were created.
+
+### Final implementation boundary
+27D implementation is complete at source/schema/control-plane level.
+
+Still intentionally deferred:
+- authenticated browser runtime E2E
+- API/PWA/Admin production builds
+- real Midtrans/provider credential E2E
+- production deployment and Railway/Vercel verification
+- final production security hardening findings
+
+These are runtime/production gates, not missing 27D architecture or Admin control-plane implementation.
