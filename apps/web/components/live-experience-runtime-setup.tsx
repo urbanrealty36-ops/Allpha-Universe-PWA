@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
 import LiveGptLiveVoice from "./live-gpt-live-voice";
+import LiveWebRTCStage from "./live-webrtc-stage";
 import { normalizeWorldScene } from "../lib/world-engine/scene-schema";
 import type { WorldScene } from "../lib/world-engine/scene-schema";
 
@@ -110,6 +111,7 @@ export default function LiveExperienceRuntimeSetup() {
   const [selectedCostume, setSelectedCostume] = useState("");
   const [costumeKind, setCostumeKind] = useState<"uniform" | "custom">("uniform");
   const [cameraReady, setCameraReady] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [bodyFramingConfirmed, setBodyFramingConfirmed] = useState(false);
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -219,6 +221,7 @@ export default function LiveExperienceRuntimeSetup() {
         audio: false,
       });
       streamRef.current = stream;
+      setCameraStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
@@ -249,8 +252,21 @@ export default function LiveExperienceRuntimeSetup() {
   function stopCamera() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
+    setCameraStream(null);
     if (videoRef.current) videoRef.current.srcObject = null;
     setCameraReady(false);
+  }
+
+  function renderWebRTCStage() {
+    if (!sessionId) return null;
+    return (
+      <LiveWebRTCStage
+        sessionId={sessionId}
+        role="publisher"
+        localStream={cameraStream}
+        enabled={Boolean(cameraStream)}
+      />
+    );
   }
 
   async function runPresenceCheck() {
