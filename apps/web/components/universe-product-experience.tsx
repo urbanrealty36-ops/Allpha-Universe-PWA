@@ -227,14 +227,13 @@ export default function UniverseProductExperience() {
 }
 
 function UniverseHome({
-  tab, content, themes, worlds, districts, templates, agents, loading, onTab, onWorlds,
+  tab, content, themes, worlds, districts, templates, agents, loading, onTab, onWorlds, onFeatures,
 }: {
   tab: HomeTab; content: Content[]; themes: Theme[]; worlds: World[]; districts: District[];
   templates: LiveTemplate[]; agents: Agent[]; loading: boolean; onTab: (tab: HomeTab) => void;
-  onWorlds: () => void; onUniverse: () => void;
+  onWorlds: () => void; onFeatures: () => void;
 }) {
   const featuredThemes = themes.slice(0, 5);
-  const featuredWorlds = worlds.slice(0, 4);
   const featuredDistricts = districts.slice(0, 4);
   return (
     <div className="min-h-[calc(100vh-4rem)]">
