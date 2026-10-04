@@ -268,3 +268,23 @@ CW-02 remains OPEN / ACTIVATING / NOT GREEN. The remaining blockers are runtime-
 4. real Storage object upload → media registration → moderation approval → read;
 5. admin moderation decision using an authorized admin session;
 6. final build/test verification.
+
+
+## Evidence Run — 2026-10-04 — Runtime Harness / Build Gate Reconciliation
+
+### FastAPI runtime harness
+The canonical HTTP runtime surface is present at /api/v1/agent-runtime with POST endpoints for command creation, planning, execution, cancellation and approval. The implementation calls the existing Agent Runtime + AI Gateway modules and does not introduce a second executor.
+
+However, no repository-backed authenticated HTTP/E2E test harness is currently present on main that can exercise a real Supabase access-token session end-to-end. The API test dependency (pytest) is declared, but no pytest suite or CI workflow was found in the repository. Therefore source-level presence is not promoted to runtime evidence.
+
+### Storage runtime gate
+Live Storage object counts remain zero for allpha-media and allpha-documents. Canonical Storage/media policies and RPCs are present, but an actual uploaded object has not been created and subsequently read through the authorized path. This gate remains pending.
+
+### Current live business state
+After all transactional evidence runs, live counts remain zero for agents, content, agent commands, AI Gateway requests and Storage objects. No synthetic business state was left behind.
+
+### Build / CI gate
+The monorepo defines web/admin build scripts and the API declares FastAPI dependencies, but no GitHub Actions workflow is currently present under .github/workflows and no repository pytest suite was found. Final build/CI evidence therefore remains pending and belongs to the CW-02 closure gate rather than being inferred from configuration.
+
+### Conclusion
+CW-02 remains OPEN / ACTIVATING / NOT GREEN. No architecture or engine was added. The remaining work is evidence execution: authenticated HTTP runtime + real AI Gateway call, real Storage object lifecycle + moderation read, authorized admin decision, browser/API Feed/Discovery verification, and final build/test verification.
