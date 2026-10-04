@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "../../lib/api";
+import { apiFetch } from "../../../lib/api";
 
 type Galaxy={id:string;name:string;slug:string;description?:string|null;visibility?:string};
 type World={id:string;galaxy_id:string;name:string;slug:string;world_type:string;visibility:string;status?:string};
