@@ -244,13 +244,20 @@ export function useLiveWebRTC({
           }
         });
 
-        const status = await channel.subscribe();
+        await new Promise<void>((resolve, reject) => {
+          channel.subscribe((status) => {
+            if (status === "SUBSCRIBED") {
+              resolve();
+              return;
+            }
+            if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+              reject(new Error(`REALTIME_SUBSCRIBE_${status}`));
+            }
+          });
+        });
         if (!isActive()) {
           closeTransport();
           return;
-        }
-        if (status !== "SUBSCRIBED") {
-          throw new Error(`REALTIME_SUBSCRIBE_${status}`);
         }
 
         if (role === "viewer" && isActive()) {
