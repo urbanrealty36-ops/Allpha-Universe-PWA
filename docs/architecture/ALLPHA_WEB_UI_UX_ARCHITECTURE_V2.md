@@ -357,3 +357,62 @@ Supabase Auth and the existing server-side authorization foundation remain canon
 - Audit: `docs/audits/WEB06_SPLASH_IDENTITY_20261005.md`
 
 WEB-06 source implementation is complete. Browser/device QA and authenticated E2E remain validation gates; CW-02 is not Production GREEN.
+
+
+## 18. WEB-07 — Universe Home activation
+
+WEB-07 is the authenticated Universe Home layer immediately after WEB-06 Identity.
+
+### Home composition
+
+    UniverseShell
+      ↓
+    Universe Home
+      ├── Compact Identity Header
+      ├── Universe / Live / For You
+      ├── Living Universe Hero
+      ├── Discovery Categories
+      ├── Featured Worlds
+      ├── Universe Stream
+      ├── Live Experiences
+      ├── Agent Presence
+      ├── Spatial Summary
+      └── 82-Domain Feature Constellation
+
+### Data contracts
+
+The Home surface reuses the existing canonical product calls:
+- Theme / World Runtime catalog
+- Discovery Home
+- Live Template catalog
+- My Agents
+- Galaxy → World → District discovery
+
+No Home-specific duplicate data authority is introduced.
+
+### Visual contract
+
+WEB-07 follows the supplied Allpha Mobile PWA UI/UX concept:
+- premium cinematic dark surface;
+- cyan / blue / violet spatial glow;
+- compact mobile chrome;
+- Universe / Live / For You tabs;
+- world/category discovery;
+- AI Agent presence;
+- progressive spatial visual language.
+
+### Progressive enhancement
+
+Home is fully usable without WebGL/3D. Spatial visuals are presentation enhancement only. The canonical AllphaWorldRenderer remains the only renderer for actual 3D experiences in later spatial phases.
+
+### Authority
+
+Home renders server-derived state and emits navigation/action intent. It does not decide identity, ownership, permission, policy, risk, approval, entitlement, billing, payment or Agent execution results.
+
+### Implementation record
+
+- Component: `apps/web/components/universe/universe-home-experience.tsx`
+- Activation: `apps/web/components/universe-product-experience.tsx`
+- Audit: `docs/audits/WEB07_UNIVERSE_HOME_20261005.md`
+
+WEB-07 source implementation is complete. Browser/device visual QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
