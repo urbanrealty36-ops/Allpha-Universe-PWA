@@ -669,21 +669,20 @@ export default function LiveExperienceRuntimeSetup() {
 
           <div className={card + " p-4"}>
             <div className="mb-3 font-medium">4 · Collaboration + Human Presentation</div>
-            <div className="text-xs text-white/45">
-              Active collaboration: {activeCollaboration ? activeCollaboration.id.slice(0, 8) : "belum ada"}
-            </div>
-            <select className={input + " mt-2"} value={collaborationId} onChange={(e) => setCollaborationId(e.target.value)}>
+            <div className="text-xs text-white/45">Active collaboration: {activeCollaboration ? activeCollaboration.id.slice(0, 8) : "belum ada"}</div>
+            <select className={input + " mt-2"} value={collaborationId} onChange={e => setCollaborationId(e.target.value)}>
               <option value="">Tanpa collaboration</option>
-              {collaborations.map((c) => <option key={c.id} value={c.id}>{c.mode} · {c.status} · {c.risk_decision}</option>)}
+              {collaborations.map(c => <option key={c.id} value={c.id}>{c.mode} · {c.status} · {c.risk_decision}</option>)}
             </select>
             <button className={button + " mt-3 w-full"} disabled={!camera || !presence || presence.verification_status !== "verified" || busy} onClick={bindPresentation}>Bind Human Presentation</button>
-            <button className="mt-2 w-full rounded-[var(--allpha-radius-md)] bg-[var(--allpha-cyan)] px-3 py-2 text-sm font-semibold text-black disabled={!stage?.active || !camera || !presence || presence.verification_status !== "verified" || !collaborationId || busy} onClick={activate}>Activate Live Experience</button>
-            {collaborationId && (
+            <button className={button + " mt-2 w-full"} disabled={!stage?.active || !camera || !presence || presence.verification_status !== "verified" || !collaborationId || busy} onClick={activate}>Activate Live Experience</button>
+            {collaborationId ? (
               <div className="mt-3">
                 <LiveGptLiveVoice sessionId={sessionId} collaborationId={collaborationId} onPerformance={setVoicePerformance} />
                 <div className="mt-2 text-[10px] text-white/35">Character animation signal · {voicePerformance.state} · voice level {voicePerformance.level.toFixed(2)}</div>
               </div>
-            )}
+            ) : null}
+          </div>
           </div>
         </div>
 
