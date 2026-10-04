@@ -1,7 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 type Theme = {
   id: string;
   name: string;
@@ -403,6 +401,23 @@ function StatCard({ label, value, detail }: { label: string; value: string; deta
       <p className="mt-2 text-2xl font-semibold text-cyan-100/85">{value}</p>
       <p className="mt-1 text-[8px] text-white/25">{detail}</p>
     </div>
+  );
+}
+
+function SkeletonGrid({ count, horizontal = false, compact = false }: { count: number; horizontal?: boolean; compact?: boolean }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, index) => (
+        <div
+          key={index}
+          aria-hidden="true"
+          className={[
+            "animate-pulse rounded-[24px] border border-white/[0.07] bg-white/[0.025]",
+            horizontal ? "h-28 w-full" : compact ? "h-24 w-full" : "h-[235px] w-full",
+          ].join(" ")}
+        />
+      ))}
+    </>
   );
 }
 
