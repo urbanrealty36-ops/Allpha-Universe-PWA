@@ -526,7 +526,7 @@ export default function LiveStreamingCollaboration() {
                             {c.status === "approved" && <button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "activate")} className="rounded-md border border-[var(--allpha-cyan)]/30 px-2 py-1 text-[var(--allpha-cyan)]">Activate</button>}
                             {c.status === "active" && <><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "pause")} className="rounded-md border border-white/10 px-2 py-1">Pause</button><button disabled={sessionLoading} onClick={() => void collaborationAction(c.id, "end")} className="rounded-md border border-red-300/20 px-2 py-1 text-red-200">End</button></>}
                           </div>
-                          {c.status === "active" && (
+                          {c.status === "active" && (<>
                             <div className="mt-3 rounded-md border border-[var(--allpha-cyan)]/15 bg-[var(--allpha-cyan)]/5 p-3">
                               <div className="text-[10px] uppercase tracking-[.16em] text-[var(--allpha-cyan)]">AI Character / Presentation Runtime</div>
                               <div className="mt-2 grid gap-2 md:grid-cols-[1fr_auto_auto]">
@@ -553,7 +553,7 @@ export default function LiveStreamingCollaboration() {
                                 </div>
                               ))}
                             </div>
-                          )}
+                          </>)}
                         </div>
                       ))}
                     </div>
