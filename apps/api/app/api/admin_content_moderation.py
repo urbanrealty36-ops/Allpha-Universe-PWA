@@ -19,7 +19,7 @@ async def queue(limit:int=Query(default=100,ge=1,le=200),context:dict[str,Any]=D
         raise HTTPException(status_code=403 if exc.status_code==403 else 502,detail={"code":"CONTENT_MODERATION_QUEUE_FAILED","message":exc.message}) from exc
 
 @router.post("/{case_id}/decision")
-async def decide(case_id:str,payload:Decision,context:dict[str,Any]=Depends(require_permission("admin.read")))->dict[str,Any]:
+async def decide(case_id:str,payload:Decision,context:dict[str,Any]=Depends(require_permission("admin.manage")))->dict[str,Any]:
     try:
         return {"data":await rpc(context["user"],"decide_content_moderation",{"p_case_id":case_id,"p_decision":payload.decision,"p_notes":payload.notes})}
     except SupabaseRestError as exc:
