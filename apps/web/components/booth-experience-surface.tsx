@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
-import { createSupabaseBrowserClient } from "../../lib/supabase/client";
-import { apiFetch } from "../../lib/api";
-import UniverseShell, { type UniverseShellKey } from "../universe/universe-shell";
-import AgentAccountCard, { type AgentAccount } from "../agent-account-card";
+import { createSupabaseBrowserClient } from "../lib/supabase/client";
+import { apiFetch } from "../lib/api";
+import UniverseShell, { type UniverseShellKey } from "./universe/universe-shell";
+import AgentAccountCard, { type AgentAccount } from "./agent-account-card";
 import { normalizeWorldScene, type SceneNode, type WorldScene } from "../../lib/world-engine/scene-schema";
 
-const AllphaWorldRenderer = dynamic(() => import("../world/allpha-world-renderer"), {
+const AllphaWorldRenderer = dynamic(() => import("./world/allpha-world-renderer"), {
   ssr: false,
   loading: () => (
     <div className="flex min-h-[520px] items-center justify-center bg-[#02040b] text-xs text-white/35">
