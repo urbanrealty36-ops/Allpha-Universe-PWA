@@ -32,6 +32,7 @@ const groups = [
       ["/content", "Content"],
       ["/marketplace", "Marketplace"],
       ["/billing", "Billing"],
+      ["/payouts", "Payouts"],
       ["/credits", "Credits"],
       ["/themes", "Themes"],
       ["/worlds", "Worlds"],
