@@ -1,7 +1,7 @@
 # WEB-05 — Universe Shell Implementation Audit
 
 Date: 2026-10-05
-Status: IMPLEMENTED / RUNTIME VERIFICATION PENDING
+Status: IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING
 Wave: CW-02.WEB
 Previous: WEB-04 CLOSED
 Next: WEB-05 runtime/browser verification, then WEB-06
@@ -65,9 +65,9 @@ Initial Railway deployment of commit `d188f2e8a81dd9b25c7bb3fbc0bb09e14e5cf3a0` 
 
 `Expected corresponding JSX closing tag for <UniverseShell>`.
 
-The wrapper was corrected in commit `59bbc4c54f75109826a88b7a8c2fba5470b295df`.
+The wrapper was corrected and the final shell integration was fixed in commit `fd4fcd477e27b18e71c10b5e463932c53a66a425`.
 
-Current Railway Web deployment for that corrected commit is still BUILDING. Therefore WEB-05 is **not yet declared runtime-verified or closed**.
+The corrected Web deployment for the final commit reached SUCCESS. The production Web service is running from that exact commit. Browser/device visual QA and authenticated E2E remain pending, so WEB-05 is **not declared final GREEN**.
 
 ## Deployment evidence
 
@@ -75,9 +75,11 @@ Railway:
 - project: `serene-youth`
 - service: `@allpha/web`
 - environment: `production`
-- corrected commit: `59bbc4c54f75109826a88b7a8c2fba5470b295df`
-- deployment: `b09b6c85-214a-4e1a-a779-008d56b75ac6`
-- current status: BUILDING
+- final commit: `fd4fcd477e27b18e71c10b5e463932c53a66a425`
+- deployment: `f07e215a-98ff-4fdc-bfaa-0fd5c667d507`
+- status: SUCCESS
+- region: `asia-southeast1-eqsg3a`
+- public Railway domain: `allphaweb-production.up.railway.app`
 
 ## Known limitations
 
@@ -88,4 +90,4 @@ Railway:
 
 ## Next canonical action
 
-Wait for the corrected Web deployment to settle, inspect build/runtime evidence, then perform browser/runtime verification of the Universe Shell before advancing to WEB-06.
+Perform browser/device visual verification and authenticated E2E of the Universe Shell, then advance to WEB-06. Do not treat Railway deployment success alone as final GREEN.
