@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import ImmersiveUniverseShell from "./universe/immersive-universe-shell";
+import UniverseProductExperience from "./universe-product-experience";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
 type EntryState = "loading" | "anonymous" | "authenticated";
@@ -80,7 +80,7 @@ export default function UniverseEntrySurface() {
             </button>
           </div>
         </div>
-        <ImmersiveUniverseShell />
+        <UniverseProductExperience />
       </main>
     );
   }
