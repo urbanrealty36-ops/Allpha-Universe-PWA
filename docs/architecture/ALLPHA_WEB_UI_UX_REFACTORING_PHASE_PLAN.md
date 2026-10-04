@@ -1,6 +1,7 @@
 # Allpha Universe — Full Web App UI/UX Refactoring Phase Plan
 
-Status: ACTIVE PLAN / CW-02.WEB
+Status: CANONICAL PLAN / CW-02.WEB
+WEB-01: CLOSED / BASELINE LOCKED
 Canonical repository: urbanrealty36-ops/Allpha-Universe-PWA
 Branch: main
 Baseline commit at WEB-01 start: 3dd44cb487d03b1ae6dc063deabb4c8e9668c523
@@ -21,8 +22,8 @@ Primary experience:
 
 | Phase | Name | Scope | Status |
 | --- | --- | --- | --- |
-| WEB-01 | Baseline & Frontend Reconciliation | Inventory, route/component/API binding, duplication detection, current UX gap register | ACTIVE |
-| WEB-02 | Design System Foundation | Responsive tokens, spatial primitives, accessibility/motion contracts | PENDING |
+| WEB-01 | Baseline & Frontend Reconciliation | Inventory, route/component/API binding, duplication detection, current UX gap register | CLOSED |
+| WEB-02 | Design System Foundation | Responsive tokens, spatial primitives, accessibility/motion contracts | NEXT |
 | WEB-03 | PWA Foundation | Manifest, installability, service worker/offline shell, update lifecycle | PENDING |
 | WEB-04 | Mobile Navigation | Mobile-first navigation, sheets, touch-first interaction | PENDING |
 | WEB-05 | Universe Shell | Shared responsive shell, top bar, navigation, canvas, overlays, context dock | PENDING |
@@ -86,17 +87,18 @@ Search / Notifications / Profile / Command Center
 
 Universe → Galaxy → World → District → Zone → Booth/Tenant → Agent/Presence → Content/Capsule → Live/Experience
 
-## Closure rule
+## WEB-01 exit record
 
-WEB-01 is complete only when the current frontend has an explicit inventory and reconciliation matrix showing:
-- route inventory;
-- component inventory;
-- canonical engine bindings;
-- API bindings;
-- responsive/PWA gaps;
-- duplicate/legacy surface risks;
-- reference UX gaps;
-- implementation sequence;
-- no architecture expansion required.
+WEB-01 baseline reconciliation is recorded in:
+docs/audits/WEB01_BASELINE_FRONTEND_RECONCILIATION_20261005.md
+
+The continuation anchor is:
+docs/continue-context/ALLPHA_WEB_CONTINUE_CONTEXT_WEB01.md
+
+The visual reference manifest is:
+docs/ux/references/README.md
+
+The repository-preserved visual companion is:
+docs/ux/references/ALLPHA_MOBILE_FIRST_PWA_REFERENCE_BOARD.svg
 
 WEB-01 does not claim CW-02 GREEN.
