@@ -123,34 +123,40 @@ export default function UniverseHomeExperience({
           </div>
         </section>
 
-        <section className="relative mt-3 overflow-hidden rounded-[28px] border border-white/[0.09] bg-[#050816] sm:mt-5 sm:rounded-[36px]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(63,110,255,.28),transparent_20%),radial-gradient(circle_at_12%_25%,rgba(0,215,255,.13),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(124,58,237,.18),transparent_30%),linear-gradient(145deg,#071327,#02040b_72%)]" />
-          <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle,rgba(255,255,255,.8)_0_1px,transparent_1.5px)] [background-size:145px_145px]" />
-          <div className="relative grid min-h-[470px] items-end gap-8 px-5 pb-6 pt-10 sm:min-h-[560px] sm:px-8 sm:pb-8 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-12">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/15 bg-cyan-200/[0.04] px-3 py-1.5 text-[8px] uppercase tracking-[0.22em] text-cyan-100/70">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(103,232,249,.9)]" />
-                Living Universe
-              </div>
-              <h1 className="mt-4 text-4xl font-semibold leading-[1.02] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
-                Discover a Universe built for{" "}
-                <span className="text-cyan-200">humans &amp; AI Agents.</span>
-              </h1>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-white/45 sm:text-base">
-                Explore worlds, communities, AI Agents, live experiences and
-                content capsules through one connected Allpha Universe.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                <button type="button" onClick={onWorlds} className="min-h-11 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-3 text-xs font-semibold text-white shadow-[0_0_45px_rgba(70,190,255,.2)]">
-                  Explore Universe
-                </button>
-                <a href="/agents" className="min-h-11 rounded-full border border-white/10 bg-white/[0.035] px-5 py-3 text-xs text-white/70 backdrop-blur-xl">
-                  Meet AI Agents
-                </a>
+        <section className="allpha-universe-entry mt-3 overflow-hidden sm:mt-5">
+          <div className="allpha-universe-entry-space" aria-hidden="true">
+            <div className="allpha-entry-nebula nebula-a" />
+            <div className="allpha-entry-nebula nebula-b" />
+            <div className="allpha-entry-starfield" />
+            <div className="allpha-entry-orbit orbit-1" />
+            <div className="allpha-entry-orbit orbit-2" />
+            <div className="allpha-entry-orbit orbit-3" />
+            <div className="allpha-entry-planet">
+              <div className="allpha-entry-planet-glow" />
+              <div className="allpha-entry-planet-surface" />
+              <div className="allpha-entry-planet-atmosphere" />
+            </div>
+            <div className="allpha-entry-node node-galaxy"><span>GALAXY</span><b>✦</b></div>
+            <div className="allpha-entry-node node-world"><span>WORLD</span><b>◈</b></div>
+            <div className="allpha-entry-node node-district"><span>DISTRICT</span><b>◇</b></div>
+            <div className="allpha-entry-node node-agent"><span>AI AGENT</span><b>◉</b></div>
+            <div className="allpha-entry-node node-content"><span>CONTENT</span><b>✧</b></div>
+          </div>
+          <div className="allpha-entry-overlay">
+            <div className="allpha-entry-copy">
+              <span className="allpha-entry-kicker"><i /> ALLPHA UNIVERSE · HOME ORBIT</span>
+              <h1>Enter a living Universe.</h1>
+              <p>Explore worlds, meet AI Agents, discover communities and move through a connected spatial network.</p>
+              <div className="allpha-entry-actions">
+                <button type="button" onClick={onWorlds} className="allpha-entry-primary">Explore Worlds <span>↗</span></button>
+                <a href="/agents" className="allpha-entry-secondary">Meet AI Agents <span>◉</span></a>
               </div>
             </div>
-
-            <UniverseOrbitalPreview themes={heroThemes} loading={loading} />
+            <div className="allpha-entry-hud">
+              <div><span>YOU ARE HERE</span><strong>UNIVERSE</strong></div>
+              <div><span>CONNECTED</span><strong>{loading ? "SYNCING…" : "LIVE"}</strong></div>
+              <div><span>PATH</span><strong>GALAXY → WORLD</strong></div>
+            </div>
           </div>
         </section>
 
