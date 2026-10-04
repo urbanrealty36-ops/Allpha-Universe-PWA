@@ -10,7 +10,8 @@
 - Frontend track: CW-02.WEB
 - WEB-01: CLOSED / BASELINE LOCKED
 - WEB-02: CLOSED / DESIGN SYSTEM FOUNDATION
-- Next: WEB-03 — PWA FOUNDATION
+- WEB-03: CLOSED / PWA FOUNDATION
+- Next: WEB-04 — MOBILE NAVIGATION
 - CW-02: OPEN / ACTIVATING / NOT GREEN
 
 ## Product contract
@@ -28,6 +29,16 @@ Progressive enhancement: 2D → 2.5D → Spatial → 3D.
 - Added static /design-system visual inspection route.
 - Added global foundation CSS: surfaces, buttons, spatial nodes, capsules, focus, reduced motion, contrast and responsive reference layout.
 - No business data and no authority decisions were added.
+
+## WEB-03 implemented
+- Added Next PWA manifest at `apps/web/app/manifest.ts`.
+- Added root-scoped service worker at `apps/web/public/sw.js` with offline shell, conservative static caching and explicit exclusion of API/auth/token-bearing requests.
+- Added deterministic `/offline` route.
+- Added `PwaRuntime` for service-worker registration, update lifecycle, install prompt capture and online/offline/reconnect state.
+- Added scalable Allpha SVG and maskable SVG icons.
+- Added PWA runtime/offline responsive surfaces to global CSS.
+- No offline mutation queue, synthetic business data or new authority layer was introduced.
+- Raster 192x192/512x512 icon compatibility remains a WEB-29 PWA Install QA task.
 
 ## Reference sequence
 1 Splash / Onboarding
@@ -61,10 +72,8 @@ No fake business data.
 Frontend is never authoritative for identity, ownership, permission, policy, risk, approval, billing, payment, entitlement or execution.
 
 ## Next
-WEB-03 — PWA Foundation:
-manifest, installability, icons, service worker/offline shell, update lifecycle, online/offline/reconnect UX and server-operation safety.
-
-Then WEB-04 Mobile Navigation and WEB-05 Universe Shell.
+WEB-04 — Mobile Navigation.
+Then WEB-05 Universe Shell and the remaining progressive UI surfaces.
 
 ## Operating mode
 READ → UNDERSTAND → INSPECT → RECONCILE REPO + SUPABASE → PLAN → IMPLEMENT → MIGRATE → TEST → SECURITY CHECK → REVIEW → SELF-CHECK → REPORT
