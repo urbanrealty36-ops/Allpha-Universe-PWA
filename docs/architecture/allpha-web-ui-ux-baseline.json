@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "document": "ALLPHA_WEB_UI_UX_BASELINE",
+  "date": "2026-10-05",
+  "wave": "CW-02.WEB",
+  "web01_status": "CLOSED_BASELINE_LOCKED",
+  "cw02_status": "OPEN_ACTIVATING_NOT_GREEN",
+  "repository": {
+    "full_name": "urbanrealty36-ops/Allpha-Universe-PWA",
+    "branch": "main",
+    "baseline_start_commit": "3dd44cb487d03b1ae6dc063deabb4c8e9668c523"
+  },
+  "product_contract": {
+    "primary": "Mobile-First Installable PWA",
+    "desktop": "Responsive expansion of the same product",
+    "experience_modes": [
+      "ambient",
+      "spatial",
+      "universe",
+      "experience"
+    ],
+    "progressive_enhancement": [
+      "2D",
+      "2.5D",
+      "spatial",
+      "3D"
+    ],
+    "spatial_hierarchy": [
+      "Universe",
+      "Galaxy",
+      "World",
+      "District",
+      "Zone",
+      "Booth/Tenant",
+      "Agent/Presence",
+      "Content/Capsule",
+      "Live/Experience"
+    ]
+  },
+  "canonical_reuse": [
+    "Supabase Auth",
+    "apps/web/lib/api.ts",
+    "AllphaWorldRenderer",
+    "ImmersiveUniverseShell",
+    "Theme/World Runtime",
+    "District/Spatial Runtime",
+    "Feed/Discovery",
+    "Agent Runtime",
+    "AI Gateway",
+    "Live",
+    "Messaging",
+    "Community",
+    "Marketplace",
+    "Governance"
+  ],
+  "prohibited_duplication": [
+    "renderer",
+    "feed_engine",
+    "recommendation_engine",
+    "agent_runtime",
+    "ai_gateway",
+    "theme_engine",
+    "world_engine",
+    "district_engine",
+    "presence_engine",
+    "messaging_engine"
+  ],
+  "current_entry": {
+    "root": "UniverseEntrySurface",
+    "authenticated": "UniverseProductExperience"
+  },
+  "existing_spatial_foundation": [
+    "UniverseProductExperience",
+    "ImmersiveUniverseShell",
+    "AllphaWorldRenderer",
+    "DistrictExperienceSurface",
+    "district route",
+    "Theme/World runtime catalog",
+    "Realtime District presence",
+    "Booth interaction",
+    "Agent interaction"
+  ],
+  "pwa_target": {
+    "manifest": true,
+    "installable": true,
+    "service_worker": true,
+    "offline_shell": true,
+    "update_lifecycle": true,
+    "server_operations_never_fabricated_offline": true
+  },
+  "next_phase": "WEB-02",
+  "phase_plan": "docs/architecture/ALLPHA_WEB_UI_UX_REFACTORING_PHASE_PLAN.md",
+  "architecture": "docs/architecture/ALLPHA_WEB_UI_UX_ARCHITECTURE_V2.md",
+  "audit": "docs/audits/WEB01_BASELINE_FRONTEND_RECONCILIATION_20261005.md",
+  "continuation": "docs/continue-context/ALLPHA_WEB_CONTINUE_CONTEXT_WEB01.md",
+  "visual_reference": "docs/ux/references/README.md",
+  "visual_companion": "docs/ux/references/ALLPHA_MOBILE_FIRST_PWA_REFERENCE_BOARD.svg"
+}
