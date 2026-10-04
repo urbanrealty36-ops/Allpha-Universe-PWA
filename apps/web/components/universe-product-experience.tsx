@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import ImmersiveUniverseShell from "./universe/immersive-universe-shell";
 import UniverseHomeExperience from "./universe/universe-home-experience";
+import GalaxyNavigatorExperience from "./universe/galaxy-navigator-experience";
 import UniverseShell, { type UniverseShellKey } from "./universe/universe-shell";
 import { apiFetch } from "../lib/api";
 
@@ -43,7 +44,7 @@ type Agent = {
   runtime_state?: string | null;
   description?: string | null;
 };
-type Galaxy = { id: string; name: string; slug: string };
+type Galaxy = { id: string; name: string; slug: string; description?: string | null };
 type World = {
   id: string;
   galaxy_id: string;
@@ -87,6 +88,8 @@ export default function UniverseProductExperience() {
   const [content, setContent] = useState<Content[]>([]);
   const [templates, setTemplates] = useState<LiveTemplate[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [galaxies, setGalaxies] = useState<Galaxy[]>([]);
+  const [selectedGalaxyId, setSelectedGalaxyId] = useState<string | null>(null);
   const [worlds, setWorlds] = useState<World[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,18 +127,31 @@ export default function UniverseProductExperience() {
     if (agentResult.status === "fulfilled") setAgents(Array.isArray(agentResult.value.data) ? agentResult.value.data : []);
     else errors.push("AGENT_SPACE_UNAVAILABLE");
 
-    if (galaxyResult.status === "fulfilled" && galaxyResult.value.data?.[0]) {
-      try {
-        const w = await apiFetch<{ data: World[] }>(`/api/v1/universe/worlds?galaxy_id=${galaxyResult.value.data[0].id}&limit=8`);
-        setWorlds(w.data ?? []);
-        if (w.data?.[0]) {
-          const d = await apiFetch<{ data: District[] }>(`/api/v1/districts?world_id=${w.data[0].id}&limit=8`);
-          setDistricts(d.data ?? []);
+    if (galaxyResult.status === "fulfilled") {
+      const galaxyData = Array.isArray(galaxyResult.value.data) ? galaxyResult.value.data : [];
+      setGalaxies(galaxyData);
+      const activeGalaxyId = selectedGalaxyId && galaxyData.some((galaxy) => galaxy.id === selectedGalaxyId)
+        ? selectedGalaxyId
+        : galaxyData[0]?.id ?? null;
+      setSelectedGalaxyId(activeGalaxyId);
+      if (activeGalaxyId) {
+        try {
+          const w = await apiFetch<{ data: World[] }>(`/api/v1/universe/worlds?galaxy_id=${activeGalaxyId}&limit=24`);
+          setWorlds(Array.isArray(w.data) ? w.data : []);
+          if (w.data?.[0]) {
+            const d = await apiFetch<{ data: District[] }>(`/api/v1/districts?world_id=${w.data[0].id}&limit=12`);
+            setDistricts(Array.isArray(d.data) ? d.data : []);
+          } else {
+            setDistricts([]);
+          }
+        } catch {
+          errors.push("SPATIAL_DISCOVERY_UNAVAILABLE");
         }
-      } catch {
-        errors.push("SPATIAL_DISCOVERY_UNAVAILABLE");
+      } else {
+        setWorlds([]);
+        setDistricts([]);
       }
-    } else if (galaxyResult.status === "rejected") {
+    } else {
       errors.push("SPATIAL_DISCOVERY_UNAVAILABLE");
     }
 
@@ -220,7 +236,21 @@ export default function UniverseProductExperience() {
         )}
 
         {view === "discover" && <DiscoverSurface content={content} themes={themes} loading={loading} onWorlds={() => setView("worlds")} />}
-        {view === "worlds" && <WorldsSurface themes={themes} worlds={worlds} districts={districts} loading={loading} onEnter={() => setView("home")} />}
+        {view === "worlds" && (
+          <GalaxyNavigatorExperience
+            galaxies={galaxies}
+            worlds={worlds}
+            themes={themes}
+            selectedGalaxyId={selectedGalaxyId}
+            loading={loading}
+            onGalaxy={(id) => {
+              setSelectedGalaxyId(id);
+              void loadProductData(homeTab);
+            }}
+            onEnterWorld={() => setView("discover")}
+            onBack={() => navigateHome("universe")}
+          />
+        )}
         {view === "agents" && <AgentsSurface agents={agents} loading={loading} />}
         {view === "live" && <LiveSurface templates={templates} loading={loading} />}
         {view === "features" && <FeatureConstellation onClose={() => setView("home")} />}
