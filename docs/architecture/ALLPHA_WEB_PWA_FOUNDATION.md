@@ -20,7 +20,7 @@ Make the existing Allpha Web surface a Mobile-First Installable PWA foundation w
 ### 2. Service Worker / Offline Shell
 - `apps/web/public/sw.js` registers a single origin-scoped service worker.
 - Precaches the public shell, offline route, manifest and icon assets.
-- Navigation uses network-first behavior and falls back to the cached request or `/offline`.
+- Navigation uses network-first behavior and falls back only to the public `/offline` route; arbitrary navigation responses are never cached, preventing stale/private authenticated HTML from entering the offline cache.
 - Next static assets use cache-first with background refresh.
 - API/auth/callback/token-bearing URLs are explicitly excluded.
 - No POST/PUT/PATCH/DELETE request is intercepted or replayed.
