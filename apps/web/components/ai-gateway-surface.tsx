@@ -9,7 +9,8 @@ type Health = { status:string; provider_count:number; enabled_model_count:number
 
 export default function AIGatewaySurface(){
  const [models,setModels]=useState<Model[]>([]);
- const [usage,setUsage]=useState<Usage[]>([]);\n const [health,setHealth]=useState<Health|null>(null);
+ const [usage,setUsage]=useState<Usage[]>([]);
+ const [health,setHealth]=useState<Health|null>(null);
  const [prompt,setPrompt]=useState("");
  const [reply,setReply]=useState("");
  const [loading,setLoading]=useState(true);
