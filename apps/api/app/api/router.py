@@ -5,13 +5,13 @@ from app.core.auth import require_auth
 router = APIRouter(prefix="/api/v1")
 
 
-def not_connected(domain: str) -> None:
+def not_implemented(domain: str) -> None:
     raise HTTPException(
-        status_code=503,
+        status_code=501,
         detail={
-            "code": "DOMAIN_DATA_NOT_CONNECTED",
+            "code": "DOMAIN_NOT_IMPLEMENTED",
             "domain": domain,
-            "message": "Authoritative backend and Supabase persistence are not connected for this domain yet.",
+            "message": "This domain does not yet expose a dedicated canonical FastAPI surface.",
         },
     )
 
@@ -21,57 +21,19 @@ def domain_router(path: str, domain: str) -> APIRouter:
 
     @child.get("")
     async def list_resource() -> None:
-        not_connected(domain)
+        not_implemented(domain)
 
     return child
 
 
+# Only domains without a dedicated canonical router are kept here.
+# Do not add a path that already has an authoritative domain router.
 for _path, _domain in [
-    ("/content", "Content"),
-    ("/feed", "Feed"),
-    ("/reels", "Reels"),
-    ("/explore", "Explore"),
-    ("/live", "Live"),
-    ("/interests", "Interests"),
-    ("/passions", "Passions"),
-    ("/habits", "Habits"),
-    ("/goals", "Goals"),
-    ("/contexts", "Contexts"),
-    ("/messages", "Messaging"),
-    ("/communities", "Communities"),
-    ("/universe", "Universe"),
-    ("/galaxies", "Galaxies"),
-    ("/worlds", "Worlds"),
-    ("/worlds/presence", "World Presence"),
-    ("/districts", "Districts"),
-    ("/booths", "Booths"),
-    ("/missions", "Missions"),
-    ("/workflows", "Workflow Engine"),
     ("/events", "Events"),
-    ("/collaboration", "AI Collaboration"),
-    ("/marketplace", "Marketplace"),
-    ("/commerce", "Commerce"),
-    ("/orders", "Orders"),
     ("/transactions", "Transactions"),
-    ("/payouts", "Payouts"),
-    ("/plans", "Plans"),
-    ("/features", "Features"),
-    ("/entitlements", "Entitlements"),
-    ("/billing", "Billing"),
-    ("/credits", "Credits"),
-    ("/ai/providers", "AI Providers"),
-    ("/ai/model-router", "Model Router"),
-    ("/ai/policies", "AI Policies"),
-    ("/security", "Security"),
-    ("/risk", "Risk"),
-    ("/moderation", "Moderation"),
     ("/reports", "Reports"),
-    ("/audit-logs", "Audit Logs"),
-    ("/feature-flags", "Feature Flags"),
-    ("/system-settings", "System Settings"),
     ("/localization", "Localization"),
-    ("/analytics", "Analytics"),
-    ("/observability", "Observability"),
+    ("/system-settings", "System Settings"),
     ("/e2e-qa", "E2E QA"),
 ]:
     router.include_router(domain_router(_path, _domain))
