@@ -16,7 +16,8 @@ type Galaxy = { id: string; name: string; slug: string; status: string };
 type World = { id: string; galaxy_id: string; name: string; slug: string; status: string; theme_key?: string | null; world_type?: string };
 type District = { id: string; world_id: string; name: string; slug: string; status: string; theme_key?: string | null };
 type Zone = { id: string; district_id: string; zone_key: string; name: string; zone_type: string; status: string };
-type Booth = { id: string; district_id: string; district_zone_id?: string | null; name: string; slug: string; status: string; theme_key?: string | null; booth_type: string };\ntype Content = { id: string; title: string | null; content_type: string; status: string };
+type Booth = { id: string; district_id: string; district_zone_id?: string | null; name: string; slug: string; status: string; theme_key?: string | null; booth_type: string };
+type Content = { id: string; title: string | null; content_type: string; status: string };
 type Manifest = { binary_3d_assets?: Array<{ id: string; signed_url?: string | null }> };
 
 export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
@@ -26,7 +27,8 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   const [zones, setZones] = useState<Zone[]>([]);
   const [booths, setBooths] = useState<Booth[]>([]);
   const [selectedBoothId, setSelectedBoothId] = useState("");
-  const [boothAssetUrls, setBoothAssetUrls] = useState<Record<string,string>>({});\n  const [content, setContent] = useState<Content[]>([]);
+  const [boothAssetUrls, setBoothAssetUrls] = useState<Record<string,string>>({});
+  const [content, setContent] = useState<Content[]>([]);
   const [galaxyId, setGalaxyId] = useState("");
   const [worldId, setWorldId] = useState("");
   const [districtId, setDistrictId] = useState("");
@@ -39,7 +41,9 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
   const [worldName, setWorldName] = useState("");
   const [districtName, setDistrictName] = useState("");
   const [zoneName, setZoneName] = useState("");
-  const [boothName, setBoothName] = useState("");\n  const [contentTitle, setContentTitle] = useState("");\n  const [contentBody, setContentBody] = useState("");
+  const [boothName, setBoothName] = useState("");
+  const [contentTitle, setContentTitle] = useState("");
+  const [contentBody, setContentBody] = useState("");
 
   const scene = useMemo<WorldScene | null>(() => theme ? normalizeWorldScene(theme.world_schema) : null, [theme]);
 
@@ -222,7 +226,11 @@ export default function ThemeSpatialSlice({ theme }: { theme: Theme | null }) {
     finally { setBusy(false); }
   }
 
-  const renderContent = content.slice(0, 16).map((item, i) => ({\n    id: item.id, title: item.title, position: { x: (i % 4) * 2.4 - 3.6, y: 2 + (i % 2) * 0.4, z: -1 + Math.floor(i / 4) * 2.2 },\n  }));\n\n  const renderBooths = booths.map((b, i) => ({
+  const renderContent = content.slice(0, 16).map((item, i) => ({
+    id: item.id, title: item.title, position: { x: (i % 4) * 2.4 - 3.6, y: 2 + (i % 2) * 0.4, z: -1 + Math.floor(i / 4) * 2.2 },
+  }));
+
+  const renderBooths = booths.map((b, i) => ({
     id: b.id, kind: "booth" as const, label: b.name,
     position: { x: (i % 4) * 3 - 4.5, y: 0, z: Math.floor(i / 4) * 3 - 3 },
     metadata: { booth_id: b.id, district_id: b.district_id, zone_id: b.district_zone_id ?? null, status: b.status, model_url: boothAssetUrls[b.id] ?? null },
