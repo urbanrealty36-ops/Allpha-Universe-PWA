@@ -349,7 +349,6 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
     return {
       id: booth.id,
       kind: "booth",
-      name: booth.name,
       position: configured,
       scale: { x: 1, y: 1, z: 1 },
       metadata: {
