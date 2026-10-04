@@ -885,7 +885,7 @@ function WorldNavigationScene({
           </div>
         </Html>
       )}
-      <mesh position={[0, -0.5, 0]>
+      <mesh position={[0, -0.5, 0]}>
         <cylinderGeometry args={[8, 8, 0.5, 64]} />
         <meshStandardMaterial color="#0b1020" metalness={0.35} roughness={0.8} />
       </mesh>
