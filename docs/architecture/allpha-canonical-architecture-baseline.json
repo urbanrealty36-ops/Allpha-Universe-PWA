@@ -1,9 +1,9 @@
 {
   "baseline_version": "1.0.0",
-  "lock_id": "ALLPHA-CANONICAL-ARCHITECTURE-BASELINE-LOCK-2026-10-04",
+  "lock_id": "ALLPHA-CW01-EVIDENCE-LOCK-2026-10-04",
   "repository": "urbanrealty36-ops/Allpha-Universe-PWA",
   "branch": "main",
-  "repository_head_at_lock": "cf5676eabb815ea1ec87e76e08f6a71bb990f4cb",
+  "repository_head_at_lock": "4aed571bf01e22da3b5de74ad08de35dfcb4a5c1",
   "supabase": {
     "project": "AllphaDb-Universe",
     "ref": "qltbacemtvnuzqkterly",
