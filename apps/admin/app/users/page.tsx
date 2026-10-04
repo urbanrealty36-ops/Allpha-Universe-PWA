@@ -1,15 +1,14 @@
-export default function Page() {
-  return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Identity</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Users</h1>
-        <p className="mt-4 max-w-2xl text-slate-300">User administration</p>
-        <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-sm font-medium text-slate-200">No records returned</p>
-          <p className="mt-2 text-sm text-slate-400">This control-plane surface will render only authoritative API data. No synthetic records are shown.</p>
-        </section>
-      </div>
-    </main>
-  );
+"use client";
+import {useEffect,useState} from "react";
+import {apiFetch} from "../../lib/api";
+export default function Page(){
+ const [rows,setRows]=useState<any[]>([]),[selected,setSelected]=useState<any|null>(null),[q,setQ]=useState(""),[status,setStatus]=useState(""),[error,setError]=useState<string|null>(null),[busy,setBusy]=useState(false);
+ async function load(){setBusy(true);setError(null);try{const p=new URLSearchParams({limit:"50",offset:"0"});if(q)p.set("q",q);if(status)p.set("status",status);const r=await apiFetch<{data:any}>("/api/v1/admin/control-plane/domains/users?"+p.toString());setRows(r.data?.items??[])}catch(e){setError(e instanceof Error?e.message:"ADMIN_USERS_LOAD_FAILED")}finally{setBusy(false)}}
+ useEffect(()=>{void load()},[]);
+ return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-[1700px]"><p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Identity · Phase 27D</p><h1 className="mt-3 text-4xl font-semibold">Users</h1><p className="mt-3 max-w-4xl text-slate-400">Read-only operational detail over the canonical user domain. No user records are fabricated.</p>
+ <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-4"><div className="grid gap-3 md:grid-cols-[1fr_220px_auto]"><input value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void load()}} placeholder="Search user…" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3"/><input value={status} onChange={e=>setStatus(e.target.value)} placeholder="Status" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3"/><button onClick={()=>void load()} className="rounded-xl bg-cyan-300 px-5 py-3 font-semibold text-slate-950">Search</button></div></section>
+ {error&&<div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm">{error}</div>}
+ <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="border-b border-white/10 text-left text-xs text-slate-500"><tr><th className="px-5 py-4">ID</th><th>Name</th><th>Username</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody>{rows.length===0?<tr><td colSpan={6} className="px-5 py-12 text-center text-slate-500">{busy?"Loading…":"No authoritative user records returned."}</td></tr>:rows.map((x:any,i:number)=><tr key={x.id??i} className="border-t border-white/5"><td className="px-5 py-4 font-mono text-xs">{x.id??"—"}</td><td>{x.display_name??x.name??"—"}</td><td>{x.username??x.handle??"—"}</td><td>{x.status??"—"}</td><td className="text-xs text-slate-500">{x.created_at?new Date(x.created_at).toLocaleString("id-ID"):"—"}</td><td><button onClick={()=>setSelected(x)} className="rounded-lg border border-cyan-300/30 px-3 py-2 text-xs">Details</button></td></tr>)}</tbody></table></div></section>
+ {selected&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={()=>setSelected(null)}><section className="max-h-[85vh] w-full max-w-3xl overflow-auto rounded-2xl border border-white/10 bg-slate-950 p-6" onClick={e=>e.stopPropagation()}><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Authoritative record</p><h2 className="mt-2 text-2xl font-semibold">User detail</h2></div><button onClick={()=>setSelected(null)} className="rounded-lg border border-white/10 px-3 py-2 text-sm">Close</button></div><pre className="mt-6 overflow-x-auto rounded-xl border border-white/10 bg-white/[0.03] p-4 text-xs text-slate-300">{JSON.stringify(selected,null,2)}</pre></section></div>}
+ </div></main>;
 }
