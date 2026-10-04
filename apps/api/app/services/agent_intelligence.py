@@ -247,9 +247,7 @@ async def agent_intelligence_on_content(
     )
     prompt = _prompt_context(content, agent, rag, focus)
     if action_handoff:
-        prompt += "
-ACTION HANDOFF REQUEST (DO NOT EXECUTE):
-" + json.dumps(action_handoff, ensure_ascii=False)
+        prompt += "\nACTION HANDOFF REQUEST (DO NOT EXECUTE):\n" + json.dumps(action_handoff, ensure_ascii=False)
 
     try:
         result = await generate(
