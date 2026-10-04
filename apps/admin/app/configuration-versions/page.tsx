@@ -1,2 +1,3 @@
 import AdminDomainExplorer from "../../components/admin-domain-explorer";
 export default function Page(){return <AdminDomainExplorer resource="config_versions" title="Configuration Versions" eyebrow="Governance" description="Authoritative platform configuration lifecycle from the existing control-plane RPC." columns={["id","namespace","version_no","status","created_by_user_id","published_by_user_id","published_at","created_at","updated_at"]}/>
+}
