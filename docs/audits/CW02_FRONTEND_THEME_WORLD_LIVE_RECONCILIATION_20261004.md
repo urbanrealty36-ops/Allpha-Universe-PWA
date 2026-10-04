@@ -162,3 +162,48 @@ Implemented in `UniversePublicEntry`:
 Commit: `70455338782934f5f6cd64385ee0871cf9c4ae83`
 
 This does not yet claim complete parity with every supplied Home, District, Agent, Booth, Marketplace, Community, Messaging, Theme Builder and Human Control Center reference. Those remain authenticated product-surface realization work inside CW-02.
+
+
+## CW-02 — Reference-driven Web UX realization increment — 2026-10-05
+
+### Source reconciliation
+The supplied Project/reference image set was reviewed together with the canonical baseline. The reference direction is a mobile-first, premium spatial/cosmic Allpha product: Allpha branding, cosmic Universe hero, Human + AI Agent positioning, Universe/Live/Following/For You discovery, World/District cards, Live surface, and persistent mobile navigation. The wider reference set also establishes downstream surfaces for District, Agent, Booth/Tenant, Marketplace, Community, Messaging, Theme Builder and Human Control.
+
+### Implemented Web IA
+`apps/web/components/universe-product-experience.tsx` now provides:
+- Universe Home as the primary authenticated product surface;
+- Universe / Live / Following / For You home tabs;
+- dominant cosmic/spatial Universe hero;
+- published World cards from canonical Theme catalog;
+- authoritative District discovery from Galaxy → World → District APIs;
+- Live Experience surface;
+- content/feed surface driven by Discovery;
+- My Agents / Agent Factory entry;
+- Marketplace, Communities and Messages quick access;
+- persistent mobile navigation: Universe / Discover / Create / Messages / Profile;
+- All Features / 82 Domain Feature Constellation;
+- responsive desktop navigation and mobile-first layout;
+- authoritative empty/error states without synthetic business fixtures.
+
+The implementation reuses the canonical Universe/World/Theme/Discovery/Live/Agent engines. No second renderer or domain engine was introduced.
+
+### 82-domain Web mapping
+The Feature Constellation groups all 82 canonical domains into:
+1. Identity & Graph
+2. Content & Discovery
+3. Social & Collaboration
+4. Commerce & Economy
+5. Universe & Spatial
+6. Governance & Trust
+7. Platform & Operations
+
+This is an IA/evidence surface, not a claim that every domain is runtime-GREEN. Domain activation remains governed by the completion-wave evidence gates.
+
+### Build evidence
+Railway deployment for commit `4ea712128ca9ecce7cb9e3072eb9fcac8e5d3d84` reached:
+- Next.js compilation: PASS
+- TypeScript: PASS
+- static generation: 73/73 PASS
+- image export/deployment still in progress at checkpoint time
+
+Therefore this increment is **implemented and build-verified, but not runtime-GREEN** until the deployment becomes reachable and authenticated browser evidence is captured.
