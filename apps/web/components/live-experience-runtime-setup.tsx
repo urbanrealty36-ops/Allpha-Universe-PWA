@@ -132,6 +132,95 @@ export default function LiveExperienceRuntimeSetup() {
     if (sessionId) void loadSessionRuntime(sessionId);
   }, [sessionId]);
 
+  // Runtime transport authorization is a projection of the existing Live
+  // workflow. It only refreshes canonical state and never grants/revokes
+  // domain authorization itself. The WebRTC hook reacts to the derived gate.
+  useEffect(() => {
+    if (!sessionId) return;
+    let disposed = false;
+    let expiryTimer: ReturnType<typeof window.setTimeout> | null = null;
+
+    const clearExpiryTimer = () => {
+      if (expiryTimer !== null) {
+        window.clearTimeout(expiryTimer);
+        expiryTimer = null;
+      }
+    };
+
+    const schedulePresenceExpiry = (nextPresence: PresenceCheck | null) => {
+      clearExpiryTimer();
+      const expiresAt = nextPresence?.expires_at ? Date.parse(nextPresence.expires_at) : NaN;
+      if (!Number.isFinite(expiresAt)) return;
+
+      const delay = Math.max(0, expiresAt - Date.now());
+      expiryTimer = window.setTimeout(() => {
+        if (disposed) return;
+        // Local runtime projection only: once the canonical expiry timestamp
+        // has passed, force the transport gate closed even before the next API
+        // response arrives. This does not mutate the database authorization.
+        setPresence((current) => current ? { ...current, verification_status: "expired" } : current);
+        setMessage("Presence verification telah kedaluwarsa; WebRTC transport ditutup sampai Presence/Presentation kembali authorized.");
+        void refreshAuthorization();
+      }, delay + 25);
+    };
+
+    async function refreshAuthorization() {
+      try {
+        const [sessionResponse, presenceResponse, presentationResponse, cameraResponse] = await Promise.all([
+          apiFetch<{ data: Session[] }>("/api/v1/live/sessions?limit=100"),
+          apiFetch<{ data: PresenceCheck | null }>(`/api/v1/live/sessions/${sessionId}/presence-check`),
+          apiFetch<{ data: { active: boolean; presentation?: { status?: string } | null } }>(`/api/v1/live/sessions/${sessionId}/human-presentation-runtime`),
+          apiFetch<{ data: CameraSource | null }>(`/api/v1/live/sessions/${sessionId}/camera`),
+        ]);
+        if (disposed) return;
+
+        const nextSessions = sessionResponse.data ?? [];
+        const nextSession = nextSessions.find((item) => item.id === sessionId) ?? null;
+        setSessions(nextSessions);
+
+        const rawPresence = presenceResponse.data ?? null;
+        const expiresAt = rawPresence?.expires_at ? Date.parse(rawPresence.expires_at) : NaN;
+        const nextPresence = rawPresence && Number.isFinite(expiresAt) && expiresAt <= Date.now()
+          ? { ...rawPresence, verification_status: "expired" }
+          : rawPresence;
+
+        setPresence(nextPresence);
+        setHumanPresentationRuntime(presentationResponse.data ?? null);
+        setCamera(cameraResponse.data ?? null);
+        schedulePresenceExpiry(nextPresence);
+
+        if (
+          nextSession?.status !== "live" ||
+          presentationResponse.data?.active !== true ||
+          nextPresence?.verification_status !== "verified" ||
+          cameraResponse.data?.status !== "active" ||
+          cameraResponse.data?.permission_status !== "granted"
+        ) {
+          // No workflow mutation here. The derived boolean below becomes false
+          // and the WebRTC hook deterministically closes peers + signaling.
+          return;
+        }
+      } catch {
+        // A transient refresh failure must not grant transport authorization.
+        // The last canonical state remains visible until the next refresh.
+      }
+    }
+
+    void refreshAuthorization();
+    const interval = window.setInterval(() => void refreshAuthorization(), 5000);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshAuthorization();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+      clearExpiryTimer();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [sessionId]);
+
   async function loadBase() {
     try {
       const [sessionResponse, themeResponse, costumeResponse] = await Promise.all([
@@ -264,6 +353,7 @@ export default function LiveExperienceRuntimeSetup() {
     selectedSession?.status === "live" &&
     humanPresentationRuntime?.active === true &&
     presence?.verification_status === "verified" &&
+    (!presence.expires_at || Date.parse(presence.expires_at) > Date.now()) &&
     camera?.status === "active" &&
     camera?.permission_status === "granted";
 
