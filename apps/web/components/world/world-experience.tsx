@@ -266,7 +266,7 @@ function PanelContent({ tab, districts, agents, content, portals, presence, worl
       <p className="text-[8px] uppercase tracking-[0.24em] text-cyan-200/50">People & Agents</p>
       <h3 className="mt-1 text-xl font-semibold">Agents in this World</h3>
       <div className="mt-4 space-y-2">{agents.length ? agents.map((agent) => (
-        <a key={agent.id} href={agent.agent_id ? `/agents/${agent.agent_id}?world_id=${encodeURIComponent(worldId)}&source_surface=world` : "/agents"} className="block rounded-2xl border border-white/[0.08] bg-black/15 p-3 hover:border-cyan-200/20">
+        <a key={agent.id} href={agent.agent_id ? `/agents/${agent.agent_id}?world_id=${encodeURIComponent(worldId || "")}&source_surface=world` : "/agents"} className="block rounded-2xl border border-white/[0.08] bg-black/15 p-3 hover:border-cyan-200/20">
           <div className="flex items-center justify-between gap-2"><span className="text-xs font-medium">{agent.name ?? agent.handle ?? "Agent"}</span><span className="text-[8px] text-emerald-200/55">{agent.status ?? agent.runtime_state ?? "linked"}</span></div>
           <p className="mt-1 text-[9px] text-white/30">{agent.presence_role ?? "resident"}</p>
         </a>
