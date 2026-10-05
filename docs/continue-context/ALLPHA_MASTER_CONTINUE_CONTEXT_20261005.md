@@ -82,9 +82,9 @@ The previous 25-theme GLB pack is treated as V1 placeholder/proof-of-contract ge
 
 The target is:
 
-**25 themes × 14 canonical visual categories = 350 theme-aware asset recipes/templates**
+**25 themes × 14 canonical visual categories = 350 theme-aware real 3D visual templates**
 
-This is a FOUNDATION/FACTORY track first. Do not claim that 350 production-quality GLBs already exist.
+The supplied 25-theme GLB pack is classified as legacy blockout/prototype geometry. The current implementation now contains a real theme-aware procedural 3D realization layer for all 350 combinations. Do not claim that 350 binary production GLBs are already stored/activated; binary export and manifest activation remain a later lifecycle step.
 
 ---
 
@@ -742,6 +742,28 @@ Use existing:
 - CharacterAnimationSignal.
 
 Do NOT create a second Live engine.
+
+## 3D-V2.10R — REAL 3D ASSET GENERATION & REALIZATION
+**IMPLEMENTED / RUNTIME VISUAL QA PENDING**
+
+Mission:
+Replace the legacy flat/blockout GLB source with a genuine theme-aware 3D realization layer before binary asset activation.
+
+Implemented:
+- canonical renderer continues through AllphaWorldRenderer;
+- `apps/web/components/world/theme-v2-real-3d-asset.tsx` provides real Three.js geometry realization;
+- all 25 canonical themes have distinct geometry motifs;
+- all 14 canonical categories are realized;
+- 25 × 14 = 350 deterministic theme/category combinations;
+- public Universe hero no longer uses the legacy GLB pack as its primary visual source;
+- reduced motion and low-power paths are preserved;
+- legacy ThemeV2SpatialScene remains only as a compatibility wrapper.
+
+Boundary:
+This phase implements Generate + Realize. It does not claim 350 binary GLBs have been stored in Supabase. Binary export, validation, moderation, storage, manifest activation and runtime QA remain required before final V2 cutover.
+
+Acceptance:
+No flat wireframe globe, no color-only theme variation, real depth, theme-specific geometry, spatial hierarchy and mobile-safe composition.
 
 ## 3D-V2.09 — Portal / Navigation / Spatial FX V2
 **PENDING**
