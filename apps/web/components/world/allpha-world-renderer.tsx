@@ -706,6 +706,8 @@ function WorldObjects({
   </>;
 }
 
+import { SpatialMotionLayer } from "./spatial-motion-v2";
+
 export default function AllphaWorldRenderer({
   scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null,agentCharacterAsset,agentCharacterPerformance,
   liveStageMode,
@@ -727,6 +729,7 @@ export default function AllphaWorldRenderer({
   return <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-black">
     <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}} onCreated={({ gl }) => configureCinematicRenderer(gl, lowPower)}>
       <Cinematic3DScene themeKey={themeKey} layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion}>
+      <SpatialMotionLayer layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion} />
       
       <PerspectiveCamera makeDefault position={goldenLayer ? (goldenLayer === "universe" ? [0, 6.2, 15.5] : goldenLayer === "galaxy" ? [0, 5.4, 13.2] : [0, 4.8, 11.2]) : [14,11,14]} fov={goldenLayer ? (goldenLayer === "universe" ? 48 : 50) : 58}/>
       <ambientLight intensity={.22}/>
