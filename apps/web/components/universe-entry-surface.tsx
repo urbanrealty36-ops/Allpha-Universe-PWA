@@ -111,15 +111,7 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
         <div className="allpha-public-stars" />
         <div className="allpha-public-nebula nebula-left" />
         <div className="allpha-public-nebula nebula-right" />
-        <div className="allpha-public-orbit orbit-a" />
-        <div className="allpha-public-orbit orbit-b" />
-        <div className="allpha-public-orbit orbit-c" />
-        <div className="allpha-public-orbit orbit-d" />
-        <div className="allpha-public-core">
-          <div className="core-halo" />
-          <div className="core-surface" />
-          <div className="core-atmosphere" />
-        </div>
+        {/* Theme V2 owns the spatial 3D scene. CSS orbit/core placeholders are intentionally removed. */}
         <div className="allpha-public-node public-node-galaxy"><b>✦</b><span>GALAXY</span></div>
         <div className="allpha-public-node public-node-world"><b>◈</b><span>WORLD</span></div>
         <div className="allpha-public-node public-node-district"><b>◇</b><span>DISTRICT</span></div>
