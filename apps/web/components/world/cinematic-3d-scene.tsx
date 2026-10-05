@@ -1,7 +1,7 @@
 "use client";
 
 import { ContactShadows, Float, Sparkles, Stars } from "@react-three/drei";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { ALLPHA_3D_THEME_PROFILES } from "../../../../packages/design-tokens/3d-visual-language";
