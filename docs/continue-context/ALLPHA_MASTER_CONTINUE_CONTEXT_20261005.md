@@ -567,7 +567,7 @@ Mission:
 
 The project is CURRENTLY at:
 
-# **3D-V2.06 — WORLD / DISTRICT / BOOTH V2**
+# **3D-V2.07 — CAPSULE / CONTENT / FEED UNIVERSE V2**
 
 Status:
 **IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING**
@@ -1368,11 +1368,11 @@ State exact next phase and why.
 At the time of this handoff:
 
 ### CURRENT
-**3D-V2.06 — World / District / Booth V2**
-Implemented as foundation.
+**3D-V2.07 — Capsule / Content / Feed Universe V2**
+Implemented as presentation foundation; build/runtime visual validation remains pending.
 
 ### NEXT
-**3D-V2.07 — Capsule / Content / Feed Universe V2**
+**3D-V2.08 — Live / Human Live / Stage V2**
 
 Then:
 
