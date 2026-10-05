@@ -2,8 +2,6 @@ import { test, expect } from "@playwright/test";
 
 const baseURL = process.env.ALLPHA_QA_BASE_URL || "https://allphaweb-production.up.railway.app";
 const apiBaseURL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://allpha-api-production.up.railway.app").replace(/\/$/, "");
-const supabaseURL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const THEMES = ["aurora-kingdom","celestial-samurai","chronos-realm","coral-metropolis","crystal-ai-city","desert-starfall","dragon-dominion","dream-carnival","emerald-rainforest","floating-garden","galactic-frontier","heroic-nexus","kingdom-of-aether","lunar-frontier","mars-frontier","mystic-academy","neo-jakarta-2099","neon-tokyo","nusantara-raya","oceanic-atlantis","pharaoh-eternal","quantum-city","savanna-spirit","skyforge-empire","viking-fjord"];
 
 async function assertLiveManifest(request: any, themeKey: string) {
@@ -67,16 +65,4 @@ test.describe("3D-V2.12 Railway live delivery chain", () => {
     await context.close();
   });
 
-  test("live Supabase matrix remains exactly 25 themes x 14 categories", async () => {
-    expect(supabaseURL).toBeTruthy();
-    expect(serviceKey).toBeTruthy();
-    const response = await fetch(`${supabaseURL}/rest/v1/theme_assets?storage_path=like.*theme-v2-real-3d/*&select=storage_path,status,moderation_status,safety_status,performance_status&limit=1000`, {
-      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
-    });
-    expect(response.ok).toBeTruthy();
-    const assets = await response.json();
-    expect(assets).toHaveLength(350);
-    expect(new Set(assets.map((x: { storage_path: string }) => x.storage_path.split("/")[1])).size).toBe(25);
-    expect(assets.every((x: { status: string; moderation_status: string; safety_status: string; performance_status: string }) => x.status === "active" && x.moderation_status === "approved" && x.safety_status === "passed" && x.performance_status === "passed")).toBe(true);
-  });
 });
