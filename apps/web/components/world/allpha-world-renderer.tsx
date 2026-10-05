@@ -624,7 +624,6 @@ function WorldObjects({
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
   spatialObjects:DistrictSpatialObject[];
   selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"]; liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState;
-  liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState;
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
   const primary=String(tokens?.["theme.color.primary"]??style.accent);
