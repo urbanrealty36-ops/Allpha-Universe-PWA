@@ -354,3 +354,35 @@ Pending:
 - CW-02 remains OPEN / ACTIVATING / NOT GREEN
 
 Next canonical phase: WEB-16 — Create Experience.
+
+
+## WEB-16 completion handoff — 2026-10-05
+
+WEB-15 Railway verification is complete:
+- Web deployment 3caf03ef-c805-46e6-9a09-15547b487292 — SUCCESS
+- API deployment 1df24aec-f899-4515-8409-7c6054140fa8 — SUCCESS
+- Commit e2f3c83f4cb73c4a6ae336beb5eb5dd5704f2574
+
+WEB-16 Create Experience source implementation is complete.
+
+Route:
+- /create
+
+Implementation:
+- apps/web/components/create-experience.tsx
+- apps/web/app/create/page.tsx
+- apps/web/components/universe-product-experience.tsx
+- apps/web/components/agent-factory.tsx
+
+The /create surface is the single Create hub for existing canonical builders: Agent, Content, Live, World, Theme, Booth, Community and Workflow/Mission. It carries an optional context navigation hint and explicitly states that context does not grant authority.
+
+The previous /create route rendered the generic Content Platform. That was reconciled so /content remains the Content Platform and /create is now the dedicated Create Experience.
+
+No new engine, database schema, migration, renderer or authority layer was added.
+
+Pending validation:
+- Railway web build + deployment
+- browser/device visual QA
+- authenticated E2E
+
+Next canonical phase: WEB-17 — My Agent.
