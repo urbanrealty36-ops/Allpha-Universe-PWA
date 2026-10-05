@@ -1,0 +1,67 @@
+name: 3D-V2.12 Runtime Visual QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "apps/web/**"
+      - "apps/api/**"
+      - "scripts/3d/**"
+      - "docs/audits/3D_V2_12_FULL_THEME_V2_RUNTIME_VISUAL_QA_20261005.md"
+      - ".github/workflows/3d-v2-12-qa.yml"
+
+jobs:
+  contract-and-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run V2.12 static contract harness
+        run: pnpm qa:3d:v2.12
+      - name: Run V2.12 live Supabase harness
+        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: pnpm qa:3d:v2.12 -- --live
+      - name: Upload QA report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-12-contract-report
+          path: 3d-v2-12-qa-report.json
+
+  browser-visual:
+    runs-on: ubuntu-latest
+    needs: contract-and-supabase
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Runtime visual QA
+        env:
+          ALLPHA_QA_BASE_URL: https://allphaweb-production.up.railway.app
+        run: pnpm exec playwright test tests/3d-v2-12-runtime-visual.spec.ts --reporter=line
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-12-browser-evidence
+          path: |
+            test-results/**
+            playwright-report/**
+          if-no-files-found: warn
