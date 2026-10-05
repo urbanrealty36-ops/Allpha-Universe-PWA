@@ -1,5 +1,7 @@
 """Ask the Content orchestration boundary.
 
+WEB-15 deployment marker: canonical Ask Content service remains behind the existing AI Gateway.
+
 Connects an authenticated Content context to permission-scoped optional Agent
 Memory/Knowledge retrieval and the canonical AI Gateway. It never executes an
 Agent action. Action requests are returned as an explicit Agent Runtime
