@@ -1,8 +1,8 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.dependencies import get_auth_context
-from app.core.storage import SupabaseStorageError, create_signed_download_url
-from app.core.supabase_rest import SupabaseRestError, select
+from app.core.storage import SupabaseStorageError, create_service_signed_download_url, create_signed_download_url
+from app.core.supabase_rest import SupabaseRestError, select, service_select
 
 router=APIRouter(prefix="/api/v1/themes/world-runtime",tags=["Allpha World Engine"])
 
@@ -45,6 +45,63 @@ async def runtime_catalog(context:dict=Depends(get_auth_context)):
             "live_templates": [x for x in live if x.get("catalog_order")==theme.get("catalog_order")],
         })
     return {"data":result}
+
+@router.get("/public/themes/{theme_key}/asset-manifest")
+async def public_theme_asset_manifest(theme_key: str):
+    """Public read-only manifest for published, verified platform 3D presentation assets."""
+    try:
+        themes = await service_select(
+            "themes",
+            {
+                "select": "id,name,slug,source,status,moderation_status,catalog_key",
+                "source": "eq.platform",
+                "status": "eq.published",
+                "moderation_status": "eq.approved",
+                "or": f"(slug.eq.{theme_key},catalog_key.eq.{theme_key})",
+                "limit": "1",
+            },
+        )
+        if not themes:
+            raise HTTPException(404, detail={"code": "PUBLIC_THEME_NOT_FOUND"})
+        theme = themes[0]
+        assets = await service_select(
+            "theme_assets",
+            {
+                "select": "id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,metadata,sort_order,status,moderation_status,safety_status,performance_status,content_size_bytes,checksum_sha256,uploaded_at",
+                "theme_id": f"eq.{theme['id']}",
+                "asset_type": "in.(3d_scene,model)",
+                "status": "eq.active",
+                "moderation_status": "eq.approved",
+                "safety_status": "eq.passed",
+                "performance_status": "eq.passed",
+                "order": "sort_order.asc",
+            },
+        )
+        manifest = []
+        for asset in assets:
+            signed_url = None
+            if asset.get("storage_bucket") and asset.get("storage_path"):
+                try:
+                    signed_url = await create_service_signed_download_url(
+                        asset["storage_bucket"], asset["storage_path"], 900
+                    )
+                except SupabaseStorageError:
+                    signed_url = None
+            manifest.append({**asset, "signed_url": signed_url})
+        binary_3d = [item for item in manifest if item.get("signed_url")]
+        return {
+            "data": {
+                "theme": theme,
+                "storage_bucket": WORLD_ASSET_BUCKET,
+                "assets": manifest,
+                "binary_3d_assets": binary_3d,
+                "has_binary_3d_pack": bool(binary_3d),
+                "presentation_only": True,
+                "public": True,
+            }
+        }
+    except SupabaseRestError as e:
+        raise err(e, "WORLD_RUNTIME_PUBLIC_THEME_ASSET_MANIFEST_FAILED")
 
 @router.get("/themes/{theme_id}/asset-manifest")
 async def theme_asset_manifest(theme_id:str,context:dict=Depends(get_auth_context)):
