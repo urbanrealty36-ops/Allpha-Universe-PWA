@@ -6,6 +6,7 @@ import ImmersiveUniverseShell from "./universe/immersive-universe-shell";
 import SpatialUniverseChrome from "./universe/spatial-universe-chrome";
 import { UniverseSplash } from "./identity/universe-identity-experience";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
+import PublicUniverse3D from "./public-universe-3d";
 
 type EntryState = "loading" | "splash" | "anonymous" | "authenticated";
 
@@ -106,7 +107,7 @@ function UniverseLoadingState() {
 function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
   return (
     <main className="allpha-public-universe">
-      <div className="allpha-public-cosmos" aria-hidden="true">
+      <div className="allpha-public-cosmos" aria-hidden="true"><PublicUniverse3D variant="universe"/>
         <div className="allpha-public-stars" />
         <div className="allpha-public-nebula nebula-left" />
         <div className="allpha-public-nebula nebula-right" />
