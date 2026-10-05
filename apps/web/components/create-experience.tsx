@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 type ContextKey = "universe" | "world" | "district" | "booth" | "content" | "live" | "personal";
 
@@ -26,12 +25,23 @@ const options = [
   ["workflow","Orchestration","Workflow / Mission","Continue into the existing governed Workflow and Mission surfaces.","Workflow Surface","/workflows"],
 ] as const;
 
-const accents = ["cyan","violet","rose","blue","indigo","amber","emerald","purple"];
+const optionClasses = [
+  "border-cyan-300/20 bg-cyan-300/[.035] hover:border-cyan-300/40",
+  "border-violet-300/20 bg-violet-300/[.035] hover:border-violet-300/40",
+  "border-rose-300/20 bg-rose-300/[.035] hover:border-rose-300/40",
+  "border-blue-300/20 bg-blue-300/[.035] hover:border-blue-300/40",
+  "border-indigo-300/20 bg-indigo-300/[.035] hover:border-indigo-300/40",
+  "border-amber-300/20 bg-amber-300/[.035] hover:border-amber-300/40",
+  "border-emerald-300/20 bg-emerald-300/[.035] hover:border-emerald-300/40",
+  "border-purple-300/20 bg-purple-300/[.035] hover:border-purple-300/40",
+];
 
 export default function CreateExperience(){
-  const params=useSearchParams();
-  const requested=params.get("context") as ContextKey|null;
-  const [context,setContext]=useState<ContextKey>(contexts.some(x=>x.key===requested)?requested!:"universe");
+  const [context,setContext]=useState<ContextKey>("universe");
+  useEffect(()=>{
+    const requested=new URLSearchParams(window.location.search).get("context") as ContextKey|null;
+    if(requested && contexts.some(x=>x.key===requested)) setContext(requested);
+  },[]);
   const active=useMemo(()=>contexts.find(x=>x.key===context)??contexts[0],[context]);
   const withContext=(href:string)=>href+(href.includes("?")?"&":"?")+"context="+encodeURIComponent(context);
 
@@ -58,7 +68,7 @@ export default function CreateExperience(){
         <p className="text-[9px] uppercase tracking-[.3em] text-violet-200/55">02 · Experience</p>
         <h2 className="mt-2 text-2xl font-semibold">What do you want to create?</h2>
         <p className="mt-2 max-w-3xl text-xs leading-5 text-white/35">These cards enter capabilities that already exist. Create Experience does not duplicate Content, Agent, Live, World, Theme, Booth, Community or Workflow engines.</p>
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">{options.map((o,i)=><a key={o[0]} href={withContext(o[6])} className={`group min-h-[235px] rounded-[28px] border border-${accents[i]}-300/20 bg-${accents[i]}-300/[.035] p-5 transition hover:-translate-y-0.5 hover:border-${accents[i]}-300/40`}><div className="flex items-center justify-between"><span className="rounded-full border border-white/[.08] px-2.5 py-1.5 text-[8px] uppercase tracking-[.16em] text-white/40">{o[1]}</span><span className="text-white/25 group-hover:text-white/70">↗</span></div><h3 className="mt-7 text-xl font-semibold">{o[2]}</h3><p className="mt-3 text-xs leading-5 text-white/38">{o[3]}</p><div className="mt-7 flex items-center justify-between border-t border-white/[.07] pt-4"><span className="text-[9px] uppercase tracking-[.16em] text-white/25">{o[5]}</span><span className="text-[9px] text-cyan-100/55">Open builder →</span></div></a>)}</div>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">{options.map((o,i)=><a key={o[0]} href={withContext(o[6])} className={`group min-h-[235px] rounded-[28px] border p-5 transition hover:-translate-y-0.5 ${optionClasses[i]}`}><div className="flex items-center justify-between"><span className="rounded-full border border-white/[.08] px-2.5 py-1.5 text-[8px] uppercase tracking-[.16em] text-white/40">{o[1]}</span><span className="text-white/25 group-hover:text-white/70">↗</span></div><h3 className="mt-7 text-xl font-semibold">{o[2]}</h3><p className="mt-3 text-xs leading-5 text-white/38">{o[3]}</p><div className="mt-7 flex items-center justify-between border-t border-white/[.07] pt-4"><span className="text-[9px] uppercase tracking-[.16em] text-white/25">{o[5]}</span><span className="text-[9px] text-cyan-100/55">Open builder →</span></div></a>)}</div>
       </section>
 
       <section className="mt-10 grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
