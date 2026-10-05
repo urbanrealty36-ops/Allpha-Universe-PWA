@@ -13,6 +13,7 @@ import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema"
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
 import type { CharacterAnimationSignal } from "../../lib/live-character-animation";
 import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/live-character-v2";
+import { ThemeV2SpatialScene } from "./theme-v2-spatial-scene";
 
 type SpatialPresence = {
   id: string;
