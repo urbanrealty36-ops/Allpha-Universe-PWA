@@ -146,10 +146,10 @@ The next binary activation phase must still perform:
 The new renderer uses actual Three.js geometry with theme-specific structural motifs rather than the old box/cone placeholder world.
 
 ### Railway build
-**PENDING OBSERVATION AFTER THIS CHANGE**
+**SUCCESS** — deployment `b5668797-8622-4d0b-b824-dd59e7a1a827`, commit `a62894e4aa23696f6c52334fb5a7732006f10268`.
 
 ### Browser/device visual QA
-**PENDING**
+**PENDING** — source/build/deployment evidence is green, but actual device/browser visual acceptance has not been performed in this conversation.
 
 ### Production GREEN
 **NOT CLAIMED**
