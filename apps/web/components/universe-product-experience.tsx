@@ -384,7 +384,7 @@ function UniverseHome({
         </section>
 
         <section>
-          <SectionHeader eyebrow="Feed" title={tab === "for_you" ? "For You" : tab === "following" ? "Following" : "What is alive"} action="Discover" onClick={() => window.location.assign("/universe")} />
+          <SectionHeader eyebrow="Feed" title={tab === "for_you" ? "For You" : tab === "following" ? "Following" : "What is alive"} action="Open Moments Galaxy" onClick={() => window.location.assign("/moments")} />
           <div className="grid gap-4 md:grid-cols-3">
             {content.slice(0, 6).map((item) => (
               <article key={item.id} className="rounded-[26px] border border-white/10 bg-white/[0.025] p-5">
