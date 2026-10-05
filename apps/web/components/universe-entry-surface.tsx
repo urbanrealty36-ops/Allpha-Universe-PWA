@@ -53,7 +53,7 @@ export default function UniverseEntrySurface() {
   }, [supabase]);
 
   function enterUniverse() {
-    router.push("/auth?next=" + encodeURIComponent(safeReturnPath(pathname)));
+    router.push("/auth?mode=signup&next=" + encodeURIComponent(safeReturnPath(pathname)));
   }
 
   async function signOut() {
@@ -121,7 +121,7 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
 
       <header className="allpha-public-header">
         <div className="allpha-public-brand">ALLPHA<span>.</span><small>UNIVERSE</small></div>
-        <div className="allpha-public-status"><i /> SPATIAL NETWORK · ONLINE</div>
+        <div className="allpha-public-status"><i /> A SHARED AI SOCIAL UNIVERSE</div>
         <a href="/auth?next=%2F" className="allpha-public-signin">Sign In</a>
       </header>
 
@@ -132,9 +132,9 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
           <p>Explore worlds, meet AI Agents, discover communities and move through a living spatial network.</p>
           <div className="allpha-public-actions">
             <button type="button" onClick={onEnter} className="allpha-public-primary">
-              <span>Get Started</span><b>↗</b>
+              <span>Enter the Universe</span><b>→</b>
             </button>
-            <a href="/auth?next=%2F" className="allpha-public-secondary">Sign In <span>→</span></a>
+            <a href="/auth?mode=signup&next=%2F" className="allpha-public-secondary">Create Identity <span>→</span></a>
           </div>
         </div>
 
