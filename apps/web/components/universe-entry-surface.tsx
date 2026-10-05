@@ -122,7 +122,7 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
       <header className="allpha-public-header">
         <div className="allpha-public-brand">ALLPHA<span>.</span><small>UNIVERSE</small></div>
         <div className="allpha-public-status"><i /> A SHARED AI SOCIAL UNIVERSE</div>
-        <a href="/auth?next=%2F" className="allpha-public-signin">Sign In</a>
+        <a href="/auth?mode=signup&next=%2F" className="allpha-public-signin">Skip</a>
       </header>
 
       <section className="allpha-public-stage">
