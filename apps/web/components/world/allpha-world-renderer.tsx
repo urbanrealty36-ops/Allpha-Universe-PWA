@@ -375,7 +375,8 @@ export default function AllphaWorldRenderer({
 }: Props) {
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
-  const goldenLayer=String(scene.environment?.spatial_layer ?? "");\n  const spatialLayer=String(scene.environment?.spatial_layer ?? "");
+  const goldenLayer=String(scene.environment?.spatial_layer ?? "");
+  const spatialLayer=String(scene.environment?.spatial_layer ?? "");
   return <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-black">
     <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}}>
       <color attach="background" args={[style.sky]}/>
