@@ -480,3 +480,40 @@ Lifecycle remains:
 Art Direction → Factory Recipe → Geometry/GLB Export → Validate → Moderate → Store → Manifest → Signed URL → AllphaWorldRenderer → Runtime QA
 
 Next: 3D-V2.04 — Character / Live Character V2.
+
+
+## 3D-V2.04 — Character / Live Character V2 — 2026-10-05
+
+Status: IMPLEMENTED / CHARACTER V2 FOUNDATION / RUNTIME VISUAL QA PENDING
+
+Implementation:
+- apps/web/lib/live-character-v2.ts
+- apps/web/components/world/allpha-world-renderer.tsx
+- docs/audits/3D_V2_04_CHARACTER_LIVE_V2_20261005.md
+
+Canonical integration:
+- Existing CharacterAnimationSignal remains the animation signal boundary.
+- Existing live character runtime catalog remains authoritative for character assets.
+- Existing AllphaWorldRenderer remains the only spatial renderer.
+- Existing signed GLB asset path remains preferred when an authoritative catalog asset is available.
+- Procedural Character V2 is the mobile/reference fallback, not a new runtime.
+
+Character V2 profile:
+- derives from the existing 25 ALLPHA_3D_THEME_PROFILES
+- theme-aware silhouette, wardrobe/material and face presentation
+- gaze + viseme capability contract
+- canonical idle/listening/thinking/speaking/emphasis/greeting/acknowledge/farewell states
+- canonical animation intents
+- mobile part budget and low-power contract
+- reduced-motion preserves semantic state
+
+No new:
+- Agent Runtime
+- Live/Voice engine
+- identity/authority layer
+- spatial renderer
+- database schema
+- signed URL mechanism
+- asset activation path
+
+Next: 3D-V2.05 — Universe / Galaxy / Orbit V2.
