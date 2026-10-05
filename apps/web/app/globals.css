@@ -866,3 +866,23 @@ a { color: inherit; }
 @media(prefers-reduced-motion:reduce){
   .allpha-public-3d{opacity:.72}
 }
+
+/* V2.09 REAL 3D HERO OVERRIDE — the verified theme GLB is the spatial subject, not a background decoration. */
+.allpha-public-universe .allpha-public-3d-universe{z-index:1;opacity:1;mix-blend-mode:normal}
+.allpha-public-universe .allpha-public-cosmos{background:radial-gradient(circle at 50% 38%,rgba(37,99,235,.10),transparent 34%),linear-gradient(180deg,#02040b 0%,#02030a 70%,#010208 100%)}
+.allpha-public-universe .allpha-public-stage{z-index:8}
+.allpha-public-universe .allpha-public-copy{background:linear-gradient(180deg,transparent,rgba(1,4,12,.72) 24%,rgba(1,4,12,.92));padding:28px 0 8px;text-shadow:0 3px 22px rgba(0,0,0,.72)}
+.allpha-public-universe .allpha-public-primary{box-shadow:0 12px 55px rgba(70,190,255,.28)}
+@media(max-width:700px){
+  .allpha-public-universe .allpha-public-stage{min-height:100svh;padding:0 18px max(98px,env(safe-area-inset-bottom));justify-content:flex-end}
+  .allpha-public-universe .allpha-public-copy{width:100%;margin:0 -18px;padding:30px 18px 12px}
+  .allpha-public-universe .allpha-public-copy h1{font-size:45px;line-height:.9}
+  .allpha-public-universe .allpha-public-copy p{max-width:350px;margin-left:auto;margin-right:auto}
+  .allpha-public-universe .allpha-public-actions{justify-content:center}
+  .allpha-public-universe .allpha-public-secondary{display:none}
+  .allpha-public-universe .allpha-public-bottom{bottom:26px;z-index:12}
+  .allpha-public-universe .allpha-public-orbit-label{display:none}
+  .allpha-public-universe .allpha-public-node{opacity:.8}
+  .allpha-public-universe .allpha-public-3d-universe{inset:4% 0 27%;opacity:1}
+  .allpha-public-universe .allpha-public-3d-universe canvas{filter:saturate(1.08) contrast(1.04)}
+}
