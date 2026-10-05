@@ -11,7 +11,9 @@
     "validate:3d:assets": "node scripts/3d/production-asset-pipeline.mjs validate",
     "manifest:3d:assets": "node scripts/3d/production-asset-pipeline.mjs manifest",
     "activate:3d:assets": "node scripts/3d/activate-production-assets.mjs --root=allpha-theme-v2-production-3d-350-pack",
-    "qa:3d:v2.12": "node scripts/3d/qa-harness-v2-12.mjs"
+    "qa:3d:v2.12": "node scripts/3d/qa-harness-v2-12.mjs",
+    "qa:3d:v2.13": "node scripts/3d/qa-v2-13-production-art.mjs",
+    "build:3d:v2.13:golden": "blender -b --python scripts/3d/blender/build_v2_13_production_art.py -- --theme crystal-ai-city --preview"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"
