@@ -191,7 +191,10 @@ Current Railway state at audit update:
 - Service: `@allpha/web`
 - Environment: production
 - Service ID: `ec936cce-d2fe-4202-83dd-e9646400f28f`
-- Deployment queue active
+- Latest observed deployment: `fe7ec407-2344-4504-b628-6656a91c4e9f`
+- Latest observed deployment status: `BUILDING`
+- Build command: `pnpm --filter @allpha/web exec next build --webpack`
+- Build has reached `Creating an optimized production build ...`
 - Latest settlement not yet verified
 
 Therefore:
