@@ -3,8 +3,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { apiFetch } from "../lib/api";
-import UniverseShell, { type UniverseShellKey } from "./universe/universe-shell";
+import { apiFetch } from "../../lib/api";
+import UniverseShell, { type UniverseShellKey } from "./universe-shell";
 
 type World = { id:string; name:string; slug:string; description?:string|null; world_type?:string|null; theme_key?:string|null; };
 type Agent = { agent_id:string; name?:string|null; handle?:string|null; description?:string|null; status?:string; };
