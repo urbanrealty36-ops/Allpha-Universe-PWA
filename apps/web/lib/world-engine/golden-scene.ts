@@ -24,7 +24,7 @@ const node = (id: string, position: Vec3, kind: string, metadata: Record<string,
 export function createGoldenScene(layer: GoldenSpatialLayer): WorldScene {
   const common = {
     schema_version: "1.0", renderer: "AllphaWorldRenderer",
-    environment: { architecture: "Crystal AI City", biome: "premium-ai-tech", spatial_layer: layer, golden_theme: GOLDEN_THEME_KEY, visual_language: "3d-v2.01", presentation_only: true },
+    environment: { architecture: "Crystal AI City", biome: "premium-ai-tech", spatial_layer: layer, golden_theme: GOLDEN_THEME_KEY, visual_language: "3d-v2.05", composition_contract: "3d-v2.05", spatial_depth: "foreground-midground-background", presentation_only: true },
     terrain: { type: "spatial-platform", presentation_only: true },
     lighting: { key: "cyan-silhouette", fill: "deep-space", accent: "violet-intelligence", presentation_only: true },
     atmosphere: { depth: "cinematic-cosmic", haze: "neural-particles", stars: true, presentation_only: true },
