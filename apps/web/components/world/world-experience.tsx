@@ -122,7 +122,7 @@ export default function WorldExperience() {
     setJoining(true);
     setError(null);
     try {
-      await apiFetch(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/join`, {
+      await apiFetch(`/api/v1/universe/worlds/${encodeURIComponent(world.id)}/join`, {
         method: "POST",
         body: JSON.stringify({ subject_type: "user" }),
       });
