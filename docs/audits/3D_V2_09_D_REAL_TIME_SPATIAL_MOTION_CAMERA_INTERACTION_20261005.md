@@ -75,3 +75,24 @@ Reduced-motion mode freezes decorative motion while retaining composition.
 ## Status
 
 **IMPLEMENTATION COMPLETE — BUILD / RUNTIME QA PENDING**
+
+
+## Railway execution evidence
+
+Final verification deployment:
+- deployment: `6824bba8-f525-412a-b19d-6b634dd1df1f`
+- commit: `7b69d4f09871d28f4c1a313e5a2d05ecaa5f96ac`
+- status: **SUCCESS**
+- region: `asia-southeast1-eqsg3a`
+
+Build evidence:
+- Next.js production compilation succeeded;
+- TypeScript verification succeeded;
+- static generation completed;
+- Railway deployment settled SUCCESS.
+
+An initial deployment exposed the expected type-export ordering issue; the layer type was exported and the subsequent renderer deployment passed.
+
+## Remaining acceptance gate
+
+Runtime browser/device visual QA remains mandatory. This phase is not final GREEN until camera motion, depth, interaction response, mobile framing, performance and reduced-motion behavior are visually verified in the running product.
