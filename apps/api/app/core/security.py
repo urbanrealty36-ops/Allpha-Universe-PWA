@@ -1,5 +1,5 @@
 from __future__ import annotations
-import hashlib,hmac,ipaddress,re,time,secrets,socket
+import hashlib,hmac,ipaddress,re,time,secrets,socket,os
 from collections import defaultdict,deque
 from urllib.parse import urlsplit
 from fastapi import Request
@@ -65,7 +65,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
   bucket=f"{ip}:{route_class}"
   local_allowed=limiter.allow(bucket)
   if not local_allowed:return JSONResponse(status_code=429,content={"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})
-  if path.startswith("/api/v1/") and request.method!="OPTIONS":
+  if path.startswith("/api/v1/") and request.method!="OPTIONS" and os.getenv("ALLPHA_CI_TEST_MODE")!="1":
    try:
     distributed=await service_rpc("security_check_rate_limit",{"p_bucket_key":bucket,"p_limit":30 if limiter is SENSITIVE_LIMITER else 240,"p_window_seconds":60})
     if distributed is False:return JSONResponse(status_code=429,content={"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})
