@@ -51,8 +51,8 @@ export function ThemeV2SpatialScene(props: {
         category={category}
         lowPower={props.lowPower}
         reducedMotion={props.reducedMotion}
+        fallback={<ThemeV2Real3DAsset {...props} />}
       />
-      <ThemeV2Real3DAsset {...props} />
     </group>
   );
 }
