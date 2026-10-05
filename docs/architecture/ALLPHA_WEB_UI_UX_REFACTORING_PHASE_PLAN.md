@@ -12,7 +12,7 @@ The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so 
 | 3D-V2.05 | Universe / Galaxy / Orbit V2 | IMPLEMENTED / SPATIAL COMPOSITION V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.06 | World / District / Booth V2 | IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.07 | Capsule / Content / Feed Universe V2 | ✅ IMPLEMENTATION COMPLETE / TYPECHECK + NEXT BUILD VERIFIED / RAILWAY DEPLOYMENT VERIFIED / RUNTIME VISUAL QA PENDING |
-| 3D-V2.08 | Live / Human Live / Stage V2 | PENDING |
+| 3D-V2.08 | Live / Human Live / Stage V2 / Human + AI Collaboration Stage | IMPLEMENTATION COMPLETE / RAILWAY BUILD VERIFICATION IN PROGRESS / RUNTIME VISUAL QA PENDING |
 | 3D-V2.09 | Portal / Navigation / Spatial FX V2 | PENDING |
 | 3D-V2.10 | 25 Theme Expansion / 350 Template Matrix | PENDING |
 | 3D-V2.11 | Manifest / Renderer Activation | PENDING |
@@ -585,6 +585,26 @@ The factory does not create GLB binaries, mutate Supabase, issue signed URLs, ac
 
 Next: 3D-V2.04 — Character / Live Character V2.
 
+
+### 3D-V2.08 implementation checklist
+- [x] Live Collaboration Stage V2 presentation contract
+- [x] Human presenter stage actor presentation
+- [x] AI Agent stage actor presentation
+- [x] Human ↔ AI Agent collaboration state visualization
+- [x] Existing CharacterAnimationSignal integration preserved
+- [x] Existing Live Stage asset binding preserved
+- [x] Existing Human Presentation runtime binding preserved
+- [x] Existing collaboration consent/risk state consumed as runtime presentation input
+- [x] Canonical AllphaWorldRenderer integration
+- [x] No second renderer / Live engine / Voice engine / WebRTC engine / Agent Runtime introduced
+- [x] Authority boundary preserved
+- [ ] Railway build/deployment verification
+- [ ] Browser/device runtime visual QA
+- [ ] Authenticated E2E Live collaboration QA
+
+Audit: `docs/audits/3D_V2_08_LIVE_HUMAN_AI_COLLABORATION_STAGE_20261005.md`
+
+**Implementation phase is complete. Validation gates remain open until Railway and runtime visual QA are verified.**
 
 ### 3D-V2.07 checklist closure
 - [x] Content spatial composition contract implemented
