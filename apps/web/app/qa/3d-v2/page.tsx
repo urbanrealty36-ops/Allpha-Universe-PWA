@@ -1,8 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { WorldScene } from "../../../lib/world-engine/scene-schema";
 
 const AllphaWorldRenderer = dynamic(() => import("../../../components/world/allpha-world-renderer"), { ssr: false });
@@ -10,9 +9,13 @@ const AllphaWorldRenderer = dynamic(() => import("../../../components/world/allp
 const THEMES = ["aurora-kingdom","celestial-samurai","chronos-realm","coral-metropolis","crystal-ai-city","desert-starfall","dragon-dominion","dream-carnival","emerald-rainforest","floating-garden","galactic-frontier","heroic-nexus","kingdom-of-aether","lunar-frontier","mars-frontier","mystic-academy","neo-jakarta-2099","neon-tokyo","nusantara-raya","oceanic-atlantis","pharaoh-eternal","quantum-city","savanna-spirit","skyforge-empire","viking-fjord"] as const;
 
 export default function ThreeDV2RuntimePage() {
-  const params = useSearchParams();
-  const requested = params.get("theme") || "crystal-ai-city";
-  const themeKey = THEMES.includes(requested as (typeof THEMES)[number]) ? requested : "crystal-ai-city";
+  const [themeKey, setThemeKey] = useState<(typeof THEMES)[number]>("crystal-ai-city");
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("theme");
+    if (requested && THEMES.includes(requested as (typeof THEMES)[number])) setThemeKey(requested as (typeof THEMES)[number]);
+  }, []);
+
   const scene = useMemo<WorldScene>(() => ({
     schema_version: "1.0",
     renderer: "AllphaWorldRenderer",
