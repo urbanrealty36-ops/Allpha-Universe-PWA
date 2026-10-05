@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { PwaRuntime } from "../components/pwa/pwa-runtime";
 import "./globals.css";
+import "../styles/ui-visual-foundation.css";
 
 // V2.12 QA deployment marker: runtime visual QA is gated outside promotion.
 
@@ -24,7 +25,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id">
-      <body>
+      <body className="allpha-ui-foundation-v1" data-allpha-ui="UI-UX-01">
         <PwaRuntime />
         {children}
       </body>
