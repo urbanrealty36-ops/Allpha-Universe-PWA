@@ -733,8 +733,7 @@ export default function AllphaWorldRenderer({
       <directionalLight position={[8,14,6]} intensity={.8} castShadow={shadows}/>
       {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}\n      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
-    </Can
-      </Cinematic3DScene>
-    </Canvas>vas>
+          </Cinematic3DScene>
+    </Canvas>
   </div>;
 }
