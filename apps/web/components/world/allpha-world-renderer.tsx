@@ -674,7 +674,9 @@ function WorldObjects({
 
     {portals.map(portal=>{
       const p=portal.position??{x:0,y:.8,z:-5};
-      return <group key={portal.id} position={[p.x,p.y,p.z]} onClick={()=>onHotspot?.({id:portal.id,kind:"portal",position:p,metadata:{target_world_id:portal.target,presentation_only:true}})}><mesh rotation={[0,Math.PI/2,0]}><torusGeometry args={[.9,.11,12,48]}/><meshStandardMaterial color="#d946ef" emissive="#d946ef" emissiveIntensity={1.8}/></mesh><mesh><sphereGeometry args={[.56,20,20]}/><meshStandardMaterial color="#160d2a" emissive="#7e22ce" emissiveIntensity={.75} transparent opacity={.72}/></mesh></group>;
+      return <group key={portal.id} onClick={()=>onHotspot?.({id:portal.id,kind:"portal",position:p,metadata:{target_world_id:portal.target,presentation_only:true}})}>
+        <SpatialPortalFx mode="portal" layer={spatialLayer as any} color={accent} secondaryColor={style.secondary} lowPower={lowPower} reducedMotion={reducedMotion} position={[p.x,p.y,p.z]} onActivate={()=>onHotspot?.({id:portal.id,kind:"portal",position:p,metadata:{target_world_id:portal.target,presentation_only:true}})} />
+      </group>;
     })}
 
     {spatialObjects.map((object,i)=>{
@@ -707,6 +709,7 @@ function WorldObjects({
 }
 
 import { SpatialMotionLayer } from "./spatial-motion-v2";
+import { SpatialPortalFx } from "./spatial-portal-fx-v2";
 
 export default function AllphaWorldRenderer({
   scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null,agentCharacterAsset,agentCharacterPerformance,
