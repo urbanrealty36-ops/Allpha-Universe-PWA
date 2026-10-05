@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "exports": {
-    "./tokens.css": "./tokens.css"
+    "./tokens.css": "./tokens.css",
+    "./3d-visual-language": "./3d-visual-language.ts"
   }
 }
