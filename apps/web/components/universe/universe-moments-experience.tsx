@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiFetch } from "../lib/api";
 import UniverseShell, { type UniverseShellKey } from "./universe/universe-shell";
 
@@ -22,6 +23,7 @@ type Response = {
 };
 
 export default function UniverseMomentsExperience(){
+ const search=useSearchParams();
  const [data,setData]=useState<Response|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null);
  const [query,setQuery]=useState(""),[selected,setSelected]=useState<Content|null>(null),[tab,setTab]=useState<"stream"|"constellation"|"live">("stream");
  const [ask,setAsk]=useState(""),[answer,setAnswer]=useState<string|null>(null),[asking,setAsking]=useState(false);
@@ -32,6 +34,7 @@ export default function UniverseMomentsExperience(){
   catch(e){setError(e instanceof Error?e.message:"MOMENTS_LOAD_FAILED")}finally{setLoading(false)}
  }
  useEffect(()=>{void load()},[]);
+ useEffect(()=>{const id=search.get("content_id");if(id&&data?.content.length){const item=data.content.find(x=>x.id===id);if(item){setSelected(item);setAsk("");setAnswer(null)}}},[data,search]);
 
  async function signal(contentId:string,event_type:"impression"|"like"|"save"|"share"|"watch_start"|"watch_complete"|"skip"|"event_interaction"){
   try{await apiFetch("/api/v1/feed/interactions",{method:"POST",body:JSON.stringify({content_id:contentId,surface:"reels",event_type,metadata:{source_surface:"universe_moments",presentation:"spatial"}})})}catch{}
