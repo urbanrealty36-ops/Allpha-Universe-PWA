@@ -28,6 +28,10 @@ export default function AgentFactory(){
   async function loadOnboardingContext(){
     try{
       const params = new URLSearchParams(window.location.search);
+      const context = params.get("context");
+      if(context && ["universe","world","district","zone","booth","live","feed","content","personal","private"].includes(context)){
+        setForm(f=>({...f,scope:context}));
+      }
       if(params.get("from") !== "onboarding") return;
       const { data } = await supabase.auth.getUser();
       const ctx = data.user?.user_metadata?.allpha_onboarding ?? null;
