@@ -6,6 +6,7 @@ import { useMemo, useRef } from "react";
 import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 import { createSpatialCompositionV205 } from "../../lib/world-engine/spatial-composition-v2";
 import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
+import { createContentSpatialCompositionV207, validateContentSpatialComposition, type ContentSpatialRelationship } from "../../lib/world-engine/content-spatial-v2";
 import type { Group } from "three";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
@@ -31,7 +32,11 @@ type SpatialPortal = {
 type SpatialContent = {
   id: string;
   title?: string | null;
+  excerpt?: string | null;
   position?: { x: number; y: number; z: number };
+  gravity?: number | null;
+  relationshipCount?: number | null;
+  relationships?: ContentSpatialRelationship[];
 };
 
 type DistrictSpatialObject = {
@@ -278,6 +283,205 @@ function WorldDistrictBoothV2View({ layer, lowPower, onHotspot, scene }: { layer
   </group>;
 }
 
+function GoldenSpatialLayerView({
+  layer,
+  lowPower,
+  onHotspot,
+  presence,
+  agentCharacterAsset,
+  agentCharacterPerformance,
+}: {
+  layer: "universe" | "galaxy" | "orbit";
+  lowPower: boolean;
+  onHotspot?: Props["onHotspot"];
+  presence: SpatialPresence[];
+  agentCharacterAsset?: Props["agentCharacterAsset"];
+  agentCharacterPerformance?: Props["agentCharacterPerformance"];
+}) {
+  const root = useRef<Group>(null);
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const composition = useMemo(() => createSpatialCompositionV205(layer), [layer]);
+
+  useFrame(({ clock }) => {
+    if (!root.current || reduceMotion) return;
+    root.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.1) * 0.035;
+  });
+
+  const colors = {
+    universe: { core: "#42DCFF", node: "#A77CFF", accent: "#EE7CFF" },
+    galaxy: { core: "#67E8F9", node: "#60A5FA", accent: "#A78BFA" },
+    orbit: { core: "#22D3EE", node: "#C084FC", accent: "#F0ABFC" },
+  }[layer];
+
+  const nodes = composition.nodes.slice(0, lowPower ? 6 : composition.nodes.length);
+  const rings = composition.rings.slice(0, lowPower ? 2 : composition.rings.length);
+
+  return (
+    <group ref={root}>
+      <mesh position={[0, -0.65, 0]}>
+        <sphereGeometry args={[layer === "universe" ? 2.1 : layer === "galaxy" ? 1.55 : 1.15, lowPower ? 16 : 24, lowPower ? 12 : 18]} />
+        <meshStandardMaterial color={colors.core} emissive={colors.core} emissiveIntensity={1.1} transparent opacity={0.2} />
+      </mesh>
+
+      {rings.map((ring) => (
+        <mesh key={ring.id} rotation={[ring.tilt, 0, ring.tilt * 0.45]}>
+          <torusGeometry args={[ring.radius, lowPower ? 0.025 : 0.045, 8, lowPower ? 36 : 64]} />
+          <meshStandardMaterial color={ring.depth === "near" ? colors.node : colors.accent} emissive={ring.depth === "near" ? colors.node : colors.accent} emissiveIntensity={0.9} transparent opacity={ring.opacity} />
+        </mesh>
+      ))}
+
+      {nodes.map((node) => {
+        const scale = node.scale * (node.depth === "foreground" ? 1.12 : node.depth === "background" ? 0.84 : 1);
+        const color = node.role === "core" ? colors.core : node.role === "galaxy" ? colors.node : colors.accent;
+        return (
+          <group
+            key={node.id}
+            position={[node.position.x, node.position.y, node.position.z]}
+            onClick={() => onHotspot?.({
+              id: node.id,
+              kind: node.role === "core" ? "universe" : node.role,
+              position: node.position,
+              presentation_only: true,
+              metadata: { spatial_layer: layer, role: node.role, depth: node.depth, v2_contract: "3d-v2.05" },
+            })}
+          >
+            <mesh>
+              <icosahedronGeometry args={[scale, lowPower ? 1 : 2]} />
+              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.25} metalness={0.42} roughness={0.22} />
+            </mesh>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[scale * 1.45, 0.022, 8, lowPower ? 24 : 40]} />
+              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.05} transparent opacity={0.68} />
+            </mesh>
+          </group>
+        );
+      })}
+
+      {presence.filter((agent) => agent.position).slice(0, lowPower ? 2 : 4).map((agent) => {
+        const p = agent.position!;
+        return (
+          <group key={"presence-" + agent.id} position={[p.x, p.y + 0.35, p.z]}>
+            {agentCharacterAsset?.source === "platform_catalog" ? (
+              <PlatformAgentCharacter3D
+                characterKey={agentCharacterAsset.characterKey}
+                position={[0, 0, 0]}
+                performance={agentCharacterPerformance}
+              />
+            ) : (
+              <mesh>
+                <sphereGeometry args={[0.26, 12, 12]} />
+                <meshStandardMaterial color={colors.accent} emissive={colors.accent} emissiveIntensity={0.9} />
+              </mesh>
+            )}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+function ContentCapsuleSpatialView({
+  items,
+  lowPower,
+  onHotspot,
+}: {
+  items: SpatialContent[];
+  lowPower: boolean;
+  onHotspot?: Props["onHotspot"];
+}) {
+  const root = useRef<Group>(null);
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const composition = useMemo(
+    () => createContentSpatialCompositionV207(items, lowPower),
+    [items, lowPower],
+  );
+  const validation = useMemo(() => validateContentSpatialComposition(composition), [composition]);
+
+  useFrame(({ clock }) => {
+    if (!root.current || reduceMotion) return;
+    root.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.08) * 0.025;
+  });
+
+  if (!validation.ok || !composition.nodes.length) return null;
+
+  const nodeById = new Map(composition.nodes.map((node) => [node.id, node]));
+
+  return (
+    <group ref={root}>
+      <mesh position={[0, -0.18, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[2.2, composition.fieldRadius, 64]} />
+        <meshStandardMaterial color="#A77CFF" transparent opacity={lowPower ? 0.025 : 0.045} />
+      </mesh>
+
+      {composition.links.map((link) => {
+        const from = nodeById.get(link.from);
+        const to = nodeById.get(link.to);
+        if (!from || !to) return null;
+        const dx = to.position.x - from.position.x;
+        const dy = to.position.y - from.position.y;
+        const dz = to.position.z - from.position.z;
+        const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        const angle = Math.atan2(dz, dx) - Math.PI / 2;
+        return (
+          <mesh
+            key={link.from + ":" + link.to}
+            position={[
+              (from.position.x + to.position.x) / 2,
+              (from.position.y + to.position.y) / 2,
+              (from.position.z + to.position.z) / 2,
+            ]}
+            rotation={[0, angle, Math.atan2(dy, Math.sqrt(dx * dx + dz * dz))]}
+          >
+            <boxGeometry args={[0.018, 0.018, Math.max(0.2, length)]} />
+            <meshStandardMaterial color="#8B5CF6" emissive="#8B5CF6" emissiveIntensity={0.8} transparent opacity={0.48} />
+          </mesh>
+        );
+      })}
+
+      {composition.nodes.map((node) => {
+        const color = node.gravity === undefined ? "#FBBF24" : node.gravity >= 0.75 ? "#F0ABFC" : node.gravity >= 0.45 ? "#A78BFA" : "#67E8F9";
+        const scale = node.scale * (node.depth === "foreground" ? 1.08 : node.depth === "background" ? 0.84 : 1);
+        return (
+          <group
+            key={node.id}
+            position={[node.position.x, node.position.y, node.position.z]}
+            onClick={() => onHotspot?.({
+              id: node.id,
+              kind: "content",
+              position: node.position,
+              presentation_only: true,
+              metadata: {
+                content_id: node.id,
+                title: node.title,
+                gravity: node.gravity ?? null,
+                relationship_count: node.relationshipCount,
+                relationships: node.relationships,
+                spatial_layer: "content-feed-universe",
+                v2_contract: "3d-v2.07",
+              },
+            })}
+          >
+            <mesh>
+              <capsuleGeometry args={[scale * 0.34, scale * 0.62, 6, 12]} />
+              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.15} metalness={0.25} roughness={0.2} />
+            </mesh>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[scale * 0.82, 0.022, 8, lowPower ? 24 : 40]} />
+              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.95} transparent opacity={0.72} />
+            </mesh>
+            {node.relationshipCount > 0 ? (
+              <mesh position={[0, scale * 0.9, 0]}>
+                <sphereGeometry args={[0.06 + Math.min(0.12, node.relationshipCount * 0.012), 10, 10]} />
+                <meshStandardMaterial color="#FFFFFF" emissive="#FFFFFF" emissiveIntensity={1.5} />
+              </mesh>
+            ) : null}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function WorldObjects({
   scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,selectedDistrictId,themePackUrl,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance
 }: {
@@ -358,10 +562,7 @@ function WorldObjects({
       </group>;
     })}
 
-    {content.slice(0,16).map((item,i)=>{
-      const p=item.position??{x:(i%4)*2.4-3.6,y:2+(i%2)*.4,z:-1+Math.floor(i/4)*2.2};
-      return <group key={item.id} position={[p.x,p.y,p.z]} onClick={()=>onHotspot?.({id:item.id,kind:"content",position:p,metadata:{title:item.title??null,presentation_only:true}})}><mesh><octahedronGeometry args={[.24,0]}/><meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={1.4}/></mesh></group>;
-    })}
+    {content.length ? <ContentCapsuleSpatialView items={content} lowPower={lowPower} onHotspot={onHotspot}/> : null}
 
     {scene.spawn_points.map((p,i)=>{
       const x=p.position?.x??(i===0?0:2),z=p.position?.z??(i===0?0:2);
