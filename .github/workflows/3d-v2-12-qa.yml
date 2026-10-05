@@ -26,11 +26,18 @@ jobs:
       - name: Run V2.12 static contract harness
         run: pnpm qa:3d:v2.12
       - name: Run V2.12 live Supabase harness
-        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: pnpm qa:3d:v2.12 -- --live
+      - name: Require live Supabase verification
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_SERVICE_ROLE_KEY"
+          pnpm qa:3d:v2.12 -- --live
       - name: Upload QA report
         uses: actions/upload-artifact@v4
         with:
