@@ -465,3 +465,41 @@ WEB-15 source implementation is complete. Railway verification, browser/device v
 Next canonical phase: WEB-16 — Create Experience.
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+## WEB-16 implementation contract
+
+WEB-16 is the canonical Create Experience entry surface. It is a composition/navigation layer over existing domain creation builders, not a new creation engine.
+
+Canonical flow:
+
+    Create Experience
+        ↓
+    Intent + Universe Context
+        ↓
+    Existing Domain Builder
+        ├── Agent Factory
+        ├── Content Platform
+        ├── Live Studio / Runtime Setup
+        ├── World Builder
+        ├── Theme Builder
+        ├── Booth Builder
+        ├── Community Surface
+        └── Workflow / Mission surfaces
+
+Implementation:
+- Route: /create
+- Component: apps/web/components/create-experience.tsx
+- Existing /create placeholder now delegates to Create Experience; /content remains the Content Platform.
+- Create navigation from UniverseShell / UniverseProductExperience now enters /create; desktop and mobile Create converge on the same experience.
+- Selected context is carried as navigation state (?context=...) and never grants authority. Agent Factory consumes the context hint when supplied.
+
+Architecture:
+- No second Content, Agent, Live, World, Theme, Booth, Community or Workflow engine.
+- No new database table, migration, AI Gateway, Agent Runtime, renderer or authority layer.
+- Destination builders retain ownership of validation, identity, ownership, permission, moderation, policy, risk, approval and publish/activate behavior.
+- No synthetic business records are created by the Create hub.
+
+WEB-16 source implementation is complete. Railway build/deployment verification, browser/device visual QA and authenticated E2E remain validation gates.
+
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
