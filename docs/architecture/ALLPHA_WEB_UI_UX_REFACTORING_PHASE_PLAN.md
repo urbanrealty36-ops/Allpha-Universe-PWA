@@ -13,12 +13,44 @@ The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so 
 | 3D-V2.06 | World / District / Booth V2 | IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.07 | Capsule / Content / Feed Universe V2 | ✅ IMPLEMENTATION COMPLETE / TYPECHECK + NEXT BUILD VERIFIED / RAILWAY DEPLOYMENT VERIFIED / RUNTIME VISUAL QA PENDING |
 | 3D-V2.08 | Live / Human Live / Stage V2 / Human + AI Collaboration Stage | IMPLEMENTATION COMPLETE / RAILWAY BUILD VERIFICATION IN PROGRESS / RUNTIME VISUAL QA PENDING |
-| 3D-V2.09 | **Theme V2 Visual Realization — 25 Themes × 14 Categories × 350 3D Templates** | **CURRENT / IMPLEMENTED VISUAL FOUNDATION + 350 TEMPLATE CONTRACT / RAILWAY VERIFICATION + VISUAL QA PENDING** |
-| 3D-V2.10 | Portal / Navigation / Spatial FX V2 | PENDING — BLOCKED UNTIL THEME V2 VISUAL REALIZATION |
-| 3D-V2.11 | Manifest / Renderer Activation — 350 Theme Asset Activation | PENDING |
-| 3D-V2.12 | Mobile Performance + Accessibility | PENDING |
-| 3D-V2.13 | Visual QA / Runtime Validation | PENDING |
-| 3D-V2.14 | V1 → V2 Canonical Cutover | PENDING |
+| 3D-V2.09 | **Theme V2 Visual Realization — 25 Themes × 14 Categories × 350 3D Templates** | **RE-BASELINED / LEGACY GLB REJECTED / REAL 3D GENERATION + REALIZATION IMPLEMENTED / RUNTIME QA PENDING** |
+| 3D-V2.10 | **REAL 3D Asset Generation & Realization — 25 × 14 = 350** | **IMPLEMENTED / NEW REAL THEME-AWARE PROCEDURAL 3D ASSET LAYER ACTIVE / RUNTIME QA PENDING** |
+| 3D-V2.11 | Portal / Navigation / Spatial FX V2 | PENDING — BLOCKED UNTIL REAL 3D VISUAL QA |
+| 3D-V2.12 | Manifest / Renderer Activation — 350 Theme Asset Activation | PENDING |
+| 3D-V2.13 | Mobile Performance + Accessibility | PENDING |
+| 3D-V2.14 | Visual QA / Runtime Validation | PENDING |
+| 3D-V2.15 | V1 → V2 Canonical Cutover | PENDING |
+
+## 3D-V2.10 implementation record — REAL 3D Asset Generation & Realization
+
+Status: **IMPLEMENTED / REAL 3D THEME-AWARE ASSET LAYER ACTIVE / RUNTIME VISUAL QA PENDING**
+
+Decision:
+- The supplied 25-theme GLB pack is classified as **legacy placeholder/blockout** and is no longer accepted as the Theme V2 production visual source.
+- The renderer must not fall back to the legacy GLB pack for the public Universe hero.
+- Theme V2 now resolves to a deterministic real-geometry realization layer derived from the canonical 25 theme profiles and 14 categories.
+- The implementation remains presentation-only and continues through the canonical `AllphaWorldRenderer`; no second renderer or authority engine was introduced.
+
+Implemented:
+- `apps/web/components/world/theme-v2-real-3d-asset.tsx`
+- legacy `ThemeV2SpatialScene` wrapper now delegates to the real asset layer;
+- public Universe 3D hero now directly renders the new real asset layer instead of loading the old placeholder GLB;
+- theme-specific spatial motifs for all 25 canonical themes;
+- category-aware realization for all 14 canonical categories;
+- actual depth composition: foreground/midground/background, landmark clusters, orbit layers, portals, stages, capsules, characters and environment structures;
+- theme-specific geometry families including crystalline, pagoda, clockwork, coral, cyber-city, desert/solar, dragon, carnival, rainforest/garden, orbital, heroic, aether, lunar/mars, academy, Jakarta/Tokyo, Nusantara, Atlantis, quantum, savanna, forge and fjord motifs;
+- reduced-motion and low-power behavior retained;
+- 350 combinations remain deterministic: 25 themes × 14 categories.
+
+Important:
+- This phase does **not** claim that the old 25 GLBs were production-ready.
+- It also does **not** claim that 350 binary GLB files have been uploaded to Supabase yet.
+- The current implementation is the **real 3D generation/realization layer** that can be promoted into the binary asset lifecycle in 3D-V2.12 after runtime QA.
+
+Acceptance gate:
+- The Railway screenshot showing a flat wireframe globe is no longer the target.
+- V2 is accepted only when the runtime visibly presents genuine spatial geometry and theme identity.
+- Browser/device visual QA remains mandatory before GREEN.
 
 ## 3D-V2.09 implementation record — Theme V2 visual realization
 
