@@ -204,16 +204,20 @@ def build(theme,accent,category,preview=False):
 
 def main():
     args=sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
+    all_themes="--all" in args
     theme=args[args.index("--theme")+1] if "--theme" in args else "crystal-ai-city"
     category=args[args.index("--category")+1] if "--category" in args else None
     preview="--preview" in args
-    if theme not in THEMES: raise SystemExit("Unknown theme: "+theme)
+    selected=list(THEMES.keys()) if all_themes else [theme]
+    if not all_themes and theme not in THEMES: raise SystemExit("Unknown theme: "+theme)
     cats=[category] if category else CATEGORIES
-    for c in cats:
-      if c not in CATEGORIES: raise SystemExit("Unknown category: "+c)
-    rows=[{"themeKey":theme,"category":c,"path":build(theme,THEMES[theme],c,preview),"schema":SCHEMA,"source":"blender-production-export","presentationOnly":True,"legacy":False} for c in cats]
+    if category and category not in CATEGORIES: raise SystemExit("Unknown category: "+category)
+    rows=[]
+    for selected_theme in selected:
+      for selected_category in cats:
+        rows.append({"themeKey":selected_theme,"category":selected_category,"path":build(selected_theme,THEMES[selected_theme],selected_category,preview),"schema":SCHEMA,"source":"blender-production-export","presentationOnly":True,"legacy":False})
     os.makedirs(ROOT,exist_ok=True)
-    with open(os.path.join(ROOT,"manifest.json"),"w") as f: json.dump({"schema":"allpha-3d-v2-13-production-art-manifest/1.0","themes":1,"categories":len(cats),"assets":len(rows),"source":"blender-production-export","assetsList":rows},f,indent=2)
-    print(json.dumps({"schema":SCHEMA,"theme":theme,"categories":len(cats),"assets":len(rows),"root":ROOT}))
+    with open(os.path.join(ROOT,"manifest.json"),"w") as f: json.dump({"schema":"allpha-3d-v2-13-production-art-manifest/1.0","themes":len(selected),"categories":len(cats),"assets":len(rows),"source":"blender-production-export","assetsList":rows},f,indent=2)
+    print(json.dumps({"schema":SCHEMA,"themes":len(selected),"categories":len(cats),"assets":len(rows),"root":ROOT}))
 
 main()
