@@ -22,7 +22,7 @@ Branch: main
 | WEB-10 | District Experience | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-11 | Booth/Tenant | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-12 | Agent Experience | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-13 | Universe Feed / Moments | PENDING |
+| WEB-13 | Universe Feed / Moments | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-14 | Content Capsule | PENDING |
 | WEB-15 | Ask the Content | PENDING |
 | WEB-16 | Create Experience | PENDING |
@@ -323,3 +323,53 @@ Audit: docs/audits/WEB12_AGENT_EXPERIENCE_20261005.md
 WEB-12 source implementation and Railway build/deployment are verified. Browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-13 — Universe Feed / Moments.
+
+
+## WEB-13 implementation contract
+
+WEB-13 is the Universe Stream / Moments Galaxy. It is not a conventional 2D social feed.
+
+Target composition:
+
+    Universe Stream
+        ↓
+    Content Gravity Field
+        ├── Content Capsule
+        ├── World Context
+        ├── Agent Presence
+        ├── Discovery Relationship
+        └── Live Transition
+
+The surface reuses the canonical Feed engine through `get_feed`, the existing Content Gravity service, Universe World Content placement, Universe Agent Presence, public Agent Account discovery, and Live Session records.
+
+Canonical API composition:
+- GET /api/v1/discovery/moments
+- POST /api/v1/feed/interactions
+- POST /api/v1/discovery/content/{content_id}/ask
+
+The Moments surface exposes:
+- Universe Stream
+- Content Gravity score and reason signals
+- orbital/constellation discovery
+- Content Capsule context sheet
+- World relationships and direct World transition
+- Agent owner/presence relationships and Agent Space transition
+- Live transition only when an authoritative Live Session relationship exists
+- Ask the Content through the existing AI Gateway/permission boundary
+- search over the canonical discovery source
+
+No second Feed, Discovery, Recommendation, Content, AI Gateway, Agent Runtime, World, Spatial or Live engine is introduced. CSS orbital/constellation presentation is UI only and never an authority source.
+
+Implementation:
+- apps/web/components/universe/universe-moments-experience.tsx
+- apps/web/app/moments/page.tsx
+- apps/web/app/globals.css
+- apps/api/app/api/discovery.py
+
+Validation:
+- @allpha/web deployment d6831e61-7810-41ef-8170-15231d0174af — SUCCESS
+- @allpha/api deployment 0a6c2c44-dd3f-4b91-9b98-da0a86b3d9fb — SUCCESS
+- Browser/device visual QA and authenticated E2E remain pending.
+- CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+Next canonical product phase: WEB-14 — Content Capsule.
