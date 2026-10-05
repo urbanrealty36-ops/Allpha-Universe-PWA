@@ -61,7 +61,7 @@ export function createContentSpatialCompositionV207(
   const nodes = visible.map((item, index) => {
     const gravity = typeof item.gravity === "number" ? clamp(item.gravity, 0, 1) : undefined;
     const scale = gravity === undefined ? 0.42 : 0.34 + gravity * 0.34;
-    const depth =
+    const depth: ContentSpatialNode["depth"] =
       index === 0 ? "foreground" :
       index < Math.ceil(visible.length / 2) ? "midground" :
       "background";
