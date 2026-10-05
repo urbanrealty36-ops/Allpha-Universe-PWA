@@ -39,7 +39,7 @@ jobs:
       - name: Install Blender 4.5.3
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl xz-utils
+          sudo apt-get install -y curl xz-utils libegl1 libgl1 libxrender1 libxi6 libxfixes3 libxkbcommon0
           curl -L --fail --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.5/blender-4.5.3-linux-x64.tar.xz
           mkdir -p /opt/blender
           tar -xJf /tmp/blender.tar.xz -C /opt/blender --strip-components=1
