@@ -94,7 +94,7 @@ export default function UniverseProductExperience() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
+
 
   async function loadProductData(tab: HomeTab = homeTab, galaxyIdOverride?: string | null) {
     setLoading(true);
@@ -191,7 +191,7 @@ export default function UniverseProductExperience() {
       return;
     }
     if (key === "create") {
-      setCreateOpen(true);
+      window.location.assign("/create");
       return;
     }
     const routes: Partial<Record<UniverseShellKey, string>> = {
@@ -208,7 +208,7 @@ export default function UniverseProductExperience() {
     <UniverseShell
       active={shellActive}
       onNavigate={navigateShell}
-      onCreate={() => setCreateOpen(true)}
+      onCreate={() => window.location.assign("/create")}
       contextDock={
         <div className="allpha-universe-context-content">
           <span className="allpha-eyebrow">Universe Context</span>
@@ -256,33 +256,6 @@ export default function UniverseProductExperience() {
         {view === "live" && <LiveSurface templates={templates} loading={loading} />}
         {view === "features" && <FeatureConstellation onClose={() => setView("home")} />}
       </div>
-
-      {createOpen && (
-        <div className="allpha-mobile-create-sheet-backdrop" role="presentation" onClick={() => setCreateOpen(false)}>
-          <section
-            className="allpha-mobile-create-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="mobile-create-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="allpha-mobile-create-sheet-handle" aria-hidden="true" />
-            <div className="allpha-mobile-create-sheet-header">
-              <div>
-                <p className="allpha-eyebrow">Create</p>
-                <h2 id="mobile-create-title">Create in Allpha</h2>
-                <p>Start from an existing canonical creation flow. New Experience creation remains part of WEB-16.</p>
-              </div>
-              <button type="button" className="allpha-button allpha-button-icon allpha-button-ghost" aria-label="Close create menu" onClick={() => setCreateOpen(false)}>×</button>
-            </div>
-            <a href="/agents/create" className="allpha-mobile-create-action">
-              <span className="allpha-mobile-create-action-icon">◈</span>
-              <span><strong>Agent Factory</strong><small>Create an owner-owned AI Agent</small></span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </section>
-        </div>
-      )}
 
     </UniverseShell>
   );
