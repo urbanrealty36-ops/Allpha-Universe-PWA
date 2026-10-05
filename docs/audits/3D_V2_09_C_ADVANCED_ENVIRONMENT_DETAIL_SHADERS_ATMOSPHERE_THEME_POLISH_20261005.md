@@ -112,3 +112,36 @@ No second renderer introduced.
 ## Status
 
 **IMPLEMENTATION COMPLETE — BUILD / RUNTIME QA PENDING**
+
+
+## Railway execution evidence
+
+Final verification deployment:
+
+- deployment: `a85c5f28-c822-42d0-947c-50d2ae13eae8`
+- commit: `5422476176dc9dba85c12eda34e12079d2afc60d`
+- status: **SUCCESS**
+- region: `asia-southeast1-eqsg3a`
+
+Build evidence:
+
+- Next.js production compilation succeeded;
+- TypeScript verification succeeded;
+- static generation completed: 77/77 pages;
+- deployment settled SUCCESS.
+
+The first C deployment exposed a TypeScript issue in the shader particle buffer attribute. It was corrected and the final deployment passed.
+
+## Remaining acceptance gate
+
+Runtime browser/device visual QA remains mandatory. This phase is **not declared final GREEN** until the running product is visually inspected for:
+
+1. shader readability without visual noise;
+2. atmosphere depth;
+3. theme-specific detail identity;
+4. realistic material response;
+5. foreground/midground/background separation;
+6. mobile composition and performance;
+7. absence of flat/wireframe-only presentation.
+
+3D-V2.09-B runtime visual QA was not silently treated as complete; its existing visual-QA gate remains explicit.
