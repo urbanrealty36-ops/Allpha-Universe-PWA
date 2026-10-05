@@ -1,5 +1,7 @@
 "use client";
 
+// WEB-15 deployment marker: Ask the Content uses the canonical AI Gateway boundary.
+
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../../lib/api";
 import UniverseShell, { type UniverseShellKey } from "../universe/universe-shell";
