@@ -14,6 +14,7 @@ import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
 import type { CharacterAnimationSignal } from "../../lib/live-character-animation";
 import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/live-character-v2";
 import { ThemeV2SpatialScene } from "./theme-v2-spatial-scene";
+import { Cinematic3DScene, configureCinematicRenderer } from "./cinematic-3d-scene";
 
 type SpatialPresence = {
   id: string;
@@ -721,14 +722,19 @@ export default function AllphaWorldRenderer({
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
   const goldenLayer=String(scene.environment?.spatial_layer ?? "");
   const spatialLayer=String(scene.environment?.spatial_layer ?? "");
+  const themeKey = typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined;
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-black">
-    <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}}>
-      <color attach="background" args={[style.sky]}/>
+    <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}} onCreated={({ gl }) => configureCinematicRenderer(gl, lowPower)}>
+      <Cinematic3DScene themeKey={themeKey} layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion}>
+      
       <PerspectiveCamera makeDefault position={goldenLayer ? (goldenLayer === "universe" ? [0, 6.2, 15.5] : goldenLayer === "galaxy" ? [0, 5.4, 13.2] : [0, 4.8, 11.2]) : [14,11,14]} fov={goldenLayer ? (goldenLayer === "universe" ? 48 : 50) : 58}/>
-      <ambientLight intensity={.8}/>
-      <directionalLight position={[8,14,6]} intensity={2} castShadow={shadows}/>
+      <ambientLight intensity={.22}/>
+      <directionalLight position={[8,14,6]} intensity={.8} castShadow={shadows}/>
       {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}\n      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
-    </Canvas>
+    </Can
+      </Cinematic3DScene>
+    </Canvas>vas>
   </div>;
 }
