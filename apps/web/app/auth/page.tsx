@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { UniverseIdentityGateway } from "../../components/identity/universe-identity-experience";
 
 export default function AuthPage() {
