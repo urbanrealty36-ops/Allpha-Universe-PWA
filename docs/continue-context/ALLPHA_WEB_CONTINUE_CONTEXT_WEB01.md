@@ -250,3 +250,36 @@ Final Railway deployment:
 Browser/device visual QA and authenticated E2E remain pending.
 
 Next: WEB-13 — Universe Feed / Moments.
+
+
+## WEB-13 implemented
+
+WEB-13 Universe Feed / Moments is implemented as the Universe Stream / Moments Galaxy rather than a conventional 2D feed.
+
+Implementation:
+- `apps/web/components/universe/universe-moments-experience.tsx`
+- `apps/web/app/moments/page.tsx`
+- `apps/api/app/api/discovery.py`
+- `apps/web/app/globals.css`
+- Universe Home Feed entry now opens `/moments`.
+
+Experience:
+- Content Capsule
+- Content Gravity
+- orbit / constellation discovery
+- World context
+- Agent owner / presence
+- Live transitions
+- Ask the Content
+- search
+- mobile-first responsive surface
+
+Final deployment evidence:
+- Web: `d6831e61-7810-41ef-8170-15231d0174af` SUCCESS
+- API: `0a6c2c44-dd3f-4b91-9b98-da0a86b3d9fb` SUCCESS
+
+Railway Web uses the existing Next.js Webpack build path for this deployment after a Turbopack cache-file failure during validation.
+
+Browser/device visual QA and authenticated E2E remain pending. CW-02 is not Production GREEN.
+
+Next: WEB-14 — Content Capsule.
