@@ -629,6 +629,10 @@ function WorldObjects({
   const zones=scene.zones;
   const density=lowPower?Math.min(4,style.density):style.density;
   const hasThemePack=Boolean(themePackUrl);
+  const spatialLayer = String(scene.environment?.spatial_layer ?? "world");
+  const themeKey = typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined;
+  const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const goldenLayer = String(scene.environment?.spatial_layer ?? "");
   if (goldenLayer === "universe" || goldenLayer === "galaxy" || goldenLayer === "orbit") {
     return <GoldenSpatialLayerView layer={goldenLayer} lowPower={lowPower} onHotspot={onHotspot} presence={presence} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance}/>;
@@ -637,19 +641,14 @@ function WorldObjects({
   return <>
     {themePackUrl?<ThemePackEnvironment url={themePackUrl}/>:null}
     {liveStageMode ? <LiveCollaborationStageView stageUrl={liveStageUrl} lowPower={lowPower} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} collaborationActive={liveCollaborationActive} consentApproved={liveCollaborationConsentApproved} riskAllowed={liveCollaborationRiskAllowed} agentId={liveAgentId} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined} humanState={humanPresentationState} agentState={liveAgentStageState}/> : (liveStageUrl ? <LiveStage3DAsset url={liveStageUrl}/> : null)}
-    {!hasThemePack&&<><mesh position={[0,-.3,0]} receiveShadow><boxGeometry args={[28,.5,28]}/><meshStandardMaterial color={style.ground} roughness={.9}/></mesh><mesh position={[0,-.02,0]}><boxGeometry args={[22,.06,22]}/><meshStandardMaterial color={secondary}/></mesh></>}
-    {!hasThemePack&&style.water&&!lowPower&&<mesh position={[0,.02,-5]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[4,32]}/><meshStandardMaterial color={accent} transparent opacity={.28} metalness={.2}/></mesh>}
-    {!hasThemePack&&style.ring&&!lowPower&&<mesh position={[0,2.8,0]} rotation={[Math.PI/2,0,0]}><torusGeometry args={[4.8,.08,8,64]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.5}/></mesh>}
+    {!hasThemePack ? <ThemeV2SpatialScene themeKey={themeKey} architecture={architecture} layer={(["universe","galaxy","world","district","booth","content","live"].includes(spatialLayer) ? spatialLayer : "world") as "universe"|"galaxy"|"world"|"district"|"booth"|"content"|"live"} lowPower={lowPower} reducedMotion={reducedMotion} /> : null}
 
     {zones.map((zone,i)=>{
       const angle=(i/Math.max(1,zones.length))*Math.PI*2;
-      const x=Math.cos(angle)*6,z=Math.sin(angle)*6;
-      return <group key={zone.id} position={[x,0,z]}><mesh onClick={()=>onHotspot?.({id:zone.id,kind:"zone",metadata:{type:zone.type}})}><boxGeometry args={[3.4,.45,3.4]}/><meshStandardMaterial color={i===0?color:style.secondary} transparent={hasThemePack} opacity={hasThemePack?.04:1}/></mesh>{!hasThemePack&&<Structure kind={style.structure} color={style.secondary} accent={accent} position={[0,0,0]} scale={.75+(i%3)*.1}/>}</group>;
-    })}
-
-    {!hasThemePack&&Array.from({length:density}).map((_,i)=>{
-      const a=i/density*Math.PI*2,r=8+(i%3)*1.1;
-      return <Structure key={"decor-"+i} kind={style.structure} color={style.secondary} accent={accent} position={[Math.cos(a)*r,.05,Math.sin(a)*r]} scale={.45+(i%2)*.12}/>;
+      const x=Math.cos(angle)*5.4,z=Math.sin(angle)*5.4;
+      return <group key={zone.id} position={[x,0,z]} onClick={()=>onHotspot?.({id:zone.id,kind:"zone",metadata:{type:zone.type,presentation_only:true}})}>
+        <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[.42,.018,6,24]}/><meshStandardMaterial color={i===0?color:style.secondary} emissive={i===0?color:style.secondary} emissiveIntensity={.8} transparent opacity={.72}/></mesh>
+      </group>;
     })}
 
     {presence.filter(agent=>agent.position).map(agent=>{
