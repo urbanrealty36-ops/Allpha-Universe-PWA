@@ -785,3 +785,15 @@ Canonical path:
 UniverseShell and UniverseProductExperience route Create into /create, making desktop and mobile Create actions converge on one experience. The existing Agent Factory can consume the selected context hint.
 
 No second creation engine, renderer, AI Gateway, Agent Runtime, spatial runtime, Content engine, Live engine, Community engine or authority layer is introduced.
+
+
+## Public Entry Visual Refactor — 2026-10-05
+
+The public entry sequence now follows the reference direction across three states: Splash / Landing, Public Universe, and Human Identity.
+
+- Splash uses the existing Supabase identity entry boundary plus a procedural 3D Character/Planet presentation.
+- Public Universe uses a procedural 3D Universe/Galaxy field with orbiting World nodes.
+- Human Identity uses the existing UniverseIdentityGateway and Supabase auth contracts with a 3D character/universe visual layer.
+- `/auth?mode=signup` directly selects Create Identity while retaining the same identity gateway.
+- 3D is progressive enhancement only. HTML navigation, authentication, authorization and server contracts remain authoritative.
+- No new identity/authentication engine, renderer, spatial authority, database schema or permission layer is introduced.
