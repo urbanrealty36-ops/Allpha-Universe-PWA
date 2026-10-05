@@ -3,9 +3,22 @@ import type { WorldScene, Vec3 } from "./scene-schema";
 export type GoldenSpatialLayer = "universe" | "galaxy" | "orbit";
 export const GOLDEN_THEME_KEY = "crystal-ai-city";
 
+const assetRecipeForKind = (kind: string): string | undefined => {
+  if (kind === "universe-core") return "v2/crystal-ai-city/universe";
+  if (kind === "galaxy-core" || kind === "galaxy-node") return "v2/crystal-ai-city/galaxy";
+  if (kind === "world-node") return "v2/crystal-ai-city/world";
+  if (kind === "orbit-core" || kind === "orbit-node" || kind === "orbit-ring") return "v2/crystal-ai-city/orbit";
+  return undefined;
+};
+
 const node = (id: string, position: Vec3, kind: string, metadata: Record<string, unknown> = {}) => ({
   id, position, kind, presentation_only: true,
-  metadata: { ...metadata, golden_scene: true, presentation_only: true },
+  metadata: {
+    ...metadata,
+    golden_scene: true,
+    presentation_only: true,
+    asset_recipe_key: assetRecipeForKind(kind),
+  },
 });
 
 export function createGoldenScene(layer: GoldenSpatialLayer): WorldScene {
