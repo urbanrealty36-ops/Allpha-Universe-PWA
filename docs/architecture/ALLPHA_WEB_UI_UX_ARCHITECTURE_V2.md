@@ -667,3 +667,32 @@ WEB-12 implementation:
 - docs/audits/WEB12_AGENT_EXPERIENCE_20261005.md
 
 Railway build/deployment verified. Browser/device visual QA and authenticated E2E remain pending.
+
+
+## 18. WEB-13 Universe Stream / Moments Galaxy activation
+
+WEB-13 is the Spatial discovery presentation of Content.
+
+    Content Capsule
+        ├── Gravity
+        ├── World Context
+        ├── Agent Presence
+        ├── Discovery Relationship
+        └── Live Transition
+
+The Web surface is backed by the existing Feed engine and Content Gravity service. The new `/api/v1/discovery/moments` route is a composition/presentation contract; it does not create a second Feed or Discovery engine.
+
+Spatial presentation is CSS/UI only:
+- orbit distance follows the authoritative Gravity score;
+- constellation nodes represent returned Content, World and Agent records;
+- presence is read-only presentation;
+- Live transition navigates only to an existing authoritative Live Session;
+- Content Capsule context can hand off to existing Ask the Content.
+
+Canonical implementation:
+- `apps/web/components/universe/universe-moments-experience.tsx`
+- `apps/web/app/moments/page.tsx`
+- `apps/api/app/api/discovery.py`
+- `docs/audits/WEB13_UNIVERSE_MOMENTS_20261005.md`
+
+No new renderer, recommendation engine, spatial engine, Feed engine, AI Gateway or authority layer is introduced.
