@@ -23,7 +23,7 @@ Branch: main
 | WEB-11 | Booth/Tenant | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-12 | Agent Experience | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-13 | Universe Feed / Moments | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-14 | Content Capsule | IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
+| WEB-14 | Content Capsule | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-15 | Ask the Content | PENDING |
 | WEB-16 | Create Experience | PENDING |
 | WEB-17 | My Agent | PENDING |
@@ -409,7 +409,7 @@ AI Summary is displayed only when an authoritative reviewed ai_capsule exists. T
 
 Moments now provides a direct transition from its quick Capsule sheet into the full Content Experience.
 
-WEB-14 source implementation is complete. Railway build/deployment verification, browser/device visual QA and authenticated E2E remain validation gates.
+WEB-14 source implementation is complete. Railway web/API build and deployment verification is complete. Browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-15 — Ask the Content.
 
