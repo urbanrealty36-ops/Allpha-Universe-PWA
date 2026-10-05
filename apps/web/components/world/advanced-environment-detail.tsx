@@ -246,7 +246,7 @@ function SparklesLike({ color, count }: { color: string; count: number }) {
   return (
     <points>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial color={color} size={0.035} transparent opacity={0.32} sizeAttenuation />
     </points>
