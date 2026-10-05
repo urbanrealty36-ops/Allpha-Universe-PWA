@@ -320,3 +320,37 @@ Pending validation:
 - CW-02 remains OPEN / ACTIVATING / NOT GREEN
 
 Next canonical phase: WEB-15 — Ask the Content.
+
+
+## WEB-15 completion handoff — 2026-10-05
+
+WEB-15 Ask the Content is source-implemented on main.
+
+Route:
+- /content/{content_id}/ask
+
+The full Ask Experience deepens the existing Ask Content service and canonical AI Gateway rather than introducing another Q&A/chatbot/RAG engine.
+
+Existing canonical boundaries:
+- POST /api/v1/discovery/content/{content_id}/ask
+- GET /api/v1/discovery/content/{content_id}/evolution
+
+Implemented:
+- Content-grounded Ask workspace
+- local follow-up turns in the current UI session
+- visible grounding/context signals
+- optional existing private RAG status visibility
+- Agent/Community/World/Live transitions
+- direct return to Content Experience
+- Ask response grounding metadata
+- Content Evolution path now includes Community, Agent and Ask
+
+No new DB migration or duplicate engine was introduced.
+
+Pending:
+- Railway web/API build + deployment verification
+- browser/device visual QA
+- authenticated E2E
+- CW-02 remains OPEN / ACTIVATING / NOT GREEN
+
+Next canonical phase: WEB-16 — Create Experience.
