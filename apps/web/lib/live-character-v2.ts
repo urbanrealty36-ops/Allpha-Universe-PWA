@@ -1,7 +1,7 @@
 import {
   ALLPHA_3D_THEME_PROFILES,
   type Allpha3DThemeProfile,
-} from "../../../../packages/design-tokens/3d-visual-language";
+} from "../../../packages/design-tokens/3d-visual-language";
 import {
   DEFAULT_CHARACTER_PRIORITY,
   normalizeAnimationSignal,
