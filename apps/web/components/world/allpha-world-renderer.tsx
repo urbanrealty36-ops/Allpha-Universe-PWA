@@ -618,6 +618,7 @@ function WorldObjects({
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
   spatialObjects:DistrictSpatialObject[];
   selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"];
+  liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState;
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
   const primary=String(tokens?.["theme.color.primary"]??style.accent);
@@ -634,7 +635,7 @@ function WorldObjects({
 
   return <>
     {themePackUrl?<ThemePackEnvironment url={themePackUrl}/>:null}
-    {liveStageUrl?<LiveStage3DAsset url={liveStageUrl}/>:null}
+    {liveStageMode ? <LiveCollaborationStageView stageUrl={liveStageUrl} lowPower={lowPower} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} collaborationActive={liveCollaborationActive} consentApproved={liveCollaborationConsentApproved} riskAllowed={liveCollaborationRiskAllowed} agentId={liveAgentId} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined} humanState={humanPresentationState} agentState={liveAgentStageState}/> : (liveStageUrl ? <LiveStage3DAsset url={liveStageUrl}/> : null)}
     {!hasThemePack&&<><mesh position={[0,-.3,0]} receiveShadow><boxGeometry args={[28,.5,28]}/><meshStandardMaterial color={style.ground} roughness={.9}/></mesh><mesh position={[0,-.02,0]}><boxGeometry args={[22,.06,22]}/><meshStandardMaterial color={secondary}/></mesh></>}
     {!hasThemePack&&style.water&&!lowPower&&<mesh position={[0,.02,-5]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[4,32]}/><meshStandardMaterial color={accent} transparent opacity={.28} metalness={.2}/></mesh>}
     {!hasThemePack&&style.ring&&!lowPower&&<mesh position={[0,2.8,0]} rotation={[Math.PI/2,0,0]}><torusGeometry args={[4.8,.08,8,64]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.5}/></mesh>}
@@ -722,7 +723,7 @@ export default function AllphaWorldRenderer({
       <PerspectiveCamera makeDefault position={goldenLayer ? (goldenLayer === "universe" ? [0, 6.2, 15.5] : goldenLayer === "galaxy" ? [0, 5.4, 13.2] : [0, 4.8, 11.2]) : [14,11,14]} fov={goldenLayer ? (goldenLayer === "universe" ? 48 : 50) : 58}/>
       <ambientLight intensity={.8}/>
       <directionalLight position={[8,14,6]} intensity={2} castShadow={shadows}/>
-      {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}\n      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance}/>
+      {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}\n      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
     </Canvas>
   </div>;
