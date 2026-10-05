@@ -536,3 +536,22 @@ The canonical `AllphaWorldRenderer` remains the only renderer. Golden nodes rema
 V2.05 does not claim production GLB completion, 25-theme runtime validation, 350 final assets, browser/device visual QA, or V1 → V2 cutover.
 
 Next: **3D-V2.06 — World / District / Booth V2.**
+
+
+## 3D-V2.06 — World / District / Booth V2 — 2026-10-05
+
+Status: IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING
+
+Created `apps/web/lib/world-engine/world-district-booth-v2.ts` and integrated the composition into the canonical `AllphaWorldRenderer`.
+
+Hierarchy:
+- World focal identity → District anchors
+- District focal identity → Booth cluster
+- Booth focal identity → Portal / Content Capsule presentation anchors
+- Existing authoritative scene structures/booths are surfaced through the same renderer interaction boundary when available
+
+No second renderer, spatial engine, authority layer, Agent Runtime, Live Runtime, Feed/Discovery engine or asset lifecycle was introduced.
+
+Not claimed: production GLBs, 350 final assets, full 25-theme runtime validation, browser/device QA, V1→V2 cutover, production visual GREEN.
+
+Next: **3D-V2.07 — Capsule / Content / Feed Universe V2.**
