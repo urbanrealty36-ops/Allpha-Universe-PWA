@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.dependencies import get_auth_context
@@ -93,12 +92,6 @@ async def public_theme_asset_manifest(theme_key: str):
             {**asset, "signed_url": signed_by_path.get(asset.get("storage_path"))}
             for asset in assets
         ]
-        binary_3d = [item for item in manifest if item.get("signed_url")]
-        return {**asset, "signed_url": signed_url}
-
-        # Sign the small per-theme manifest concurrently so the public endpoint
-        # remains responsive while still keeping service-role signing server-side.
-        manifest = list(await asyncio.gather(*(sign_asset(asset) for asset in assets)))
         binary_3d = [item for item in manifest if item.get("signed_url")]
         return {
             "data": {
