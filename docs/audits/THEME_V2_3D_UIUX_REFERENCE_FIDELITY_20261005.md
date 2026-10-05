@@ -161,3 +161,33 @@ Theme V2 must continue using the canonical:
 - existing policy/consent/risk/approval boundaries.
 
 Do not create duplicate engines simply to achieve the visual result.
+
+
+## Implementation checklist — 2026-10-05
+
+- [x] Theme V2 reusable spatial scene
+- [x] Universe composition
+- [x] Galaxy composition
+- [x] World composition
+- [x] District composition
+- [x] Booth composition
+- [x] Content Capsule composition
+- [x] Live Stage composition
+- [x] Orbit animation
+- [x] Floating world/landmark motion
+- [x] Energy/spatial links
+- [x] Theme-aware 25-profile visual language
+- [x] 25 × 14 = 350 executable visual template contract
+- [x] Public landing/splash/identity 3D refactor
+- [x] Flat CSS universe core removed from primary public scene
+- [x] Canonical AllphaWorldRenderer integration
+- [x] Reduced-motion semantics
+- [x] Low-power spatial budget
+- [ ] Production binary coverage for 350 unique GLBs
+- [ ] Railway build/deployment verification
+- [ ] Android runtime visual QA
+- [ ] Desktop runtime visual QA
+- [ ] Reference fidelity sign-off
+- [ ] Final V2 visual acceptance
+
+**Interpretation:** the implementation foundation and executable 350-template visual contract are now present. Final phase closure requires runtime/reference visual QA and the separate binary asset lifecycle.
