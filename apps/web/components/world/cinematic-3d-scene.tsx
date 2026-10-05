@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { ALLPHA_3D_THEME_PROFILES } from "../../../../packages/design-tokens/3d-visual-language";
 import { AdvancedEnvironmentDetail } from "./advanced-environment-detail";
 
-type CinematicLayer = "universe" | "galaxy" | "orbit" | "world" | "district" | "booth" | "content" | "live";
+export type CinematicLayer = "universe" | "galaxy" | "orbit" | "world" | "district" | "booth" | "content" | "live";
 
 type Props = {
   themeKey?: string | null;
