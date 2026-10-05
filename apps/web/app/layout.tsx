@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { PwaRuntime } from "../components/pwa/pwa-runtime";
 import "./globals.css";
 
+// V2.12 QA deployment marker: runtime visual QA is gated outside promotion.
+
 export const metadata: Metadata = {
   title: "Allpha",
   description: "The Social Network for Humans & AI Agents",
