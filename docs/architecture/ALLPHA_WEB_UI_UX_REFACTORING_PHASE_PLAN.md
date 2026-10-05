@@ -13,9 +13,9 @@ The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so 
 | 3D-V2.06 | World / District / Booth V2 | IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.07 | Capsule / Content / Feed Universe V2 | ✅ IMPLEMENTATION COMPLETE / TYPECHECK + NEXT BUILD VERIFIED / RAILWAY DEPLOYMENT VERIFIED / RUNTIME VISUAL QA PENDING |
 | 3D-V2.08 | Live / Human Live / Stage V2 / Human + AI Collaboration Stage | IMPLEMENTATION COMPLETE / RAILWAY BUILD VERIFICATION IN PROGRESS / RUNTIME VISUAL QA PENDING |
-| 3D-V2.09 | Portal / Navigation / Spatial FX V2 | PENDING |
-| 3D-V2.10 | 25 Theme Expansion / 350 Template Matrix | PENDING |
-| 3D-V2.11 | Manifest / Renderer Activation | PENDING |
+| 3D-V2.09 | **Theme V2 Visual Realization — 25 Themes × 14 Categories × 350 3D Templates** | **CURRENT / DESIGN SPEC LOCKED / IMPLEMENTATION PENDING** |
+| 3D-V2.10 | Portal / Navigation / Spatial FX V2 | PENDING — BLOCKED UNTIL THEME V2 VISUAL REALIZATION |
+| 3D-V2.11 | Manifest / Renderer Activation — 350 Theme Asset Activation | PENDING |
 | 3D-V2.12 | Mobile Performance + Accessibility | PENDING |
 | 3D-V2.13 | Visual QA / Runtime Validation | PENDING |
 | 3D-V2.14 | V1 → V2 Canonical Cutover | PENDING |
@@ -537,6 +537,40 @@ WEB-16 source implementation is complete. Railway build/deployment verification,
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
 
 
+
+## 3D-V2 — Theme V2 visual direction lock
+
+The attached UI/UX references define the **visual target** for Theme V2. The current Railway screens are explicitly treated as the **pre-V2 / foundation visual state**, not as the acceptance target.
+
+### Reference-derived acceptance direction
+- [ ] Real spatial 3D composition, not a flat hero/globe substitute
+- [ ] Universe → Galaxy → World → District spatial hierarchy is visibly understandable
+- [ ] Orbital motion / orbit rings / celestial depth are present where appropriate to the theme
+- [ ] Worlds are composed as actual 3D scenes: planets, islands, cities, structures, environments and spatial layers
+- [ ] Camera has depth, parallax and controlled motion; not a static flat background
+- [ ] Theme identity is expressed through geometry, material, lighting, atmosphere, particles and motion
+- [ ] UI/UX overlay follows the supplied mobile reference language: premium dark space UI, glass surfaces, luminous accents, compact controls and spatial navigation
+- [ ] 350 templates are materially differentiated by theme/category; not 350 color swaps of the same flat scene
+- [ ] Each template supports a reusable scene grammar while retaining its own visual identity
+- [ ] Animation vocabulary is part of the theme template, not an afterthought
+- [ ] Mobile performance and reduced-motion variants are defined per template
+
+### 350-template definition
+
+**25 canonical themes × 14 canonical 3D asset/scene categories = 350 theme templates.**
+
+The existing Asset Factory already provides deterministic recipe foundations. Theme V2 now requires the next realization layer: **actual visual scene composition and asset activation**, including geometry, materials, lighting, camera, orbit, atmosphere, animation and responsive UI composition.
+
+A template is not considered visually realized merely because a recipe key exists.
+
+### V2 acceptance rule
+
+A Phase 3D-V2 visual implementation is not considered complete when the code compiles alone. It must demonstrate the supplied reference quality in the running product: **3D, depth, motion, spatial hierarchy, orbit/world/galaxy composition, and coherent UI/UX integration.**
+
+### Explicit non-goal
+
+Do not advance the project to Portal/Navigation V2 as the primary visual milestone while the Theme V2 scene library is still flat/foundation-only. Portal/navigation is downstream of a credible Theme V2 spatial foundation.
+
 ## 3D-V2.02 — Golden Theme / Golden Scene
 
 Status: **IMPLEMENTED / CANONICAL RENDERER INTEGRATED / RUNTIME VISUAL QA PENDING**
@@ -587,6 +621,8 @@ Next: 3D-V2.04 — Character / Live Character V2.
 
 
 ### 3D-V2.08 implementation checklist
+> Note: V2.08 Live/Collaboration is implemented as a runtime capability layer, but the overall Theme V2 visual realization remains open. Its stage must ultimately inherit the realized 3D Theme V2 scene language.
+
 - [x] Live Collaboration Stage V2 presentation contract
 - [x] Human presenter stage actor presentation
 - [x] AI Agent stage actor presentation
