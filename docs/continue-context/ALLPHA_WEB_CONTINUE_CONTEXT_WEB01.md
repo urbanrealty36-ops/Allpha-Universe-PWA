@@ -380,8 +380,11 @@ The previous /create route rendered the generic Content Platform. That was recon
 
 No new engine, database schema, migration, renderer or authority layer was added.
 
+Deployment verification:
+- Railway Web deployment bf4406e3-5184-4d5a-bc15-e4e7c4a0d52a — SUCCESS
+- commit 321aa3d6b207c62b45524bb82de5a53a0edbb4d9
+
 Pending validation:
-- Railway web build + deployment
 - browser/device visual QA
 - authenticated E2E
 
