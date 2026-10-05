@@ -754,3 +754,34 @@ Frontend:
 - apps/web/components/content/ask-content-experience.module.css
 
 Ask remains behind the authenticated Content + AI Gateway boundary. Optional private RAG requires an owned Agent and a real query embedding. Action requests remain handoff-only to Agent Runtime.
+
+
+## WEB-16 — Create Experience
+
+Create Experience is the single entry point for creation intent across the Allpha Universe Web/PWA.
+
+The surface is a composition/navigation layer:
+- choose creation intent;
+- choose Universe context;
+- enter the existing canonical domain builder;
+- preserve server-side authority at the destination.
+
+Supported entry points:
+- Agent Factory
+- Content Platform
+- Live Studio / Runtime Setup
+- World Builder
+- Theme Builder
+- Booth Builder
+- Community Surface
+- Workflow / Mission surfaces
+
+The selected context is carried as a URL navigation hint only. It does not grant ownership, permission, entitlement, policy, risk approval or execution authority. No synthetic record is created by /create.
+
+Canonical path:
+
+    Create Experience → Intent + Context → Existing Domain Builder → FastAPI/Supabase Authority → Publish / Activate
+
+UniverseShell and UniverseProductExperience route Create into /create, making desktop and mobile Create actions converge on one experience. The existing Agent Factory can consume the selected context hint.
+
+No second creation engine, renderer, AI Gateway, Agent Runtime, spatial runtime, Content engine, Live engine, Community engine or authority layer is introduced.
