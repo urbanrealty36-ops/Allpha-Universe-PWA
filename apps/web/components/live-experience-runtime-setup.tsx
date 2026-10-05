@@ -581,6 +581,15 @@ export default function LiveExperienceRuntimeSetup() {
                       agentCharacterUrl={agentCharacterUrl}
                       agentCharacterAsset={(() => { const a = characterAssets.find((x) => x.asset_id === selectedCharacterAssetId); return a ? { source: a.asset_source, characterKey: a.character_key, contract: a.contract } : undefined; })()}
                       agentCharacterPerformance={voicePerformance}
+                      liveStageMode={true}
+                      humanPresentationActive={Boolean(humanPresentationRuntime?.active)}
+                      humanPresentationStatus={humanPresentationRuntime?.presentation?.status ?? null}
+                      liveCollaborationActive={Boolean(activeCollaboration)}
+                      liveCollaborationConsentApproved={activeCollaboration?.consent_status === "approved"}
+                      liveCollaborationRiskAllowed={activeCollaboration?.risk_decision === "allow"}
+                      liveAgentId={activeCollaboration?.agent_id ?? null}
+                      humanPresentationState={humanPresentationRuntime?.active ? "presenting" : "idle"}
+                      liveAgentStageState={voicePerformance.state === "speaking" ? "speaking" : voicePerformance.state === "listening" ? "listening" : activeCollaboration ? "collaborating" : "idle"}
                     />
                   </div>
                 ) : (
