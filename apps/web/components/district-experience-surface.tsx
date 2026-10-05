@@ -574,7 +574,7 @@ export default function DistrictExperienceSurface({ districtId }: { districtId: 
           onClose={() => setSelection(null)}
           onInteraction={interact}
           onOpenBooth={(booth) => window.location.assign(`/booths/${encodeURIComponent(booth.id)}`)}
-          onOpenAgent={(agent) => window.location.assign(`/agents/${encodeURIComponent(agent.agent_id || agent.id || "")}`)}
+          onOpenAgent={(agent) => window.location.assign(`/agents/${encodeURIComponent(agent.agent_id || agent.id || "")}?world_id=${encodeURIComponent(district.world_id)}&district_id=${encodeURIComponent(district.id)}&source_surface=district`)}
           onSelectZone={(zone) => setSelection({ kind: "zone", value: zone })}
         />
       ) : null}
