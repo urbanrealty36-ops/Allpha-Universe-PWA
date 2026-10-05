@@ -2,7 +2,7 @@
 
 import { Sparkles } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef } from "react";
 import * as THREE from "three";
 import { ThemeV2Real3DAsset } from "./world/theme-v2-real-3d-asset";
 
@@ -53,4 +53,44 @@ function HumanSilhouette({ identity = false }: { identity?: boolean }) {
   );
 }
 
-function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {\n  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;\n  const layer = variant === "identity" ? "world" : "universe";\n\n  return (\n    <>\n      <color attach="background" args={["#02040B"]} />\n      <fog attach="fog" args={["#02040B", 12, 34]} />\n      <ambientLight intensity={0.62} />\n      <directionalLight position={[7, 12, 8]} intensity={3.8} castShadow shadow-mapSize={[1024, 1024]} />\n      <pointLight position={[4, 7, 5]} intensity={16} color="#67E8F9" />\n      <pointLight position={[-5, 4, 1]} intensity={11} color="#8B5CF6" />\n\n      <ThemeV2Real3DAsset\n        themeKey="crystal-ai-city"\n        architecture="Crystal AI City"\n        layer={layer}\n        lowPower={false}\n        reducedMotion={reducedMotion}\n      />\n\n      <HumanSilhouette identity={variant === "identity"} />\n      <Sparkles count={reducedMotion ? 55 : 120} scale={[20, 10, 18]} size={0.6} speed={reducedMotion ? 0 : 0.12} color="#C7D2FE" />\n    </>\n  );\n}\n\nexport default function PublicUniverse3D({ variant }: { variant: PublicUniverse3DVariant }) {\n  return (\n    <div className={`allpha-public-3d allpha-public-3d-${variant}`} aria-hidden="true">\n      <Canvas\n        dpr={[1, 1.5]}\n        shadows\n        camera={{ position: variant === "identity" ? [0, 5.6, 13.8] : [0, 6.2, 15.2], fov: variant === "universe" ? 43 : 42 }}\n        gl={{ antialias: true, powerPreference: "high-performance" }}\n      >\n        <PublicScene variant={variant} />\n      </Canvas>\n    </div>\n  );\n}
+function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const layer = variant === "identity" ? "world" : "universe";
+
+  return (
+    <>
+      <color attach="background" args={["#02040B"]} />
+      <fog attach="fog" args={["#02040B", 12, 34]} />
+      <ambientLight intensity={0.62} />
+      <directionalLight position={[7, 12, 8]} intensity={3.8} castShadow shadow-mapSize={[1024, 1024]} />
+      <pointLight position={[4, 7, 5]} intensity={16} color="#67E8F9" />
+      <pointLight position={[-5, 4, 1]} intensity={11} color="#8B5CF6" />
+
+      <ThemeV2Real3DAsset
+        themeKey="crystal-ai-city"
+        architecture="Crystal AI City"
+        layer={layer}
+        lowPower={false}
+        reducedMotion={reducedMotion}
+      />
+
+      <HumanSilhouette identity={variant === "identity"} />
+      <Sparkles count={reducedMotion ? 55 : 120} scale={[20, 10, 18]} size={0.6} speed={reducedMotion ? 0 : 0.12} color="#C7D2FE" />
+    </>
+  );
+}
+
+export default function PublicUniverse3D({ variant }: { variant: PublicUniverse3DVariant }) {
+  return (
+    <div className={`allpha-public-3d allpha-public-3d-${variant}`} aria-hidden="true">
+      <Canvas
+        dpr={[1, 1.5]}
+        shadows
+        camera={{ position: variant === "identity" ? [0, 5.6, 13.8] : [0, 6.2, 15.2], fov: variant === "universe" ? 43 : 42 }}
+        gl={{ antialias: true, powerPreference: "high-performance" }}
+      >
+        <PublicScene variant={variant} />
+      </Canvas>
+    </div>
+  );
+}
