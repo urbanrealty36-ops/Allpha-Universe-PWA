@@ -23,7 +23,7 @@ Branch: main
 | WEB-11 | Booth/Tenant | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-12 | Agent Experience | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-13 | Universe Feed / Moments | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-14 | Content Capsule | PENDING |
+| WEB-14 | Content Capsule | IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-15 | Ask the Content | PENDING |
 | WEB-16 | Create Experience | PENDING |
 | WEB-17 | My Agent | PENDING |
@@ -373,3 +373,44 @@ Validation:
 - CW-02 remains OPEN / ACTIVATING / NOT GREEN.
 
 Next canonical product phase: WEB-14 — Content Capsule.
+
+
+## WEB-14 implementation contract
+
+WEB-14 is the full Content Capsule / Content Experience surface. It is not a generic article or post page.
+
+Canonical journey:
+
+    Moments Capsule
+        ↓
+    Content Experience
+        ├── Original Content
+        ├── AI Summary
+        ├── Discussion
+        ├── Related Content
+        ├── Community
+        ├── Agent
+        ├── Ask the Content
+        ├── Live Experience
+        └── World
+
+Implementation:
+- Route: /content/{content_id}
+- Component: apps/web/components/content/content-capsule-experience.tsx
+- Styling: apps/web/components/content/content-capsule-experience.module.css
+- Existing API composition: GET /api/v1/discovery/content/{content_id}/evolution
+- Existing Ask boundary: POST /api/v1/discovery/content/{content_id}/ask
+- Existing Content interaction signal: POST /api/v1/content/{content_id}/events
+- Existing Community, Agent, Live and World routes are used for transitions.
+
+The Content Evolution service remains a composition layer over canonical Content, reviewed AI Capsule, Community posts/comments, topic relationships, Universe World Content, Live Sessions and Agent ownership. It does not create a second Content, AI, Community, Recommendation, Feed, Agent Runtime, Live or World engine.
+
+AI Summary is displayed only when an authoritative reviewed ai_capsule exists. The UI never fabricates a summary. Ask uses the existing AI Gateway boundary and never executes Agent actions. Media presentation uses authoritative Content Media references; no unsigned or synthetic asset URL is introduced.
+
+Moments now provides a direct transition from its quick Capsule sheet into the full Content Experience.
+
+WEB-14 source implementation is complete. Railway build/deployment verification, browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-15 — Ask the Content.
+
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
