@@ -1,4 +1,4 @@
-import { ALLPHA_3D_MASTER_LANGUAGE, ALLPHA_3D_THEME_PROFILES, type Allpha3DThemeProfile } from "@allpha/design-tokens/3d-visual-language";
+import { ALLPHA_3D_MASTER_LANGUAGE, ALLPHA_3D_THEME_PROFILES, type Allpha3DThemeProfile } from "../../../../packages/design-tokens/3d-visual-language";
 
 export const ASSET_FACTORY_SCHEMA = "allpha-3d-asset-recipe/2.0" as const;
 
