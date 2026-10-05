@@ -228,3 +228,13 @@ A theme is GREEN only when:
 V2 master specification created.
 V1 assets should not be considered final.
 Browser/device visual QA remains required before claiming production visual completion.
+
+
+## 3D-V2.01 activation
+
+The art-direction foundation is now locked in:
+- `docs/architecture/ALLPHA_3D_V2_01_ART_DIRECTION_MASTER.md`
+- `packages/design-tokens/3d-visual-language.ts`
+- 3D semantic CSS tokens in `packages/design-tokens/tokens.css`
+
+3D-V2.01 is the prerequisite visual contract for all subsequent V2 geometry/material/character/portal/live asset work. It does not activate V2 assets yet.
