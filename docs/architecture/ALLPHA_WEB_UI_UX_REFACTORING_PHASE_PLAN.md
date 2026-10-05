@@ -13,12 +13,71 @@ The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so 
 | 3D-V2.06 | World / District / Booth V2 | IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.07 | Capsule / Content / Feed Universe V2 | ✅ IMPLEMENTATION COMPLETE / TYPECHECK + NEXT BUILD VERIFIED / RAILWAY DEPLOYMENT VERIFIED / RUNTIME VISUAL QA PENDING |
 | 3D-V2.08 | Live / Human Live / Stage V2 / Human + AI Collaboration Stage | IMPLEMENTATION COMPLETE / RAILWAY BUILD VERIFICATION IN PROGRESS / RUNTIME VISUAL QA PENDING |
-| 3D-V2.09 | **Theme V2 Visual Realization — 25 Themes × 14 Categories × 350 3D Templates** | **CURRENT / DESIGN SPEC LOCKED / IMPLEMENTATION PENDING** |
+| 3D-V2.09 | **Theme V2 Visual Realization — 25 Themes × 14 Categories × 350 3D Templates** | **CURRENT / IMPLEMENTED VISUAL FOUNDATION + 350 TEMPLATE CONTRACT / RAILWAY VERIFICATION + VISUAL QA PENDING** |
 | 3D-V2.10 | Portal / Navigation / Spatial FX V2 | PENDING — BLOCKED UNTIL THEME V2 VISUAL REALIZATION |
 | 3D-V2.11 | Manifest / Renderer Activation — 350 Theme Asset Activation | PENDING |
 | 3D-V2.12 | Mobile Performance + Accessibility | PENDING |
 | 3D-V2.13 | Visual QA / Runtime Validation | PENDING |
 | 3D-V2.14 | V1 → V2 Canonical Cutover | PENDING |
+
+## 3D-V2.09 implementation record — Theme V2 visual realization
+
+Status: **IMPLEMENTED VISUAL FOUNDATION / RAILWAY VERIFICATION + RUNTIME VISUAL QA PENDING**
+
+Implemented:
+- reusable Theme V2 spatial renderer for Universe / Galaxy / World / District / Booth / Content / Live;
+- cinematic orbit rings and depth;
+- animated celestial cores and world nodes;
+- floating world/district landmarks;
+- spatial energy links;
+- theme-specific geometry/material/atmosphere derived from the canonical 25-theme design-token profiles;
+- 25 × 14 = **350 Theme V2 visual template matrix contract**;
+- category-specific spatial grammar and animation vocabulary;
+- reduced-motion state-preserving behavior;
+- low-power particle/detail reduction;
+- public landing/splash/identity 3D scene migrated away from the flat CSS globe/core;
+- canonical AllphaWorldRenderer upgraded without introducing a second renderer;
+- World / District / Booth spatial layers now receive Theme V2 visual composition before authoritative data overlays;
+- Golden Universe / Galaxy / Orbit reference scene upgraded to the same Theme V2 visual language.
+
+Files:
+- `apps/web/components/world/theme-v2-spatial-scene.tsx`
+- `apps/web/lib/world-engine/theme-v2-visual-matrix.ts`
+- `apps/web/components/public-universe-3d.tsx`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `apps/web/components/universe-entry-surface.tsx`
+- `docs/audits/THEME_V2_3D_UIUX_REFERENCE_FIDELITY_20261005.md`
+
+### 350-template realization boundary
+
+The repository now has an executable visual template contract for all **350 combinations**. This means the 25 themes × 14 categories are renderable through deterministic Theme V2 spatial composition rules.
+
+This does **not** claim that 350 unique production GLB files have been generated. The supplied 25-theme GLB pack remains an asset-pack source requiring canonical storage/manifest activation before it can be treated as production binary coverage.
+
+### Reference acceptance gate
+
+The attached Allpha UI/UX references are the acceptance direction:
+- real 3D depth;
+- Universe → Galaxy → World → District spatial hierarchy;
+- orbit;
+- motion;
+- atmosphere;
+- theme-specific scene identity;
+- mobile-first spatial UI;
+- premium dark/glass/luminous interface language.
+
+The old flat Railway appearance is explicitly **not** the V2 acceptance target.
+
+### Validation
+
+- Initial Railway deployment exposed duplicate Live Stage prop declarations introduced in the prior V2.08 integration.
+- Duplicate declarations have been removed.
+- Latest Railway deployment queue is active; build/deployment settlement is still pending.
+- Browser/device visual QA is pending.
+- Production GREEN is not claimed.
+
+Next after Theme V2 validation:
+**3D-V2.10 — Portal / Navigation / Spatial FX V2**
 
 ### 3D-V2.01 record
 
