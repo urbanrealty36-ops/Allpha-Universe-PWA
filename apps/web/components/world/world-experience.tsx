@@ -26,7 +26,7 @@ type World = {
 type District = { id: string; world_id: string; name: string; slug: string; description?: string | null; district_type: string; theme_key?: string | null; spatial_config?: Record<string, unknown> };
 type Theme = { id: string; name: string; slug: string; description?: string | null; category?: string | null; tokens?: Record<string, unknown>; world_schema?: unknown; theme_version_id?: string | null };
 type Agent = { id: string; agent_id?: string; name?: string | null; handle?: string | null; status?: string | null; presence_role?: string | null; runtime_state?: string | null };
-type LinkedContent = { id: string; content_id?: string; placement?: string; sort_order?: number };
+type LinkedContent = { id: string; content_id?: string; title?: string | null; excerpt?: string | null; placement?: string; sort_order?: number; position?: { x: number; y: number; z: number }; gravity?: number | null; relationship_count?: number | null; relationships?: Array<{ kind: "agent" | "world" | "community" | "live" | "related"; targetId: string }>; metadata?: Record<string, unknown> };
 type Portal = { id: string; target_world_id?: string; name: string; access_policy?: string; metadata?: Record<string, unknown> };
 type Presence = { id: string; agent_id: string; state?: string; activity?: string | null; context?: Record<string, unknown> };
 type CatalogItem = { id: string; name: string; slug: string; tokens?: Record<string, unknown>; world_schema?: unknown; theme_version_id?: string | null };
@@ -215,6 +215,15 @@ export default function WorldExperience() {
                   lowPower={lowPower}
                   presence={activePresence}
                   portals={portals.map((portal) => ({ id: portal.id, target: portal.target_world_id ?? "", position: undefined }))}
+                  content={content.map((item) => ({
+                    id: item.content_id ?? item.id,
+                    title: item.title ?? null,
+                    excerpt: item.excerpt ?? null,
+                    position: item.position,
+                    gravity: item.gravity,
+                    relationshipCount: item.relationship_count,
+                    relationships: item.relationships,
+                  }))}
                   onHotspot={(node) => setHotspot(node)}
                 />
               ) : (
