@@ -11,7 +11,7 @@ The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so 
 | 3D-V2.04 | Character / Live Character V2 | IMPLEMENTED / CHARACTER V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.05 | Universe / Galaxy / Orbit V2 | IMPLEMENTED / SPATIAL COMPOSITION V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.06 | World / District / Booth V2 | IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
-| 3D-V2.07 | Capsule / Content / Feed Universe V2 | PENDING |
+| 3D-V2.07 | Capsule / Content / Feed Universe V2 | IMPLEMENTED / BUILD VERIFICATION PENDING / RUNTIME VISUAL QA PENDING |
 | 3D-V2.08 | Live / Human Live / Stage V2 | PENDING |
 | 3D-V2.09 | Portal / Navigation / Spatial FX V2 | PENDING |
 | 3D-V2.10 | 25 Theme Expansion / 350 Template Matrix | PENDING |
@@ -584,6 +584,49 @@ Factory contract:
 The factory does not create GLB binaries, mutate Supabase, issue signed URLs, activate assets, or replace the canonical AllphaWorldRenderer. Production GLB export/validation/storage/manifest activation remain subsequent lifecycle stages.
 
 Next: 3D-V2.04 — Character / Live Character V2.
+
+## 3D-V2.07 implementation record
+
+3D-V2.07 establishes the spatial Content / Feed Universe presentation layer while preserving the existing Content, Feed, Discovery, Content Gravity and Ask contracts.
+
+Implementation:
+- `apps/web/lib/world-engine/content-spatial-v2.ts`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `apps/web/components/world/world-experience.tsx`
+- `docs/audits/3D_V2_07_CAPSULE_CONTENT_FEED_UNIVERSE_20261005.md`
+
+Implemented:
+- spatial Content Capsule presentation;
+- Content Gravity field;
+- optional authoritative gravity weighting;
+- explicit related-content spatial links only when authoritative relationship metadata exists;
+- relationship-count presentation signal;
+- authoritative World → Content binding;
+- mobile/low-power node budget;
+- reduced-motion behavior;
+- presentation-only validation boundary;
+- canonical AllphaWorldRenderer integration;
+- GoldenSpatialLayerView reconciliation using the existing V2.05 spatial composition contract.
+
+Architecture boundary:
+- no second Content engine;
+- no second Feed/Discovery engine;
+- no second Gravity engine;
+- no second renderer;
+- no AI Gateway or Agent Runtime duplication;
+- no authority, permission, policy, risk, approval, billing or ownership decisions in the spatial layer;
+- no synthetic Content records.
+
+Validation status:
+- implementation committed to `main`;
+- Railway verification deployment triggered;
+- build verification pending at record time;
+- browser/device visual QA pending;
+- authenticated E2E pending;
+- Production GREEN not claimed.
+
+Next: **3D-V2.08 — Live / Human Live / Stage V2**.
+
 
 
 ## 3D-V2.04 implementation record
