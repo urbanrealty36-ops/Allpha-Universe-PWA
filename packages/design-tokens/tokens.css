@@ -16,3 +16,24 @@
 }
 @media (min-width:768px){:root{--allpha-mobile-nav-height:0px;--allpha-topbar-height:68px}}
 @media (prefers-reduced-motion:reduce){:root{--allpha-motion-instant:0ms;--allpha-motion-fast:0ms;--allpha-motion-base:0ms;--allpha-motion-slow:0ms;--allpha-motion-spatial:0ms}}
+
+
+/* Allpha 3D-V2.01 — master spatial visual language */
+:root {
+  --allpha-3d-space-deep:#03050b;
+  --allpha-3d-system:#42dcff;
+  --allpha-3d-navigation:#75b9ff;
+  --allpha-3d-intelligence:#a77cff;
+  --allpha-3d-social-live:#ee7cff;
+  --allpha-3d-organic:#63e6be;
+  --allpha-3d-warning:#fcc419;
+  --allpha-3d-danger:#ff6b6b;
+  --allpha-3d-glass:rgba(12,20,36,.58);
+  --allpha-3d-glass-strong:rgba(12,20,36,.82);
+  --allpha-3d-orbit:rgba(117,185,255,.34);
+  --allpha-3d-emissive-soft:rgba(66,220,255,.16);
+  --allpha-3d-depth-shadow:0 28px 90px rgba(0,0,0,.42);
+  --allpha-3d-touch-min:44px;
+  --allpha-3d-spatial-motion:680ms;
+}
+@media (prefers-reduced-motion:reduce){:root{--allpha-3d-spatial-motion:0ms}}
