@@ -40,11 +40,11 @@ export function getProductionQualityTier(category: AssetCategory): ProductionQua
 }
 
 export function buildProductionAssetKey(themeKey: string, category: AssetCategory) {
-  return \`v2/\${themeKey}/\${category}\`;
+  return `v2/${themeKey}/${category}`;
 }
 
 export function buildProductionStoragePath(themeKey: string, category: AssetCategory) {
-  return \`\${PRODUCTION_3D_STORAGE_ROOT}/\${themeKey}/\${category}.glb\`;
+  return `${PRODUCTION_3D_STORAGE_ROOT}/${themeKey}/${category}.glb`;
 }
 
 export type ProductionAssetDescriptor = {
@@ -90,13 +90,13 @@ export function createProductionAssetDescriptor(
   source: ProductionAssetDescriptor["source"] = "procedural-realization-export",
 ): ProductionAssetDescriptor {
   if (!ALLPHA_3D_THEME_PROFILES.some((profile) => profile.key === themeKey)) {
-    throw new Error(\`Unknown Allpha 3D theme: \${themeKey}\`);
+    throw new Error(`Unknown Allpha 3D theme: ${themeKey}`);
   }
 
   return {
     schema: PRODUCTION_3D_PIPELINE_SCHEMA,
     assetKey: buildProductionAssetKey(themeKey, category),
-    templateKey: \`theme-v2-real/\${themeKey}/\${category}\`,
+    templateKey: `theme-v2-real/${themeKey}/${category}`,
     themeKey,
     category,
     qualityTier: getProductionQualityTier(category),
@@ -108,7 +108,7 @@ export function createProductionAssetDescriptor(
     presentationOnly: true,
     legacy: false,
     rollback: {
-      legacyPath: \`\${themeKey}.glb\`,
+      legacyPath: `${themeKey}.glb`,
       cutover: "staged-first",
       deleteLegacyAfterRuntimeQa: true,
     },
@@ -139,13 +139,13 @@ export function validateProductionAssetMatrix() {
 
   const keys = new Set<string>();
   for (const asset of PRODUCTION_3D_ASSET_MATRIX) {
-    if (keys.has(asset.assetKey)) errors.push(\`PRODUCTION_3D_DUPLICATE_ASSET:\${asset.assetKey}\`);
+    if (keys.has(asset.assetKey)) errors.push(`PRODUCTION_3D_DUPLICATE_ASSET:${asset.assetKey}`);
     keys.add(asset.assetKey);
-    if (!asset.storagePath.startsWith(\`\${PRODUCTION_3D_STORAGE_ROOT}/\`)) {
-      errors.push(\`PRODUCTION_3D_STORAGE_PATH_INVALID:\${asset.assetKey}\`);
+    if (!asset.storagePath.startsWith(`${PRODUCTION_3D_STORAGE_ROOT}/`)) {
+      errors.push(`PRODUCTION_3D_STORAGE_PATH_INVALID:${asset.assetKey}`);
     }
     if (!asset.presentationOnly || asset.legacy) {
-      errors.push(\`PRODUCTION_3D_AUTHORITY_BOUNDARY_INVALID:\${asset.assetKey}\`);
+      errors.push(`PRODUCTION_3D_AUTHORITY_BOUNDARY_INVALID:${asset.assetKey}`);
     }
   }
 
