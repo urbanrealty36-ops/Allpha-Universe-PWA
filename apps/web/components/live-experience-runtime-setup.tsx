@@ -543,10 +543,10 @@ export default function LiveExperienceRuntimeSetup() {
     <section className="mx-auto w-full max-w-6xl px-4 pb-10 pt-4">
       <div className={card + " p-5"}>
         <div className="mb-5">
-          <div className="text-[10px] uppercase tracking-[.22em] text-[var(--allpha-cyan)]">PHASE 22G · LIVE EXPERIENCE RUNTIME</div>
-          <h2 className="mt-1 text-xl font-semibold text-[var(--allpha-text)]">Human → Collaboration → 3D Stage → Camera → Presence → Costume → Live</h2>
+          <div className="text-[10px] uppercase tracking-[.22em] text-[var(--allpha-cyan)]">3D-V2.08 · LIVE / HUMAN LIVE / STAGE V2</div>
+          <h2 className="mt-1 text-xl font-semibold text-[var(--allpha-text)]">Human + AI Agent → Collaboration Stage → Camera → Presence → Costume → Voice → Live</h2>
           <p className="mt-2 max-w-3xl text-sm text-[var(--allpha-text-muted)]">
-            Stage dan Human presentation adalah presentation/runtime state. Authority tetap mengikuti Agent Passport → Capability → Policy → Consent → Risk → Approval → Agent Runtime.
+            Human dan AI Agent sekarang dipresentasikan sebagai dua aktor pada Collaboration Stage. Stage, Character, Voice, WebRTC dan Human Presentation tetap presentation/transport state; authority tetap mengikuti Agent Passport → Capability → Policy → Consent → Risk → Approval → Agent Runtime.
           </p>
         </div>
 
@@ -596,7 +596,12 @@ export default function LiveExperienceRuntimeSetup() {
                   <div className="flex min-h-[260px] items-center justify-center text-sm text-white/40">No validated World Scene available for this Theme.</div>
                 )}
                 <div className="border-t border-white/10 p-3 text-xs">
-                  <div className="font-medium text-[var(--allpha-cyan)]">LiveExperienceStage active</div>
+                  <div className="flex flex-wrap gap-2 text-[10px] uppercase tracking-wider">
+                    <span className="rounded-full border border-cyan-300/20 bg-cyan-300/5 px-2 py-1 text-cyan-200">Human Stage</span>
+                    <span className="rounded-full border border-violet-300/20 bg-violet-300/5 px-2 py-1 text-violet-200">AI Agent Stage</span>
+                    <span className={"rounded-full border px-2 py-1 " + (activeCollaboration ? "border-emerald-300/20 bg-emerald-300/5 text-emerald-200" : "border-white/10 bg-white/5 text-white/40")}>{activeCollaboration ? "Collaboration Active" : "Collaboration Pending"}</span>
+                  </div>
+                  <div className="mt-2 font-medium text-[var(--allpha-cyan)]">LiveExperienceStage active</div>
                   <div className="mt-1 text-white/55">Canonical renderer: {stage.stage?.renderer} · source: {stage.stage?.binding?.stage_source}</div>
                   {stage.stage?.signed_url && <a className="mt-2 inline-block underline text-white/70" href={stage.stage.signed_url} target="_blank" rel="noreferrer">Open signed 3D asset</a>}
                 </div>
