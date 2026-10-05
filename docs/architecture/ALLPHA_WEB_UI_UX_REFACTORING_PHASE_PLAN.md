@@ -1,4 +1,36 @@
 # Allpha Universe — Full Web App UI/UX Refactoring Phase Plan
+## 3D-V2 foundation rebuild
+
+The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so WEB-16 and later spatial experiences do not rely on placeholder V1 geometry.
+
+| Phase | Name | Status |
+|---|---|---|
+| 3D-V2.01 | Art Direction & Master Visual Language | IMPLEMENTED / FOUNDATION LOCKED / RUNTIME VISUAL QA PENDING |
+| 3D-V2.02 | Reference Theme / Golden Scene | NEXT |
+| 3D-V2.03 | Geometry & Material Asset Factory | PENDING |
+| 3D-V2.04 | Character / Live Character V2 | PENDING |
+| 3D-V2.05 | Universe / Galaxy / Orbit V2 | PENDING |
+| 3D-V2.06 | World / District / Booth V2 | PENDING |
+| 3D-V2.07 | Capsule / Content / Feed Universe V2 | PENDING |
+| 3D-V2.08 | Live / Human Live / Stage V2 | PENDING |
+| 3D-V2.09 | Portal / Navigation / Spatial FX V2 | PENDING |
+| 3D-V2.10 | 25 Theme Expansion / 350 Template Matrix | PENDING |
+| 3D-V2.11 | Manifest / Renderer Activation | PENDING |
+| 3D-V2.12 | Mobile Performance + Accessibility | PENDING |
+| 3D-V2.13 | Visual QA / Runtime Validation | PENDING |
+| 3D-V2.14 | V1 → V2 Canonical Cutover | PENDING |
+
+### 3D-V2.01 record
+
+Canonical art direction: `docs/architecture/ALLPHA_3D_V2_01_ART_DIRECTION_MASTER.md`
+Design-token implementation: `packages/design-tokens/3d-visual-language.ts`
+Audit: `docs/audits/3D_V2_01_ART_DIRECTION_20261005.md`
+
+3D-V2.01 does not create a second renderer or engine. All final spatial presentation continues through `AllphaWorldRenderer` and the existing authoritative Theme/World/asset lifecycle.
+
+WEB-16 remains implemented as a product surface, but its **V2 visual realization/revalidation is gated on the 3D-V2 asset track**.
+
+
 
 Status: CANONICAL PLAN / CW-02.WEB
 WEB-01: CLOSED / BASELINE LOCKED
