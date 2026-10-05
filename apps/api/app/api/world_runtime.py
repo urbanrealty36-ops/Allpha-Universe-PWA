@@ -2,7 +2,7 @@ import asyncio
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.dependencies import get_auth_context
-from app.core.storage import SupabaseStorageError, create_service_signed_download_url, create_signed_download_url
+from app.core.storage import SupabaseStorageError, create_service_signed_download_url, create_service_signed_download_urls, create_signed_download_url
 from app.core.supabase_rest import SupabaseRestError, select, service_select
 
 router=APIRouter(prefix="/api/v1/themes/world-runtime",tags=["Allpha World Engine"])
@@ -79,16 +79,22 @@ async def public_theme_asset_manifest(theme_key: str):
                 "order": "sort_order.asc",
             },
         )
-        async def sign_asset(asset: dict[str, Any]) -> dict[str, Any]:
-            signed_url = None
-            if asset.get("storage_bucket") and asset.get("storage_path"):
-                try:
-                    signed_url = await create_service_signed_download_url(
-                        asset["storage_bucket"], asset["storage_path"], 900
-                    )
-                except SupabaseStorageError:
-                    signed_url = None
-            return {**asset, "signed_url": signed_url}
+        paths = [
+            asset["storage_path"]
+            for asset in assets
+            if asset.get("storage_bucket") == WORLD_ASSET_BUCKET and asset.get("storage_path")
+        ]
+        try:
+            signed_by_path = await create_service_signed_download_urls(WORLD_ASSET_BUCKET, paths, 900)
+        except SupabaseStorageError:
+            signed_by_path = {}
+
+        manifest = [
+            {**asset, "signed_url": signed_by_path.get(asset.get("storage_path"))}
+            for asset in assets
+        ]
+        binary_3d = [item for item in manifest if item.get("signed_url")]
+        return {**asset, "signed_url": signed_url}
 
         # Sign the small per-theme manifest concurrently so the public endpoint
         # remains responsive while still keeping service-role signing server-side.
