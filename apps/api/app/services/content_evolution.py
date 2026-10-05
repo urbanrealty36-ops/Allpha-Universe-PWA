@@ -31,7 +31,7 @@ async def get_content_evolution(
         user,
         "content_items",
         {
-            "select": "id,owner_type,owner_id,content_type,title,excerpt,visibility,status,published_at,created_at,updated_at",
+            "select": "id,owner_type,owner_id,content_type,title,body,excerpt,visibility,status,language_code,metadata,published_at,created_at,updated_at",
             "id": f"eq.{content_id}",
             "status": "eq.published",
             "limit": "1",
@@ -51,9 +51,23 @@ async def get_content_evolution(
         topics = await select(
             user,
             "content_topic_links",
-            {"select": "topic_id", "content_id": f"eq.{content_key}"},
+            {
+                "select": "id,topic_id,created_at,content_topics(id,name,slug,parent_id,description,status)",
+                "content_id": f"eq.{content_key}",
+                "order": "created_at.asc",
+            },
         )
         topic_ids = [str(row["topic_id"]) for row in topics if row.get("topic_id")]
+
+        media_rows = await select(
+            user,
+            "content_media",
+            {
+                "select": "id,media_asset_id,slot_type,position,caption,alt_text,metadata,created_at",
+                "content_id": f"eq.{content_key}",
+                "order": "slot_type.asc,position.asc",
+            },
+        )
 
         capsule_rows = await select(
             user,
@@ -121,6 +135,73 @@ async def get_content_evolution(
                     },
                 )
 
+        community_ids = list(dict.fromkeys(
+            str(row["community_id"])
+            for row in discussion_rows
+            if row.get("community_id")
+        ))
+        communities: list[dict[str, Any]] = []
+        if community_ids:
+            communities = await select(
+                user,
+                "communities",
+                {
+                    "select": "id,name,handle,description,visibility,status,join_policy,metadata",
+                    "id": f"in.({','.join(community_ids)})",
+                    "status": "eq.active",
+                },
+            )
+
+        discussion_ids = [str(row["id"]) for row in discussion_rows if row.get("id")]
+        discussion_comments: list[dict[str, Any]] = []
+        if discussion_ids:
+            discussion_comments = await select(
+                user,
+                "community_comments",
+                {
+                    "select": "id,community_id,post_id,parent_id,author_type,author_id,body,status,created_at,updated_at",
+                    "post_id": f"in.({','.join(discussion_ids)})",
+                    "status": "eq.active",
+                    "order": "created_at.asc",
+                    "limit": str(max(20, related_limit * 12)),
+                },
+            )
+
+        owner_agent: dict[str, Any] | None = None
+        if content.get("owner_type") == "agent" and content.get("owner_id"):
+            try:
+                owner_rows = await select(
+                    user,
+                    "agents",
+                    {
+                        "select": "id,name,description,status,owner_user_id,created_at,updated_at",
+                        "id": f"eq.{content['owner_id']}",
+                        "status": "neq.archived",
+                        "limit": "1",
+                    },
+                )
+                owner_agent = owner_rows[0] if owner_rows else None
+            except SupabaseRestError:
+                owner_agent = None
+
+        world_ids = list(dict.fromkeys(
+            str(row["world_id"])
+            for row in world_rows
+            if row.get("world_id")
+        ))
+        worlds: list[dict[str, Any]] = []
+        if world_ids:
+            worlds = await select(
+                user,
+                "universe_worlds",
+                {
+                    "select": "id,galaxy_id,name,slug,description,status,visibility,world_type,theme_key",
+                    "id": f"in.({','.join(world_ids)})",
+                    "status": "eq.published",
+                    "visibility": "eq.public",
+                },
+            )
+
         live_rows: list[dict[str, Any]] = []
         metadata = content.get("metadata") if isinstance(content.get("metadata"), dict) else {}
         live_session_id = metadata.get("live_session_id")
@@ -178,11 +259,17 @@ async def get_content_evolution(
                 "target_count": len(world_rows),
             },
         ],
+        "topics": topics,
+        "media": media_rows,
         "ai_summary": capsule_rows[0] if capsule_rows else None,
         "discussion": discussion_rows,
+        "discussion_comments": discussion_comments,
+        "communities": communities,
         "related_content": related_rows,
         "live_experience": live_rows,
         "world": world_rows,
+        "worlds": worlds,
+        "agent": owner_agent,
         "availability": {
             "topic_count": len(topic_ids),
             "has_reviewed_ai_summary": bool(capsule_rows),
@@ -190,5 +277,10 @@ async def get_content_evolution(
             "related_content_count": len(related_rows),
             "live_experience_count": len(live_rows),
             "world_count": len(world_rows),
+            "community_count": len(communities),
+            "discussion_comment_count": len(discussion_comments),
+            "media_count": len(media_rows),
+            "related_content_count": len(related_rows),
+            "agent_available": bool(owner_agent),
         },
     }
