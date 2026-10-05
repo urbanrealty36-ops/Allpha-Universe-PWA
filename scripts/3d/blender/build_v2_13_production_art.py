@@ -99,6 +99,38 @@ def area(name,loc,energy,color,size=5):
     d=bpy.data.lights.new(name,"AREA"); d.energy=energy; d.color=color[:3]; d.shape="DISK"; d.size=size
     o=bpy.data.objects.new(name,d); bpy.context.collection.objects.link(o); o.location=loc; look_at(o,(0,1.4,0)); return o
 
+def volume_world():
+    world=bpy.context.scene.world
+    if not world: return
+    nodes=world.node_tree.nodes; links=world.node_tree.links
+    bg=nodes.get("Background")
+    if bg: bg.inputs["Strength"].default_value=.055
+    vol=nodes.new("ShaderNodeVolumePrincipled")
+    vol.inputs["Density"].default_value=.008
+    vol.inputs["Anisotropy"].default_value=.35
+    out=nodes.get("World Output")
+    if out: links.new(vol.outputs["Volume"],out.inputs["Volume"])
+
+def stars(m,count=180):
+    random.seed(1313)
+    for i in range(count):
+        x=random.uniform(-22,22); y=random.uniform(4,18); z=random.uniform(-20,14)
+        s=random.uniform(.008,.028)
+        sphere("Star",(x,y,z),(s,s,s),m["light"])
+
+def atmospheric_ribbons(m):
+    for i in range(5):
+        bpy.ops.mesh.primitive_torus_add(major_radius=5.0+i*.72,minor_radius=.012+i*.003,major_segments=128,minor_segments=8,location=(0,2.2+i*.15,1.8),rotation=(math.radians(70+i*5),math.radians(i*11),math.radians(i*7)))
+        o=bpy.context.object; o.name="AtmosphericRibbon"; o.data.materials.append(m["core"])
+
+def holographic_billboards(m):
+    for x,z in [(-5.8,1.2),(5.6,.9),(-4.6,4.8),(4.8,5.5)]:
+        cube("HolographicBillboard",(x,2.2,z),(1.0,1.35,.025),m["light"],.025)
+        torus("BillboardFrame",(x,2.2,z),1.15,.025,m["core"],(0,math.pi/2,0))
+
+    d=bpy.data.lights.new(name,"AREA"); d.energy=energy; d.color=color[:3]; d.shape="DISK"; d.size=size
+    o=bpy.data.objects.new(name,d); bpy.context.collection.objects.link(o); o.location=loc; look_at(o,(0,1.4,0)); return o
+
 def setup(theme,accent):
     clear()
     world=bpy.context.scene.world or bpy.data.worlds.new("AllphaWorld")
@@ -184,8 +216,11 @@ def build(theme,accent,category,preview=False):
     area("Key",(5,8,6),1200,accent[2],6)
     area("Rim",(-6,5,-3),900,accent[1],5)
     area("Fill",(0,4,7),650,accent[0],4)
+    volume_world()
     hero={"universe","galaxy","world","district","live-stage"}
     if category in hero: city(m)
+    if category in {"universe","galaxy","world","district","live-stage"}:
+      stars(m,220); atmospheric_ribbons(m); holographic_billboards(m)
     if category=="universe":
       portal(m,3.2); character(m,0,2)
     elif category=="galaxy":
@@ -221,7 +256,8 @@ def build(theme,accent,category,preview=False):
       portal(m,2.8); torus("NavOuter",(0,1.7,0),3.5,.035,m["metal"],(math.pi/2,0,0))
     if category in hero or category in {"booth","live-stage"}: cube("Ground",(0,-.28,0),(8,.12,8),m["dark"],.12)
     bpy.ops.object.camera_add(location=(11.8,6.8,15.5)); cam=bpy.context.object
-    cam.data.lens=56; cam.data.sensor_width=32; look_at(cam,(0,2.35,0)); bpy.context.scene.camera=cam
+    cam.data.lens=52; cam.data.sensor_width=32; look_at(cam,(0,2.45,0)); bpy.context.scene.camera=cam
+    cam.data.dof.use_dof=True; cam.data.dof.focus_distance=18; cam.data.dof.aperture_fstop=2.8
     bpy.ops.object.empty_add(type="PLAIN_AXES",location=(0,-20,0))
     meta=bpy.context.object; meta.name="ALLPHA_V2_13_PRODUCTION_ART_METADATA"
     meta["schema"]=SCHEMA; meta["themeKey"]=theme; meta["category"]=category
