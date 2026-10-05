@@ -131,3 +131,36 @@ Only after the browser/device evidence is collected and accepted:
 **3D-V2.13 — Production Asset Promotion**
 
 Promotion remains prohibited while this phase is OPEN.
+
+
+## V2.12 QA Gate Implementation Update
+
+### Automated contract + live Supabase gate
+- GitHub Actions workflow: `.github/workflows/3d-v2-12-qa.yml`
+- Static contract command: `pnpm qa:3d:v2.12`
+- Live command: `pnpm qa:3d:v2.12 -- --live`
+- Live gate requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` GitHub secrets.
+- The live harness now verifies:
+  - 25 themes × 14 categories = 350 expected paths
+  - 350 staged `theme_assets`
+  - 0 active assets before promotion
+  - canonical bucket/root
+  - 350 physical GLB objects in private Supabase Storage
+  - exact production matrix coverage
+  - signed URL generation for all 350 assets
+  - signed URL HEAD reachability for all 350 assets
+- Signed URL verification uses a 900-second TTL and does not promote assets.
+
+### Browser/runtime visual gate
+- Playwright spec: `tests/3d-v2-12-runtime-visual.spec.ts`
+- Desktop and mobile Chromium evidence.
+- Browser test intercepts the public asset-manifest request only inside CI and supplies real Supabase signed URLs for staged production assets.
+- This keeps pending assets private in production while allowing the actual `AllphaWorldRenderer` / `useGLTF` path to load real production GLBs during QA.
+- Browser gate requires at least one successful `.glb` response and captures desktop/mobile screenshots.
+- The browser test also verifies the live matrix remains 25 themes / 350 assets.
+
+### Current evidence state
+- Implementation of the complete V2.12 QA gate: **DONE**
+- Live Supabase data baseline previously reconciled: **350 staged/pending, 0 active**
+- GitHub Actions execution evidence: **OPEN** until a workflow run and artifacts are returned.
+- Production promotion: **BLOCKED intentionally** until V2.12 is GREEN.
