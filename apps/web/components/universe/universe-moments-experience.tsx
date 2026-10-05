@@ -1,6 +1,8 @@
 
 "use client";
 
+// WEB-13 canonical Universe Stream / Moments Galaxy surface.
+
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiFetch } from "../../lib/api";
