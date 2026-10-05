@@ -165,3 +165,35 @@ Interactive categories use standard budgets and recommended LOD/instancing.
 3D-V2.09-A is implementation-complete only when the pipeline exists and the candidate assets can be validated deterministically.
 
 Production activation remains a separate gate and must preserve rollback and authority boundaries.
+
+
+## Execution evidence
+
+Local candidate pack generated from the existing 350 real-geometry export:
+
+- `/mnt/data/allpha-theme-v2-production-3d-350-pack.zip`
+- 350 GLBs;
+- 25 themes × 14 categories;
+- ~16.13 MB total binary payload;
+- ~46 KB average asset size;
+- 3 PBR material slots per asset;
+- GLB binary integrity and geometry/material budget validation: **PASS**;
+- hero LOD and KTX2 texture gates: **WARNING / NOT YET COMPLETE**.
+
+The candidate is deliberately **not** promoted to Supabase yet. The legacy root GLBs remain the rollback source.
+
+## Railway verification
+
+Deployment triggered from:
+
+`f714c56f8024e983ce68fb5ee4ee9a1cab1b2669`
+
+Railway build evidence:
+
+- TypeScript: **FINISHED**
+- Next.js static generation: **77/77**
+- production route generation: **COMPLETED**
+- deployment settlement: **still BUILDING at audit update**
+- Production GREEN: **NOT CLAIMED**
+
+The failed predecessor deployment was caused by escaped template-literal characters in the new TypeScript file and was repaired in the follow-up commit above.
