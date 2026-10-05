@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AllphaWorldRenderer from "../world/allpha-world-renderer";
+import { GOLDEN_SCENE_SET } from "../../lib/world-engine/golden-scene";
 
 type Galaxy = { id: string; name: string; slug: string; description?: string | null };
 type World = {
@@ -108,33 +110,23 @@ export default function GalaxyNavigatorExperience({
 
       <main className="mx-auto max-w-[1600px] px-3 pb-28 pt-4 sm:px-5 lg:px-8">
         <section className="grid gap-3 lg:grid-cols-[.78fr_1.22fr]">
-          <div className="relative min-h-[330px] overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#050816] p-5 sm:min-h-[420px] sm:p-7">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(103,232,249,.18),transparent_18%),radial-gradient(circle_at_20%_20%,rgba(59,130,246,.12),transparent_28%),radial-gradient(circle_at_85%_80%,rgba(124,58,237,.2),transparent_34%),linear-gradient(145deg,#071327,#02040b_72%)]" />
-            <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_30%_25%,#fff,rgba(103,232,249,.72)_8%,rgba(79,70,229,.55)_34%,rgba(124,58,237,.18)_62%,transparent_75%)] shadow-[0_0_90px_rgba(70,190,255,.24)] sm:h-52 sm:w-52" />
-            {[0, 1, 2].map((index) => (
-              <div key={index} className="absolute left-1/2 top-1/2 h-32 w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-cyan-100/[0.1]" style={{ transform: `translate(-50%,-50%) rotate(${index * 42 - 28}deg) scale(${1 + index * .17})` }} />
-            ))}
-            {galaxies.slice(0, 6).map((galaxy, index) => (
-              <button
-                key={galaxy.id}
-                type="button"
-                onClick={() => onGalaxy(galaxy.id)}
-                className={[
-                  "absolute min-h-10 max-w-28 rounded-2xl border px-3 py-2 text-left backdrop-blur-xl",
-                  selectedGalaxy?.id === galaxy.id ? "border-cyan-200/35 bg-cyan-300/10 shadow-[0_0_28px_rgba(70,190,255,.16)]" : "border-white/10 bg-black/25",
-                ].join(" ")}
-                style={{ left: [6, 68, 13, 73, 42, 43][index] + "%", top: [16, 19, 67, 70, 4, 83][index] + "%" }}
-              >
-                <span className="block truncate text-[8px] font-semibold text-white/75">{galaxy.name}</span>
-                <span className="mt-0.5 block text-[7px] text-white/30">Galaxy</span>
-              </button>
-            ))}
-            <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
+          <div className="relative min-h-[330px] overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#050816] sm:min-h-[420px]">
+            <AllphaWorldRenderer
+              scene={GOLDEN_SCENE_SET.galaxy}
+              lowPower={false}
+              onHotspot={() => undefined}
+            />
+            <div className="pointer-events-none absolute left-4 top-4 z-10 max-w-[70%]">
+              <p className="text-[8px] uppercase tracking-[0.3em] text-cyan-200/60">3D-V2.02 Golden Scene</p>
+              <p className="mt-1 text-sm font-semibold text-white/85">Galaxy Spatial Reference</p>
+              <p className="mt-1 text-[8px] leading-4 text-white/35">Crystal AI City · presentation-only visual language</p>
+            </div>
+            <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between gap-3">
               <div>
                 <p className="text-[8px] uppercase tracking-[0.3em] text-cyan-200/55">Spatial Navigation</p>
-                <h2 className="mt-1 text-2xl font-semibold">{selectedGalaxy?.name ?? "Allpha Galaxy"}</h2>
+                <h2 className="mt-1 text-xl font-semibold">{selectedGalaxy?.name ?? "Allpha Galaxy"}</h2>
               </div>
-              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-[8px] text-white/35">2D / Spatial Ready</span>
+              <span className="rounded-full border border-white/10 bg-black/35 px-3 py-1.5 text-[8px] text-white/45 backdrop-blur-xl">Golden Scene · V2</span>
             </div>
           </div>
 
