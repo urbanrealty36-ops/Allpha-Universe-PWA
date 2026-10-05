@@ -440,3 +440,43 @@ Implementation:
 - No second renderer or spatial engine introduced
 
 Next: **3D-V2.03 — Geometry & Material Asset Factory.**
+
+
+## 3D-V2.03 — Geometry & Material Asset Factory — 2026-10-05
+
+Status: IMPLEMENTED / FACTORY FOUNDATION / RUNTIME VISUAL QA PENDING
+
+Implementation:
+- apps/web/lib/world-engine/asset-factory.ts
+- packages/design-tokens/package.json now exports the existing 3D visual language module
+- apps/web/lib/world-engine/golden-scene.ts binds Golden Scene nodes to V2 asset recipe keys
+- docs/audits/3D_V2_03_GEOMETRY_MATERIAL_FACTORY_20261005.md
+
+Factory:
+- consumes the existing 25 ALLPHA_3D_THEME_PROFILES
+- exposes the canonical 14 V2 asset categories
+- deterministically creates theme + category recipes
+- baseline matrix = 25 × 14 = 350 recipes
+- geometry parts use recognizable spatial forms and explicit dimensions
+- material roles follow 3D-V2.01 semantic material language
+- motion vocabulary is declared for downstream canonical runtime work
+- mobile geometry/transparency budgets are part of each recipe
+- factory validator checks schema, presentation-only boundary, geometry, part budget, transparency budget and required core/signal materials
+
+Architecture boundary:
+- factory is build/design-time asset generation, not a renderer
+- no new Supabase schema or records
+- no signed URL or asset activation
+- no new Theme/World/Spatial engine
+- no second renderer
+- no V1 deletion
+- no Production GREEN claim
+
+Golden Theme:
+- Crystal AI City can now generate all 14 V2 category recipes
+- Golden Scene metadata carries recipe keys for Universe/Galaxy/World/Orbit presentation nodes
+
+Lifecycle remains:
+Art Direction → Factory Recipe → Geometry/GLB Export → Validate → Moderate → Store → Manifest → Signed URL → AllphaWorldRenderer → Runtime QA
+
+Next: 3D-V2.04 — Character / Live Character V2.
