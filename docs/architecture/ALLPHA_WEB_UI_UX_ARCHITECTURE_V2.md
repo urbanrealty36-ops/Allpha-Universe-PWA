@@ -696,3 +696,31 @@ Canonical implementation:
 - `docs/audits/WEB13_UNIVERSE_MOMENTS_20261005.md`
 
 No new renderer, recommendation engine, spatial engine, Feed engine, AI Gateway or authority layer is introduced.
+
+## WEB-14 — Content Capsule / Content Experience
+
+The Content Capsule is the canonical presentation boundary between Universe Moments and the broader Content ecosystem.
+
+Moments Capsule → Content Experience → AI Summary → Discussion → Related Content → Community → Agent → Ask → Live → World
+
+The surface composes existing authoritative domains:
+- Content Items / Content Media / Content Topics
+- reviewed AI Capsules
+- Community Posts / Comments / Communities
+- topic-based related Content
+- Universe World Content placement
+- Live Sessions
+- owned/public Agent identity
+- existing Ask the Content → AI Gateway boundary
+
+No new Content engine, summary engine, recommendation engine, community engine, Agent Runtime, AI Gateway, Live engine or World engine is introduced.
+
+The UI owns presentation state only. It does not infer publication, permission, ownership, entitlement, Agent authority, Live state or World access. Empty and unavailable relationship states remain explicit. AI summaries are shown only from reviewed ai_capsules; Ask uses the existing permission-scoped Content + AI Gateway path.
+
+Implementation:
+- apps/web/app/content/[content_id]/page.tsx
+- apps/web/components/content/content-capsule-experience.tsx
+- apps/web/components/content/content-capsule-experience.module.css
+- apps/api/app/services/content_evolution.py
+
+WEB-14 remains subject to Railway build/deployment verification, browser/device visual QA and authenticated E2E.
