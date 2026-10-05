@@ -1,4 +1,5 @@
 name: 3D-V2.13 Production Realistic Art Gate
+# Golden visual QA retrigger: Crystal AI City
 
 on:
   workflow_dispatch:
