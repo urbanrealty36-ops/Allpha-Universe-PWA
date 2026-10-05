@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeV2Real3DAsset } from "./theme-v2-real-3d-asset";
+import { ThemeV2ProductionAssetScene } from "./theme-v2-production-asset-scene";
 import type { AssetCategory } from "../../lib/world-engine/asset-factory";
 import { resolveProduction3DAsset } from "../../lib/world-engine/production-3d-runtime-resolver";
 
@@ -36,13 +37,21 @@ export function ThemeV2SpatialScene(props: {
         allpha3d: {
           activationSchema: "allpha-3d-production-activation/1.0",
           assetKey: production?.descriptor.assetKey ?? null,
+          storageBucket: production?.descriptor.storageBucket ?? null,
           storagePath: production?.descriptor.storagePath ?? null,
-          rendererSource: production?.source ?? "real-3d-runtime",
+          rendererSource: "AllphaWorldRenderer",
           presentationOnly: true,
           legacy: false,
+          cutover: "production-manifest-first-with-procedural-fallback",
         },
       }}
     >
+      <ThemeV2ProductionAssetScene
+        themeKey={props.themeKey}
+        category={category}
+        lowPower={props.lowPower}
+        reducedMotion={props.reducedMotion}
+      />
       <ThemeV2Real3DAsset {...props} />
     </group>
   );
@@ -55,5 +64,6 @@ export const THEME_V2_MATRIX_SUMMARY = {
   schema: "theme-v2-real-3d/1.0",
   activationSchema: "allpha-3d-production-activation/1.0",
   canonicalRenderer: "AllphaWorldRenderer",
+  cutover: "production-manifest-first",
   legacyPlaceholderPack: "retired-from-renderer",
 } as const;
