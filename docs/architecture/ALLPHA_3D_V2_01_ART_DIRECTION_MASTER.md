@@ -553,3 +553,36 @@ Canonical implementation:
 - `apps/web/components/universe/galaxy-navigator-experience.tsx`
 
 The Golden Scene is presentation-only and does not replace authoritative Galaxy/World records. The Navigator may use it as a visual reference while real data continues to come from the existing Universe contracts.
+
+## 3D-V2.05 — Universe / Galaxy / Orbit V2
+
+Status: **IMPLEMENTED / SPATIAL COMPOSITION V2 FOUNDATION / RUNTIME VISUAL QA PENDING**
+
+Implementation:
+- `apps/web/lib/world-engine/spatial-composition-v2.ts`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `apps/web/lib/world-engine/golden-scene.ts`
+- `docs/audits/3D_V2_05_UNIVERSE_GALAXY_ORBIT_20261005.md`
+
+V2.05 upgrades the existing Golden Scene inside the canonical AllphaWorldRenderer with a deterministic spatial composition contract:
+- Universe central gravity + Galaxy anchors + deep cosmic field
+- Galaxy core + primary/secondary orbit + World nodes
+- Orbit core + nested rings + distributed spatial nodes
+- foreground / midground / background depth hierarchy
+- near/far orbital depth
+- semantic core / galaxy / world / orbit roles
+- mobile-aware particle budgets and camera composition
+- reduced-motion and low-power behavior
+
+The composition factory is presentation-only. It does not create authoritative records or replace Universe/Galaxy/World contracts.
+
+No second renderer, spatial engine, Theme authority, Agent Runtime, Live engine, Feed/Discovery engine or AI Gateway was introduced.
+
+Not claimed complete:
+- production GLB replacement
+- 25-theme runtime validation
+- 350 final assets
+- browser/device visual QA
+- V1 → V2 canonical cutover
+
+Next: **3D-V2.06 — World / District / Booth V2.**
