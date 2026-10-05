@@ -10,7 +10,8 @@
     "build:admin": "pnpm --filter @allpha/admin build",
     "validate:3d:assets": "node scripts/3d/production-asset-pipeline.mjs validate",
     "manifest:3d:assets": "node scripts/3d/production-asset-pipeline.mjs manifest",
-    "activate:3d:assets": "node scripts/3d/activate-production-assets.mjs --root=allpha-theme-v2-production-3d-350-pack"
+    "activate:3d:assets": "node scripts/3d/activate-production-assets.mjs --root=allpha-theme-v2-production-3d-350-pack",
+    "qa:3d:v2.12": "node scripts/3d/qa-harness-v2-12.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"
