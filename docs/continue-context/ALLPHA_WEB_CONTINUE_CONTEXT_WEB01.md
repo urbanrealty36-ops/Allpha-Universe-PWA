@@ -222,3 +222,31 @@ WEB-11 final deployment evidence:
 - production route verified by build manifest: /booths/[booth_id]
 
 Browser/device visual QA and authenticated E2E remain pending. CW-02 is not Production GREEN.
+
+
+## WEB-12 implemented
+
+WEB-12 Agent Experience is implemented as an in-Universe Agent Space rather than a conventional profile page.
+
+Implementation:
+- apps/web/components/agent-experience-surface.tsx
+- apps/web/app/agents/[agent_id]/page.tsx
+- apps/web/app/globals.css
+- World/District/Booth Agent entry links preserve spatial context.
+- Existing AllphaWorldRenderer is reused for validated World Scene + Agent Presence.
+- Existing Live Character Runtime catalog is reused for Agent Character presentation.
+- Explicit orbital 2D fallback is used when no validated scene/presence exists.
+- Agent HUD exposes Passport, Skills, Conversation, Presence, Collaboration and Negotiation intents.
+- Conversation uses existing Messaging/Agent Conversation contracts.
+- Collaboration and negotiation use existing Spatial Runtime interaction contracts.
+- Realtime spatial presence is reconciled with authoritative polling.
+- No duplicate renderer, Agent Runtime, AI Gateway, spatial engine, messaging engine or authority layer introduced.
+
+Final Railway deployment:
+- 46325da6-d447-4764-a546-70ae20b8586e
+- SUCCESS
+- commit d4b39e8d993db32d8cefa0132747d5cc8d2de2a6
+
+Browser/device visual QA and authenticated E2E remain pending.
+
+Next: WEB-13 — Universe Feed / Moments.
