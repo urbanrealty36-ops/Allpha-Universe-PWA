@@ -72,3 +72,5 @@ jobs:
             test-results/**
             playwright-report/**
           if-no-files-found: warn
+
+# QA trigger marker: run the full V2.12 contract + Supabase + Railway browser visual gate.
