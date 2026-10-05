@@ -319,3 +319,248 @@ body.allpha-ui-foundation-v1 ::-webkit-scrollbar-thumb:hover { background: rgba(
   .allpha-ui-icon-button { transition: none; }
   .allpha-ui-icon-button:hover { transform: none; }
 }
+
+/* UI/UX-02 — Entry & Human Identity reference realization */
+.allpha-ui-foundation-v1 .allpha-public-splash{
+  min-height:100svh;background:#02040d!important;color:#fff;isolation:isolate;
+}
+.allpha-ui-foundation-v1 .allpha-public-splash .allpha-public-splash-header{
+  padding:max(18px,env(safe-area-inset-top)) clamp(18px,5vw,34px) 18px;
+}
+.allpha-ui-foundation-v1 .allpha-public-splash .allpha-auth-brand{
+  font-size:clamp(28px,8vw,44px);font-weight:900;letter-spacing:-.08em;
+  text-shadow:0 0 34px rgba(103,232,249,.28);
+}
+.allpha-ui-foundation-v1 .allpha-public-splash .allpha-auth-brand span{color:#67e8f9}
+.allpha-ui-foundation-v1 .allpha-public-splash .allpha-auth-brand small{
+  display:block;margin-top:1px;font-size:6px;letter-spacing:.32em;color:rgba(157,234,255,.58)
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-signin{
+  min-height:44px;padding:0 18px;border:1px solid rgba(255,255,255,.26);
+  background:rgba(3,7,18,.35);box-shadow:inset 0 1px rgba(255,255,255,.1);
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-content{
+  position:relative;z-index:8;min-height:100svh;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;padding:0 18px max(28px,env(safe-area-inset-bottom));text-align:center;
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-content .allpha-auth-kicker,
+.allpha-ui-foundation-v1 .allpha-public-kicker{
+  color:#bff8ff;font-size:9px;font-weight:800;letter-spacing:.25em;text-transform:uppercase;
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-content .allpha-auth-kicker::before,
+.allpha-ui-foundation-v1 .allpha-public-kicker i{
+  content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;
+  background:#67e8f9;box-shadow:0 0 18px #67e8f9;
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-content h1{
+  margin:12px 0 0;font-size:clamp(31px,8.6vw,58px);line-height:.98;letter-spacing:-.055em;
+  text-wrap:balance;text-shadow:0 8px 40px rgba(0,0,0,.72);
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-content .allpha-auth-subtitle{
+  max-width:360px;margin:14px auto 0;font-size:11px;line-height:1.65;color:rgba(255,255,255,.62);
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-content .allpha-auth-primary-wide{
+  width:min(390px,100%);min-height:58px;margin-top:22px;border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;background:linear-gradient(110deg,#22d3ee,#4f8cff 50%,#8b5cf6);
+  color:#06111b;font-size:14px;font-weight:800;box-shadow:0 18px 70px rgba(34,211,238,.25),inset 0 1px rgba(255,255,255,.48);
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-stats{
+  width:min(390px,100%);margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,.12);
+  gap:0;justify-content:space-between;color:rgba(255,255,255,.48);
+}
+.allpha-ui-foundation-v1 .allpha-public-splash-stats span{min-width:0;flex:1;font-size:7px;letter-spacing:.08em}
+.allpha-ui-foundation-v1 .allpha-public-splash-stats b{font-size:13px;color:#fff;letter-spacing:.01em}
+.allpha-ui-foundation-v1 .allpha-public-splash-stats i{height:25px;background:rgba(255,255,255,.16)}
+.allpha-ui-foundation-v1 .allpha-public-splash .allpha-public-3d,
+.allpha-ui-foundation-v1 .allpha-public-splash .allpha-public-3d canvas{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+}
+.allpha-ui-foundation-v1 .allpha-public-splash .allpha-public-splash-vignette{
+  z-index:4;background:radial-gradient(circle at 50% 40%,transparent 0 26%,rgba(0,0,0,.08) 48%,rgba(0,0,0,.68) 100%),linear-gradient(180deg,rgba(1,4,15,.04) 34%,rgba(1,3,10,.8) 100%);
+}
+
+/* Explore / Introduction */
+.allpha-ui-foundation-v1 .allpha-public-universe{
+  position:relative;min-height:100svh;overflow:hidden;background:#02040d;color:#fff;isolation:isolate;
+}
+.allpha-ui-foundation-v1 .allpha-public-universe .allpha-public-cosmos{
+  position:absolute;inset:0;z-index:0;overflow:hidden;
+}
+.allpha-ui-foundation-v1 .allpha-public-universe .allpha-public-header{
+  position:absolute;inset:0 0 auto;z-index:20;display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:10px;min-height:72px;padding:max(10px,env(safe-area-inset-top)) 18px 10px;
+  background:linear-gradient(180deg,rgba(2,4,13,.82),transparent);
+}
+.allpha-ui-foundation-v1 .allpha-public-brand{
+  justify-self:start;font-size:28px;font-weight:900;letter-spacing:-.08em;text-shadow:0 0 30px rgba(103,232,249,.2);
+}
+.allpha-ui-foundation-v1 .allpha-public-brand span{color:#67e8f9}
+.allpha-ui-foundation-v1 .allpha-public-brand small{
+  display:block;margin-top:-1px;font-size:5px;letter-spacing:.3em;color:rgba(157,234,255,.52)
+}
+.allpha-ui-foundation-v1 .allpha-public-status{
+  justify-self:center;color:rgba(157,234,255,.62);font-size:7px;font-weight:800;letter-spacing:.2em;
+}
+.allpha-ui-foundation-v1 .allpha-public-status i{
+  display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:#67e8f9;box-shadow:0 0 14px #67e8f9
+}
+.allpha-ui-foundation-v1 .allpha-public-signin{
+  justify-self:end;min-height:42px;padding:0 17px;display:inline-flex;align-items:center;
+  border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(3,7,18,.28);
+  backdrop-filter:blur(16px);font-size:10px;text-decoration:none;
+}
+.allpha-ui-foundation-v1 .allpha-public-stage{
+  position:relative;z-index:8;min-height:100svh;display:flex;flex-direction:column;
+  justify-content:flex-end;align-items:center;padding:0 18px max(86px,env(safe-area-inset-bottom));text-align:center;
+}
+.allpha-ui-foundation-v1 .allpha-public-copy{
+  width:min(100%,460px);padding:26px 0 12px;
+  background:linear-gradient(180deg,transparent,rgba(1,4,12,.5) 25%,rgba(1,4,12,.9));
+}
+.allpha-ui-foundation-v1 .allpha-public-copy h1{
+  margin:12px 0 0;font-size:clamp(43px,12vw,72px);line-height:.88;letter-spacing:-.065em;
+  text-shadow:0 8px 42px rgba(0,0,0,.75)
+}
+.allpha-ui-foundation-v1 .allpha-public-copy h1 em{
+  font-style:normal;background:linear-gradient(100deg,#fff,#67e8f9 48%,#a78bfa);
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.allpha-ui-foundation-v1 .allpha-public-copy p{
+  max-width:370px;margin:16px auto 0;color:rgba(255,255,255,.68);font-size:11px;line-height:1.65
+}
+.allpha-ui-foundation-v1 .allpha-public-actions{display:flex;justify-content:center;gap:9px;margin-top:20px}
+.allpha-ui-foundation-v1 .allpha-public-primary{
+  min-height:54px;padding:0 25px;border:1px solid rgba(255,255,255,.2);border-radius:999px;
+  background:linear-gradient(110deg,#22d3ee,#4f8cff 50%,#8b5cf6);color:#05101b;font-weight:800;
+  box-shadow:0 15px 55px rgba(34,211,238,.23),inset 0 1px rgba(255,255,255,.5)
+}
+.allpha-ui-foundation-v1 .allpha-public-primary b{margin-left:10px;font-size:18px}
+.allpha-ui-foundation-v1 .allpha-public-secondary{
+  min-height:54px;display:inline-flex;align-items:center;padding:0 18px;border:1px solid rgba(255,255,255,.16);
+  border-radius:999px;background:rgba(3,7,17,.34);backdrop-filter:blur(16px);font-size:10px;text-decoration:none
+}
+.allpha-ui-foundation-v1 .allpha-public-orbit-label{
+  order:-1;margin-bottom:10px;padding:9px 14px;border:1px solid rgba(103,232,249,.14);border-radius:999px;
+  background:rgba(2,7,17,.4);backdrop-filter:blur(15px);color:rgba(255,255,255,.45);font-size:6px;letter-spacing:.16em
+}
+.allpha-ui-foundation-v1 .allpha-public-orbit-label strong{display:block;color:#d9fbff;font-size:8px;margin:3px 0}
+.allpha-ui-foundation-v1 .allpha-public-bottom{
+  position:absolute;left:12px;right:12px;bottom:max(18px,env(safe-area-inset-bottom));z-index:12;
+  display:grid;grid-template-columns:repeat(4,1fr);max-width:520px;margin:auto;border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;overflow:hidden;background:rgba(2,7,17,.52);backdrop-filter:blur(18px)
+}
+.allpha-ui-foundation-v1 .allpha-public-bottom>div{
+  min-height:54px;padding:8px 6px;border-right:1px solid rgba(255,255,255,.07);text-align:left
+}
+.allpha-ui-foundation-v1 .allpha-public-bottom>div:last-child{border-right:0}
+.allpha-ui-foundation-v1 .allpha-public-bottom span{display:block;color:#67e8f9;font-size:7px;font-weight:800}
+.allpha-ui-foundation-v1 .allpha-public-bottom strong{display:block;margin-top:4px;font-size:7px;color:#fff}
+.allpha-ui-foundation-v1 .allpha-public-bottom small{display:block;margin-top:2px;font-size:6px;color:rgba(255,255,255,.4)}
+.allpha-ui-foundation-v1 .allpha-public-node{
+  position:absolute;z-index:7;display:flex;align-items:center;gap:5px;padding:7px 9px;
+  border:1px solid rgba(103,232,249,.15);border-radius:999px;background:rgba(2,7,17,.55);
+  box-shadow:0 8px 30px rgba(0,0,0,.25);backdrop-filter:blur(12px);color:rgba(255,255,255,.65);font-size:7px
+}
+.allpha-ui-foundation-v1 .allpha-public-node b{color:#67e8f9}
+.allpha-ui-foundation-v1 .public-node-galaxy{left:9%;top:31%}
+.allpha-ui-foundation-v1 .public-node-world{right:8%;top:39%}
+.allpha-ui-foundation-v1 .public-node-district{left:13%;top:52%}
+.allpha-ui-foundation-v1 .public-node-agent{right:13%;top:57%}
+.allpha-ui-foundation-v1 .public-node-content{left:50%;top:42%;transform:translate(-50%,-50%)}
+.allpha-ui-foundation-v1 .allpha-public-footer{display:none}
+
+/* Human Identity */
+.allpha-ui-foundation-v1 .allpha-auth-gateway{
+  min-height:100svh;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));
+  background:#02040d;color:#fff;isolation:isolate;
+}
+.allpha-ui-foundation-v1 .allpha-auth-gateway-grid{
+  position:relative;z-index:5;width:min(100%,1180px);min-height:calc(100svh - 28px);margin:auto;
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(390px,.75fr);gap:12px
+}
+.allpha-ui-foundation-v1 .allpha-auth-visual{
+  min-height:720px;border:1px solid rgba(255,255,255,.09)!important;border-radius:32px;
+  background:radial-gradient(circle at 50% 42%,rgba(91,101,255,.11),transparent 36%),rgba(2,5,15,.4);
+  box-shadow:0 30px 100px rgba(0,0,0,.45);overflow:hidden
+}
+.allpha-ui-foundation-v1 .allpha-auth-card{
+  align-self:center;width:100%;max-height:calc(100svh - 36px);overflow:auto;padding:28px 25px;
+  border:1px solid rgba(255,255,255,.12);border-radius:32px;
+  background:linear-gradient(145deg,rgba(14,22,42,.9),rgba(3,8,19,.88));
+  box-shadow:0 30px 100px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px)
+}
+.allpha-ui-foundation-v1 .allpha-auth-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.allpha-ui-foundation-v1 .allpha-auth-back{color:rgba(255,255,255,.58);font-size:9px;text-decoration:none}
+.allpha-ui-foundation-v1 .allpha-auth-status{color:#67e8f9;font-size:7px;letter-spacing:.16em}
+.allpha-ui-foundation-v1 .allpha-auth-heading{margin-top:32px}
+.allpha-ui-foundation-v1 .allpha-auth-heading h1{margin:9px 0 0;font-size:clamp(28px,4vw,42px);line-height:.96;letter-spacing:-.05em}
+.allpha-ui-foundation-v1 .allpha-auth-heading>p:last-child{margin-top:12px;color:rgba(255,255,255,.48);font-size:10px;line-height:1.65}
+.allpha-ui-foundation-v1 .allpha-auth-mode{
+  display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:22px;padding:4px;border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;background:rgba(255,255,255,.025)
+}
+.allpha-ui-foundation-v1 .allpha-auth-mode button{
+  min-height:42px;border:0;border-radius:10px;background:transparent;color:rgba(255,255,255,.38);font-size:9px
+}
+.allpha-ui-foundation-v1 .allpha-auth-mode button.active{background:rgba(103,232,249,.09);color:#d9fbff;box-shadow:inset 0 1px rgba(255,255,255,.06)}
+.allpha-ui-foundation-v1 .allpha-auth-social-grid{display:grid;gap:8px;margin-top:18px}
+.allpha-ui-foundation-v1 .allpha-auth-google,.allpha-ui-foundation-v1 .allpha-auth-wallet{
+  width:100%;min-height:48px;display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:8px;
+  padding:0 14px;border:1px solid rgba(255,255,255,.14);border-radius:13px;background:rgba(255,255,255,.035);
+  color:#fff;font-size:10px;text-align:left
+}
+.allpha-ui-foundation-v1 .allpha-auth-google:hover,.allpha-ui-foundation-v1 .allpha-auth-wallet:hover{border-color:rgba(103,232,249,.3);background:rgba(103,232,249,.06)}
+.allpha-ui-foundation-v1 .allpha-google-g{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;color:#4285f4;font-weight:900}
+.allpha-ui-foundation-v1 .allpha-wallet-icon{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:rgba(167,139,250,.15);color:#c4b5fd}
+.allpha-ui-foundation-v1 .allpha-auth-divider{display:flex;align-items:center;gap:9px;margin:18px 0;color:rgba(255,255,255,.25);font-size:6px;letter-spacing:.2em}
+.allpha-ui-foundation-v1 .allpha-auth-divider:before,.allpha-ui-foundation-v1 .allpha-auth-divider:after{content:"";height:1px;flex:1;background:rgba(255,255,255,.1)}
+.allpha-ui-foundation-v1 .allpha-auth-form{display:grid;gap:12px}
+.allpha-ui-foundation-v1 .allpha-auth-form label{display:grid;gap:6px}
+.allpha-ui-foundation-v1 .allpha-auth-form label>span{font-size:9px;color:rgba(255,255,255,.8)}
+.allpha-ui-foundation-v1 .allpha-auth-form input{
+  width:100%;min-height:50px;padding:0 14px;border:1px solid rgba(255,255,255,.14);border-radius:13px;
+  background:rgba(2,7,17,.6);color:#fff;font-size:10px;outline:none
+}
+.allpha-ui-foundation-v1 .allpha-auth-form input::placeholder{color:rgba(255,255,255,.28)}
+.allpha-ui-foundation-v1 .allpha-auth-form input:focus{border-color:rgba(103,232,249,.5);box-shadow:0 0 0 3px rgba(103,232,249,.07)}
+.allpha-ui-foundation-v1 .allpha-auth-primary{
+  min-height:54px;border:1px solid rgba(255,255,255,.18);border-radius:999px;
+  background:linear-gradient(110deg,#22d3ee,#4f8cff 50%,#8b5cf6);color:#05101b;font-size:12px;font-weight:800;
+  box-shadow:0 15px 55px rgba(34,211,238,.2),inset 0 1px rgba(255,255,255,.45)
+}
+.allpha-ui-foundation-v1 .allpha-auth-terms{
+  display:flex!important;grid-template-columns:none!important;align-items:flex-start;gap:8px!important;
+  color:rgba(255,255,255,.42);font-size:8px!important;line-height:1.5
+}
+.allpha-ui-foundation-v1 .allpha-auth-terms input{width:16px!important;min-height:16px!important;accent-color:#67e8f9}
+.allpha-ui-foundation-v1 .allpha-auth-terms a{color:#a5b4fc;text-decoration:underline}
+.allpha-ui-foundation-v1 .allpha-auth-note{margin:14px 0 0;color:rgba(255,255,255,.3);font-size:8px;line-height:1.6}
+.allpha-ui-foundation-v1 .allpha-auth-forgot{margin-top:14px;border:0;background:none;color:rgba(157,234,255,.55);font-size:8px}
+.allpha-ui-foundation-v1 .allpha-auth-message{margin-top:4px;padding:10px 12px;border:1px solid rgba(103,232,249,.14);border-radius:11px;background:rgba(103,232,249,.05);color:#bff8ff;font-size:8px;line-height:1.5}
+.allpha-ui-foundation-v1 .allpha-auth-message.error{border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.06);color:#fecaca}
+@media(max-width:800px){
+  .allpha-ui-foundation-v1 .allpha-public-universe .allpha-public-header{grid-template-columns:1fr auto;min-height:64px}
+  .allpha-ui-foundation-v1 .allpha-public-status{display:none}
+  .allpha-ui-foundation-v1 .allpha-public-stage{padding-bottom:max(88px,env(safe-area-inset-bottom))}
+  .allpha-ui-foundation-v1 .allpha-public-copy h1{font-size:45px}
+  .allpha-ui-foundation-v1 .allpha-public-bottom{grid-template-columns:repeat(2,1fr);max-width:390px}
+  .allpha-ui-foundation-v1 .allpha-public-bottom>div:nth-child(2){border-right:0}
+  .allpha-ui-foundation-v1 .allpha-public-bottom>div:nth-child(-n+2){border-bottom:1px solid rgba(255,255,255,.07)}
+  .allpha-ui-foundation-v1 .allpha-public-node{transform:scale(.9)}
+  .allpha-ui-foundation-v1 .allpha-auth-gateway{padding:0}
+  .allpha-ui-foundation-v1 .allpha-auth-gateway-grid{display:block;min-height:100svh}
+  .allpha-ui-foundation-v1 .allpha-auth-visual{min-height:34svh!important;height:34svh;border-radius:0!important;border-width:0 0 1px!important}
+  .allpha-ui-foundation-v1 .allpha-auth-card{min-height:66svh;max-height:none;margin-top:-1px;border-radius:28px 28px 0 0;padding:22px 18px 30px}
+  .allpha-ui-foundation-v1 .allpha-auth-visual .allpha-auth-brand{left:18px;top:18px}
+  .allpha-ui-foundation-v1 .allpha-auth-visual .allpha-auth-kicker{left:18px;top:67px}
+  .allpha-ui-foundation-v1 .allpha-auth-visual-copy{display:none}
+  .allpha-ui-foundation-v1 .allpha-auth-planet-wrap{transform:scale(.7);opacity:.3}
+}
+@media(min-width:801px){
+  .allpha-ui-foundation-v1 .allpha-public-universe .allpha-public-stage{padding-bottom:120px}
+  .allpha-ui-foundation-v1 .allpha-public-universe .allpha-public-bottom{bottom:24px}
+}
+@media(prefers-reduced-motion:reduce){
+  .allpha-ui-foundation-v1 .allpha-public-node{transition:none}
+}
