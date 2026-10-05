@@ -97,6 +97,7 @@ export default function UniverseMomentsExperience(){
       {selected.owner_type==="agent"&&selected.owner_id?<a href={"/agents/"+encodeURIComponent(selected.owner_id)+"?source_surface=moments&content_id="+encodeURIComponent(selected.id)}><span>AGENT</span><strong>{selected.owner_display_name||"AI Agent"}</strong><small>Open Agent Space →</small></a>:null}
       {live.filter(x=>selected.metadata?.live_session_id===x.id).map(x=><a key={x.id} href={"/live?session_id="+encodeURIComponent(x.id)}><span>LIVE</span><strong>{x.title||"Live Experience"}</strong><small>Enter Live →</small></a>)}
     </div>
+    <div className="allpha-moments-sheet-actions"><a href={"/content/"+encodeURIComponent(selected.id)} className="allpha-moments-open-content">Open Content Experience →</a></div>
     <div className="allpha-moments-ask"><p>ASK THE CONTENT</p><div><input value={ask} onChange={e=>setAsk(e.target.value)} placeholder="Ask about this Capsule…" /><button disabled={asking||!ask.trim()} onClick={()=>void askContent()}>{asking?"…":"Ask"}</button></div>{answer?<div className="answer">{answer}</div>:null}</div>
    </aside>
   </div>:null}
