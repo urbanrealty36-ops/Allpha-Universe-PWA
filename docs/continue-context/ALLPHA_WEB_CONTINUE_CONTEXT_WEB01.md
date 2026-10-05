@@ -389,3 +389,37 @@ Pending validation:
 - authenticated E2E
 
 Next canonical phase: WEB-17 — My Agent.
+
+
+## 3D-V2 foundation rebuild — 2026-10-05
+
+The project has entered a dedicated 3D Foundation Rebuild / Visual Asset V2 track before further visual realization of WEB-16.
+
+### 3D-V2.01 — Art Direction & Master Visual Language
+Status: IMPLEMENTED / FOUNDATION LOCKED / RUNTIME VISUAL QA PENDING
+
+Canonical records:
+- `docs/architecture/ALLPHA_3D_V2_01_ART_DIRECTION_MASTER.md`
+- `packages/design-tokens/3d-visual-language.ts`
+- `docs/audits/3D_V2_01_ART_DIRECTION_20261005.md`
+- `packages/design-tokens/tokens.css` 3D semantic tokens
+
+Locked language:
+- cinematic cosmic depth
+- luminous glass / holographic surfaces
+- orbital / constellation spatial composition
+- recognizable World / District / Booth silhouettes
+- full-body 3D Agent Characters
+- spatial Content Capsules
+- dimensional Live Stage
+- transition portals
+- semantic animation vocabulary
+- mobile-first depth/performance
+- reduced-motion fallback
+
+The existing AllphaWorldRenderer remains canonical. No second renderer, Theme engine, Spatial engine, Agent Runtime, Live engine, Feed/Discovery engine or AI Gateway is introduced.
+
+### 3D-V2 sequence
+3D-V2.02 Golden Scene → 3D-V2.03 Asset Factory → 3D-V2.04 Character/Live Character V2 → 3D-V2.05 Universe/Galaxy/Orbit → 3D-V2.06 World/District/Booth → 3D-V2.07 Content/Capsule → 3D-V2.08 Live/Human Live/Stage → 3D-V2.09 Portal/FX → 3D-V2.10 25×14 expansion → 3D-V2.11 Manifest/Renderer Activation → 3D-V2.12 Performance/Accessibility → 3D-V2.13 Visual QA → 3D-V2.14 V1→V2 Cutover → WEB-16 V2 revalidation.
+
+Do not claim the 350 production assets exist yet. V1 remains rollback/compatibility until V2 passes runtime validation.
