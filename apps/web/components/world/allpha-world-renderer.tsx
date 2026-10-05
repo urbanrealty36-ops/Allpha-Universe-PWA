@@ -8,6 +8,7 @@ import type { Group } from "three";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
 import type { CharacterAnimationSignal } from "../../lib/live-character-animation";
+import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/live-character-v2";
 
 type SpatialPresence = {
   id: string;
@@ -109,13 +110,16 @@ function LiveStage3DAsset({ url }: { url:string }) {
   return <primitive object={stage} position={[0,0,-3]}/>;
 }
 
-function PlatformAgentCharacter3D({position,characterKey,performance}:{position:[number,number,number];characterKey?:string|null;performance?: CharacterAnimationSignal}){
+function PlatformAgentCharacter3D({position,characterKey,performance,themeKey,architecture}:{position:[number,number,number];characterKey?:string|null;performance?: CharacterAnimationSignal;themeKey?:string|null;architecture?:string|null}){
   const root=useRef<Group>(null),head=useRef<Group>(null),torso=useRef<Group>(null),la=useRef<Group>(null),ra=useRef<Group>(null),lf=useRef<Group>(null),rf=useRef<Group>(null),ll=useRef<Group>(null),rl=useRef<Group>(null),le=useRef<Group>(null),re=useRef<Group>(null),mouth=useRef<Group>(null);
-  const [primary,secondary,accent]=useMemo(()=>{const p:Record<string,[string,string,string]>={sage:["#334155","#e2e8f0","#38bdf8"],navigator:["#0f766e","#ccfbf1","#14b8a6"],strategist:["#312e81","#e0e7ff","#818cf8"],builder:["#7c2d12","#ffedd5","#f97316"],analyst:["#1f2937","#f3f4f6","#60a5fa"],mentor:["#78350f","#fef3c7","#f59e0b"],creator:["#581c87","#f3e8ff","#d946ef"],host:["#0f172a","#f8fafc","#38bdf8"],guardian:["#1e293b","#e2e8f0","#94a3b8"],presenter:["#172554","#eff6ff","#60a5fa"],streamer:["#172554","#dbeafe","#3b82f6"],world_guide:["#164e63","#cffafe","#67e8f9"]};return p[characterKey||""]??["#111827","#e5e7eb","#22d3ee"]},[characterKey]);
-  useFrame(({clock})=>{const t=clock.getElapsedTime(),v=Math.max(0,Math.min(1,performance?.level??0)),s=performance?.state??(performance?.speaking?"speaking":performance?.userSpeaking?"listening":"idle"),talk=s==="speaking",listen=s==="listening",think=s==="thinking",facial=performance?.facial??"neutral",gaze=performance?.gaze??"camera";
-    if(root.current){root.current.position.y=.02+Math.sin(t*(talk?3:1.8))*(talk?.04+v*.05:.018);root.current.rotation.y=Math.sin(t*.45)*.035}
-    if(torso.current){torso.current.rotation.z=Math.sin(t*1.15)*(talk?.025+v*.045:.012);torso.current.rotation.x=think?-.05:listen?.02:0}
-    if(head.current){const gazeTurn=gaze==="human"?-.08:gaze==="agent"?.08:gaze==="attention"?.04:0;head.current.rotation.y=gazeTurn+Math.sin(t*.55)*.08;head.current.rotation.x=listen?.08:think?-.09:facial==="surprised"?.04:.02}
+  const profile=useMemo(()=>createCharacterV2Profile(themeKey,characterKey,architecture),[themeKey,characterKey,architecture]);
+  const signal=useMemo(()=>normalizeCharacterV2Signal(performance),[performance]);
+  const {primary,secondary,accent}=profile.wardrobe;
+  const reduceMotion=typeof window!=="undefined"&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useFrame(({clock})=>{const t=clock.getElapsedTime(),v=Math.max(0,Math.min(1,signal.level)),s=signal.state,talk=signal.speaking,listen=s==="listening",think=s==="thinking",facial=signal.facial??"neutral",gaze=signal.gaze??"camera";
+    if(root.current&&!reduceMotion){root.current.position.y=.02+Math.sin(t*(talk?3:1.8))*(talk?.04+v*.05:.018);root.current.rotation.y=Math.sin(t*.45)*.035}
+    if(torso.current){torso.current.rotation.z=reduceMotion?0:Math.sin(t*1.15)*(talk?.025+v*.045:.012);torso.current.rotation.x=think?-.05:listen?.02:0}
+    if(head.current){const gazeTurn=gaze==="human"?-.08:gaze==="agent"?.08:gaze==="attention"?.04:0;head.current.rotation.y=gazeTurn+(reduceMotion?0:Math.sin(t*.55)*.08);head.current.rotation.x=listen?.08:think?-.09:facial==="surprised"?.04:.02}
     if(mouth.current){const smile=facial==="smile"||facial==="happy"?.08:0;const concern=facial==="concerned"||facial==="serious"?-.02:0;mouth.current.scale.y=.15+(talk?v*1.15:0)+smile+concern;mouth.current.scale.x=.75+(talk?v*.25:0)}
     if(le.current&&re.current){const blink=Math.sin(t*1.7)>.994?.12:1;const gazeShift=gaze==="human"?-.035:gaze==="agent"?.035:gaze==="attention"?.06:0;le.current.scale.y=blink;re.current.scale.y=blink;le.current.position.x=-.18+gazeShift;re.current.position.x=.18+gazeShift}
     if(la.current&&ra.current&&lf.current&&rf.current){const g=talk?.12+v*.2:.035;la.current.rotation.z=-g;ra.current.rotation.z=g;if(think){ra.current.rotation.x=-.45;rf.current.rotation.x=-1}else if(s==="greeting"||s==="farewell"){ra.current.rotation.x=-.55;rf.current.rotation.z=Math.sin(t*4)*.55}else{ra.current.rotation.x=0;rf.current.rotation.x=talk?Math.sin(t*2.2)*(.05+v*.08):0}lf.current.rotation.x=talk?Math.sin(t*2+1)*(.04+v*.07):0}
@@ -126,13 +130,15 @@ function PlatformAgentCharacter3D({position,characterKey,performance}:{position:
       <group ref={la} position={[-.58,1.85,0]}><mesh position={[0,-.38,0]}><cylinderGeometry args={[.13,.15,.76,10]}/><meshStandardMaterial color={primary}/></mesh><group ref={lf} position={[0,-.78,0]}><mesh position={[0,-.33,0]}><cylinderGeometry args={[.11,.13,.66,10]}/><meshStandardMaterial color={secondary}/></mesh><mesh position={[0,-.72,0]}><sphereGeometry args={[.14,10,10]}/><meshStandardMaterial color={secondary}/></mesh></group></group>
       <group ref={ra} position={[.58,1.85,0]}><mesh position={[0,-.38,0]}><cylinderGeometry args={[.13,.15,.76,10]}/><meshStandardMaterial color={primary}/></mesh><group ref={rf} position={[0,-.78,0]}><mesh position={[0,-.33,0]}><cylinderGeometry args={[.11,.13,.66,10]}/><meshStandardMaterial color={secondary}/></mesh><mesh position={[0,-.72,0]}><sphereGeometry args={[.14,10,10]}/><meshStandardMaterial color={secondary}/></mesh></group></group>
     </group>
-    <group ref={head} position={[0,2.78,0]}><mesh><sphereGeometry args={[.58,24,20]}/><meshStandardMaterial color={secondary}/></mesh>
+    <group ref={head} position={[0,2.78,0]}><mesh><sphereGeometry args={[profile.silhouette.headScale,24,20]}/><meshStandardMaterial color={secondary}/></mesh>
+      <mesh position={[0,.34,0]} scale={[1.02,.48,1.02]}><sphereGeometry args={[.52,18,12]}/><meshStandardMaterial color={profile.face.hair} roughness={.48}/></mesh>
       <mesh ref={le} position={[-.18,.05,.52]}><sphereGeometry args={[.09,12,12]}/><meshStandardMaterial color="#fff"/></mesh><mesh ref={re} position={[.18,.05,.52]}><sphereGeometry args={[.09,12,12]}/><meshStandardMaterial color="#fff"/></mesh><mesh position={[-.18,.19,.54]} rotation={[0,0,.12]}><boxGeometry args={[.18,.035,.025]}/><meshStandardMaterial color={accent}/></mesh><mesh position={[.18,.19,.54]} rotation={[0,0,-.12]}><boxGeometry args={[.18,.035,.025]}/><meshStandardMaterial color={accent}/></mesh>
       <group ref={mouth} position={[0,-.48,.53]} scale={[.75,.15,.35]}><mesh><sphereGeometry args={[.16,14,10]}/><meshStandardMaterial color="#160b12"/></mesh></group>
     </group>
     <group ref={ll} position={[-.25,.65,0]}><mesh position={[0,-.45,0]}><cylinderGeometry args={[.17,.19,.9,10]}/><meshStandardMaterial color={primary}/></mesh><mesh position={[0,-.98,.08]}><boxGeometry args={[.34,.18,.56]}/><meshStandardMaterial color={secondary}/></mesh></group>
     <group ref={rl} position={[.25,.65,0]}><mesh position={[0,-.45,0]}><cylinderGeometry args={[.17,.19,.9,10]}/><meshStandardMaterial color={primary}/></mesh><mesh position={[0,-.98,.08]}><boxGeometry args={[.34,.18,.56]}/><meshStandardMaterial color={secondary}/></mesh></group>
     <mesh position={[0,.03,0]}><torusGeometry args={[.72,.025,8,32]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.9}/></mesh>
+    <mesh position={[0,1.58,.3]}><sphereGeometry args={[.07,10,10]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.6}/></mesh>
   </group>
 }
 function AgentCharacter3DAsset({ url, position, performance }: { url:string; position:[number,number,number]; performance?: CharacterAnimationSignal }) {
@@ -303,7 +309,7 @@ function WorldObjects({
       const p=agent.position!;
       const selected=agent.id===selectedBoothId;
       return <group key={agent.id} position={[p.x,p.y+.55,p.z]} onClick={()=>onHotspot?.({id:agent.id,kind:"character",position:p,metadata:{agent_id:agent.agent_id,movement_state:agent.movement_state,zone_key:agent.zone_key}})}>
-        {agentCharacterAsset?.source==="platform_catalog"?<PlatformAgentCharacter3D characterKey={agentCharacterAsset.characterKey} position={[0,.05,0]} performance={agentCharacterPerformance}/>:agentCharacterUrl&&agent.agent_id?<AgentCharacter3DAsset url={agentCharacterUrl} position={[0,.05,0]} performance={agentCharacterPerformance}/>:<mesh><sphereGeometry args={[selected?.42:.32,14,14]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={selected?1:.55}/></mesh>}
+        {agentCharacterAsset?.source==="platform_catalog"?<PlatformAgentCharacter3D characterKey={agentCharacterAsset.characterKey} position={[0,.05,0]} performance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined}/>:agentCharacterUrl&&agent.agent_id?<AgentCharacter3DAsset url={agentCharacterUrl} position={[0,.05,0]} performance={agentCharacterPerformance}/>:<mesh><sphereGeometry args={[selected?.42:.32,14,14]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={selected?1:.55}/></mesh>}
         <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[selected?.72:.55,.035,8,32]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.2} transparent opacity={.8}/></mesh>
       </group>;
     })}
