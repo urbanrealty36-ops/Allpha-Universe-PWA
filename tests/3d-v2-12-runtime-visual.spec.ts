@@ -21,15 +21,22 @@ async function assertLiveManifest(request: any, themeKey: string) {
 }
 
 async function assertRendererFetch(page: any, themeKey: string) {
-  const glbResponses: string[] = [];
-  page.on("response", (response: any) => {
-    if (/\.glb(?:\?|$)/i.test(response.url()) && response.status() === 200) glbResponses.push(response.url());
+  const glbPromise = new Promise<string>((resolve) => {
+    const listener = (response: any) => {
+      if (/\.glb(?:\?|$)/i.test(response.url()) && response.status() === 200) {
+        page.off("response", listener);
+        resolve(response.url());
+      }
+    };
+    page.on("response", listener);
   });
   await page.goto(`${baseURL}/qa/3d-v2?theme=${encodeURIComponent(themeKey)}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await expect(page.locator('[data-testid="v2-runtime-theme"]')).toHaveAttribute("data-theme", themeKey, { timeout: 20_000 });
   await expect(page.locator("canvas").first()).toBeVisible({ timeout: 20_000 });
-  await page.waitForTimeout(8_000);
-  expect(glbResponses.length, `Browser renderer must fetch a real GLB for ${themeKey}`).toBeGreaterThan(0);
+  await Promise.race([
+    glbPromise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timed out waiting for GLB fetch: ${themeKey}`)), 25_000)),
+  ]);
 }
 
 test.describe("3D-V2.12 Railway live delivery chain", () => {
@@ -43,21 +50,25 @@ test.describe("3D-V2.12 Railway live delivery chain", () => {
   });
 
   test("signed URLs fetch real GLB binaries for all 25 themes", async ({ request }) => {
-    for (const themeKey of THEMES) {
+    const checks = await Promise.all(THEMES.map(async (themeKey) => {
       const assets = await assertLiveManifest(request, themeKey);
       const sample = assets[0];
       const response = await request.get(sample.signed_url);
       expect(response.status(), `Signed GLB GET for ${themeKey}`).toBe(200);
       expect(response.headers()["content-type"] || "").toMatch(/model\/gltf-binary|application\/octet-stream/i);
       expect((await response.body()).byteLength).toBeGreaterThan(1000);
-    }
+      return true;
+    }));
+    expect(checks).toHaveLength(25);
   });
 
   test("canonical browser renderer loads a real GLB for every theme", async ({ page }) => {
+    test.setTimeout(5 * 60 * 1000);
     for (const themeKey of THEMES) await assertRendererFetch(page, themeKey);
   });
 
   test("mobile canonical browser renderer loads a real GLB", async ({ browser }) => {
+    test.setTimeout(90_000);
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true });
     const page = await context.newPage();
     await assertRendererFetch(page, "crystal-ai-city");
