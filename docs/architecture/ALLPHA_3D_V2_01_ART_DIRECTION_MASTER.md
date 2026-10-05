@@ -586,3 +586,24 @@ Not claimed complete:
 - V1 → V2 canonical cutover
 
 Next: **3D-V2.06 — World / District / Booth V2.**
+
+
+## 3D-V2.06 — World / District / Booth V2
+
+Status: **IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING**
+
+Implementation:
+- `apps/web/lib/world-engine/world-district-booth-v2.ts`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `docs/audits/3D_V2_06_WORLD_DISTRICT_BOOTH_20261005.md`
+
+V2.06 establishes the spatial hierarchy:
+**World → District → Booth → Portal / Content Capsule presentation anchors**.
+
+World provides the focal identity and District anchors. District provides the focal identity and Booth cluster. Booth provides the tenant focal identity and presentation anchors for Portal and Content Capsule relationships. Existing authoritative scene structures and booths can be surfaced through the same renderer interaction boundary.
+
+No second renderer or authority/data engine is introduced. Composition remains presentation-only and preserves 2D → 2.5D → Spatial → 3D progressive enhancement.
+
+Not claimed complete: production GLB replacement, 25-theme runtime validation, 350 final assets, browser/device visual QA, or V1 → V2 canonical cutover.
+
+Next: **3D-V2.07 — Capsule / Content / Feed Universe V2.**
