@@ -122,7 +122,7 @@ export default function WorldExperience() {
     setJoining(true);
     setError(null);
     try {
-      await apiFetch(`/api/v1/universe/worlds/${encodeURIComponent(world.id)}/join`, {
+      await apiFetch(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/join`, {
         method: "POST",
         body: JSON.stringify({ subject_type: "user" }),
       });
@@ -229,7 +229,7 @@ export default function WorldExperience() {
           </div>
 
           <aside className="rounded-[30px] border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
-            <PanelContent tab={tab} districts={districts} agents={agents} content={content} portals={portals} presence={presence} onDistrict={(district) => window.location.assign(`/districts/${district.id}`)} />
+            <PanelContent tab={tab} districts={districts} agents={agents} content={content} portals={portals} presence={presence} worldId={world.id} onDistrict={(district) => window.location.assign(`/districts/${district.id}`)} />
           </aside>
         </div>
       </section>
@@ -248,7 +248,7 @@ export default function WorldExperience() {
   );
 }
 
-function PanelContent({ tab, districts, agents, content, portals, presence, onDistrict }: { tab: Tab; districts: District[]; agents: Agent[]; content: LinkedContent[]; portals: Portal[]; presence: Presence[]; onDistrict: (district: District) => void }) {
+function PanelContent({ tab, districts, agents, content, portals, presence, worldId, onDistrict }: { tab: Tab; districts: District[]; agents: Agent[]; content: LinkedContent[]; portals: Portal[]; presence: Presence[]; worldId: string; onDistrict: (district: District) => void }) {
   if (tab === "districts") return (
     <div>
       <p className="text-[8px] uppercase tracking-[0.24em] text-cyan-200/50">Districts</p>
