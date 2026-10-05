@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 import { ThemeV2Real3DAsset } from "./world/theme-v2-real-3d-asset";
+import { Cinematic3DScene, configureCinematicRenderer } from "./world/cinematic-3d-scene";
 
 export type PublicUniverse3DVariant = "splash" | "universe" | "identity";
 
@@ -59,23 +60,16 @@ function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
 
   return (
     <>
-      <color attach="background" args={["#02040B"]} />
-      <fog attach="fog" args={["#02040B", 12, 34]} />
-      <ambientLight intensity={0.62} />
-      <directionalLight position={[7, 12, 8]} intensity={3.8} castShadow shadow-mapSize={[1024, 1024]} />
-      <pointLight position={[4, 7, 5]} intensity={16} color="#67E8F9" />
-      <pointLight position={[-5, 4, 1]} intensity={11} color="#8B5CF6" />
-
-      <ThemeV2Real3DAsset
-        themeKey="crystal-ai-city"
-        architecture="Crystal AI City"
-        layer={layer}
-        lowPower={false}
-        reducedMotion={reducedMotion}
-      />
-
-      <HumanSilhouette identity={variant === "identity"} />
-      <Sparkles count={reducedMotion ? 55 : 120} scale={[20, 10, 18]} size={0.6} speed={reducedMotion ? 0 : 0.12} color="#C7D2FE" />
+      <Cinematic3DScene themeKey="crystal-ai-city" layer={layer as "universe"|"world"} lowPower={false} reducedMotion={reducedMotion}>
+        <ThemeV2Real3DAsset
+          themeKey="crystal-ai-city"
+          architecture="Crystal AI City"
+          layer={layer}
+          lowPower={false}
+          reducedMotion={reducedMotion}
+        />
+        <HumanSilhouette identity={variant === "identity"} />
+      </Cinematic3DScene>
     </>
   );
 }
