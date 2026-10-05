@@ -63,6 +63,10 @@ Live Supabase verification performed during this phase:
 - `pending`: **350**
 - `active`: **0**
 - V2 storage-backed registrations: **350**
+- activation schema metadata: **350/350**
+- canonical renderer metadata: **350/350**
+- legacy=false metadata: **350/350**
+- presentation_only=true metadata: **350/350**
 
 Storage also contains 3 non-GLB auxiliary objects under the V2 root:
 
