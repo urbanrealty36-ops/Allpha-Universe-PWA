@@ -31,7 +31,7 @@ const prodScene="apps/web/components/world/theme-v2-production-asset-scene.tsx";
 const renderer="apps/web/components/world/allpha-world-renderer.tsx";
 const api="apps/api/app/api/world_runtime.py";
 for(const f of [activation,spatial,prodScene,renderer,api]) check("file:"+f,exists(f),"file missing");
-if(exists(activation)) contains(activation,["PRODUCTION_3D_ACTIVATION_SCHEMA","PRODUCTION_3D_STORAGE_BUCKET","PRODUCTION_3D_STORAGE_ROOT","PRODUCTION_3D_ACTIVATION_MATRIX","assets: 350"]);
+if(exists(activation)) contains(activation,["PRODUCTION_3D_ACTIVATION_SCHEMA","PRODUCTION_3D_STORAGE_BUCKET","PRODUCTION_3D_STORAGE_ROOT","PRODUCTION_3D_ACTIVATION_MATRIX","PRODUCTION_3D_ACTIVATION_COUNTS","expected: 350"]);
 if(exists(spatial)) contains(spatial,["ThemeV2ProductionAssetScene","production-manifest-first-with-procedural-fallback","AllphaWorldRenderer","presentationOnly: true","legacy: false"]);
 if(exists(prodScene)) contains(prodScene,["asset-manifest","signed_url","useGLTF","fallback","NEXT_PUBLIC_API_BASE_URL"]);
 if(exists(renderer)) contains(renderer,["ThemeV2SpatialScene","Cinematic3DScene","SpatialMotionLayer","SpatialPortalFx"]);
