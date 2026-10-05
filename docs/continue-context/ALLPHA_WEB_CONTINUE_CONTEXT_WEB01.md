@@ -517,3 +517,22 @@ No new:
 - asset activation path
 
 Next: 3D-V2.05 — Universe / Galaxy / Orbit V2.
+
+
+## 3D-V2.05 — Universe / Galaxy / Orbit V2 — 2026-10-05
+
+Status: IMPLEMENTED / SPATIAL COMPOSITION V2 FOUNDATION / RUNTIME VISUAL QA PENDING
+
+Implementation:
+- `apps/web/lib/world-engine/spatial-composition-v2.ts`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `apps/web/lib/world-engine/golden-scene.ts`
+- `docs/audits/3D_V2_05_UNIVERSE_GALAXY_ORBIT_20261005.md`
+
+V2.05 upgrades the existing Golden Scene presentation rather than creating another renderer. The composition contract provides Universe gravity, Galaxy clustering, World depth, Orbit layers, near/far rings, foreground/midground/background separation, mobile particle budgets, and layer-specific camera framing.
+
+The canonical `AllphaWorldRenderer` remains the only renderer. Golden nodes remain presentation-only. Existing authoritative Universe/Galaxy/World data contracts are unchanged. Existing CharacterAnimationSignal / Live Character Runtime remain canonical when real Agent presence is supplied.
+
+V2.05 does not claim production GLB completion, 25-theme runtime validation, 350 final assets, browser/device visual QA, or V1 → V2 cutover.
+
+Next: **3D-V2.06 — World / District / Booth V2.**
