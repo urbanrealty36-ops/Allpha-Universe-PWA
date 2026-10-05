@@ -111,3 +111,34 @@ Reduced-motion mode removes continuous decorative motion while preserving state 
 **BUILD / RUNTIME QA PENDING**
 
 **PRODUCTION GREEN NOT CLAIMED**
+
+
+## Railway execution evidence
+
+Final deployment:
+
+- deployment: `49156275-5ffe-4009-95e1-b024f9779186`
+- commit: `4160f6d89fa90de725e6a45f547faa7ebf6a35de`
+- status: **SUCCESS**
+- region: `asia-southeast1-eqsg3a`
+
+Build evidence:
+
+- Next.js production build completed;
+- TypeScript completed;
+- static generation completed for all generated routes;
+- deployment entered DEPLOYING and settled SUCCESS.
+
+The earlier JSX integration failure was corrected before the final successful deployment.
+
+## Remaining acceptance gate
+
+Production code/build is now green, but **runtime browser/device visual QA is still required** before claiming final phase GREEN. The implementation must be visually checked for:
+
+1. cinematic depth;
+2. readable silhouettes;
+3. realistic PBR response;
+4. controlled emissive highlights;
+5. mobile composition;
+6. no flat/wireframe-only presentation;
+7. no performance regression.
