@@ -816,3 +816,35 @@ When an authoritative GLB character exists, the existing GLB path remains prefer
 Status: IMPLEMENTED / CHARACTER V2 FOUNDATION / RUNTIME VISUAL QA PENDING
 
 Next: 3D-V2.05 — Universe / Galaxy / Orbit V2.
+
+
+## 3D-V2.09-C — Advanced Environment Detail, Shaders, Atmosphere & Theme-Specific Visual Polish
+
+Status: **IMPLEMENTED / RAILWAY VERIFICATION PENDING / RUNTIME VISUAL QA PENDING**
+
+3D-V2.09-C extends the 3D-V2.09-B cinematic renderer with an advanced presentation layer.
+
+Implemented:
+- `apps/web/components/world/advanced-environment-detail.tsx`
+- procedural shader surface;
+- animated grid / energy-field shader;
+- atmospheric ribbons;
+- volumetric-style light shafts;
+- theme-family-specific environmental geometry;
+- crystal / neon / organic / aquatic / warm / mythic / cosmic detail families;
+- active PBR material normalization;
+- mobile / low-power detail reduction;
+- reduced-motion behavior.
+
+Canonical architecture remains:
+
+**AllphaWorldRenderer → Cinematic3DScene → AdvancedEnvironmentDetail + Theme V2 Real 3D Geometry**
+
+No second renderer was introduced.
+
+The phase does not alter authoritative identity, ownership, permissions, policy, risk, approval, billing, entitlement or execution logic.
+
+Audit:
+`docs/audits/3D_V2_09_C_ADVANCED_ENVIRONMENT_DETAIL_SHADERS_ATMOSPHERE_THEME_POLISH_20261005.md`
+
+Acceptance remains open until Railway production verification and runtime browser/device visual QA are complete.
