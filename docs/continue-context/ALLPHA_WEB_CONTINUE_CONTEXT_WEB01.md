@@ -283,3 +283,40 @@ Railway Web uses the existing Next.js Webpack build path for this deployment aft
 Browser/device visual QA and authenticated E2E remain pending. CW-02 is not Production GREEN.
 
 Next: WEB-14 — Content Capsule.
+
+## WEB-14 completion handoff — 2026-10-05
+
+WEB-14 Content Capsule is source-implemented on main.
+
+Route:
+- /content/{content_id}
+
+Canonical experience:
+- Original Content
+- AI Summary
+- Discussion
+- Related Content
+- Community
+- Agent
+- Ask the Content
+- Live Experience
+- World
+
+Existing canonical backend composition:
+- GET /api/v1/discovery/content/{content_id}/evolution
+- POST /api/v1/discovery/content/{content_id}/ask
+- POST /api/v1/content/{content_id}/events
+
+The Content Evolution service now returns authoritative Content body/context, Topics, Media references, reviewed AI Capsule, Community discussions/comments, Communities, topic-related Content, Live relationship, World relationships/details and owner Agent relationship.
+
+Moments quick Capsule now links into the full Content Experience.
+
+No duplicate engine/renderer/authority/runtime was added. No synthetic AI Summary or media URL was fabricated.
+
+Pending validation:
+- Railway web/API build + deployment verification
+- browser/device visual QA
+- authenticated E2E
+- CW-02 remains OPEN / ACTIVATING / NOT GREEN
+
+Next canonical phase: WEB-15 — Ask the Content.
