@@ -1,5 +1,6 @@
 "use client";
 import { FormEvent, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 import PublicUniverse3D from "../public-universe-3d";
