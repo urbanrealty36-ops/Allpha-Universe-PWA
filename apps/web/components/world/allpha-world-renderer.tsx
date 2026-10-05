@@ -15,6 +15,7 @@ import type { CharacterAnimationSignal } from "../../lib/live-character-animatio
 import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/live-character-v2";
 import { ThemeV2SpatialScene } from "./theme-v2-spatial-scene";
 import { Cinematic3DScene, configureCinematicRenderer } from "./cinematic-3d-scene";
+import { CinematicProductionHero } from "./cinematic-production-hero";
 
 type SpatialPresence = {
   id: string;
@@ -639,7 +640,10 @@ function WorldObjects({
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const goldenLayer = String(scene.environment?.spatial_layer ?? "");
-  if (goldenLayer === "universe" || goldenLayer === "galaxy" || goldenLayer === "orbit") {
+  if (goldenLayer === "universe") {
+    return <CinematicProductionHero themeKey={themeKey} lowPower={lowPower} reducedMotion={reducedMotion} />;
+  }
+  if (goldenLayer === "galaxy" || goldenLayer === "orbit") {
     return <GoldenSpatialLayerView layer={goldenLayer} lowPower={lowPower} onHotspot={onHotspot} presence={presence} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance}/>;
   }
 
