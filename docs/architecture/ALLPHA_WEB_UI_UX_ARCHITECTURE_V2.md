@@ -724,3 +724,33 @@ Implementation:
 - apps/api/app/services/content_evolution.py
 
 WEB-14 remains subject to Railway build/deployment verification, browser/device visual QA and authenticated E2E.
+
+
+## WEB-15 — Ask the Content
+
+WEB-15 is the interaction layer for the existing Content-grounded Ask boundary.
+
+The surface does not introduce a chatbot engine, second RAG engine, second AI Gateway or new conversation system.
+
+Content Capsule → Ask the Content → permission-scoped Content context → optional existing Agent Memory/Knowledge → canonical AI Gateway
+
+The full Ask Experience provides:
+- question workspace
+- local follow-up turns for the current interface session
+- grounding visibility
+- Content/Topic/Discussion/Community/Agent/World/Live context
+- transitions back to Content and connected Universe experiences
+
+The local turn list is presentation state only. It is not persisted as Memory and does not replace the canonical Messaging/Conversation system.
+
+Backend:
+- apps/api/app/api/ask_content.py
+- apps/api/app/services/ask_content.py
+- apps/api/app/services/content_evolution.py
+
+Frontend:
+- apps/web/app/content/[id]/ask/page.tsx
+- apps/web/components/content/ask-content-experience.tsx
+- apps/web/components/content/ask-content-experience.module.css
+
+Ask remains behind the authenticated Content + AI Gateway boundary. Optional private RAG requires an owned Agent and a real query embedding. Action requests remain handoff-only to Agent Runtime.
