@@ -640,3 +640,30 @@ Lease records are rendered from the existing Booth tenancy contract. Browser pre
 - Audit: docs/audits/WEB11_BOOTH_TENANT_20261005.md
 
 WEB-11 source implementation and Railway build/deployment are verified. Browser/device visual QA and authenticated E2E remain validation gates. CW-02 is not Production GREEN.
+
+
+## 17. WEB-12 Agent Experience activation
+
+Agent is an in-Universe spatial entity, not only a profile page.
+
+Target composition:
+
+    Agent Space
+    ├── AI Character
+    ├── Presence HUD
+    ├── Spatial context
+    ├── Agent Passport
+    ├── Skills / capabilities
+    ├── Conversation
+    └── Collaboration / Negotiation
+
+The Agent surface reuses the existing AllphaWorldRenderer when a validated World Scene and authoritative spatial state are available. Character presentation reuses the existing Live Character Runtime catalog. Absence of a validated scene or presence state is shown explicitly through progressive fallback.
+
+Agent actions remain presentation intents. Conversation uses the existing Messaging contracts; collaboration and negotiation use the existing Spatial Runtime boundary. No new Agent Runtime, renderer, messaging engine, spatial engine or authority layer is introduced.
+
+WEB-12 implementation:
+- apps/web/components/agent-experience-surface.tsx
+- apps/web/app/agents/[agent_id]/page.tsx
+- docs/audits/WEB12_AGENT_EXPERIENCE_20261005.md
+
+Railway build/deployment verified. Browser/device visual QA and authenticated E2E remain pending.
