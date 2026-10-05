@@ -41,15 +41,14 @@ async function assertRendererFetch(page: any, themeKey: string) {
 
 test.describe("3D-V2.12 Railway live delivery chain", () => {
   test("Railway live endpoint exposes all 25 themes and 350 signed V2 assets", async ({ request }) => {
-    const counts: number[] = [];
-    for (const themeKey of THEMES) {
-      const assets = await assertLiveManifest(request, themeKey);
-      counts.push(assets.length);
-    }
-    expect(counts.reduce((sum, value) => sum + value, 0)).toBe(350);
+    test.setTimeout(120_000);
+    const results = await Promise.all(THEMES.map((themeKey) => assertLiveManifest(request, themeKey)));
+    expect(results).toHaveLength(25);
+    expect(results.reduce((sum, assets) => sum + assets.length, 0)).toBe(350);
   });
 
   test("signed URLs fetch real GLB binaries for all 25 themes", async ({ request }) => {
+    test.setTimeout(120_000);
     const checks = await Promise.all(THEMES.map(async (themeKey) => {
       const assets = await assertLiveManifest(request, themeKey);
       const sample = assets[0];
