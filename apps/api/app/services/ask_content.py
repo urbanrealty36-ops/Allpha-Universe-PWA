@@ -223,6 +223,16 @@ async def ask_content(
     return {
         "answer": result.text,
         "content_id": str(content_id),
+        "answer_mode": "content_grounded",
+        "grounding": {
+            "content": True,
+            "topic_count": len(context.get("topics", [])),
+            "media_count": len(context.get("media", [])),
+            "private_rag": rag.get("status") == "retrieved",
+            "memory_count": len(rag.get("memory", [])),
+            "knowledge_count": len(rag.get("knowledge", [])),
+            "scope": "authenticated_content_context",
+        },
         "rag": {
             "status": rag.get("status"),
             "memory_count": len(rag.get("memory", [])),
