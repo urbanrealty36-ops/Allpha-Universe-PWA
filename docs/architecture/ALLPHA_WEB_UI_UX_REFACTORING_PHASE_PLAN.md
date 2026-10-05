@@ -10,7 +10,7 @@ The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so 
 | 3D-V2.03 | Geometry & Material Asset Factory | IMPLEMENTED / FACTORY FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.04 | Character / Live Character V2 | IMPLEMENTED / CHARACTER V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.05 | Universe / Galaxy / Orbit V2 | IMPLEMENTED / SPATIAL COMPOSITION V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
-| 3D-V2.06 | World / District / Booth V2 | PENDING |
+| 3D-V2.06 | World / District / Booth V2 | IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.07 | Capsule / Content / Feed Universe V2 | PENDING |
 | 3D-V2.08 | Live / Human Live / Stage V2 | PENDING |
 | 3D-V2.09 | Portal / Navigation / Spatial FX V2 | PENDING |
