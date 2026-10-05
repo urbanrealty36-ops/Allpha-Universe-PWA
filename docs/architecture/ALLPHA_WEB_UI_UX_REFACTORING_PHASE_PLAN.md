@@ -6,8 +6,8 @@ The Web UI track is now explicitly gated by a parallel 3D foundation rebuild so 
 | Phase | Name | Status |
 |---|---|---|
 | 3D-V2.01 | Art Direction & Master Visual Language | IMPLEMENTED / FOUNDATION LOCKED / RUNTIME VISUAL QA PENDING |
-| 3D-V2.02 | Reference Theme / Golden Scene | NEXT |
-| 3D-V2.03 | Geometry & Material Asset Factory | PENDING |
+| 3D-V2.02 | Reference Theme / Golden Scene | IMPLEMENTED / CANONICAL RENDERER INTEGRATED / RUNTIME VISUAL QA PENDING |
+| 3D-V2.03 | Geometry & Material Asset Factory | IMPLEMENTED / FACTORY FOUNDATION / RUNTIME VISUAL QA PENDING |
 | 3D-V2.04 | Character / Live Character V2 | PENDING |
 | 3D-V2.05 | Universe / Galaxy / Orbit V2 | PENDING |
 | 3D-V2.06 | World / District / Booth V2 | PENDING |
@@ -559,3 +559,28 @@ Files:
 - `docs/audits/3D_V2_02_UNIVERSE_GALAXY_ORBIT_20261005.md`
 
 The Golden Scene remains presentation-only. It does not seed or replace authoritative Universe/Galaxy/World records.
+
+## 3D-V2.03 implementation record
+
+3D-V2.03 establishes the deterministic Geometry & Material Asset Factory used to derive theme-aware V2 spatial asset recipes without creating a second runtime or renderer.
+
+Implementation:
+- apps/web/lib/world-engine/asset-factory.ts
+- packages/design-tokens/package.json export for the existing 3D visual language
+- apps/web/lib/world-engine/golden-scene.ts recipe-key binding
+- docs/audits/3D_V2_03_GEOMETRY_MATERIAL_FACTORY_20261005.md
+
+Factory contract:
+- 25 canonical existing themes
+- 14 canonical V2 asset categories
+- deterministic theme + category recipe generation
+- 350 baseline recipes
+- semantic V2 material roles
+- mobile part/transparency budgets
+- animation vocabulary
+- presentation-only boundary
+- factory validation gate
+
+The factory does not create GLB binaries, mutate Supabase, issue signed URLs, activate assets, or replace the canonical AllphaWorldRenderer. Production GLB export/validation/storage/manifest activation remain subsequent lifecycle stages.
+
+Next: 3D-V2.04 — Character / Live Character V2.
