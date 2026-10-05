@@ -39,7 +39,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
       - name: Install workspace
         run: pnpm install --no-frozen-lockfile
       - name: Build User PWA
@@ -56,12 +55,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
       - name: Install workspace
         run: pnpm install --no-frozen-lockfile
       - name: Build Super Admin
         run: pnpm build:admin
-
 
   security-supply-chain:
     name: Security and supply-chain gate
@@ -86,14 +83,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
           python -m pip install pip-audit
-          pip-audit
+          pip-audit --skip-editable
       - uses: pnpm/action-setup@v4
         with:
           version: 10.17.1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
       - name: Install workspace
         run: pnpm install --no-frozen-lockfile
       - name: Audit JavaScript dependencies
