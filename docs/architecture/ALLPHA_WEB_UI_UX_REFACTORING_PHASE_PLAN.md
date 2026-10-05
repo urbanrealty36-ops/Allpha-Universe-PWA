@@ -24,7 +24,7 @@ Branch: main
 | WEB-12 | Agent Experience | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-13 | Universe Feed / Moments | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-14 | Content Capsule | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-15 | Ask the Content | PENDING |
+| WEB-15 | Ask the Content | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-16 | Create Experience | PENDING |
 | WEB-17 | My Agent | PENDING |
 | WEB-18 | Agent Live Monitor | PENDING |
@@ -412,5 +412,56 @@ Moments now provides a direct transition from its quick Capsule sheet into the f
 WEB-14 source implementation is complete. Railway web/API build and deployment verification is complete. Browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-15 — Ask the Content.
+
+CW-02 remains OPEN / ACTIVATING / NOT GREEN.
+
+
+## WEB-15 implementation contract
+
+WEB-15 deepens the existing Ask the Content boundary. It does not create a second Q&A, chatbot, RAG, AI Gateway or conversation engine.
+
+Canonical flow:
+
+    Content Capsule
+        ↓
+    Ask the Content
+        ├── Content-grounded question
+        ├── existing permission-scoped Content context
+        ├── optional existing Agent Memory / Knowledge RAG
+        ├── canonical AI Gateway
+        └── explicit Agent Runtime handoff only when an action request is supplied
+
+Implementation:
+- Route: /content/{content_id}/ask
+- Component: apps/web/components/content/ask-content-experience.tsx
+- Styling: apps/web/components/content/ask-content-experience.module.css
+- Existing Ask endpoint: POST /api/v1/discovery/content/{content_id}/ask
+- Existing Content context: GET /api/v1/discovery/content/{content_id}/evolution
+
+The full Ask surface adds:
+- Content-bounded question workspace
+- grounded answer presentation
+- local follow-up turns in the current UI session
+- visible grounding signals
+- reviewed Content/Topic/Discussion/Community/Agent/World/Live context indicators
+- direct transitions back into the Content Experience and Universe relationships
+- explicit statement that local follow-up turns do not create a new memory/conversation engine
+
+Backend enhancement:
+- Ask response now exposes grounding metadata through the existing service/Gateway boundary.
+- Content Evolution now exposes canonical Community, Agent and Ask steps in the Content journey.
+- No new database table or migration is required.
+
+Security/authority:
+- Content remains permission-scoped server-side.
+- Private RAG remains optional and requires an owned Agent plus a real query embedding.
+- No embedding is fabricated.
+- Vector similarity does not grant authorization.
+- Action requests remain handoff-only; Ask never executes Agent actions.
+- AI provider/model selection remains inside the canonical AI Gateway.
+
+WEB-15 source implementation is complete. Railway verification, browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical phase: WEB-16 — Create Experience.
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN.
