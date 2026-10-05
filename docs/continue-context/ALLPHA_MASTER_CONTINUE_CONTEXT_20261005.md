@@ -1369,23 +1369,40 @@ At the time of this handoff:
 
 ### CURRENT
 **3D-V2.09 — Theme V2 Visual Realization / 25 Themes × 14 Categories × 350 3D Templates**
-The current Railway UI is explicitly foundation/flat state. The supplied Allpha reference boards are the V2 acceptance target. This phase is the primary visual refactoring milestone.
+
+Implementation now includes:
+- reusable Theme V2 spatial visual scene;
+- Universe / Galaxy / World / District / Booth / Content / Live compositions;
+- orbit, depth, animation, atmosphere and spatial links;
+- canonical 25-theme design-token integration;
+- executable **25 × 14 = 350 visual template contract**;
+- public landing/splash/identity migration away from the flat CSS globe/core;
+- canonical AllphaWorldRenderer integration.
+
+Status:
+**IMPLEMENTED VISUAL FOUNDATION / RAILWAY VERIFICATION + RUNTIME VISUAL QA PENDING**
+
+The supplied Allpha reference boards remain the acceptance target. The old flat Railway appearance is not the V2 target.
 
 ### NEXT
 **3D-V2.10 — Portal / Navigation / Spatial FX V2**
 
+This phase starts only after Theme V2 build/runtime visual validation is accepted.
+
 Then:
+1. 3D-V2.10 — Portal / Navigation / Spatial FX V2
+2. 3D-V2.11 — Manifest / Renderer Activation
+3. 3D-V2.12 — Mobile Performance + Accessibility
+4. 3D-V2.13 — Visual QA / Runtime Validation
+5. 3D-V2.14 — V1 → V2 Canonical Cutover
+6. WEB-16 V2 visual revalidation
+7. Continue WEB-17 → WEB-34.
 
-1. 3D-V2.09 — Theme V2 Visual Realization / 350 3D Templates
-2. 3D-V2.10 — Portal / Navigation / Spatial FX V2
-3. 3D-V2.11 — Manifest / Renderer Activation
-4. 3D-V2.12 — Mobile Performance + Accessibility
-5. 3D-V2.13 — Visual QA / Runtime Validation
-6. 3D-V2.14 — V1 → V2 Canonical Cutover
-7. WEB-16 V2 visual revalidation
-8. Continue WEB-17 → WEB-34.
+**Theme V2 is not complete when only asset recipes exist. The running product must visibly demonstrate real 3D Universe/Galaxy/World/District composition, depth, orbit, animation, atmosphere, spatial navigation and reference-aligned mobile UI/UX.**
 
-**Theme V2 is not complete when only asset recipes exist. The running product must visibly demonstrate real 3D Universe/Galaxy/World/District composition, depth, orbit, animation, atmosphere, spatial navigation and reference-aligned mobile UI/UX. Portal/Navigation V2 is downstream of this visual foundation.**
+Audit:
+`docs/audits/3D_V2_09_THEME_V2_350_VISUAL_REALIZATION_20261005.md`
+
 
 ---
 
