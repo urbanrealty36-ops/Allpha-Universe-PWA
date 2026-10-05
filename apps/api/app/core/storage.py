@@ -74,3 +74,30 @@ async def create_signed_download_url(
     if not isinstance(relative_url, str) or not relative_url:
         raise SupabaseStorageError(502, "Supabase Storage did not return a signed URL.")
     return relative_url if relative_url.startswith("http") else f"{_base_url()}{relative_url}"
+
+async def create_service_signed_download_url(
+    bucket: str,
+    path: str,
+    expires_in: int = 900,
+) -> str:
+    """Create a short-lived signed URL for a server-approved public asset."""
+    settings = get_settings()
+    if not settings.supabase_service_role_key:
+        raise SupabaseStorageError(500, "Supabase service role signing is not configured.")
+    url = f"{_base_url()}/object/sign/{quote(bucket, safe='')}/{quote(path, safe='/')}"
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.post(url, json={"expiresIn": expires_in}, headers=headers)
+    if response.status_code >= 400:
+        raise SupabaseStorageError(response.status_code, "Supabase Storage service signing failed.")
+    payload = response.json()
+    relative_url = payload.get("signedURL")
+    if not isinstance(relative_url, str) or not relative_url:
+        raise SupabaseStorageError(502, "Supabase Storage did not return a service signed URL.")
+    return relative_url if relative_url.startswith("http") else f"{_base_url()}{relative_url}"
+
