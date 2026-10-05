@@ -626,7 +626,7 @@ function BoothTabPanel({
       <Panel title="AI Host" eyebrow="Booth → Agent">
         {hostAgent ? (
           <>
-            <AgentAccountCard agent={hostAgent} discoveryContext={{ source_surface: "booth", booth_id: booth.id }} />
+            <AgentAccountCard agent={hostAgent} discoveryContext={{ source_surface: "booth", booth_id: booth.id, district_id: booth.district_id, world_id: district?.world_id }} />
             <div className="mt-4 grid grid-cols-2 gap-2">
               {(["conversation", "collaboration", "shopping", "negotiation"] as const).map((kind) => (
                 <button key={kind} type="button" onClick={() => onInteraction(kind)} className="min-h-11 rounded-xl border border-white/10 bg-white/[.03] px-3 text-[10px] text-white/65">{kind}</button>
