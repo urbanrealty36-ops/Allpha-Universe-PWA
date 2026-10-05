@@ -7,12 +7,13 @@ import * as THREE from "three";
 import { ALLPHA_3D_THEME_PROFILES, type Allpha3DThemeProfile } from "../../../../packages/design-tokens/3d-visual-language";
 import { create3DAssetRecipe, type AssetCategory } from "../../lib/world-engine/asset-factory";
 
-export type ThemeV2SpatialLayer = "universe" | "galaxy" | "world" | "district" | "booth" | "content" | "live";
+export type ThemeV2SpatialLayer = "universe" | "galaxy" | "orbit" | "world" | "district" | "booth" | "content" | "live";
 export type ThemeV2Category = AssetCategory;
 
 const categoryByLayer: Record<ThemeV2SpatialLayer, AssetCategory> = {
   universe: "universe",
   galaxy: "galaxy",
+  orbit: "orbit",
   world: "world",
   district: "district",
   booth: "booth",
@@ -317,6 +318,16 @@ export function ThemeV2SpatialScene({
           <OrbitRing radius={5.15} tilt={-0.34} color={tertiary} opacity={0.4} speed={-0.08} reducedMotion={reducedMotion} />
           {worldPositions.slice(0, lowPower ? 3 : 4).map((position, i) => <WorldOrb key={i} profile={profile} position={position} scale={0.76 - i * 0.04} index={i} reducedMotion={reducedMotion} label={"World " + (i + 1)} />)}
           {worldPositions.slice(0, lowPower ? 3 : 4).map((position, i) => <EnergyLink key={"link-"+i} from={[0,0,0]} to={position} color={i % 2 ? tertiary : primary} />)}
+        </>
+      ) : null}
+      {layer === "orbit" ? (
+        <>
+          <CelestialCore profile={profile} layer="galaxy" reducedMotion={reducedMotion} />
+          <OrbitRing radius={2.8} tilt={0.28} color={primary} opacity={0.82} speed={0.18} reducedMotion={reducedMotion} />
+          <OrbitRing radius={4.2} tilt={-0.42} color={tertiary} opacity={0.48} speed={-0.11} reducedMotion={reducedMotion} />
+          {worldPositions.slice(0, lowPower ? 3 : 4).map((position, i) => (
+            <WorldOrb key={i} profile={profile} position={[position[0] * 0.72, position[1] * 0.72, position[2] * 0.72]} scale={0.52 - i * 0.025} index={i} reducedMotion={reducedMotion} label={"Node " + (i + 1)} />
+          ))}
         </>
       ) : null}
 
