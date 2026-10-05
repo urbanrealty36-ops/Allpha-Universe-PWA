@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { ALLPHA_3D_THEME_PROFILES } from "../../../../packages/design-tokens/3d-visual-language";
+import { AdvancedEnvironmentDetail } from "./advanced-environment-detail";
 
 type CinematicLayer = "universe" | "galaxy" | "orbit" | "world" | "district" | "booth" | "content" | "live";
 
@@ -50,13 +51,34 @@ function darken(hex: string, factor: number) {
   return "#" + color.getHexString();
 }
 
-function CinematicMaterialRealism({ reducedMotion, lowPower }: { reducedMotion: boolean; lowPower: boolean }) {
-  const pulse = useRef(0);
+function CinematicMaterialRealism({ children, reducedMotion, lowPower }: { children?: ReactNode; reducedMotion: boolean; lowPower: boolean }) {
+  const root = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {
-    if (reducedMotion) return;
-    pulse.current = clock.getElapsedTime();
+    const group = root.current;
+    if (!group) return;
+    const t = clock.elapsedTime;
+    group.traverse((object) => {
+      const mesh = object as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const material = mesh.material as THREE.Material | THREE.Material[] | undefined;
+      const materials = Array.isArray(material) ? material : material ? [material] : [];
+      for (const item of materials) {
+        const pbr = item as THREE.MeshStandardMaterial;
+        if (typeof pbr.roughness === "number") {
+          const metalness = typeof pbr.metalness === "number" ? pbr.metalness : 0;
+          pbr.envMapIntensity = lowPower ? 0.68 : metalness > 0.6 ? 1.2 : 0.92;
+          pbr.roughness = Math.max(0.16, Math.min(0.9, pbr.roughness));
+          if (pbr.transparent) pbr.depthWrite = false;
+        }
+        if (pbr.emissive && typeof pbr.emissiveIntensity === "number") {
+          const cap = lowPower ? 1.15 : 2.7;
+          const base = Math.min(pbr.emissiveIntensity, cap);
+          pbr.emissiveIntensity = reducedMotion ? base : base * (0.96 + Math.sin(t * 0.6) * 0.02);
+        }
+      }
+    });
   });
-  return null;
+  return <group ref={root}>{children}</group>;
 }
 
 function FilmGrain({ accent, reducedMotion, lowPower }: { accent: string; reducedMotion: boolean; lowPower: boolean }) {
