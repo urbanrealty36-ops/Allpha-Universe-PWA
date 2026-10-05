@@ -280,7 +280,6 @@ async def get_content_evolution(
             "community_count": len(communities),
             "discussion_comment_count": len(discussion_comments),
             "media_count": len(media_rows),
-            "related_content_count": len(related_rows),
             "agent_available": bool(owner_agent),
         },
     }
