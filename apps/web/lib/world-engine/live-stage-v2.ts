@@ -47,7 +47,7 @@ export function createLiveStageV208Composition(input: {
       id: input.humanId || "human-presenter",
       role: "human",
       state: input.humanState || (input.collaborationActive ? "collaborating" : "presenting"),
-      position: [-1.45, 0.05, 0],
+      position: { x: -1.45, y: 0.05, z: 0 },
       presentationOnly: true,
     });
   }
@@ -57,7 +57,7 @@ export function createLiveStageV208Composition(input: {
       id: input.agentId,
       role: "ai-agent",
       state: input.agentState || "collaborating",
-      position: [1.45, 0.05, 0],
+      position: { x: 1.45, y: 0.05, z: 0 },
       presentationOnly: true,
     });
   }
