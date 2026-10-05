@@ -27,11 +27,15 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - name: Run V2.12 static contract harness
         run: pnpm qa:3d:v2.12
-      - name: Run V2.12 live Supabase harness
+      - name: Run V2.12 live Supabase harness when repository secrets are configured
+        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: pnpm qa:3d:v2.12 -- --live
+      - name: Note live Supabase harness skipped when secrets are unavailable
+        if: ${{ secrets.SUPABASE_URL == '' || secrets.SUPABASE_SERVICE_ROLE_KEY == '' }}
+        run: echo "Live Supabase harness skipped; Railway public manifest + signed-URL + browser chain remains the authoritative runtime gate."
       - name: Upload QA report
         uses: actions/upload-artifact@v4
         with:
@@ -55,12 +59,8 @@ jobs:
       - name: Runtime visual QA
         env:
           ALLPHA_QA_BASE_URL: https://allphaweb-production.up.railway.app
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          test -n "$SUPABASE_URL"
-          test -n "$SUPABASE_SERVICE_ROLE_KEY"
-          pnpm exec playwright test tests/3d-v2-12-runtime-visual.spec.ts --reporter=line
+          NEXT_PUBLIC_API_BASE_URL: https://allpha-api-production.up.railway.app
+        run: pnpm exec playwright test tests/3d-v2-12-runtime-visual.spec.ts --reporter=line
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
