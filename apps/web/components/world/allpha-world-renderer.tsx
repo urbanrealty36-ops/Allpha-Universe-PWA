@@ -315,6 +315,7 @@ function GoldenSpatialLayerView({
   const root = useRef<Group>(null);
   const reduceMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const composition = useMemo(() => createSpatialCompositionV205(layer), [layer]);
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useFrame(({ clock }) => {
     if (!root.current || reduceMotion) return;
@@ -332,6 +333,7 @@ function GoldenSpatialLayerView({
 
   return (
     <group ref={root}>
+      <ThemeV2SpatialScene themeKey="crystal-ai-city" architecture="Crystal AI City" layer={layer} lowPower={lowPower} reducedMotion={reducedMotion} />
       <mesh position={[0, -0.65, 0]}>
         <sphereGeometry args={[layer === "universe" ? 2.1 : layer === "galaxy" ? 1.55 : 1.15, lowPower ? 16 : 24, lowPower ? 12 : 18]} />
         <meshStandardMaterial color={colors.core} emissive={colors.core} emissiveIntensity={1.1} transparent opacity={0.2} />
