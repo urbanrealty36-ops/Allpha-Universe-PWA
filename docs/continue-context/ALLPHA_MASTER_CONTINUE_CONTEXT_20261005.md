@@ -567,7 +567,7 @@ Mission:
 
 The project is CURRENTLY at:
 
-# **3D-V2.08 — LIVE / HUMAN LIVE / STAGE V2 / HUMAN + AI COLLABORATION STAGE**
+# **3D-V2.09 — THEME V2 VISUAL REALIZATION / 25 THEMES × 14 CATEGORIES × 350 3D TEMPLATES**
 
 Status:
 **IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING**
@@ -815,7 +815,7 @@ Each theme must influence:
 - Live Stage;
 - particles/FX.
 
-The 350 matrix is:
+The 350 matrix is the **current Theme V2 realization target**, not a future optional expansion. The 350 matrix is:
 
 **25 themes × 14 categories**
 
@@ -1184,7 +1184,7 @@ The current visual goal is NOT:
 - generic SaaS dashboard;
 - generic social media feed;
 - flat card grid;
-- primitive sphere as a final Universe;
+- the current Railway flat globe as a final Universe;
 - primitive character as final AI Character;
 - flat orbit borders;
 - placeholder GLB appearance.
@@ -1368,26 +1368,24 @@ State exact next phase and why.
 At the time of this handoff:
 
 ### CURRENT
-**3D-V2.08 — Live / Human Live / Stage V2 / Human + AI Collaboration Stage**
-Implementation complete; Railway build/deployment verification and runtime visual QA remain pending.
+**3D-V2.09 — Theme V2 Visual Realization / 25 Themes × 14 Categories × 350 3D Templates**
+The current Railway UI is explicitly foundation/flat state. The supplied Allpha reference boards are the V2 acceptance target. This phase is the primary visual refactoring milestone.
 
 ### NEXT
-**3D-V2.09 — Portal / Navigation / Spatial FX V2**
+**3D-V2.10 — Portal / Navigation / Spatial FX V2**
 
 Then:
 
-1. 3D-V2.07 — Capsule / Content / Feed Universe V2
-2. 3D-V2.08 — Live / Human Live / Stage V2
-3. 3D-V2.09 — Portal / Navigation / Spatial FX V2
-4. 3D-V2.10 — 25 Theme Expansion / 350 Template Matrix
-5. 3D-V2.11 — Manifest / Renderer Activation
-6. 3D-V2.12 — Mobile Performance + Accessibility
-7. 3D-V2.13 — Visual QA / Runtime Validation
-8. 3D-V2.14 — V1 → V2 Canonical Cutover
-9. WEB-16 V2 visual revalidation
-10. Continue WEB-17 → WEB-34.
+1. 3D-V2.09 — Theme V2 Visual Realization / 350 3D Templates
+2. 3D-V2.10 — Portal / Navigation / Spatial FX V2
+3. 3D-V2.11 — Manifest / Renderer Activation
+4. 3D-V2.12 — Mobile Performance + Accessibility
+5. 3D-V2.13 — Visual QA / Runtime Validation
+6. 3D-V2.14 — V1 → V2 Canonical Cutover
+7. WEB-16 V2 visual revalidation
+8. Continue WEB-17 → WEB-34.
 
-Do not jump directly to 350 asset expansion before the reference/golden composition is stable enough to replicate.
+**Theme V2 is not complete when only asset recipes exist. The running product must visibly demonstrate real 3D Universe/Galaxy/World/District composition, depth, orbit, animation, atmosphere, spatial navigation and reference-aligned mobile UI/UX. Portal/Navigation V2 is downstream of this visual foundation.**
 
 ---
 
