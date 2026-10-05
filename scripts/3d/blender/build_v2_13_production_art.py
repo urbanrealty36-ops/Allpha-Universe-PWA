@@ -48,15 +48,23 @@ def clear():
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
 
-def mat(name,base,metallic=.25,rough=.32,emission=None,strength=0):
+def mat(name,base,metallic=.25,rough=.32,emission=None,strength=0,coat=.18,subsurface=0):
     m=bpy.data.materials.new(name); m.use_nodes=True
-    bs=m.node_tree.nodes.get("Principled BSDF")
+    n=m.node_tree.nodes; l=m.node_tree.links
+    bs=n.get("Principled BSDF")
     bs.inputs["Base Color"].default_value=rgba(base)
     bs.inputs["Metallic"].default_value=metallic
     bs.inputs["Roughness"].default_value=rough
+    if "Coat Weight" in bs.inputs: bs.inputs["Coat Weight"].default_value=coat
+    if "Coat Roughness" in bs.inputs: bs.inputs["Coat Roughness"].default_value=.14
+    if "Subsurface Weight" in bs.inputs: bs.inputs["Subsurface Weight"].default_value=subsurface
     if "Emission Color" in bs.inputs:
         bs.inputs["Emission Color"].default_value=rgba(emission or base)
         bs.inputs["Emission Strength"].default_value=strength
+    noise=n.new("ShaderNodeTexNoise"); noise.inputs["Scale"].default_value=5.5
+    noise.inputs["Detail"].default_value=3.0; noise.inputs["Roughness"].default_value=.62
+    bump=n.new("ShaderNodeBump"); bump.inputs["Strength"].default_value=.12; bump.inputs["Distance"].default_value=.045
+    l.new(noise.outputs["Fac"],bump.inputs["Height"]); l.new(bump.outputs["Normal"],bs.inputs["Normal"])
     return m
 
 def bevel(o,amount=.06,segments=3):
@@ -98,7 +106,7 @@ def setup(theme,accent):
     bg=world.node_tree.nodes.get("Background")
     bg.inputs["Color"].default_value=(.0015,.003,.01,1); bg.inputs["Strength"].default_value=.12
     scene=bpy.context.scene; scene.render.engine="BLENDER_EEVEE_NEXT"
-    scene.render.resolution_x=720; scene.render.resolution_y=720; scene.render.resolution_percentage=100
+    scene.render.resolution_x=720; scene.render.resolution_y=1080; scene.render.resolution_percentage=100
     scene.render.image_settings.file_format="PNG"
     scene.view_settings.look="AgX - Medium High Contrast"
     a,b,c=accent
@@ -107,8 +115,8 @@ def setup(theme,accent):
       "metal":mat(theme+"_Metal",b,.92,.20,b,.9),
       "glass":mat(theme+"_Glass",(.05,.12,.25,1),.45,.12,c,1.3),
       "dark":mat(theme+"_Dark",(.008,.015,.035,1),.78,.27,(.01,.025,.08,1),.2),
-      "skin":mat(theme+"_Skin",(.58,.32,.24,1),0,.48),
-      "light":mat(theme+"_Light",(.78,.92,1,1),.1,.18,c,2.6),
+      "skin":mat(theme+"_Skin",(.58,.32,.24,1),0,.42,None,0,.28,.22),
+      "light":mat(theme+"_Light",(.78,.92,1,1),.08,.16,c,5.5,.32),
       "organic":mat(theme+"_Organic",(.03,.18,.09,1),0,.72,a,.2),
     }
 
@@ -120,18 +128,41 @@ def windows(x,y,z,w,h,d,m):
         zz=z+(r/(rows-1)-.5)*d*.82
         cube("Window",(xx,y,zz),(w*.07,.018,d*.055),m,.008)
 
+def archway(m,x,z,h=5.6,w=1.8):
+    cube("ArchLeft",(x-w,h/2,z),(.28,h/2,.28),m["metal"],.10)
+    cube("ArchRight",(x+w,h/2,z),(.28,h/2,.28),m["metal"],.10)
+    torus("ArchCrown",(x,h,z),w+.28,.14,m["core"],(math.pi/2,0,0))
+
 def city(m):
     random.seed(213)
-    for i in range(26):
-      x=(i%8-3.5)*1.35+random.uniform(-.15,.15)
-      z=(i//8-1.5)*1.35+random.uniform(-.15,.15)
-      h=random.uniform(2.0,6.4)*(1 if abs(x)<3 else .72)
-      w=random.uniform(.42,.78)
-      cube("Tower",(x,h/2,z),(w,h/2,w*.72),m["dark"],.10)
-      windows(x,h*.56,z,w,h,w*1.35,m["light"])
-      if i%3==0: torus("SkyRing",(x,h+.10,z),w*.82,.024,m["core"],(math.pi/2,0,0))
-    cube("Plaza",(0,-.14,0),(7.5,.14,5.8),m["glass"],.12)
-    for r in range(3): torus("OrbitRail",(0,.18+r*.32,0),2.8+r*1.3,.026,m["metal"],(math.pi/2,0,0))
+    cube("Plaza",(0,-.18,0),(8.6,.18,6.6),m["glass"],.14)
+    for r in range(4):
+      torus("OrbitRail",(0,.16+r*.28,0),3.0+r*1.35,.024,m["metal"],(math.pi/2,0,0))
+    for i in range(34):
+      x=(i%9-4)*1.45+random.uniform(-.22,.22)
+      z=(i//9-1.7)*1.25+random.uniform(-.18,.18)
+      h=random.uniform(2.2,7.8)*(1.12 if abs(x)<3 else .72)
+      w=random.uniform(.38,.82)
+      profile=i%4
+      if profile==0: cube("Tower",(x,h/2,z),(w,h/2,w*.72),m["dark"],.12)
+      elif profile==1: cyl("Tower",(x,h/2,z),w,h,m["dark"],32)
+      elif profile==2: cube("Tower",(x,h/2,z),(w*.75,h/2,w*1.15),m["dark"],.16)
+      else: cube("Tower",(x,h/2,z),(w,h/2,w),m["metal"],.11)
+      windows(x,h*.54,z,w,h,w*1.5,m["light"])
+      if i%4==0: torus("SkyRing",(x,h+.12,z),w*.9,.028,m["core"],(math.pi/2,0,0))
+      if i%7==0: cube("TowerCrown",(x,h+.16,z),(w*.55,.12,w*.55),m["light"],.04)
+    for level in range(4):
+      radius=2.25-level*.38; hh=.55+level*.22
+      cyl("CentralTier",(0,level*.58+.25,0),radius,hh,m["metal"],64)
+      torus("CentralHalo",(0,level*.58+.58,0),radius*.92,.035,m["core"],(math.pi/2,0,0))
+    cyl("CentralSpire",(0,4.1,0),.52,6.8,m["glass"],48)
+    for level in range(5):
+      torus("SpireEnergy",(0,1.3+level*.72,0),.72+level*.16,.045,m["light"],(math.pi/2,0,0))
+    archway(m,-3.4,-1.8,5.0,1.35); archway(m,3.4,-1.8,4.6,1.15)
+    for i in range(12):
+      x=(i-5.5)*2.5; z=4.8+random.uniform(-.5,.8); h=random.uniform(4.0,9.0)
+      cube("BackgroundTower",(x,h/2,z),(.5,h/2,.5),m["dark"],.08)
+      torus("BackgroundHalo",(x,h,z),.55,.018,m["core"],(math.pi/2,0,0))
 
 def character(m,x=0,z=0):
     sphere("Head",(x,2.55,z),(.46,.52,.43),m["skin"])
@@ -189,11 +220,15 @@ def build(theme,accent,category,preview=False):
     elif category=="navigation-fx":
       portal(m,2.8); torus("NavOuter",(0,1.7,0),3.5,.035,m["metal"],(math.pi/2,0,0))
     if category in hero or category in {"booth","live-stage"}: cube("Ground",(0,-.28,0),(8,.12,8),m["dark"],.12)
-    bpy.ops.object.camera_add(location=(10,8,12)); cam=bpy.context.object; cam.data.lens=48; look_at(cam,(0,1.4,0)); bpy.context.scene.camera=cam
+    bpy.ops.object.camera_add(location=(11.8,6.8,15.5)); cam=bpy.context.object
+    cam.data.lens=56; cam.data.sensor_width=32; look_at(cam,(0,2.35,0)); bpy.context.scene.camera=cam
     bpy.ops.object.empty_add(type="PLAIN_AXES",location=(0,-20,0))
     meta=bpy.context.object; meta.name="ALLPHA_V2_13_PRODUCTION_ART_METADATA"
     meta["schema"]=SCHEMA; meta["themeKey"]=theme; meta["category"]=category
     meta["source"]="blender-production-export"; meta["presentationOnly"]=True; meta["legacy"]=False
+    meta["artQuality"]="cinematic-realistic"; meta["depthModel"]="foreground-midground-background"
+    meta["materialModel"]="procedural-pbr"; meta["lightingModel"]="cinematic-multi-light"
+    meta["mobileComposition"]="portrait-720x1080"; meta["visualHierarchy"]="hero-architecture-character-spatial-scale"
     meta.hide_render=True
     out=os.path.join(ROOT,theme,category+".glb"); os.makedirs(os.path.dirname(out),exist_ok=True)
     bpy.ops.object.select_all(action="SELECT")
