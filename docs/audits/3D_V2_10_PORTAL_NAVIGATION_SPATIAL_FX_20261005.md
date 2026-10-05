@@ -97,3 +97,29 @@ After 3D-V2.10, the next validation activity is a full runtime visual QA pass ac
 ## Status
 
 **IMPLEMENTATION COMPLETE — RAILWAY / FULL RUNTIME QA PENDING**
+
+
+## Railway execution evidence
+
+Final build verification:
+- deployment: `cb56d0f7-253b-404b-9e15-914e606c661e`
+- commit: `d2482cc343000ddf60c34c851fab4e0c95ea1085`
+- status: **SUCCESS**
+- region: `asia-southeast1-eqsg3a`
+
+Renderer integration verification deployment:
+- deployment: `506a1a57-7d7d-49d0-8ea7-670444bab152`
+- commit: `6737fc31f85b3333180367c20d95be1f45e25ac9`
+- production build reached deployment stage.
+
+## Runtime visual QA gate
+
+The requested full Theme V2 runtime visual QA across B → C → D → 3D-V2.10 remains an explicit acceptance gate. Production build success is not treated as visual QA completion.
+
+Required visual matrix:
+- B: cinematic lighting, PBR, shadows, depth;
+- C: shader, atmosphere, theme-specific detail;
+- D: camera, parallax, motion, interaction, mobile framing;
+- 3D-V2.10: portals, navigation affordance, transition FX and spatial continuity.
+
+Final GREEN remains blocked until those running-product checks are visually observed.
