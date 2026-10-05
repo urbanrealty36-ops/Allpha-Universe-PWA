@@ -534,3 +534,22 @@ This document is the canonical visual language for 3D-V2.
 Any future 3D asset or UI spatial treatment that conflicts with this language must be reconciled here before implementation.
 
 CW-02 remains OPEN / ACTIVATING / NOT GREEN until runtime/browser/device validation is complete.
+
+
+## 3D-V2.02 implementation record
+
+3D-V2.02 now materializes the V2.01 language as a Golden Scene reference through the canonical `AllphaWorldRenderer`.
+
+Golden theme: **Crystal AI City**
+
+Golden layers:
+- Universe: central gravitational core, nested orbital fields, Galaxy anchors, deep-space particle field.
+- Galaxy: central Galaxy core, primary/secondary orbit systems, World nodes.
+- Orbit: orbital core, nested rings, 8 spatial presentation nodes.
+
+Canonical implementation:
+- `apps/web/lib/world-engine/golden-scene.ts`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `apps/web/components/universe/galaxy-navigator-experience.tsx`
+
+The Golden Scene is presentation-only and does not replace authoritative Galaxy/World records. The Navigator may use it as a visual reference while real data continues to come from the existing Universe contracts.
