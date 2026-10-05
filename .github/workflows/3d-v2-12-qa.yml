@@ -9,7 +9,7 @@ on:
       - "scripts/3d/**"
       - "tests/3d-v2-12-runtime-visual.spec.ts"
       - "package.json"
-      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
       - "docs/audits/3D_V2_12_FULL_THEME_V2_RUNTIME_VISUAL_QA_20261005.md"
       - ".github/workflows/3d-v2-12-qa.yml"
 
@@ -24,8 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
       - name: Run V2.12 static contract harness
         run: pnpm qa:3d:v2.12
       - name: Run V2.12 live Supabase harness
@@ -51,8 +50,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - name: Runtime visual QA
         env:
