@@ -7,6 +7,7 @@ import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 import { createSpatialCompositionV205 } from "../../lib/world-engine/spatial-composition-v2";
 import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
 import { createContentSpatialCompositionV207, validateContentSpatialComposition, type ContentSpatialRelationship } from "../../lib/world-engine/content-spatial-v2";
+import { createLiveStageV208Composition, validateLiveStageV208Composition, type LiveStageActorState } from "../../lib/world-engine/live-stage-v2";
 import type { Group } from "three";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
@@ -66,6 +67,15 @@ type Props = {
   agentCharacterUrl?: string | null;
   agentCharacterAsset?: { source?: string | null; characterKey?: string | null; contract?: Record<string, unknown> | null };
   agentCharacterPerformance?: CharacterAnimationSignal;
+  liveStageMode?: boolean;
+  humanPresentationActive?: boolean;
+  humanPresentationStatus?: string | null;
+  liveCollaborationActive?: boolean;
+  liveCollaborationConsentApproved?: boolean;
+  liveCollaborationRiskAllowed?: boolean;
+  liveAgentId?: string | null;
+  humanPresentationState?: LiveStageActorState;
+  liveAgentStageState?: LiveStageActorState;
 };
 
 function Structure({ kind, color, accent, position, scale = 1 }: {
@@ -482,8 +492,127 @@ function ContentCapsuleSpatialView({
   );
 }
 
+function LiveCollaborationStageView({
+  stageUrl,
+  lowPower,
+  humanPresentationActive = false,
+  humanPresentationStatus,
+  collaborationActive = false,
+  consentApproved = false,
+  riskAllowed = false,
+  agentId,
+  agentCharacterAsset,
+  agentCharacterPerformance,
+  themeKey,
+  architecture,
+  humanState,
+  agentState,
+}: {
+  stageUrl?: string | null;
+  lowPower: boolean;
+  humanPresentationActive?: boolean;
+  humanPresentationStatus?: string | null;
+  collaborationActive?: boolean;
+  consentApproved?: boolean;
+  riskAllowed?: boolean;
+  agentId?: string | null;
+  agentCharacterAsset?: Props["agentCharacterAsset"];
+  agentCharacterPerformance?: Props["agentCharacterPerformance"];
+  themeKey?: string;
+  architecture?: string;
+  humanState?: LiveStageActorState;
+  agentState?: LiveStageActorState;
+}) {
+  const root = useRef<Group>(null);
+  const composition = useMemo(
+    () => createLiveStageV208Composition({
+      stageActive: Boolean(stageUrl),
+      stageSource: stageUrl ? "dedicated_stage_asset" : "theme_stage",
+      humanPresentationActive,
+      humanPresentationStatus,
+      collaborationActive,
+      consentApproved,
+      riskAllowed,
+      agentId,
+      humanState,
+      agentState,
+    }),
+    [stageUrl, humanPresentationActive, humanPresentationStatus, collaborationActive, consentApproved, riskAllowed, agentId, humanState, agentState],
+  );
+  const validation = useMemo(() => validateLiveStageV208Composition(composition), [composition]);
+
+  useFrame(({ clock }) => {
+    if (!root.current || typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    root.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.08) * 0.018;
+  });
+
+  if (!validation.ok) return null;
+
+  return (
+    <group ref={root}>
+      {stageUrl ? <LiveStage3DAsset url={stageUrl} /> : null}
+
+      {composition.actors.map((actor) => {
+        if (actor.role === "ai-agent") {
+          return agentCharacterAsset?.source === "platform_catalog" ? (
+            <PlatformAgentCharacter3D
+              key={actor.id}
+              characterKey={agentCharacterAsset.characterKey}
+              position={[actor.position.x, actor.position.y, actor.position.z]}
+              performance={agentCharacterPerformance}
+              themeKey={themeKey}
+              architecture={architecture}
+            />
+          ) : (
+            <group key={actor.id} position={[actor.position.x, actor.position.y, actor.position.z]}>
+              <mesh>
+                <sphereGeometry args={[0.34, lowPower ? 12 : 18, lowPower ? 10 : 14]} />
+                <meshStandardMaterial color="#A78BFA" emissive="#A78BFA" emissiveIntensity={1.1} />
+              </mesh>
+              <mesh position={[0, 0.48, 0]}>
+                <torusGeometry args={[0.46, 0.022, 8, lowPower ? 20 : 32]} />
+                <meshStandardMaterial color="#67E8F9" emissive="#67E8F9" emissiveIntensity={0.9} />
+              </mesh>
+            </group>
+          );
+        }
+
+        return (
+          <group key={actor.id} position={[actor.position.x, actor.position.y, actor.position.z]}>
+            <mesh position={[0, 0.92, 0]} castShadow>
+              <capsuleGeometry args={[0.28, 0.78, 6, 12]} />
+              <meshStandardMaterial color="#E2E8F0" roughness={0.42} />
+            </mesh>
+            <mesh position={[0, 1.62, 0]}>
+              <sphereGeometry args={[0.28, 16, 12]} />
+              <meshStandardMaterial color="#CBD5E1" roughness={0.45} />
+            </mesh>
+            <mesh position={[0, 0.08, 0]}>
+              <torusGeometry args={[0.48, 0.024, 8, lowPower ? 20 : 32]} />
+              <meshStandardMaterial color={humanPresentationStatus === "active" ? "#22D3EE" : "#64748B"} emissive={humanPresentationStatus === "active" ? "#22D3EE" : "#64748B"} emissiveIntensity={0.8} />
+            </mesh>
+          </group>
+        );
+      })}
+
+      {composition.collaboration.active ? (
+        <mesh position={[0, 0.42, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.05, 1.12, 64]} />
+          <meshStandardMaterial
+            color={composition.collaboration.consentApproved && composition.collaboration.riskAllowed ? "#22D3EE" : "#F59E0B"}
+            emissive={composition.collaboration.consentApproved && composition.collaboration.riskAllowed ? "#22D3EE" : "#F59E0B"}
+            emissiveIntensity={0.8}
+            transparent
+            opacity={0.5}
+          />
+        </mesh>
+      ) : null}
+    </group>
+  );
+}
+
 function WorldObjects({
-  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,selectedDistrictId,themePackUrl,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance
+  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,selectedDistrictId,themePackUrl,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance,liveStageMode,humanPresentationActive,humanPresentationStatus,liveCollaborationActive,liveCollaborationConsentApproved,liveCollaborationRiskAllowed,liveAgentId,humanPresentationState,liveAgentStageState
 }: {
   scene:WorldScene; tokens?:Record<string,unknown>; onHotspot?:Props["onHotspot"]; lowPower:boolean;
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
@@ -572,7 +701,16 @@ function WorldObjects({
 }
 
 export default function AllphaWorldRenderer({
-  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null,agentCharacterAsset,agentCharacterPerformance
+  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null,agentCharacterAsset,agentCharacterPerformance,
+  liveStageMode,
+  humanPresentationActive,
+  humanPresentationStatus,
+  liveCollaborationActive,
+  liveCollaborationConsentApproved,
+  liveCollaborationRiskAllowed,
+  liveAgentId,
+  humanPresentationState,
+  liveAgentStageState,
 }: Props) {
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
