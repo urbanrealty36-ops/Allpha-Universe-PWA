@@ -241,6 +241,24 @@ async def get_content_evolution(
                 "target_count": len(discussion_rows),
             },
             {
+                "key": "community",
+                "available": bool(communities),
+                "target_type": "community",
+                "target_count": len(communities),
+            },
+            {
+                "key": "agent",
+                "available": bool(owner_agent),
+                "target_type": "agent",
+                "target_id": str(owner_agent["id"]) if owner_agent else None,
+            },
+            {
+                "key": "ask",
+                "available": True,
+                "target_type": "ask_content",
+                "target_id": content_key,
+            },
+            {
                 "key": "related_content",
                 "available": bool(related_rows),
                 "target_type": "content",
