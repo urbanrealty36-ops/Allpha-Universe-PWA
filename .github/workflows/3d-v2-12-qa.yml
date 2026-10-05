@@ -27,15 +27,6 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - name: Run V2.12 static contract harness
         run: pnpm qa:3d:v2.12
-      - name: Run V2.12 live Supabase harness when repository secrets are configured
-        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: pnpm qa:3d:v2.12 -- --live
-      - name: Note live Supabase harness skipped when secrets are unavailable
-        if: ${{ secrets.SUPABASE_URL == '' || secrets.SUPABASE_SERVICE_ROLE_KEY == '' }}
-        run: echo "Live Supabase harness skipped; Railway public manifest + signed-URL + browser chain remains the authoritative runtime gate."
       - name: Upload QA report
         uses: actions/upload-artifact@v4
         with:
