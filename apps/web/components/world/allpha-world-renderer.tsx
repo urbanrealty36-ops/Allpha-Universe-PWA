@@ -5,6 +5,7 @@ import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { useMemo, useRef } from "react";
 import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 import { createSpatialCompositionV205 } from "../../lib/world-engine/spatial-composition-v2";
+import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
 import type { Group } from "three";
 import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema";
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
@@ -189,109 +190,92 @@ function AgentCharacter3DAsset({ url, position, performance }: { url:string; pos
 
 
 
-function GoldenSpatialLayerView({ layer, lowPower, onHotspot, presence, agentCharacterAsset, agentCharacterPerformance }: { layer: "universe" | "galaxy" | "orbit"; lowPower: boolean; onHotspot?: Props["onHotspot"]; presence: SpatialPresence[]; agentCharacterAsset?: Props["agentCharacterAsset"]; agentCharacterPerformance?: Props["agentCharacterPerformance"] }) {
-  const reduceMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function WorldDistrictBoothV2View({ layer, lowPower, onHotspot, scene }: { layer: "world" | "district" | "booth"; lowPower: boolean; onHotspot?: Props["onHotspot"]; scene: WorldScene }) {
   const root = useRef<Group>(null);
-  const scene = useMemo(() => createGoldenScene(layer), [layer]);
-  const composition = useMemo(() => createSpatialCompositionV205(layer), [layer]);
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const composition = useMemo(() => createWorldDistrictBoothV206(layer), [layer]);
   useFrame(({ clock }) => {
     if (!root.current || reduceMotion) return;
-    const t = clock.getElapsedTime();
-    root.current.rotation.y = lowPower ? t * .018 : t * .038;
+    root.current.rotation.y = Math.sin(clock.getElapsedTime() * .12) * .025;
   });
+  const colors = layer === "world"
+    ? { core:"#42DCFF", node:"#A77CFF", accent:"#EE7CFF" }
+    : layer === "district"
+      ? { core:"#67E8F9", node:"#60A5FA", accent:"#A78BFA" }
+      : { core:"#22D3EE", node:"#C084FC", accent:"#F0ABFC" };
 
-  const core = "#42DCFF";
-  const intelligence = "#A77CFF";
-  const social = "#EE7CFF";
-  const world = "#67E8F9";
+  const actualNodes = layer === "world"
+    ? scene.structures ?? []
+    : layer === "district"
+      ? scene.structures ?? []
+      : scene.booths ?? [];
 
-  return (
-    <group ref={root}>
-      <mesh position={[0, -.35, -1.8]}>
-        <sphereGeometry args={[layer === "universe" ? 2.2 : layer === "galaxy" ? 1.7 : 1.35, lowPower ? 20 : 32, lowPower ? 14 : 24]} />
-        <meshStandardMaterial color={core} emissive={core} emissiveIntensity={1.4} metalness={.35} roughness={.18} />
-      </mesh>
-      <mesh position={[0, -.35, -1.8]}>
-        <sphereGeometry args={[layer === "universe" ? 2.8 : 2.15, lowPower ? 16 : 24, lowPower ? 12 : 18]} />
-        <meshStandardMaterial color={core} emissive={core} emissiveIntensity={.18} transparent opacity={.08} />
-      </mesh>
+  const nodePositions = actualNodes.slice(0, lowPower ? 12 : 24).map((item, i) => ({
+    id: item.id,
+    position: item.position ?? { x: ((i % 5) - 2) * 1.8, y: 0, z: Math.floor(i / 5) * 1.7 - 1.7 },
+    kind: item.kind ?? "structure",
+    source: "authoritative",
+  }));
 
-      {composition.rings.map((ring) => (
-        <mesh key={ring.id} position={[0, -.35, 0]} rotation={[Math.PI / 2 + ring.tilt, 0, 0]}>
-          <torusGeometry args={[ring.radius, layer === "orbit" ? .055 : .045, 8, lowPower ? 48 : 88]} />
-          <meshStandardMaterial color={ring.depth === "near" ? core : intelligence} emissive={ring.depth === "near" ? core : intelligence} emissiveIntensity={ring.depth === "near" ? 1.15 : .75} transparent opacity={ring.opacity} />
+  return <group ref={root}>
+    <mesh position={[0,-.65,0]}>
+      <cylinderGeometry args={[layer==="world"?6.2:layer==="district"?4.7:2.8,.65, .55, lowPower?32:56]} />
+      <meshStandardMaterial color="#07101d" metalness={.72} roughness={.26} />
+    </mesh>
+    <mesh position={[0,-.28,0]}>
+      <cylinderGeometry args={[layer==="world"?5.6:layer==="district"?4.15:2.35,.18,.18, lowPower?32:48]} />
+      <meshStandardMaterial color={colors.core} emissive={colors.core} emissiveIntensity={.45} transparent opacity={.35} />
+    </mesh>
+
+    {composition.paths.map((path, i) => {
+      const a = composition.nodes.find(n => n.id === path.from)?.position ?? {x:0,y:0,z:0};
+      const b = composition.nodes.find(n => n.id === path.to)?.position ?? {x:0,y:0,z:0};
+      const dx=b.x-a.x, dy=b.y-a.y, dz=b.z-a.z, len=Math.sqrt(dx*dx+dy*dy+dz*dz);
+      return <mesh key={"path-"+i} position={[(a.x+b.x)/2,(a.y+b.y)/2-.45,(a.z+b.z)/2]}>
+        <boxGeometry args={[.035,.025,Math.max(.2,len)]}/>
+        <meshStandardMaterial color={path.kind==="district-path"?colors.node:colors.accent} emissive={path.kind==="district-path"?colors.node:colors.accent} emissiveIntensity={.8} transparent opacity={.52}/>
+      </mesh>;
+    })}
+
+    {composition.nodes.map((item) => {
+      const p=item.position;
+      const c=item.role==="world-core"?colors.core:item.role==="district"?colors.node:colors.accent;
+      const scale=item.scale*(item.depth==="foreground"?1.06:item.depth==="background"?.9:1);
+      return <group key={item.id} position={[p.x,p.y,p.z]} onClick={() => onHotspot?.({
+        id:item.id,
+        kind:item.role==="world-core"?"world":item.role==="district"?"district":"booth",
+        position:p,
+        presentation_only:true,
+        metadata:{...item.metadata, depth:item.depth, spatial_layer:layer, golden_scene:false, v2_contract:"3d-v2.06"},
+      })}>
+        <mesh>
+          <icosahedronGeometry args={[scale,lowPower?1:2]}/>
+          <meshStandardMaterial color={c} emissive={c} emissiveIntensity={1.25} metalness={.5} roughness={.22}/>
         </mesh>
-      ))}
+        <mesh rotation={[Math.PI/2,0,0]}>
+          <torusGeometry args={[scale*1.45,.025,6,lowPower?24:40]}/>
+          <meshStandardMaterial color={c} emissive={c} emissiveIntensity={1.1} transparent opacity={.68}/>
+        </mesh>
+      </group>;
+    })}
 
-      {Array.from({ length: lowPower ? Math.max(8, Math.floor(composition.particleBudget * .55)) : composition.particleBudget }, (_, i) => {
-        const a = i * 2.399;
-        const radius = layer === "universe" ? 8.4 + (i % 6) * 1.15 : 6.6 + (i % 5) * .8;
-        const y = ((i % 7) - 3) * .55;
-        return (
-          <mesh key={"particle-" + i} position={[Math.cos(a) * radius, y, Math.sin(a) * radius]}>
-            <sphereGeometry args={[i % 5 === 0 ? .045 : .022, 7, 7]} />
-            <meshStandardMaterial color={i % 4 === 0 ? intelligence : core} emissive={i % 4 === 0 ? intelligence : core} emissiveIntensity={1.2} />
-          </mesh>
-        );
-      })}
-
-      {composition.nodes.filter((item) => item.role !== "core").map((item) => {
-        const p = item.position;
-        const nodeColor = item.role === "galaxy" ? social : item.role === "world" ? world : intelligence;
-        const depthScale = item.depth === "foreground" ? 1.08 : item.depth === "midground" ? 1 : .9;
-        const scale = item.scale * depthScale;
-        return (
-          <group key={item.id} position={[p.x, p.y, p.z]} onClick={() => onHotspot?.({
-            id: item.id,
-            kind: item.role === "galaxy" ? "galaxy" : item.role === "world" ? "world" : "orbit",
-            position: p,
-            presentation_only: true,
-            metadata: { label: item.label ?? null, depth: item.depth, spatial_layer: layer, golden_scene: true },
-          })}>
-            <mesh>
-              <icosahedronGeometry args={[scale, lowPower ? 1 : 2]} />
-              <meshStandardMaterial color={nodeColor} emissive={nodeColor} emissiveIntensity={1.65} metalness={.42} roughness={.2} />
-            </mesh>
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[scale * 1.55, .026, 6, lowPower ? 24 : 40]} />
-              <meshStandardMaterial color={nodeColor} emissive={nodeColor} emissiveIntensity={1.25} transparent opacity={.7} />
-            </mesh>
-            <mesh position={[0, -scale * 1.7, 0]}>
-              <coneGeometry args={[scale * .14, scale * 1.9, 6]} />
-              <meshStandardMaterial color={nodeColor} emissive={nodeColor} emissiveIntensity={.7} transparent opacity={.38} />
-            </mesh>
-          </group>
-        );
-      })}
-
-      {presence.filter((agent) => agent.position).map((agent) => {
-        const p = agent.position!;
-        return (
-          <group key={"presence-" + agent.id} position={[p.x, p.y + .5, p.z]} onClick={() => onHotspot?.({
-            id: agent.id, kind: "character", position: p,
-            metadata: { agent_id: agent.agent_id, movement_state: agent.movement_state, zone_key: agent.zone_key },
-          })}>
-            {agentCharacterAsset?.source === "platform_catalog" ? (
-              <PlatformAgentCharacter3D characterKey={agentCharacterAsset.characterKey} position={[0, .05, 0]} performance={agentCharacterPerformance} themeKey="crystal-ai-city" architecture="Crystal AI City" />
-            ) : (
-              <mesh><sphereGeometry args={[.28, 12, 12]} /><meshStandardMaterial color={social} emissive={social} emissiveIntensity={1.1} /></mesh>
-            )}
-            <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[.52, .03, 8, 28]} /><meshStandardMaterial color={social} emissive={social} emissiveIntensity={1.1} transparent opacity={.78} /></mesh>
-          </group>
-        );
-      })}
-
-      <mesh position={[0, -.34, -1.8]}>
-        <torusGeometry args={[layer === "universe" ? 2.15 : 1.55, .018, 6, 48]} />
-        <meshStandardMaterial color={core} emissive={core} emissiveIntensity={1.8} transparent opacity={.55} />
-      </mesh>
-
-      {scene.portals?.map((portal) => {
-        const p = portal.position ?? { x: 0, y: 0, z: 0 };
-        return <group key={portal.id} position={[p.x, p.y, p.z]} />;
-      })}
-    </group>
-  );
+    {nodePositions.map((item) => {
+      const p=item.position;
+      const scale=layer==="booth"?.24:layer==="district"?.34:.42;
+      return <group key={"actual-"+item.id} position={[p.x,p.y,p.z]} onClick={() => onHotspot?.({
+        id:item.id, kind:layer==="world"?"world":layer==="district"?"district":"booth", position:p, metadata:{source:item.source, object_kind:item.kind, spatial_layer:layer}
+      })}>
+        <mesh>
+          <boxGeometry args={[scale*1.4,scale*1.8,scale*1.4]}/>
+          <meshStandardMaterial color={colors.node} emissive={colors.node} emissiveIntensity={.75} metalness={.55} roughness={.3}/>
+        </mesh>
+        <mesh position={[0,scale*1.2,0]}>
+          <octahedronGeometry args={[scale*.5,0]}/>
+          <meshStandardMaterial color={colors.accent} emissive={colors.accent} emissiveIntensity={1.1}/>
+        </mesh>
+      </group>;
+    })}
+  </group>;
 }
 
 function WorldObjects({
@@ -391,14 +375,14 @@ export default function AllphaWorldRenderer({
 }: Props) {
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
-  const goldenLayer=String(scene.environment?.spatial_layer ?? "");
+  const goldenLayer=String(scene.environment?.spatial_layer ?? "");\n  const spatialLayer=String(scene.environment?.spatial_layer ?? "");
   return <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-black">
     <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}}>
       <color attach="background" args={[style.sky]}/>
       <PerspectiveCamera makeDefault position={goldenLayer ? (goldenLayer === "universe" ? [0, 6.2, 15.5] : goldenLayer === "galaxy" ? [0, 5.4, 13.2] : [0, 4.8, 11.2]) : [14,11,14]} fov={goldenLayer ? (goldenLayer === "universe" ? 48 : 50) : 58}/>
       <ambientLight intensity={.8}/>
       <directionalLight position={[8,14,6]} intensity={2} castShadow={shadows}/>
-      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance}/>
+      {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}\n      <WorldObjects scene={scene} tokens={tokens} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
     </Canvas>
   </div>;
