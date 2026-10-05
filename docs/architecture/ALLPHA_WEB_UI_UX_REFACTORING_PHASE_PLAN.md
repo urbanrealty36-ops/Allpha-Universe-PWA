@@ -584,3 +584,30 @@ Factory contract:
 The factory does not create GLB binaries, mutate Supabase, issue signed URLs, activate assets, or replace the canonical AllphaWorldRenderer. Production GLB export/validation/storage/manifest activation remain subsequent lifecycle stages.
 
 Next: 3D-V2.04 — Character / Live Character V2.
+
+
+## 3D-V2.04 implementation record
+
+3D-V2.04 upgrades the existing Character / Live Character presentation contract.
+
+Implementation:
+- apps/web/lib/live-character-v2.ts
+- apps/web/components/world/allpha-world-renderer.tsx
+- docs/audits/3D_V2_04_CHARACTER_LIVE_V2_20261005.md
+
+The existing CharacterAnimationSignal remains canonical. The existing Live Character Runtime catalog remains canonical. AllphaWorldRenderer remains the only spatial renderer.
+
+Character V2 adds:
+- 25-theme-aware character profiles
+- theme-specific silhouette and wardrobe/material language
+- face, gaze and viseme capability contract
+- canonical live animation states/intents
+- mobile performance budget
+- reduced-motion semantic fallback
+- richer procedural/reference character presentation
+
+When an authoritative GLB character exists, the existing GLB path remains preferred. Procedural Character V2 is the presentation/reference fallback.
+
+Status: IMPLEMENTED / CHARACTER V2 FOUNDATION / RUNTIME VISUAL QA PENDING
+
+Next: 3D-V2.05 — Universe / Galaxy / Orbit V2.
