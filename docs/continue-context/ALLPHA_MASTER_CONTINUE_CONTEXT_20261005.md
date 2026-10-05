@@ -567,7 +567,7 @@ Mission:
 
 The project is CURRENTLY at:
 
-# **3D-V2.07 — CAPSULE / CONTENT / FEED UNIVERSE V2**
+# **3D-V2.08 — LIVE / HUMAN LIVE / STAGE V2 / HUMAN + AI COLLABORATION STAGE**
 
 Status:
 **IMPLEMENTED / SPATIAL HIERARCHY V2 FOUNDATION / RUNTIME VISUAL QA PENDING**
@@ -660,7 +660,7 @@ Mission:
 - spatial camera framing.
 
 ## 3D-V2.06 — World / District / Booth V2
-**CURRENT PHASE — IMPLEMENTATION COMPLETE / BUILD + RAILWAY VERIFIED / RUNTIME VISUAL QA PENDING**
+**CURRENT PHASE — IMPLEMENTATION COMPLETE / RAILWAY BUILD VERIFICATION IN PROGRESS / RUNTIME VISUAL QA PENDING**
 
 Mission:
 Transform spatial presentation into:
@@ -1368,11 +1368,11 @@ State exact next phase and why.
 At the time of this handoff:
 
 ### CURRENT
-**3D-V2.07 — Capsule / Content / Feed Universe V2**
-Implemented as presentation foundation; build/runtime visual validation remains pending.
+**3D-V2.08 — Live / Human Live / Stage V2 / Human + AI Collaboration Stage**
+Implementation complete; Railway build/deployment verification and runtime visual QA remain pending.
 
 ### NEXT
-**3D-V2.08 — Live / Human Live / Stage V2**
+**3D-V2.09 — Portal / Navigation / Spatial FX V2**
 
 Then:
 
