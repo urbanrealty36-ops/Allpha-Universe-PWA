@@ -423,3 +423,20 @@ The existing AllphaWorldRenderer remains canonical. No second renderer, Theme en
 3D-V2.02 Golden Scene → 3D-V2.03 Asset Factory → 3D-V2.04 Character/Live Character V2 → 3D-V2.05 Universe/Galaxy/Orbit → 3D-V2.06 World/District/Booth → 3D-V2.07 Content/Capsule → 3D-V2.08 Live/Human Live/Stage → 3D-V2.09 Portal/FX → 3D-V2.10 25×14 expansion → 3D-V2.11 Manifest/Renderer Activation → 3D-V2.12 Performance/Accessibility → 3D-V2.13 Visual QA → 3D-V2.14 V1→V2 Cutover → WEB-16 V2 revalidation.
 
 Do not claim the 350 production assets exist yet. V1 remains rollback/compatibility until V2 passes runtime validation.
+
+
+## 3D-V2.02 — Universe + Galaxy + Orbit
+
+Status: **IMPLEMENTED / CANONICAL RENDERER INTEGRATED / RUNTIME VISUAL QA PENDING**
+
+Golden Theme: **Crystal AI City**
+
+Implementation:
+- Golden Scene factory in `apps/web/lib/world-engine/golden-scene.ts`
+- Universe/Galaxy/Orbit visual rendering inside existing `AllphaWorldRenderer`
+- Galaxy Navigator now presents the V2 Golden Galaxy reference
+- Golden nodes are explicitly presentation-only
+- Existing authoritative Galaxy/World APIs remain unchanged
+- No second renderer or spatial engine introduced
+
+Next: **3D-V2.03 — Geometry & Material Asset Factory.**
