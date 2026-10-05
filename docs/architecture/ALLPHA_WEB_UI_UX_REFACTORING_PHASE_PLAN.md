@@ -21,7 +21,7 @@ Branch: main
 | WEB-09 | World Experience | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-10 | District Experience | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-11 | Booth/Tenant | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-12 | Agent Experience | PENDING |
+| WEB-12 | Agent Experience | IMPLEMENTED / RAILWAY BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
 | WEB-13 | Universe Feed / Moments | PENDING |
 | WEB-14 | Content Capsule | PENDING |
 | WEB-15 | Ask the Content | PENDING |
@@ -286,3 +286,40 @@ Implementation:
 WEB-11 source implementation and Railway build/deployment are verified. Browser/device visual QA and authenticated E2E remain validation gates.
 
 Next canonical product phase: WEB-12 — Agent Experience.
+
+
+## WEB-12 implementation contract
+
+WEB-12 is the spatial Agent Experience layer:
+
+    Universe → Galaxy → World → District → Zone → Booth → Agent / Presence
+                                                       ├── AI Character
+                                                       ├── Agent Space
+                                                       ├── Interaction HUD
+                                                       ├── Presence
+                                                       ├── Conversation
+                                                       └── Collaboration / Negotiation
+
+Canonical reads reuse:
+- GET /api/v1/agent-catalog/accounts/{agent_id}
+- GET /api/v1/universe/worlds/{world_id}
+- GET /api/v1/themes/world-runtime/catalog
+- GET /api/v1/spatial-runtime/worlds/{world_id}/agents/{agent_id}/context
+- GET /api/v1/live/character-runtime-catalog?agent_id={agent_id}
+
+Canonical interaction paths reuse:
+- POST /api/v1/spatial-runtime/worlds/{world_id}/interactions
+- POST /api/v1/messaging/conversations/agent
+- POST /api/v1/messaging/conversations/{conversation_id}/messages
+
+WEB-12 reuses AllphaWorldRenderer. It does not create a second Agent renderer, Agent Runtime, AI Gateway, spatial engine, messaging engine or authority layer.
+
+When a validated World Scene and authoritative Agent spatial state exist, the Agent Character is rendered inside that World context. When they do not exist, the surface uses an explicit 2D orbital fallback and does not fabricate presence or scene state.
+
+Agent navigation from World, District and Booth preserves the existing spatial context so the Agent Experience remains inside the Universe hierarchy.
+
+Audit: docs/audits/WEB12_AGENT_EXPERIENCE_20261005.md
+
+WEB-12 source implementation and Railway build/deployment are verified. Browser/device visual QA and authenticated E2E remain validation gates.
+
+Next canonical product phase: WEB-13 — Universe Feed / Moments.
