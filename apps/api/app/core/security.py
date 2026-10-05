@@ -64,21 +64,21 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
   route_class=path.split("/")[3] if len(path.split("/"))>3 else path
   bucket=f"{ip}:{route_class}"
   local_allowed=limiter.allow(bucket)
-  if not local_allowed:return JSONResponse(429,{"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})
+  if not local_allowed:return JSONResponse(status_code=429,content={"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})
   if path.startswith("/api/v1/") and request.method!="OPTIONS":
    try:
     distributed=await service_rpc("security_check_rate_limit",{"p_bucket_key":bucket,"p_limit":30 if limiter is SENSITIVE_LIMITER else 240,"p_window_seconds":60})
-    if distributed is False:return JSONResponse(429,{"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})
+    if distributed is False:return JSONResponse(status_code=429,content={"detail":{"code":"RATE_LIMITED","message":"Too many requests."}},headers={"Retry-After":"60"})
    except (SupabaseRestError,RuntimeError):
-    return JSONResponse(503,{"detail":{"code":"SECURITY_RATE_LIMIT_UNAVAILABLE","message":"Distributed security controls are temporarily unavailable."}})
+    return JSONResponse(status_code=503,content={"detail":{"code":"SECURITY_RATE_LIMIT_UNAVAILABLE","message":"Distributed security controls are temporarily unavailable."}})
   if request.method in {"POST","PUT","PATCH","DELETE"}:
    origin=request.headers.get("origin")
-   if origin and not (origin.startswith("http://localhost:3000") or origin.startswith("http://localhost:3001") or origin.startswith("https://")):return JSONResponse(403,{"detail":{"code":"ORIGIN_BLOCKED","message":"Request origin is not allowed."}})
+   if origin and not (origin.startswith("http://localhost:3000") or origin.startswith("http://localhost:3001") or origin.startswith("https://")):return JSONResponse(status_code=403,content={"detail":{"code":"ORIGIN_BLOCKED","message":"Request origin is not allowed."}})
   cl=request.headers.get("content-length")
   if cl:
    try:
-    if int(cl)>10*1024*1024:return JSONResponse(413,{"detail":{"code":"REQUEST_TOO_LARGE","message":"Request body is too large."}})
-   except ValueError:return JSONResponse(400,{"detail":{"code":"INVALID_CONTENT_LENGTH","message":"Invalid Content-Length."}})
+    if int(cl)>10*1024*1024:return JSONResponse(status_code=413,content={"detail":{"code":"REQUEST_TOO_LARGE","message":"Request body is too large."}})
+   except ValueError:return JSONResponse(status_code=400,content={"detail":{"code":"INVALID_CONTENT_LENGTH","message":"Invalid Content-Length."}})
   response=await call_next(request)
   response.headers["X-Request-ID"]=request.headers.get("X-Request-ID",secrets.token_hex(16))
   for k,v in {"X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Referrer-Policy":"strict-origin-when-cross-origin","Permissions-Policy":"camera=(),microphone=(),geolocation=(),payment=()","Cross-Origin-Opener-Policy":"same-origin","Cross-Origin-Resource-Policy":"same-site"}.items():response.headers[k]=v
