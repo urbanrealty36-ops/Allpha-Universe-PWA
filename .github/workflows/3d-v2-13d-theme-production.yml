@@ -144,7 +144,7 @@ jobs:
           retention-days: 14
 
   r3-golden-gate:
-    needs: production-expansion
+    needs: evidence-review
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -183,4 +183,37 @@ jobs:
         with:
           name: allpha-3d-v2-13d-1a-r3-golden-gate
           path: 3d-v2-13d-1a-r3-golden-gate-report.json
+          retention-days: 30
+
+
+  storage-activation-preflight:
+    needs: r3-golden-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download R2 production evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-25-theme-production-evidence
+          path: evidence
+      - name: Download R3 Golden Gate report
+        uses: actions/download-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-1a-r3-golden-gate
+          path: r3
+      - name: Run V2.13D.2 storage activation dry-run
+        run: |
+          set -euo pipefail
+          node scripts/3d/v2-13d2-storage-activation-gate.mjs \
+            --root=evidence/allpha-theme-v2-13d-production \
+            --r3-report=r3/3d-v2-13d-1a-r3-golden-gate-report.json
+      - name: Validate activation manifest contract
+        run: |
+          node -e "const fs=require('fs'); const r=require('./3d-v2-13d2-storage-activation-manifest.json'); if(r.schema!=='allpha-3d-v2-13d2-storage-activation/1.0'||r.phase!=='V2.13D.2'||r.mode!=='dry-run'||r.themes!==25||r.categories!==14||r.assets!==350||r.bucket!=='allpha-world-assets'||r.root!=='theme-v2-real-3d/v2.13'||r.frontendSecretExposure!==false) process.exit(1)"
+      - name: Upload V2.13D.2 preflight evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d2-storage-activation-preflight
+          path: 3d-v2-13d2-storage-activation-manifest.json
           retention-days: 30
