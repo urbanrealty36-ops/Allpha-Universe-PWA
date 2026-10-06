@@ -1,0 +1,92 @@
+name: V2.13D.2 Isolated Storage Activation Preflight
+
+on:
+  push:
+    branches: [codex/v2-13d-2-preflight-isolated]
+    paths:
+      - "scripts/3d/v2-13d2-storage-activation-gate.mjs"
+      - "scripts/3d/v2-13d2-storage-activation.schema.json"
+      - ".github/workflows/v2-13d2-storage-preflight.yml"
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Completed production run containing green R2/R3 evidence"
+        required: true
+        default: "37476962554"
+
+jobs:
+  storage-activation-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve source production run
+        id: source
+        env:
+          INPUT_RUN_ID: ${{ github.event.inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          RUN_ID="${INPUT_RUN_ID:-37476962554}"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download R2 production evidence only
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.source.outputs.run_id }}
+          name: allpha-3d-v2-13d-25-theme-production-evidence
+          path: evidence
+
+      - name: Download R3 Golden Gate evidence only
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.source.outputs.run_id }}
+          name: allpha-3d-v2-13d-1a-r3-golden-gate
+          path: r3
+
+      - name: Run V2.13D.2 storage activation dry-run
+        run: |
+          set -euo pipefail
+          node scripts/3d/v2-13d2-storage-activation-gate.mjs             --root=evidence/allpha-theme-v2-13d-production             --r3-report=r3/3d-v2-13d-1a-r3-golden-gate-report.json
+
+      - name: Validate activation manifest contract
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require("fs");
+          const file = "3d-v2-13d2-storage-activation-manifest.json";
+          const r = JSON.parse(fs.readFileSync(file, "utf8"));
+          const expected = {
+            schema: "allpha-3d-v2-13d2-storage-activation/1.0",
+            phase: "V2.13D.2",
+            mode: "dry-run",
+            goldenReference: "crystal-ai-city",
+            bucket: "allpha-world-assets",
+            root: "theme-v2-real-3d/v2.13",
+            themes: 25,
+            categories: 14,
+            assets: 350,
+            frontendSecretExposure: false
+          };
+          const errors = [];
+          for (const [key, value] of Object.entries(expected)) {
+            if (r[key] !== value) errors.push(key + "=" + JSON.stringify(r[key]) + " expected " + JSON.stringify(value));
+          }
+          if (errors.length) {
+            console.error(JSON.stringify({ok:false, errors, actual:r}, null, 2));
+            process.exit(1);
+          }
+          console.log(JSON.stringify({ok:true, phase:r.phase, assets:r.assets, bucket:r.bucket, root:r.root}, null, 2));
+          NODE
+
+      - name: Upload isolated V2.13D.2 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d2-storage-activation-preflight-isolated
+          path: 3d-v2-13d2-storage-activation-manifest.json
+          if-no-files-found: error
+          retention-days: 30
