@@ -55,6 +55,7 @@ export type GoldenThemeFactoryRecipe = {
   };
   categoryContract: GoldenThemeCategoryContract;
   semanticAccent: readonly [string, string, string];
+  runtimeLanguage: { lighting: string; camera: string; motion: readonly string[]; fx: string };
   requiredDimensions: readonly GoldenThemeDimension[];
   presentationOnly: true;
   canonicalRenderer: "AllphaWorldRenderer";
@@ -235,6 +236,12 @@ export function createGoldenThemeRecipe(theme: Allpha3DThemeProfile, category: A
     },
     categoryContract: contract,
     semanticAccent: theme.accent,
+    runtimeLanguage: {
+      lighting: `${theme.family}:${contract.lightingIntent}`,
+      camera: `${theme.family}:${contract.cameraIntent}`,
+      motion: contract.motionVocabulary,
+      fx: `${theme.portal}:${contract.category}-fx`,
+    },
     requiredDimensions,
     presentationOnly: true,
     canonicalRenderer: "AllphaWorldRenderer",
