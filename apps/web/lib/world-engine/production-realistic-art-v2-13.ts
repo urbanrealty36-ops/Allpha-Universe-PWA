@@ -3,6 +3,7 @@ import { ASSET_CATEGORIES, type AssetCategory } from "./asset-factory";
 
 export const PRODUCTION_REALISTIC_ART_SCHEMA = "allpha-3d-v2-13-production-art/1.1" as const;
 export const PRODUCTION_REALISTIC_ART_ROOT = "theme-v2-real-3d/v2.13" as const;
+export const PRODUCTION_REALISTIC_ART_GOLDEN_GATE = "3D-V2.13B" as const;
 
 export type ProductionRealisticArtSource = "blender-production-export" | "external-production-import";
 
@@ -14,6 +15,7 @@ export type ProductionRealisticArtContract = {
   presentationOnly: true;
   legacy: false;
   stagedOnlyUntilRuntimeQa: true;
+  goldenValidationRequired: true;
   requirements: readonly string[];
 };
 
@@ -51,6 +53,7 @@ export function createProductionRealisticArtContract(
     presentationOnly: true,
     legacy: false,
     stagedOnlyUntilRuntimeQa: true,
+    goldenValidationRequired: true,
     requirements: PRODUCTION_REALISTIC_ART_REQUIREMENTS,
   };
 }
@@ -60,7 +63,9 @@ export const PRODUCTION_REALISTIC_ART_GOLDEN_MATRIX = {
   themes: 25,
   categories: 14,
   fullMatrix: 350,
-  firstActivationGate: "golden-theme-14-category-runtime-visual-qa",\n  goldenArtStandard: "production-realistic-cinematic-focal-scene",
+  firstActivationGate: "golden-theme-14-category-runtime-visual-qa",
+  goldenArtStandard: "production-realistic-cinematic-focal-scene",
   activationPath: PRODUCTION_REALISTIC_ART_ROOT,
+  runtimeActivationGate: "14-category-signed-manifest-golden-metadata",
   canonicalRenderer: "AllphaWorldRenderer",
 } as const;
