@@ -1,7 +1,7 @@
 import { ALLPHA_3D_THEME_PROFILES } from "../../../../packages/design-tokens/3d-visual-language";
 import { ASSET_CATEGORIES, type AssetCategory } from "./asset-factory";
 
-export const PRODUCTION_REALISTIC_ART_SCHEMA = "allpha-3d-v2-13-production-art/1.0" as const;
+export const PRODUCTION_REALISTIC_ART_SCHEMA = "allpha-3d-v2-13-production-art/1.1" as const;
 export const PRODUCTION_REALISTIC_ART_ROOT = "theme-v2-real-3d/v2.13" as const;
 
 export type ProductionRealisticArtSource = "blender-production-export" | "external-production-import";
@@ -60,7 +60,7 @@ export const PRODUCTION_REALISTIC_ART_GOLDEN_MATRIX = {
   themes: 25,
   categories: 14,
   fullMatrix: 350,
-  firstActivationGate: "golden-theme-14-category-runtime-visual-qa",
+  firstActivationGate: "golden-theme-14-category-runtime-visual-qa",\n  goldenArtStandard: "production-realistic-cinematic-focal-scene",
   activationPath: PRODUCTION_REALISTIC_ART_ROOT,
   canonicalRenderer: "AllphaWorldRenderer",
 } as const;
