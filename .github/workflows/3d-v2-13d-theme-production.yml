@@ -38,6 +38,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install headless Blender runtime libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxrender1 libxext6 libxi6 libxfixes3
       - name: Install Blender 4.5.3
         shell: bash
         run: |
@@ -82,5 +88,45 @@ jobs:
             3d-v2-13d-production-validation-report.json
             3d-v2-13d-preview-review-report.json
           retention-days: 14
-# V2.13D.1A-R1.1 main execution trigger: deterministic Blender runner.
-# V2.13D.1A-R1.2 main production evidence execution marker.
+
+  r3-golden-gate:
+    needs: production-expansion
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download R2 production evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-25-theme-production-evidence
+          path: evidence
+      - name: Execute V2.13D.1A-R3 exact Production Evidence Review & Golden Gate
+        shell: bash
+        env:
+          R2_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require("fs"), path=require("path");
+          const root="evidence";
+          const v=JSON.parse(fs.readFileSync(path.join(root,"3d-v2-13d-production-validation-report.json")));
+          const r=JSON.parse(fs.readFileSync(path.join(root,"3d-v2-13d-preview-review-report.json")));
+          const errors=[];
+          if(v.schema!=="allpha-3d-v2-13d-validation/1.0"||v.ok!==true) errors.push("R2_VALIDATION_NOT_GREEN");
+          if(v.themes!==25||v.categories!==14||v.assets!==350||v.previews!==350) errors.push("R2_COUNTS_INVALID");
+          if((v.errors||[]).length) errors.push("R2_VALIDATION_ERRORS");
+          if(r.schema!=="allpha-3d-v2-13d-preview-review/1.0"||r.automatedReview!=="PASS") errors.push("AUTOMATED_PREVIEW_REVIEW_NOT_GREEN");
+          if(r.themes!==25||r.categories!==14||r.previews!==350||r.expectedPreviews!==350) errors.push("PREVIEW_COUNTS_INVALID");
+          if((r.errors||[]).length) errors.push("PREVIEW_REVIEW_ERRORS");
+          const sheets=fs.readdirSync(path.join(root,"allpha-theme-v2-13d-production","contact-sheets")).filter(x=>x.endsWith(".jpg")).length;
+          if(sheets!==25) errors.push("CONTACT_SHEETS_INVALID:"+sheets);
+          const out={schema:"allpha-3d-v2-13d-1a-r3-golden-gate/1.0",phase:"V2.13D.1A-R3",sourceR2RunId:process.env.R2_RUN_ID,goldenReference:"crystal-ai-city",themes:25,categories:14,assets:350,previews:350,contactSheets:25,automatedGoldenGate:errors.length?"FAIL":"PASS",humanVisualFidelityReview:"PENDING",promotionToStorage:"BLOCKED_UNTIL_R3_HUMAN_REVIEW",errors};
+          fs.writeFileSync("3d-v2-13d-1a-r3-golden-gate-report.json",JSON.stringify(out,null,2)+"\n");
+          console.log(JSON.stringify(out,null,2));
+          if(errors.length) process.exit(1);
+          NODE
+      - name: Upload R3 Golden Gate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-1a-r3-golden-gate
+          path: 3d-v2-13d-1a-r3-golden-gate-report.json
+          retention-days: 30
