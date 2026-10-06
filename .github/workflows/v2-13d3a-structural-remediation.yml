@@ -87,6 +87,7 @@ jobs:
       - name: Validate four remediated categories
         env:
           ALLPHA_V213D3A_OUT: allpha-theme-v2-13d3a-remediation
+          ALLPHA_V213D3A_THEME: ${{ matrix.theme }}
         run: |
           node scripts/3d/validate-v2-13d3a-structural-remediation.mjs
       - name: Upload theme remediation
