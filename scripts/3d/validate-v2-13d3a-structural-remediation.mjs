@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const root=process.env.ALLPHA_V213D3A_OUT ?? "allpha-theme-v2-13d3a-remediation";
+const root=path.resolve(process.env.ALLPHA_V213D3A_OUT ?? "allpha-theme-v2-13d3a-remediation");
 const singleTheme=process.env.ALLPHA_V213D3A_THEME || null;
 const expectedThemes=singleTheme ? 1 : 25, expectedCategories=4, expectedAssets=singleTheme ? 4 : 100;
 const categories=["universe","galaxy","world","district"];
@@ -21,9 +21,11 @@ for(const a of r.assets??[]){
  if(!categories.includes(a.category)) errors.push("CATEGORY_INVALID:"+key);
  if(a.presentationOnly!==true||a.canonicalRenderer!=="AllphaWorldRenderer") errors.push("RUNTIME_BOUNDARY_INVALID:"+key);
  if(a.remediation!=="world-scale-structural") errors.push("REMEDIATION_SCOPE_INVALID:"+key);
- if(!a.glb||!fs.existsSync(a.glb)) errors.push("GLB_MISSING:"+key);
- else { const b=fs.readFileSync(a.glb); if(b.subarray(0,4).toString("ascii")!=="glTF"||b.length<64) errors.push("GLB_INVALID:"+key); }
- if(r.previewRequested&&(!a.preview||!fs.existsSync(a.preview))) errors.push("PREVIEW_MISSING:"+key);
+ const glbPath=a.glb ? (path.isAbsolute(a.glb) ? a.glb : path.resolve(a.glb)) : null;
+ if(!glbPath||!fs.existsSync(glbPath)) errors.push("GLB_MISSING:"+key);
+ else { const b=fs.readFileSync(glbPath); if(b.subarray(0,4).toString("ascii")!=="glTF"||b.length<64) errors.push("GLB_INVALID:"+key); }
+ const previewPath=a.preview ? (path.isAbsolute(a.preview) ? a.preview : path.resolve(a.preview)) : null;
+ if(r.previewRequested&&(!previewPath||!fs.existsSync(previewPath))) errors.push("PREVIEW_MISSING:"+key);
 }
 if(seen.size!==expectedAssets) errors.push("UNIQUE_ASSET_COUNT_INVALID:"+seen.size);
 const themes=fs.readdirSync(root,{withFileTypes:true}).filter(x=>x.isDirectory());
