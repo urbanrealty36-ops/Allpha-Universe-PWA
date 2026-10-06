@@ -398,3 +398,14 @@ For every 3D implementation, also record:
 - Main branch remains untouched.
 
 **Next exact phase/subphase:** V2.13D.1A — Execute & Review Production Evidence. Objective: complete the GitHub Actions 350-asset build and inspect the generated contact sheets/validation reports. First gate/action: run the V2.13D workflow and require successful Blender build + GLB validation + automated preview review before any human fidelity sign-off or V2.13E storage activation.
+
+
+## V2.13D.1A Execution Evidence Checkpoint — 2026-10-06
+
+**Execution attempt:** The V2.13D production workflow was hardened to trigger on pull requests to main as well as the dedicated branch push, so the batch gate is executable under the PR evidence path.
+
+**Observed GitHub evidence:** The latest observed workflow run for commit `2c8a3ef3ed3b681fc8b97e87aa02da69ff248bf1` was the repository-wide `Allpha Universe CI` run `37452420854`, which failed in unrelated repository gates (dependency review and browser Supabase environment validation). No completed V2.13D production-expansion run or 350-asset artifact was returned by the available workflow-run evidence endpoint at this checkpoint.
+
+**Conclusion:** V2.13D.1A execution is **NOT PROVEN GREEN**. No claim is made that 350 GLBs/previews were generated. The V2.13D production workflow remains the required execution authority.
+
+**Next exact action:** obtain a completed V2.13D workflow run and inspect its production job + evidence artifact; if it fails, repair the specific production job before any storage/runtime promotion.
