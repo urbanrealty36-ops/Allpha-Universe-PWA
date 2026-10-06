@@ -16,12 +16,6 @@ on:
       - "scripts/3d/review-v2-13d3a-structural-pack.py"
       - ".github/workflows/v2-13d3a-structural-remediation.yml"
   workflow_dispatch:
-    inputs:
-      preview:
-        description: "Render 100 remediation previews"
-        required: true
-        default: true
-        type: boolean
 
 jobs:
   structural-remediation:
@@ -79,11 +73,8 @@ jobs:
           ALLPHA_V213D3A_OUT: allpha-theme-v2-13d3a-remediation
           ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
         run: |
-          if [ "${{ inputs.preview }}" = "false" ]; then
-            blender -b --python scripts/3d/blender/build_v2_13d3a_structural_remediation.py -- --theme "${{ matrix.theme }}"
-          else
-            blender -b --python scripts/3d/blender/build_v2_13d3a_structural_remediation.py -- --preview --theme "${{ matrix.theme }}"
-          fi
+          set -euo pipefail
+          blender -b --python scripts/3d/blender/build_v2_13d3a_structural_remediation.py -- --preview --theme "${{ matrix.theme }}"
       - name: Preflight remediation output
         run: |
           set -euo pipefail
