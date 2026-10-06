@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root=process.env.ALLPHA_V213D3A_OUT ?? "allpha-theme-v2-13d3a-remediation";
-const expectedThemes=25, expectedCategories=4, expectedAssets=100;
+const singleTheme=process.env.ALLPHA_V213D3A_THEME || null;\nconst expectedThemes=singleTheme ? 1 : 25, expectedCategories=4, expectedAssets=singleTheme ? 4 : 100;
 const categories=["universe","galaxy","world","district"];
 const errors=[];
 const manifest=path.join(root,"manifest.json");
@@ -26,13 +26,13 @@ for(const a of r.assets??[]){
 }
 if(seen.size!==expectedAssets) errors.push("UNIQUE_ASSET_COUNT_INVALID:"+seen.size);
 const themes=fs.readdirSync(root,{withFileTypes:true}).filter(x=>x.isDirectory());
-if(themes.length!==25) errors.push("THEME_DIRECTORY_COUNT_INVALID:"+themes.length);
+if(themes.length!==expectedThemes) errors.push("THEME_DIRECTORY_COUNT_INVALID:"+themes.length);
 for(const d of themes){
  const dir=path.join(root,d.name), glbs=fs.readdirSync(dir).filter(x=>x.endsWith(".glb")), pngs=fs.readdirSync(dir).filter(x=>x.endsWith(".png"));
  if(glbs.length!==4) errors.push("THEME_GLB_COUNT_INVALID:"+d.name+":"+glbs.length);
  if(r.previewRequested&&pngs.length!==4) errors.push("THEME_PREVIEW_COUNT_INVALID:"+d.name+":"+pngs.length);
 }
-const out={schema:"allpha-3d-v2-13d3a-validation/1.0",phase:"V2.13D.3A",ok:errors.length===0,themes:25,categories:4,assets:seen.size,previews:r.previewRequested?expectedAssets:0,sourceLockedEvidence:r.sourceLockedEvidence,errors};
+const out={schema:"allpha-3d-v2-13d3a-validation/1.0",phase:"V2.13D.3A",ok:errors.length===0,themes:expectedThemes,categories:4,assets:seen.size,previews:r.previewRequested?expectedAssets:0,sourceLockedEvidence:r.sourceLockedEvidence,errors};
 fs.writeFileSync("3d-v2-13d3a-structural-validation-report.json",JSON.stringify(out,null,2)+"
 ");
 console.log(JSON.stringify(out,null,2)); process.exit(errors.length?1:0);
