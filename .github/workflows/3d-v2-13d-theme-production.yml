@@ -83,3 +83,4 @@ jobs:
             3d-v2-13d-preview-review-report.json
           retention-days: 14
 # V2.13D.1A-R1.1 main execution trigger: deterministic Blender runner.
+# V2.13D.1A-R1.2 main production evidence execution marker.
