@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root=process.env.ALLPHA_V213D3A_OUT ?? "allpha-theme-v2-13d3a-remediation";
-const singleTheme=process.env.ALLPHA_V213D3A_THEME || null;\nconst expectedThemes=singleTheme ? 1 : 25, expectedCategories=4, expectedAssets=singleTheme ? 4 : 100;
+const singleTheme=process.env.ALLPHA_V213D3A_THEME || null;
+const expectedThemes=singleTheme ? 1 : 25, expectedCategories=4, expectedAssets=singleTheme ? 4 : 100;
 const categories=["universe","galaxy","world","district"];
 const errors=[];
 const manifest=path.join(root,"manifest.json");
