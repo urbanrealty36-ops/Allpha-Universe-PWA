@@ -1,6 +1,13 @@
 name: 3D-V2.13B Golden Validation and Runtime Activation
 
 on:
+  push:
+    paths:
+      - "scripts/3d/**"
+      - "tests/3d-v2-13b-runtime.spec.ts"
+      - ".github/workflows/3d-v2-13b-golden-validation.yml"
+      - "apps/web/lib/world-engine/production-realistic-art-v2-13.ts"
+      - "package.json"
   workflow_dispatch:
     inputs:
       promote:
