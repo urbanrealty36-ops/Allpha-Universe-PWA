@@ -8,8 +8,8 @@ import importlib.util, json, math, os, sys
 from pathlib import Path
 import bpy
 
-ROOT=Path(os.environ.get("ALLPHA_V213D3A_OUT","allpha-theme-v2-13d3a-remediation"))
-MANIFEST=Path(os.environ.get("ALLPHA_V213C_MANIFEST","allpha-v2-13c-theme-factory-manifest.json"))
+ROOT=Path(os.environ.get("ALLPHA_V213D3A_OUT","allpha-theme-v2-13d3a-remediation")).resolve()
+MANIFEST=Path(os.environ.get("ALLPHA_V213C_MANIFEST","allpha-v2-13c-theme-factory-manifest.json")).resolve()
 CATEGORIES=["universe","galaxy","world","district"]
 SCHEMA="allpha-3d-v2-13d3a-structural-fidelity/1.0"
 
@@ -38,6 +38,11 @@ def arch(name, loc, radius, material, rot=(1.5708,0,0), major=72):
 def platform(name, loc, scale, material, rot=0):
     bpy.ops.mesh.primitive_cube_add(location=loc,scale=scale,rotation=(0,0,rot))
     o=bpy.context.object; o.name=name; o.data.materials.append(material); BASE.bevel(o,min(scale)*.12,2); return o
+
+def dome(name, loc, radius, material):
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, location=loc)
+    o=bpy.context.object; o.name=name; o.scale=(radius,radius*.55,radius); o.data.materials.append(material); return o
+
 
 def family_seed(theme):
     return sum(ord(c) for c in theme) % 7
@@ -188,6 +193,9 @@ def main():
         if preview:
             png=out/f'{r["category"]}.png'; bpy.context.scene.render.filepath=str(png); bpy.ops.render.render(write_still=True)
         rows.append({"themeKey":p["key"],"category":r["category"],"glb":str(glb),"preview":str(png) if png else None,"schema":SCHEMA,"presentationOnly":True,"canonicalRenderer":"AllphaWorldRenderer","remediation":"world-scale-structural"})
-    (ROOT/"manifest.json").write_text(json.dumps({"schema":SCHEMA,"phase":"V2.13D.3A","goldenReference":"crystal-ai-city","themes":25,"categories":4,"matrixSize":100,"generated":len(rows),"previewRequested":preview,"sourceLockedEvidence":["V2.13D.1A-R3","V2.13D.2"],"assets":rows},indent=2))
-    print(json.dumps({"ok":True,"phase":"V2.13D.3A","themes":25,"categories":4,"generated":len(rows),"root":str(ROOT)},indent=2))
+    manifest_payload={"schema":SCHEMA,"phase":"V2.13D.3A","goldenReference":"crystal-ai-city","themes":25,"categories":4,"matrixSize":100,"generated":len(rows),"previewRequested":preview,"sourceLockedEvidence":["V2.13D.1A-R3","V2.13D.2"],"assets":rows}
+    manifest_path=ROOT/"manifest.json"
+    manifest_path.write_text(json.dumps(manifest_payload,indent=2)+"\\n",encoding="utf-8")
+    if not manifest_path.is_file(): raise RuntimeError("V2.13D3A_OUTPUT_MANIFEST_WRITE_FAILED")
+    print(json.dumps({"ok":True,"phase":"V2.13D.3A","themes":25,"categories":4,"generated":len(rows),"root":str(ROOT),"manifest":str(manifest_path)},indent=2))
 if __name__=="__main__": main()
