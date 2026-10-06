@@ -34,6 +34,5 @@ for(const d of themes){
  if(r.previewRequested&&pngs.length!==4) errors.push("THEME_PREVIEW_COUNT_INVALID:"+d.name+":"+pngs.length);
 }
 const out={schema:"allpha-3d-v2-13d3a-validation/1.0",phase:"V2.13D.3A",ok:errors.length===0,themes:expectedThemes,categories:4,assets:seen.size,previews:r.previewRequested?expectedAssets:0,sourceLockedEvidence:r.sourceLockedEvidence,errors};
-fs.writeFileSync("3d-v2-13d3a-structural-validation-report.json",JSON.stringify(out,null,2)+"
-");
+fs.writeFileSync("3d-v2-13d3a-structural-validation-report.json",JSON.stringify(out,null,2)+"\n");
 console.log(JSON.stringify(out,null,2)); process.exit(errors.length?1:0);
