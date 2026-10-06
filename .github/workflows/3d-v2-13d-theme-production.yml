@@ -33,44 +33,98 @@ on:
 
 jobs:
   production-expansion:
+    name: ${{ matrix.theme }}
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        theme:
+          - aurora-kingdom
+          - celestial-samurai
+          - chronos-realm
+          - coral-metropolis
+          - crystal-ai-city
+          - desert-starfall
+          - dragon-dominion
+          - dream-carnival
+          - emerald-rainforest
+          - floating-garden
+          - galactic-frontier
+          - heroic-nexus
+          - kingdom-of-aether
+          - lunar-frontier
+          - mars-frontier
+          - mystic-academy
+          - neo-jakarta-2099
+          - neon-tokyo
+          - nusantara-raya
+          - oceanic-atlantis
+          - pharaoh-eternal
+          - quantum-city
+          - savanna-spirit
+          - skyforge-empire
+          - viking-fjord
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 35
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Install headless Blender runtime libraries
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxrender1 libxext6 libxi6 libxfixes3
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxrender1 libxext6 libxi6 libxfixes3
       - name: Install Blender 4.5.3
-        shell: bash
         run: |
           set -euo pipefail
-          BLENDER_VERSION=4.5.3
-          ARCHIVE="blender-${BLENDER_VERSION}-linux-x64.tar.xz"
-          URL="https://download.blender.org/release/Blender4.5/${ARCHIVE}"
-          curl -fsSL --retry 3 --retry-delay 2 "${URL}" -o "/tmp/${ARCHIVE}"
-          sudo tar -xJf "/tmp/${ARCHIVE}" -C /opt
-          sudo ln -sfn "/opt/blender-${BLENDER_VERSION}-linux-x64/blender" /usr/local/bin/blender
+          ARCHIVE="blender-4.5.3-linux-x64.tar.xz"
+          curl -fsSL --retry 3 --retry-delay 2 "https://download.blender.org/release/Blender4.5/$ARCHIVE" -o "/tmp/$ARCHIVE"
+          sudo tar -xJf "/tmp/$ARCHIVE" -C /opt
+          sudo ln -sfn "/opt/blender-4.5.3-linux-x64/blender" /usr/local/bin/blender
           blender --version
-      - name: Gate V2.13C factory manifest
+      - name: Gate V2.13C factory
         run: |
           node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs
           node -e "const r=require('./allpha-v2-13c-theme-factory-manifest.json'); if(r.themes!==25||r.categories!==14||r.matrixSize!==350||r.goldenTheme!=='crystal-ai-city'||!r.ok) process.exit(1)"
-      - name: Build 25 x 14 production GLB pack
+      - name: Build one theme — 14 assets + previews
         env:
           ALLPHA_V213D_OUT: allpha-theme-v2-13d-production
           ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
-        run: |
-          if [ "${{ inputs.preview }}" = "false" ]; then
-            blender -b --python scripts/3d/blender/build_v2_13d_theme_production.py --
-          else
-            blender -b --python scripts/3d/blender/build_v2_13d_theme_production.py -- --preview
-          fi
-      - name: Install Pillow for preview review
+        run: blender -b --python scripts/3d/blender/build_v2_13d_theme_production.py -- --theme ${{ matrix.theme }} --preview
+      - name: Upload theme evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-theme-MATRIX_THEME
+          path: allpha-theme-v2-13d-production/MATRIX_THEME/
+          retention-days: 14
+
+  evidence-review:
+    needs: production-expansion
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all theme packs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allpha-3d-v2-13d-theme-*
+          path: allpha-theme-v2-13d-production
+          merge-multiple: true
+      - name: Install Pillow
         run: python -m pip install --disable-pip-version-check --no-input pillow
+      - name: Assemble canonical 350 manifest
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require("fs"),path=require("path");
+          const root="allpha-theme-v2-13d-production";
+          const categories=["universe","galaxy","world","orbit","capsule","district","booth","content-feed","agent-character","live-stage","human-live","sticker-social","animation","navigation-fx"];
+          const themes=fs.readdirSync(root,{withFileTypes:true}).filter(x=>x.isDirectory()).map(x=>x.name).sort();
+          if(themes.length!==25) throw new Error("THEME_COUNT:"+themes.length);
+          const assets=[];
+          for(const themeKey of themes) for(const category of categories){
+            const glb=path.join(root,themeKey,category+".glb"),preview=path.join(root,themeKey,category+".png");
+            if(!fs.existsSync(glb)||!fs.existsSync(preview)) throw new Error("MISSING:"+themeKey+"/"+category);
+            assets.push({themeKey,category,glb,preview,schema:"allpha-3d-v2-13d-theme-production/1.0",presentationOnly:true,goldenReference:"crystal-ai-city",canonicalRenderer:"AllphaWorldRenderer"});
+          }
+          fs.writeFileSync(path.join(root,"manifest.json"),JSON.stringify({schema:"allpha-3d-v2-13d-theme-production/1.0",phase:"3D-V2.13D",goldenReference:"crystal-ai-city",themes:25,categories:14,matrixSize:350,generated:350,previewRequested:true,assets,status:"PARALLEL_PRODUCTION_ASSEMBLED"},null,2)+"\n");
+          NODE
       - name: Validate 350 production assets
         env:
           ALLPHA_V213D_OUT: allpha-theme-v2-13d-production
@@ -79,7 +133,7 @@ jobs:
         env:
           ALLPHA_V213D_OUT: allpha-theme-v2-13d-production
         run: python scripts/3d/review-v2-13d-preview-pack.py
-      - name: Upload V2.13D evidence
+      - name: Upload R2 evidence
         uses: actions/upload-artifact@v4
         with:
           name: allpha-3d-v2-13d-25-theme-production-evidence
