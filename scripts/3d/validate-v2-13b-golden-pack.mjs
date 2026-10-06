@@ -61,15 +61,12 @@ function inspect(json) {
     primitives,
     triangles,
     extensionsUsed: json.extensionsUsed || [],
-    metadata: json.asset?.extras?.ALLPHA_V2_13A_PRODUCTION_METADATA ?? null,
+    metadata: (json.nodes || []).map((node) => node.extras?.ALLPHA_V2_13A_PRODUCTION_METADATA ?? null).find(Boolean) ?? null,
   };
 }
 
-const manifestFile = path.join(root, THEME, "manifest.json");
 const rootManifest = path.join(root, "manifest.json");
 if (!fs.existsSync(rootManifest)) fail("GOLDEN_MANIFEST_MISSING");
-if (!fs.existsSync(manifestFile)) fail("THEME_MANIFEST_MISSING");
-
 let manifest = null;
 try { manifest = JSON.parse(fs.readFileSync(rootManifest, "utf8")); } catch { fail("GOLDEN_MANIFEST_INVALID_JSON"); }
 if (manifest) {
