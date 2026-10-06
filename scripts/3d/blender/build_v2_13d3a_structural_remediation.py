@@ -195,7 +195,7 @@ def main():
         rows.append({"themeKey":p["key"],"category":r["category"],"glb":str(glb),"preview":str(png) if png else None,"schema":SCHEMA,"presentationOnly":True,"canonicalRenderer":"AllphaWorldRenderer","remediation":"world-scale-structural"})
     manifest_payload={"schema":SCHEMA,"phase":"V2.13D.3A","goldenReference":"crystal-ai-city","themes":25,"categories":4,"matrixSize":100,"generated":len(rows),"previewRequested":preview,"sourceLockedEvidence":["V2.13D.1A-R3","V2.13D.2"],"assets":rows}
     manifest_path=ROOT/"manifest.json"
-    manifest_path.write_text(json.dumps(manifest_payload,indent=2)+"\\n",encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest_payload,indent=2)+"\n",encoding="utf-8")
     if not manifest_path.is_file(): raise RuntimeError("V2.13D3A_OUTPUT_MANIFEST_WRITE_FAILED")
     print(json.dumps({"ok":True,"phase":"V2.13D.3A","themes":25,"categories":4,"generated":len(rows),"root":str(ROOT),"manifest":str(manifest_path)},indent=2))
 if __name__=="__main__": main()
