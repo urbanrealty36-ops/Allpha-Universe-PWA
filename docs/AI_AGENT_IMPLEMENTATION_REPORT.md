@@ -358,3 +358,5 @@ For every 3D implementation, also record:
 **Next exact phase/subphase:** 3D-V2.13D.1 — Batch Production Gate & Visual Review. Objective: execute the Blender 4.5.3 25 × 14 batch, validate all 350 GLBs/previews, inspect theme-family fidelity and mobile performance tiers, and lock the production pack before any storage promotion. First gate/action: wait for the V2.13D GitHub Actions production-expansion run to complete, then review its 350-asset validation artifact and preview set; only a proven pass can advance to the guarded storage/runtime activation phase.
 
 **Phase reporting rule:** This phase is not GREEN until the GitHub Actions build/validation evidence and visual fidelity review are both passed.
+
+<!-- V2.13D CI trigger checkpoint -->
