@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "allpha-3d-v2-13d2-storage-activation/1.0",
+  "title": "Allpha V2.13D.2 Storage Activation Manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "phase",
+    "mode",
+    "goldenReference",
+    "bucket",
+    "root",
+    "themes",
+    "categories",
+    "assets",
+    "r3Report"
+  ],
+  "properties": {
+    "schema": {
+      "const": "allpha-3d-v2-13d2-storage-activation/1.0"
+    },
+    "phase": {
+      "const": "V2.13D.2"
+    },
+    "mode": {
+      "enum": [
+        "dry-run",
+        "activate"
+      ]
+    },
+    "goldenReference": {
+      "const": "crystal-ai-city"
+    },
+    "bucket": {
+      "const": "allpha-world-assets"
+    },
+    "root": {
+      "const": "theme-v2-real-3d/v2.13"
+    },
+    "themes": {
+      "const": 25
+    },
+    "categories": {
+      "const": 14
+    },
+    "assets": {
+      "const": 350
+    },
+    "frontendSecretExposure": {
+      "const": false
+    },
+    "privilegedMutationBoundary": {
+      "const": "backend-or-controlled-activation-job-only"
+    }
+  }
+}
