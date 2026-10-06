@@ -227,7 +227,7 @@ export function createGoldenThemeRecipe(theme: Allpha3DThemeProfile, category: A
       geometry: theme.geometry,
       material: theme.material,
       atmosphere: theme.atmosphere,
-      architecture: theme.geometry,
+      architecture: `${theme.family} architectural grammar: ${theme.geometry}`,
       landmark: theme.landmark,
       district: theme.district,
       character: theme.character,
