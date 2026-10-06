@@ -11,6 +11,7 @@ on:
       - "scripts/3d/blender/build_v2_13_production_art.py"
       - "scripts/3d/blender/build_v2_13d_theme_production.py"
       - "scripts/3d/validate-v2-13d-theme-production.mjs"
+      - "scripts/3d/review-v2-13d-preview-pack.py"
       - ".github/workflows/3d-v2-13d-theme-production.yml"
   workflow_dispatch:
     inputs:
@@ -45,10 +46,16 @@ jobs:
           else
             blender -b --python scripts/3d/blender/build_v2_13d_theme_production.py -- --preview
           fi
+      - name: Install Pillow for preview review
+        run: python -m pip install --disable-pip-version-check --no-input pillow
       - name: Validate 350 production assets
         env:
           ALLPHA_V213D_OUT: allpha-theme-v2-13d-production
         run: node scripts/3d/validate-v2-13d-theme-production.mjs
+      - name: Automated preview visual review
+        env:
+          ALLPHA_V213D_OUT: allpha-theme-v2-13d-production
+        run: python scripts/3d/review-v2-13d-preview-pack.py
       - name: Upload V2.13D evidence
         uses: actions/upload-artifact@v4
         with:
@@ -56,4 +63,5 @@ jobs:
           path: |
             allpha-theme-v2-13d-production/
             3d-v2-13d-production-validation-report.json
+            3d-v2-13d-preview-review-report.json
           retention-days: 14
