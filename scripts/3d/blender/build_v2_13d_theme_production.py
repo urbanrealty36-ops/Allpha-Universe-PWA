@@ -106,7 +106,7 @@ def main():
     Path(ROOT).mkdir(parents=True,exist_ok=True)
     for r in selected:
         p=profiles[r["themeKey"]]; BASE.clear_scene()
-        a,b,c=map(rgb,p["accent"]); BASE.PALETTE.update({"primary":(*a,1),"secondary":(*b,1),"cyan":(*a,1),"ice":(*c,1),"steel":tuple(.045+x*.10 for x in a)+(.1,),"glass":tuple(.02+x*.18 for x in b)+(1,),"midnight":(.004,.007,.018,1),"skin":(.58,.34,.27,1)}); BASE.PALETTE["warm"]=(*a,1)
+        a,b,c=map(rgb,p["accent"]); BASE.PALETTE.update({"primary":(*a,1),"secondary":(*b,1),"cyan":(*a,1),"ice":(*c,1),"steel":tuple(.045+x*.10 for x in a)+(1.0,),"glass":tuple(.02+x*.18 for x in b)+(1,),"midnight":(.004,.007,.018,1),"skin":(.58,.34,.27,1)}); BASE.PALETTE["warm"]=(*a,1)
         BASE.setup_world_and_render(); mats=BASE.build_materials(); BASE.add_lighting(mats); BASE.build_category(mats,r["category"]); signature(mats,p,r["category"]); BASE.add_stars(mats,180 if r["category"] in {"universe","galaxy","world","district","live-stage"} else 70); metadata(p,r,r["category"]); BASE.configure_camera(r["category"])
         out=Path(ROOT)/p["key"]; out.mkdir(parents=True,exist_ok=True); glb=out/f'{r["category"]}.glb'
         bpy.ops.object.select_all(action="SELECT"); bpy.ops.export_scene.gltf(filepath=str(glb),export_format="GLB",export_apply=True,export_animations=True,export_materials="EXPORT",use_selection=False)
