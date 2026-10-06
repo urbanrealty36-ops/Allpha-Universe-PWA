@@ -30,7 +30,7 @@ test("V2.13B Crystal AI City golden manifest is runtime-ready", async ({ request
   }
 
   const goldenAssets = assets.filter((asset: any) =>
-    asset?.metadata?.art_quality === "production-realistic-golden" &&
+    asset?.metadata?.artQuality === "production-realistic-golden" &&
     asset?.metadata?.schema === "allpha-3d-v2-13-production-art/1.1",
   );
   expect(goldenAssets.length).toBeGreaterThanOrEqual(expectedCategories.length);
