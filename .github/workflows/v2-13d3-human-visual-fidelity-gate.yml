@@ -1,0 +1,105 @@
+name: V2.13D.3 Human Visual Fidelity Review & Storage Promotion Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_production_run_id:
+        description: "Locked V2.13D production run containing R2/R3 evidence"
+        required: true
+        default: "37476962554"
+      source_d2_run_id:
+        description: "GREEN isolated D2 preflight run"
+        required: true
+        default: "37489097542"
+      human_visual_fidelity_approved:
+        description: "Set true only after human review of all 25 theme contact sheets"
+        required: true
+        type: boolean
+        default: false
+      production_promotion_approved:
+        description: "Set true only when production promotion is explicitly authorized"
+        required: true
+        type: boolean
+        default: false
+      reviewer_attestation:
+        description: "Reviewer name/attestation recorded in evidence"
+        required: true
+        default: "PENDING"
+
+jobs:
+  human-visual-fidelity-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ALLPHA_3D_HUMAN_VISUAL_FIDELITY_APPROVED: ${{ inputs.human_visual_fidelity_approved && 'true' || 'false' }}
+      ALLPHA_3D_PRODUCTION_PROMOTION_APPROVED: ${{ inputs.production_promotion_approved && 'true' || 'false' }}
+      ALLPHA_3D_REVIEWER_ATTESTATION: ${{ inputs.reviewer_attestation }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download locked R2 production evidence
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_production_run_id }}
+          name: allpha-3d-v2-13d-25-theme-production-evidence
+          path: evidence
+
+      - name: Download locked R3 Golden Gate evidence
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_production_run_id }}
+          name: allpha-3d-v2-13d-1a-r3-golden-gate
+          path: r3
+
+      - name: Download GREEN D2 manifest only
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_d2_run_id }}
+          name: allpha-3d-v2-13d2-storage-activation-preflight-isolated
+          path: d2
+
+      - name: Assemble human review pack
+        run: |
+          set -euo pipefail
+          mkdir -p review-pack/contact-sheets
+          find evidence -type f \( -iname '*contact*sheet*.png' -o -iname '*contact*sheet*.jpg' -o -iname '*contact*sheet*.jpeg' \) -exec cp {} review-pack/contact-sheets/ \;
+          COUNT=$(find review-pack/contact-sheets -type f | wc -l)
+          test "$COUNT" -ge 25
+          cp r3/3d-v2-13d-1a-r3-golden-gate-report.json review-pack/
+          cp d2/3d-v2-13d2-storage-activation-manifest.json review-pack/
+          echo "contact_sheets=$COUNT"
+
+      - name: Run V2.13D.3 human visual fidelity gate
+        run: |
+          set -euo pipefail
+          node scripts/3d/v2-13d3-human-visual-fidelity-gate.mjs \
+            --d2=review-pack/3d-v2-13d2-storage-activation-manifest.json \
+            --r3=review-pack/3d-v2-13d-1a-r3-golden-gate-report.json \
+            --contact-sheets=review-pack/contact-sheets
+
+      - name: Validate V2.13D.3 schema
+        run: |
+          node -e "const fs=require('fs');const r=require('./3d-v2-13d3-human-visual-fidelity-review.json');if(r.schema!=='allpha-3d-v2-13d3-human-visual-fidelity-review/1.0'||r.phase!=='V2.13D.3'||r.themes!==25||r.categories!==14||r.assets!==350||r.contactSheets!==25||r.storageMutationPerformed!==false)process.exit(1);console.log(JSON.stringify({ok:true,phase:r.phase,humanVisualFidelityReview:r.humanVisualFidelityReview,promotionToStorage:r.promotionToStorage},null,2))"
+
+      - name: Upload V2.13D.3 review evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d3-human-visual-fidelity-review
+          path: |
+            3d-v2-13d3-human-visual-fidelity-review.json
+            review-pack/3d-v2-13d-1a-r3-golden-gate-report.json
+            review-pack/3d-v2-13d2-storage-activation-manifest.json
+            review-pack/contact-sheets/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Explicitly block storage mutation during D3
+        run: |
+          test ! -f /tmp/ALLPHA_STORAGE_MUTATION_PERFORMED
+          echo "D3 is review/gate only. No Supabase Storage mutation was performed."

@@ -1,0 +1,17 @@
+{
+  "schema": "allpha-3d-v2-13d3-human-visual-fidelity-review/1.0",
+  "phase": "V2.13D.3",
+  "goldenReference": "crystal-ai-city",
+  "themes": 25,
+  "categories": 14,
+  "assets": 350,
+  "contactSheets": 25,
+  "humanVisualFidelityReview": "REJECTED",
+  "productionPromotionApproval": "PENDING",
+  "promotionToStorage": "BLOCKED_UNTIL_REMEDIATION_AND_APPROVAL",
+  "storageMutationPerformed": false,
+  "frontendSecretExposure": false,
+  "privilegedMutationBoundary": "backend-or-controlled-activation-job-only",
+  "primaryFinding": "World-scale spatial identity is insufficiently differentiated across themes; Universe/Galaxy/World/District retain a common procedural spatial grammar.",
+  "reviewScope": "25 V2.13D contact sheets compared against Crystal AI City Golden Benchmark"
+}
