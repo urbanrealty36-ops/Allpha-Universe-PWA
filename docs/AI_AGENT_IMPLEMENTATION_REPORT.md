@@ -219,3 +219,47 @@ For every 3D implementation, also record:
 **Status:** IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING.
 
 **Known gap:** Browser evidence validates renderer availability and runtime health; it does not replace human visual fidelity approval against the supplied reference images. Supabase promotion remains intentionally blocked until the 14 golden previews are reviewed and accepted.
+
+---
+
+# 2026-10-06 — 3D-V2.13B — Golden Theme Validation → Runtime Activation
+
+**Agent/task:** Implement the V2.13B validation and guarded runtime-promotion path for Crystal AI City, continuing directly from the V2.13A branch.
+
+**Objective:** Turn the V2.13A production-art foundation into a repeatable evidence gate: build 14 Blender GLBs + 14 previews, validate exported metadata/geometry, stage through Supabase Storage + `theme_assets`, and permit activation only after explicit production approval and runtime QA.
+
+**Branch:** `codex/3d-v2-13b-golden-validation-runtime-activation`
+
+**Database migrations:** None.
+
+**Supabase live verification:** No mutation was performed during this implementation increment. The new promotion command is guarded and remains inactive until the V2.13B workflow is explicitly dispatched with promotion enabled.
+
+**API changes:** None. Runtime continues through the existing FastAPI signed asset-manifest endpoint.
+
+**UI/UX changes:** No second renderer introduced. `ThemeV2ProductionAssetScene` and `AllphaWorldRenderer` remain canonical.
+
+**3D / Blender changes:** Added a 14-category golden-pack validator and a guarded Crystal AI City promotion path. Validation requires production-realistic-golden metadata, presentation-only boundary, non-legacy state, canonical renderer identity, valid GLB structure, and preview evidence.
+
+**Tests / automation:**
+- Added `scripts/3d/validate-v2-13b-golden-pack.mjs`.
+- Added `tests/3d-v2-13b-runtime.spec.ts` for signed-manifest category coverage and WebGL runtime evidence.
+- Added `.github/workflows/3d-v2-13b-golden-validation.yml` with explicit build → validate → optional stage/activate → browser QA gates.
+- Added `scripts/3d/activate-v2-13b-crystal-golden.mjs`, defaulting to staged mode and requiring `ALLPHA_3D_PRODUCTION_PROMOTION_APPROVED=true` for activation.
+- Added package scripts for V2.13B validation/activation.
+
+**Security checks:** No service-role secret is exposed to the frontend. Promotion is server-side/CI-only and requires explicit environment approval. No auth/RLS policy was changed.
+
+**Evidence/artifacts:** The workflow produces `allpha-3d-v2-13b-crystal-ai-city-golden-evidence`, `3d-v2-13b-golden-validation-report.json`, runtime activation report, and browser evidence when activation is explicitly requested.
+
+**Status:** IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING.
+
+**Known gaps:**
+- Blender 4.5.3 execution has not been run in the current model environment.
+- The generated 14 previews still require human visual fidelity approval against the canonical reference set.
+- Supabase staging/activation has not been executed by this increment.
+- Browser/mobile runtime evidence is gated on successful promotion of the validated golden pack.
+- Main branch remains untouched; no merge is performed until the complete Golden Gate is proven.
+
+**Next exact phase/subphase:** Run the V2.13B GitHub Actions golden build, inspect all 14 render previews, then stage Crystal AI City through the guarded Supabase path; only after visual approval run activation and browser/mobile runtime QA.
+
+**Phase reporting rule adopted:** At the completion report of every future phase, always state the exact next phase/subphase, its objective, and the first gate/action required to start it. A phase is not declared GREEN without evidence.
