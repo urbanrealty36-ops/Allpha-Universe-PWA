@@ -90,8 +90,9 @@ jobs:
       - name: Upload theme evidence
         uses: actions/upload-artifact@v4
         with:
-          name: allpha-3d-v2-13d-theme-MATRIX_THEME
-          path: allpha-theme-v2-13d-production/MATRIX_THEME/
+          name: allpha-3d-v2-13d-theme-${{ matrix.theme }}
+          path: allpha-theme-v2-13d-production/${{ matrix.theme }}/
+          if-no-files-found: error
           retention-days: 14
 
   evidence-review:
