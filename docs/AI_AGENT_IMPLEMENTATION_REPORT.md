@@ -198,3 +198,24 @@ For every 3D implementation, also record:
 - V2.13A must not be marked GREEN until the complete gate passes.
 
 **Next exact phase/subphase:** Execute Blender 4.x golden build for Crystal AI City (14 categories), inspect all 14 render previews, validate GLBs, stage only after visual approval, then perform AllphaWorldRenderer browser/mobile QA.
+
+
+---
+
+# 2026-10-06 — 3D-V2.13A — Runtime Evidence Gate Added
+
+**Agent/task:** Add automated browser evidence for the Crystal AI City golden runtime path.
+
+**Files changed:**
+- `tests/3d-v2-13a-golden-runtime.spec.ts`
+- `.github/workflows/3d-v2-13-production-art.yml`
+
+**Implementation:**
+- Added public Railway runtime check for a visible WebGL canvas.
+- Captures full-page runtime evidence.
+- Fails on unexpected browser console errors.
+- V2.13 workflow now runs Blender golden generation, uploads the 14 GLBs + 14 PNG previews, then runs the Railway browser runtime evidence gate.
+
+**Status:** IMPLEMENTED FOUNDATION / RUNTIME E2E PENDING.
+
+**Known gap:** Browser evidence validates renderer availability and runtime health; it does not replace human visual fidelity approval against the supplied reference images. Supabase promotion remains intentionally blocked until the 14 golden previews are reviewed and accepted.
