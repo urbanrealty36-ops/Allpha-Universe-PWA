@@ -312,3 +312,49 @@ For every 3D implementation, also record:
 **Next exact phase/subphase:** 3D-V2.13D — 25 Theme Production Expansion. Objective: materialize the V2.13C factory contract into production-grade Blender scenes/GLBs for the 25 themes × 14 categories without collapsing themes into color variants. First gate: validate the factory manifest and Crystal AI City Golden Reference before starting batch Blender generation.
 
 **Phase reporting rule:** Every future phase completion must state exact status, evidence, known gaps, and the next exact phase/subphase with objective + first gate/action. GREEN requires evidence.
+
+
+# 2026-10-06 — 3D-V2.13D — 25 Theme Production Expansion
+
+**Agent/task:** Implement the production expansion layer that materializes the V2.13C Golden Theme Factory into 25 themes × 14 categories = 350 presentation-only Blender GLBs.
+
+**Objective:** Convert the deterministic V2.13C recipe matrix into theme-specific production scenes while preserving Crystal AI City as the Golden Reference, keeping geometry/material/atmosphere/architecture/landmark/district/character/portal differentiation, and preserving AllphaWorldRenderer as the only canonical runtime renderer.
+
+**Branch:** `codex/3d-v2-13d-25-theme-production-expansion`
+
+**Database migrations:** None.
+
+**Supabase live verification:** No mutation. V2.13D is intentionally a production-art generation and validation phase; storage promotion remains a later guarded step.
+
+**API changes:** None.
+
+**UI/UX changes:** None. Runtime authority remains outside Blender and AllphaWorldRenderer remains canonical.
+
+**3D / Blender changes:**
+- Added `scripts/3d/blender/build_v2_13d_theme_production.py` as the batch factory builder.
+- Builder consumes the V2.13C 25 × 14 deterministic manifest and refuses to run the full batch if the 350-recipe gate is not satisfied.
+- Reuses the existing V2.13A production builder as the canonical scene foundation, then adds theme-family structural signatures rather than performing color-only substitution.
+- Added theme-specific geometry grammars for pagoda, clockwork, coral/underwater, dunes/obelisk, dragon cliffs, carnival ribbons, rainforest canopy, floating islands/aether rings, lunar/orbital habitats, Martian colonies, academy/rune towers, tropical/neon megastructures, Nusantara archipelago pavilions, solar pyramids, quantum frames, savanna rock/tree forms, skyforge towers and fjord structures, with Crystal AI City retaining the faceted golden fallback signature.
+- Every asset receives machine-readable V2.13D metadata: theme, family, category, Golden Reference, 12-dimension fingerprint fields, presentation-only boundary, and AllphaWorldRenderer authority.
+
+**Tests / automation:**
+- Added `scripts/3d/validate-v2-13d-theme-production.mjs` requiring exactly 350 unique theme/category assets, 25 theme folders, 14 GLBs per theme, valid GLB headers/sizes, presentation-only metadata, and canonical renderer identity.
+- Added `.github/workflows/3d-v2-13d-theme-production.yml` with Blender 4.5.3, V2.13C manifest gate, 350-asset batch build, validation and evidence artifact upload.
+- Added package scripts `build:3d:v2.13d` and `validate:3d:v2.13d`.
+
+**Security checks:** No service-role key, frontend privileged mutation, auth/RLS change, or database change introduced. Blender output is explicitly presentation-only.
+
+**Evidence/artifacts:** GitHub Actions workflow is the authoritative execution gate for the 350-asset production pack and validation report. Local Blender execution is not claimed from the model environment.
+
+**Status:** IMPLEMENTED FOUNDATION / BLENDER PRODUCTION VALIDATION PENDING.
+
+**Known gaps:**
+- The 350 GLBs/previews have not yet been generated and validated by a completed GitHub Actions run in this phase.
+- Human visual fidelity approval against the supplied references is still required.
+- No Supabase Storage staging/activation was performed.
+- No signed-URL/API/browser/mobile runtime evidence was performed for the new 25-theme pack.
+- Main branch remains untouched.
+
+**Next exact phase/subphase:** 3D-V2.13D.1 — Batch Production Gate & Visual Review. Objective: execute the Blender 4.5.3 25 × 14 batch, validate all 350 GLBs/previews, inspect theme-family fidelity and mobile performance tiers, and lock the production pack before any storage promotion. First gate/action: wait for the V2.13D GitHub Actions production-expansion run to complete, then review its 350-asset validation artifact and preview set; only a proven pass can advance to the guarded storage/runtime activation phase.
+
+**Phase reporting rule:** This phase is not GREEN until the GitHub Actions build/validation evidence and visual fidelity review are both passed.
