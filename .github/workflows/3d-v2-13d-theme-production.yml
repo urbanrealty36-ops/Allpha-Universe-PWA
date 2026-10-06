@@ -1,0 +1,59 @@
+name: 3D-V2.13D 25 Theme Production Expansion
+
+on:
+  push:
+    branches:
+      - codex/3d-v2-13d-25-theme-production-expansion
+    paths:
+      - "packages/design-tokens/3d-visual-language.ts"
+      - "packages/design-tokens/3d-golden-theme-factory.ts"
+      - "scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
+      - "scripts/3d/blender/build_v2_13_production_art.py"
+      - "scripts/3d/blender/build_v2_13d_theme_production.py"
+      - "scripts/3d/validate-v2-13d-theme-production.mjs"
+      - ".github/workflows/3d-v2-13d-theme-production.yml"
+  workflow_dispatch:
+    inputs:
+      preview:
+        description: "Render all 350 production previews"
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  production-expansion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Blender 4.5.3
+        uses: jedwards1211/blender@v5
+        with:
+          version: "4.5.3"
+      - name: Gate V2.13C factory manifest
+        run: |
+          node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs
+          node -e "const r=require('./allpha-v2-13c-theme-factory-manifest.json'); if(r.themes!==25||r.categories!==14||r.matrixSize!==350||r.goldenTheme!=='crystal-ai-city'||!r.ok) process.exit(1)"
+      - name: Build 25 x 14 production GLB pack
+        env:
+          ALLPHA_V213D_OUT: allpha-theme-v2-13d-production
+          ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
+        run: |
+          if [ "\${{ inputs.preview }}" = "false" ]; then
+            blender -b --python scripts/3d/blender/build_v2_13d_theme_production.py --
+          else
+            blender -b --python scripts/3d/blender/build_v2_13d_theme_production.py -- --preview
+          fi
+      - name: Validate 350 production assets
+        env:
+          ALLPHA_V213D_OUT: allpha-theme-v2-13d-production
+        run: node scripts/3d/validate-v2-13d-theme-production.mjs
+      - name: Upload V2.13D evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-25-theme-production-evidence
+          path: |
+            allpha-theme-v2-13d-production/
+            3d-v2-13d-production-validation-report.json
+          retention-days: 14
