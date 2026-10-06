@@ -84,6 +84,11 @@ jobs:
           else
             blender -b --python scripts/3d/blender/build_v2_13d3a_structural_remediation.py -- --preview --theme "${{ matrix.theme }}"
           fi
+      - name: Preflight remediation output
+        run: |
+          set -euo pipefail
+          test -s allpha-theme-v2-13d3a-remediation/manifest.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('allpha-theme-v2-13d3a-remediation/manifest.json','utf8')); if(r.themes!==25||r.categories!==4||r.matrixSize!==100||r.generated!==4||!Array.isArray(r.assets)||r.assets.length!==4) process.exit(1); if(!r.assets.every(a=>a.themeKey==='${{ matrix.theme }}')) process.exit(1);"
       - name: Validate four remediated categories
         env:
           ALLPHA_V213D3A_OUT: allpha-theme-v2-13d3a-remediation
