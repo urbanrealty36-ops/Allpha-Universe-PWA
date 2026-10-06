@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "allpha-3d-v2-13d3-human-visual-fidelity-review/1.0",
+  "title": "Allpha V2.13D.3 Human Visual Fidelity Review",
+  "type": "object",
+  "required": ["schema","phase","goldenReference","themes","categories","assets","contactSheets","humanVisualFidelityReview","productionPromotionApproval","promotionToStorage","storageMutationPerformed"],
+  "properties": {
+    "schema": {"const":"allpha-3d-v2-13d3-human-visual-fidelity-review/1.0"},
+    "phase": {"const":"V2.13D.3"},
+    "goldenReference": {"const":"crystal-ai-city"},
+    "themes": {"const":25},
+    "categories": {"const":14},
+    "assets": {"const":350},
+    "contactSheets": {"const":25},
+    "humanVisualFidelityReview": {"enum":["PENDING","APPROVED"]},
+    "productionPromotionApproval": {"enum":["PENDING","APPROVED"]},
+    "promotionToStorage": {"enum":["BLOCKED_UNTIL_APPROVALS","READY_FOR_CONTROLLED_PROMOTION"]},
+    "storageMutationPerformed": {"const":false},
+    "frontendSecretExposure": {"const":false}
+  }
+}
