@@ -1,8 +1,11 @@
 import { ALLPHA_3D_THEME_PROFILES } from "../../../../packages/design-tokens/3d-visual-language";
 import { ASSET_CATEGORIES, type AssetCategory } from "./asset-factory";
 
-export const PRODUCTION_REALISTIC_ART_SCHEMA = "allpha-3d-v2-13-production-art/1.0" as const;
+export const PRODUCTION_REALISTIC_ART_SCHEMA = "allpha-3d-v2-13-production-art/1.1" as const;
 export const PRODUCTION_REALISTIC_ART_ROOT = "theme-v2-real-3d/v2.13" as const;
+export const PRODUCTION_REALISTIC_ART_GOLDEN_GATE = "3D-V2.13B" as const;
+export const PRODUCTION_REALISTIC_ART_THEME_FACTORY_SCHEMA = "allpha-3d-v2-13c-golden-theme-factory/1.0" as const;
+export const PRODUCTION_REALISTIC_ART_THEME_FACTORY_MATRIX = 350 as const;
 
 export type ProductionRealisticArtSource = "blender-production-export" | "external-production-import";
 
@@ -14,6 +17,7 @@ export type ProductionRealisticArtContract = {
   presentationOnly: true;
   legacy: false;
   stagedOnlyUntilRuntimeQa: true;
+  goldenValidationRequired: true;
   requirements: readonly string[];
 };
 
@@ -51,6 +55,7 @@ export function createProductionRealisticArtContract(
     presentationOnly: true,
     legacy: false,
     stagedOnlyUntilRuntimeQa: true,
+    goldenValidationRequired: true,
     requirements: PRODUCTION_REALISTIC_ART_REQUIREMENTS,
   };
 }
@@ -61,6 +66,11 @@ export const PRODUCTION_REALISTIC_ART_GOLDEN_MATRIX = {
   categories: 14,
   fullMatrix: 350,
   firstActivationGate: "golden-theme-14-category-runtime-visual-qa",
+  themeFactoryGate: "25-theme-x-14-category-design-contract-validation",
+  themeFactorySchema: PRODUCTION_REALISTIC_ART_THEME_FACTORY_SCHEMA,
+  themeFactoryMatrix: PRODUCTION_REALISTIC_ART_THEME_FACTORY_MATRIX,
+  goldenArtStandard: "production-realistic-cinematic-focal-scene",
   activationPath: PRODUCTION_REALISTIC_ART_ROOT,
+  runtimeActivationGate: "14-category-signed-manifest-golden-metadata",
   canonicalRenderer: "AllphaWorldRenderer",
 } as const;

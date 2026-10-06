@@ -1,0 +1,42 @@
+name: 3D-V2.13C Golden Theme Design System and Theme Factory
+
+on:
+  push:
+    paths:
+      - "packages/design-tokens/3d-visual-language.ts"
+      - "packages/design-tokens/3d-golden-theme-factory.ts"
+      - "apps/web/lib/world-engine/asset-factory.ts"
+      - "scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
+      - ".github/workflows/3d-v2-13c-theme-factory.yml"
+  workflow_dispatch:
+
+jobs:
+  validate-theme-factory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate 25-theme x 14-category factory
+        run: node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs
+      - name: Verify deterministic matrix dimensions
+        run: |
+          node - <<'NODE'
+          const fs = require("fs");
+          const report = JSON.parse(fs.readFileSync("allpha-v2-13c-theme-factory-manifest.json", "utf8"));
+          if (!report.ok) process.exit(1);
+          if (report.themes !== 25 || report.categories !== 14 || report.matrixSize !== 350) process.exit(1);
+          if (report.goldenTheme !== "crystal-ai-city") process.exit(1);
+          console.log(JSON.stringify({
+            phase: "3D-V2.13C",
+            goldenTheme: report.goldenTheme,
+            themes: report.themes,
+            categories: report.categories,
+            matrixSize: report.matrixSize,
+            ok: report.ok
+          }, null, 2));
+          NODE
+      - name: Upload Theme Factory evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13c-theme-factory-evidence
+          path: allpha-v2-13c-theme-factory-manifest.json

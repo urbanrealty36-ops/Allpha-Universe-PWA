@@ -14,7 +14,13 @@
     "qa:3d:v2.12": "node scripts/3d/qa-harness-v2-12.mjs",
     "qa:3d:v2.13": "node scripts/3d/qa-v2-13-production-art.mjs",
     "build:3d:v2.13:golden": "blender -b --python scripts/3d/blender/build_v2_13_production_art.py -- --theme crystal-ai-city --preview",
-    "build:3d:v2.13:full": "blender -b --python scripts/3d/blender/build_v2_13_production_art.py -- --all"
+    "build:3d:v2.13:full": "blender -b --python scripts/3d/blender/build_v2_13_production_art.py -- --all",
+    "validate:3d:v2.13b": "node scripts/3d/validate-v2-13b-golden-pack.mjs",
+    "activate:3d:v2.13b": "node scripts/3d/activate-v2-13b-crystal-golden.mjs --root=allpha-theme-v2-13-golden-pack",
+    "validate:3d:v2.13c": "node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs",
+    "build:3d:v2.13d": "blender -b --python scripts/3d/blender/build_v2_13d_theme_production.py -- --preview",
+    "validate:3d:v2.13d": "node scripts/3d/validate-v2-13d-theme-production.mjs",
+    "review:3d:v2.13d": "python scripts/3d/review-v2-13d-preview-pack.py"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"
