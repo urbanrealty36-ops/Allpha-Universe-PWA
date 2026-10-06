@@ -1,0 +1,140 @@
+name: V2.13D.3A Structural Theme Fidelity Remediation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/3d/blender/build_v2_13d3a_structural_remediation.py"
+      - "scripts/3d/validate-v2-13d3a-structural-remediation.mjs"
+      - "scripts/3d/review-v2-13d3a-structural-pack.py"
+      - ".github/workflows/v2-13d3a-structural-remediation.yml"
+  push:
+    branches: [codex/v2-13d-3a-structural-theme-fidelity-remediation]
+    paths:
+      - "scripts/3d/blender/build_v2_13d3a_structural_remediation.py"
+      - "scripts/3d/validate-v2-13d3a-structural-remediation.mjs"
+      - "scripts/3d/review-v2-13d3a-structural-pack.py"
+      - ".github/workflows/v2-13d3a-structural-remediation.yml"
+  workflow_dispatch:
+
+jobs:
+  structural-remediation:
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        theme:
+          - aurora-kingdom
+          - celestial-samurai
+          - chronos-realm
+          - coral-metropolis
+          - crystal-ai-city
+          - desert-starfall
+          - dragon-dominion
+          - dream-carnival
+          - emerald-rainforest
+          - floating-garden
+          - galactic-frontier
+          - heroic-nexus
+          - kingdom-of-aether
+          - lunar-frontier
+          - mars-frontier
+          - mystic-academy
+          - neo-jakarta-2099
+          - neon-tokyo
+          - nusantara-raya
+          - oceanic-atlantis
+          - pharaoh-eternal
+          - quantum-city
+          - savanna-spirit
+          - skyforge-empire
+          - viking-fjord
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install headless runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxrender1 libxext6 libxi6 libxfixes3
+      - name: Install Blender 4.5.3
+        run: |
+          set -euo pipefail
+          V=4.5.3
+          A="blender-${V}-linux-x64.tar.xz"
+          curl -fsSL --retry 3 --retry-delay 2 "https://download.blender.org/release/Blender4.5/${A}" -o "/tmp/${A}"
+          sudo tar -xJf "/tmp/${A}" -C /opt
+          sudo ln -sfn "/opt/blender-${V}-linux-x64/blender" /usr/local/bin/blender
+          blender --version
+      - name: Generate locked V2.13C factory manifest
+        run: |
+          node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs
+          node -e "const r=require('./allpha-v2-13c-theme-factory-manifest.json'); if(r.themes!==25||r.categories!==14||r.matrixSize!==350||r.goldenTheme!=='crystal-ai-city'||!r.ok) process.exit(1)"
+      - name: Build only world-scale remediation
+        env:
+          ALLPHA_V213D3A_OUT: allpha-theme-v2-13d3a-remediation
+          ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
+        run: |
+          set -euo pipefail
+          blender -b --python scripts/3d/blender/build_v2_13d3a_structural_remediation.py -- --preview --theme "${{ matrix.theme }}"
+      - name: Preflight remediation output
+        run: |
+          set -euo pipefail
+          test -s allpha-theme-v2-13d3a-remediation/manifest.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('allpha-theme-v2-13d3a-remediation/manifest.json','utf8')); if(r.themes!==25||r.categories!==4||r.matrixSize!==100||r.generated!==4||!Array.isArray(r.assets)||r.assets.length!==4) process.exit(1); if(!r.assets.every(a=>a.themeKey==='${{ matrix.theme }}')) process.exit(1);"
+      - name: Validate four remediated categories
+        env:
+          ALLPHA_V213D3A_OUT: allpha-theme-v2-13d3a-remediation
+          ALLPHA_V213D3A_THEME: ${{ matrix.theme }}
+        run: |
+          node scripts/3d/validate-v2-13d3a-structural-remediation.mjs
+      - name: Upload theme remediation
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d3a-theme-${{ matrix.theme }}
+          path: allpha-theme-v2-13d3a-remediation/
+          if-no-files-found: error
+          retention-days: 14
+
+  evidence-review:
+    needs: structural-remediation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all 25 remediation packs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allpha-3d-v2-13d3a-theme-*
+          path: allpha-theme-v2-13d3a-remediation
+          merge-multiple: true
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check --no-input pillow
+      - name: Assemble canonical 100-asset remediation manifest
+        run: |
+          node <<'NODE'
+          const fs=require('fs'), path=require('path');
+          const root='allpha-theme-v2-13d3a-remediation';
+          const themes=fs.readdirSync(root,{withFileTypes:true}).filter(x=>x.isDirectory()).map(x=>x.name).sort();
+          const cats=['universe','galaxy','world','district'];
+          const assets=[];
+          for(const theme of themes) for(const category of cats) {
+            const dir=path.join(root,theme);
+            assets.push({themeKey:theme,category,glb:path.join(dir,category+'.glb'),preview:path.join(dir,category+'.png'),schema:'allpha-3d-v2-13d3a-structural-fidelity/1.0',presentationOnly:true,canonicalRenderer:'AllphaWorldRenderer',remediation:'world-scale-structural'});
+          }
+          fs.writeFileSync(path.join(root,'manifest.json'),JSON.stringify({schema:'allpha-3d-v2-13d3a-structural-fidelity/1.0',phase:'V2.13D.3A',goldenReference:'crystal-ai-city',themes:25,categories:4,matrixSize:100,generated:assets.length,previewRequested:true,sourceLockedEvidence:['V2.13D.1A-R3','V2.13D.2'],assets},null,2));
+          NODE
+      - name: Validate assembled 100-asset remediation pack
+        env:
+          ALLPHA_V213D3A_OUT: allpha-theme-v2-13d3a-remediation
+        run: node scripts/3d/validate-v2-13d3a-structural-remediation.mjs
+      - name: Automated structural visual review
+        env:
+          ALLPHA_V213D3A_OUT: allpha-theme-v2-13d3a-remediation
+        run: python scripts/3d/review-v2-13d3a-structural-pack.py
+      - name: Upload remediation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d3a-structural-remediation-evidence
+          path: |
+            allpha-theme-v2-13d3a-remediation/
+            3d-v2-13d3a-structural-validation-report.json
+            3d-v2-13d3a-structural-visual-review.json
+          retention-days: 14
