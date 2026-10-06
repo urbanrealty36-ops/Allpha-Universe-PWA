@@ -360,3 +360,41 @@ For every 3D implementation, also record:
 **Phase reporting rule:** This phase is not GREEN until the GitHub Actions build/validation evidence and visual fidelity review are both passed.
 
 <!-- V2.13D CI trigger checkpoint -->
+
+
+# 2026-10-06 — 3D-V2.13D.1 — Batch Production Gate & Visual Review
+
+**Agent/task:** Implement the batch production gate and automated preview review on top of V2.13D.
+
+**Objective:** Turn the 25 × 14 Blender production expansion into an evidence-producing gate: generate the full 350-asset pack with Blender 4.5.3, validate every GLB, inspect every rendered preview for basic visual integrity, and produce contact-sheet evidence before any Storage/runtime promotion.
+
+**Branch:** `codex/3d-v2-13d-25-theme-production-expansion`
+
+**Database migrations:** None.
+
+**Supabase live verification:** No mutation. Storage activation remains blocked until the production-art evidence gate is proven.
+
+**API changes:** None.
+
+**UI/UX changes:** None. AllphaWorldRenderer remains canonical.
+
+**3D / Blender changes:** The V2.13D batch builder remains responsible for the 350 GLBs and 350 previews. V2.13D.1 adds a deterministic preview-review stage that requires 25 theme folders × 14 previews, expected portrait dimensions 720×1080, readable image data, and non-trivial pixel variance. It also creates one contact sheet per theme for visual inspection.
+
+**Tests / automation:**
+- Added `scripts/3d/review-v2-13d-preview-pack.py`.
+- Workflow now installs Pillow, runs GLB validation, runs automated preview review, and uploads GLBs/previews + validation report + preview review report/contact sheets as evidence.
+- Added `review:3d:v2.13d` package command.
+
+**Evidence/artifacts:** GitHub Actions is the execution authority. The expected evidence set is the 350 GLBs, 350 PNG previews, `3d-v2-13d-production-validation-report.json`, `3d-v2-13d-preview-review-report.json`, and 25 theme contact sheets.
+
+**Security checks:** No privileged frontend mutation, service-role exposure, auth/RLS change, database migration, or runtime authority bypass.
+
+**Status:** IMPLEMENTED / CI EXECUTION PENDING.
+
+**Known gaps:**
+- The new workflow has not yet completed successfully, so 350-asset evidence is not yet proven.
+- Automated image checks do not constitute human visual-fidelity approval; human review against the supplied references remains mandatory.
+- Supabase Storage, signed URL, AllphaWorldRenderer browser/mobile runtime gates remain intentionally unopened.
+- Main branch remains untouched.
+
+**Next exact phase/subphase:** V2.13D.1A — Execute & Review Production Evidence. Objective: complete the GitHub Actions 350-asset build and inspect the generated contact sheets/validation reports. First gate/action: run the V2.13D workflow and require successful Blender build + GLB validation + automated preview review before any human fidelity sign-off or V2.13E storage activation.
