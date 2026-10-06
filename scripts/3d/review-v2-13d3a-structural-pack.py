@@ -2,8 +2,10 @@
 import json, os
 from pathlib import Path
 from PIL import Image
-ROOT=Path(os.environ.get("ALLPHA_V213D3A_OUT","allpha-theme-v2-13d3a-remediation"))
-THEMES=json.loads((ROOT/"manifest.json").read_text())["assets"]
+ROOT=Path(os.environ.get("ALLPHA_V213D3A_OUT","allpha-theme-v2-13d3a-remediation")).resolve()
+MANIFEST=ROOT/"manifest.json"
+if not MANIFEST.is_file(): raise SystemExit("V2.13D3A_MANIFEST_MISSING")
+THEMES=json.loads(MANIFEST.read_text(encoding="utf-8"))["assets"]
 CATS=["universe","galaxy","world","district"]
 def ahash(p):
     im=Image.open(p).convert("L").resize((16,16)); px=list(im.getdata()); avg=sum(px)/len(px)
@@ -11,7 +13,7 @@ def ahash(p):
 def dist(a,b): return sum(x!=y for x,y in zip(a,b))/len(a)
 errors=[]; rows=[]
 for c in CATS:
-    files=[Path(x["preview"]) for x in THEMES if x["category"]==c and x.get("preview")]
+    files=[Path(x["preview"]) if Path(x["preview"]).is_absolute() else Path(x["preview"]).resolve() for x in THEMES if x["category"]==c and x.get("preview")]
     if len(files)!=25: errors.append(f"PREVIEW_COUNT:{c}:{len(files)}"); continue
     hashes=[ahash(p) for p in files]
     pairs=[dist(hashes[i],hashes[j]) for i in range(25) for j in range(i+1,25)]
