@@ -38,6 +38,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install headless Blender runtime libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxrender1 libxext6 libxi6 libxfixes3
       - name: Install Blender 4.5.3
         shell: bash
         run: |
