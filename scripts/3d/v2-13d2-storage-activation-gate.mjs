@@ -79,7 +79,7 @@ const output = {
   productionPromotionApproval: process.env.ALLPHA_3D_PRODUCTION_PROMOTION_APPROVED === "true",
   frontendSecretExposure: false,
   privilegedMutationBoundary: "backend-or-controlled-activation-job-only",
-  assets,
+  assetEntries: assets,
 };
 
 const outputPath = path.resolve("3d-v2-13d2-storage-activation-manifest.json");
