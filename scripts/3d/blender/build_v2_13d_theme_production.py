@@ -52,7 +52,7 @@ def signature(m,p,c):
         for i in range(5): prism(f"{k}_Cliff",(-3.2+i*1.6,1.1+(i%2)*.7,2.1),.8,2.2+(i%3)*.8,m["architectural"],5)
         arch(f"{k}_DragonRing",(0,3.5,-1.2),2.8,m["warm"])
     elif "floating-tents" in g:
-        for i in range(5): arch(f"{k}_Ribbon",(__import__("math").cos(i*1.256)*2.5,3.2,__import__("math").sin(i*1.256)*2.5),.8,m["secondary"])
+        for i in range(5): arch(f"{k}_Ribbon",(__import__("math").cos(i*1.256)*2.5,3.2,__import__("math").sin(i*1.256)*2.5),.8,m["violet"])
     elif "canopy" in g:
         for i in range(6):
             a=i*6.283/6; BASE.cylinder(f"{k}_Trunk",(__import__("math").cos(a)*2.8,2.2,__import__("math").sin(a)*2.8),.16,4.4,m["architectural"],18,.02); dome(f"{k}_Canopy",(__import__("math").cos(a)*2.8,4.6,__import__("math").sin(a)*2.8),1.3,m["primary"])
@@ -64,7 +64,7 @@ def signature(m,p,c):
         for i in range(6): prism(f"{k}_Rock",(__import__("math").cos(i*1.047)*3,1,__import__("math").sin(i*1.047)*3),.75,2+(i%2),m["warm"],7)
         dome(f"{k}_Colony",(0,1,0),2,m["glass"])
     elif "towers-libraries" in g:
-        for i in range(4): prism(f"{k}_Academy",(-2.4+i*1.6,2.7,1.8),.55,5.4,m["architectural"],8); arch(f"{k}_Rune",(-2.4+i*1.6,5.4,1.8),.78,m["secondary"])
+        for i in range(4): prism(f"{k}_Academy",(-2.4+i*1.6,2.7,1.8),.55,5.4,m["architectural"],8); arch(f"{k}_Rune",(-2.4+i*1.6,5.4,1.8),.78,m["violet"])
     elif "vertical-megastructures" in g or "dense-signage" in g:
         for i in range(7): prism(f"{k}_Mega",(-4+i*1.3,2+(i%4)*.6,1.8),.55,4+(i%4)*1.2,m["architectural"],8)
     elif "archipelago" in g:
@@ -86,7 +86,7 @@ def signature(m,p,c):
         dome(f"{k}_FjordHall",(0,1.3,0),1.8,m["ice"])
     else:
         prism(f"{k}_GoldenLandmark",(0,2,1.2),1.15,4,m["ice"],6)
-    if c in {"universe","galaxy","world","district","booth","live-stage","navigation-fx"}: arch(f"{k}_Portal_{c}",(0,1.9,-2.5),1.15,m["secondary"])
+    if c in {"universe","galaxy","world","district","booth","live-stage","navigation-fx"}: arch(f"{k}_Portal_{c}",(0,1.9,-2.5),1.15,m["violet"])
     if c in {"agent-character","human-live"}: BASE.torus(f"{k}_IdentityAura",(0,.3,0),1,.04,m["primary"],(1.5708,0,0),72)
 
 def metadata(p,r,c):
