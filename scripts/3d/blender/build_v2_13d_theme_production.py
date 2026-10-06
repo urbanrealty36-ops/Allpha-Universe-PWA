@@ -44,7 +44,7 @@ def signature(m,p,c):
         for r in (1.7,2.5,3.3): arch(f"{k}_ClockRing",(0,1.9,0),r,m["cyan"])
     elif "coral" in g or "underwater" in g:
         for i in range(7):
-            a=i*6.283/7; prism(f"{k}_CoralSpire",(a and __import__("math").cos(a)*2.5,1.1+(i%2)*.4,__import__("math").sin(a)*2.5),.4+(i%2)*.1,2.6+(i%3)*.5,m["primary"],9)
+            a=i*6.283/7; prism(f"{k}_CoralSpire",(a and __import__("math").cos(a)*2.5,1.1+(i%2)*.4,__import__("math").sin(a)*2.5),.4+(i%2)*.1,2.6+(i%3)*.5,m["cyan"],9)
     elif "dunes" in g:
         for i in range(5): dome(f"{k}_Dune",(-3.2+i*1.6,.35,-1.8+(i%2)),1.1,m["ground"])
         prism(f"{k}_Obelisk",(0,3.2,.4),.72,6.4,m["ice"],4)
@@ -55,7 +55,7 @@ def signature(m,p,c):
         for i in range(5): arch(f"{k}_Ribbon",(__import__("math").cos(i*1.256)*2.5,3.2,__import__("math").sin(i*1.256)*2.5),.8,m["violet"])
     elif "canopy" in g:
         for i in range(6):
-            a=i*6.283/6; BASE.cylinder(f"{k}_Trunk",(__import__("math").cos(a)*2.8,2.2,__import__("math").sin(a)*2.8),.16,4.4,m["architectural"],18,.02); dome(f"{k}_Canopy",(__import__("math").cos(a)*2.8,4.6,__import__("math").sin(a)*2.8),1.3,m["primary"])
+            a=i*6.283/6; BASE.cylinder(f"{k}_Trunk",(__import__("math").cos(a)*2.8,2.2,__import__("math").sin(a)*2.8),.16,4.4,m["architectural"],18,.02); dome(f"{k}_Canopy",(__import__("math").cos(a)*2.8,4.6,__import__("math").sin(a)*2.8),1.3,m["cyan"])
     elif "floating-islands" in g or "aether-rings" in g:
         for i in range(5): BASE.cylinder(f"{k}_SkyIsland",(__import__("math").cos(i*1.256)*3.2,1.1+i*.2,__import__("math").sin(i*1.256)*3.2),.9,.32,m["ground"],6,.05)
     elif "modular-stations" in g or "moon-bases" in g:
@@ -78,7 +78,7 @@ def signature(m,p,c):
             bpy.ops.mesh.primitive_cube_add(location=(-2.8+i*1.4,2,1.2),scale=(.65,.08,1.8),rotation=(0,i*.16,i*.11)); o=bpy.context.object; o.name=f"{k}_QuantumFrame"; o.data.materials.append(m["glass"]); BASE.bevel(o,.05,2)
     elif "rock-formations" in g:
         for i in range(6): prism(f"{k}_SavannaRock",(__import__("math").cos(i*1.047)*3,1,__import__("math").sin(i*1.047)*3),.65,2+(i%2),m["ground"],5)
-        dome(f"{k}_SpiritTree",(0,2.8,0),1.4,m["primary"])
+        dome(f"{k}_SpiritTree",(0,2.8,0),1.4,m["cyan"])
     elif "sky-forges" in g:
         for i in range(4): prism(f"{k}_Forge",(-2.4+i*1.6,2.4,1.4),.6,4.8,m["architectural"],8)
     elif "fjord" in g:
@@ -87,7 +87,7 @@ def signature(m,p,c):
     else:
         prism(f"{k}_GoldenLandmark",(0,2,1.2),1.15,4,m["ice"],6)
     if c in {"universe","galaxy","world","district","booth","live-stage","navigation-fx"}: arch(f"{k}_Portal_{c}",(0,1.9,-2.5),1.15,m["violet"])
-    if c in {"agent-character","human-live"}: BASE.torus(f"{k}_IdentityAura",(0,.3,0),1,.04,m["primary"],(1.5708,0,0),72)
+    if c in {"agent-character","human-live"}: BASE.torus(f"{k}_IdentityAura",(0,.3,0),1,.04,m["cyan"],(1.5708,0,0),72)
 
 def metadata(p,r,c):
     o=bpy.data.objects.new("ALLPHA_V2_13D_PRODUCTION_METADATA",None); bpy.context.collection.objects.link(o)
