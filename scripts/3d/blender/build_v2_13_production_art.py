@@ -497,8 +497,16 @@ def build_category(materials, category):
     elif category == "sticker-social":
         add_sticker_social(materials)
     elif category == "animation":
-        add_character(materials, (0, .05, 0), 1.0, 0.22, ai=True)
+        actor = add_character(materials, (0, .05, 0), 1.0, 0.22, ai=True)
         torus("AnimationPath", (0, 1.3, 0), 2.25, .03, materials["cyan"], (math.pi / 2, 0, 0), 96)
+        actor.rotation_euler[2] = -0.08
+        actor.keyframe_insert(data_path="rotation_euler", frame=1, index=2)
+        actor.rotation_euler[2] = 0.10
+        actor.keyframe_insert(data_path="rotation_euler", frame=30, index=2)
+        actor.rotation_euler[2] = -0.08
+        actor.keyframe_insert(data_path="rotation_euler", frame=60, index=2)
+        bpy.context.scene.frame_start = 1
+        bpy.context.scene.frame_end = 60
     elif category == "navigation-fx":
         add_navigation_fx(materials)
 
