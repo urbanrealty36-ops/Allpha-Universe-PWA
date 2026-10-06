@@ -91,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allpha-3d-v2-13d-theme-${{ matrix.theme }}
-          path: allpha-theme-v2-13d-production/${{ matrix.theme }}/
+          path: allpha-theme-v2-13d-production/
           if-no-files-found: error
           retention-days: 14
 
