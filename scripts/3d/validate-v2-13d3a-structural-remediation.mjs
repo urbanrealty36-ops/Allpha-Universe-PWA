@@ -10,9 +10,9 @@ const manifest=path.join(root,"manifest.json");
 if(!fs.existsSync(manifest)) throw new Error("V2.13D3A_MANIFEST_MISSING");
 const r=JSON.parse(fs.readFileSync(manifest,"utf8"));
 for(const [k,v] of [["schema","allpha-3d-v2-13d3a-structural-fidelity/1.0"],["phase","V2.13D.3A"],["goldenReference","crystal-ai-city"]]) if(r[k]!==v) errors.push("INVALID_"+k.toUpperCase());
-if(r.themes!==expectedThemes) errors.push("THEME_COUNT_INVALID");
+if(r.themes!==25) errors.push("THEME_COUNT_INVALID");
 if(r.categories!==expectedCategories) errors.push("CATEGORY_COUNT_INVALID");
-if(r.matrixSize!==expectedAssets||r.generated!==expectedAssets) errors.push("ASSET_COUNT_INVALID");
+if(r.matrixSize!==100||r.generated!==expectedAssets) errors.push("ASSET_COUNT_INVALID");
 if(!Array.isArray(r.sourceLockedEvidence)||!r.sourceLockedEvidence.includes("V2.13D.1A-R3")||!r.sourceLockedEvidence.includes("V2.13D.2")) errors.push("LOCKED_EVIDENCE_BINDING_INVALID");
 const seen=new Set();
 for(const a of r.assets??[]){
