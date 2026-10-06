@@ -16,7 +16,8 @@
     "build:3d:v2.13:golden": "blender -b --python scripts/3d/blender/build_v2_13_production_art.py -- --theme crystal-ai-city --preview",
     "build:3d:v2.13:full": "blender -b --python scripts/3d/blender/build_v2_13_production_art.py -- --all",
     "validate:3d:v2.13b": "node scripts/3d/validate-v2-13b-golden-pack.mjs",
-    "activate:3d:v2.13b": "node scripts/3d/activate-v2-13b-crystal-golden.mjs --root=allpha-theme-v2-13-golden-pack"
+    "activate:3d:v2.13b": "node scripts/3d/activate-v2-13b-crystal-golden.mjs --root=allpha-theme-v2-13-golden-pack",
+    "validate:3d:v2.13c": "node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"
