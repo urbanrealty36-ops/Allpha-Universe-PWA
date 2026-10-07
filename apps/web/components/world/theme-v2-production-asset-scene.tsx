@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { AssetCategory } from "../../lib/world-engine/asset-factory";
+import { ALLPHA_3D_MASTER_LANGUAGE } from "../../../../packages/design-tokens/3d-visual-language";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://allpha-api-production.up.railway.app").replace(/\/$/, "");
 
@@ -15,7 +16,15 @@ export type ProductionAssetRuntimeState = "idle" | "loading-manifest" | "manifes
 export type ProductionAssetRuntimeMetrics = {
   meshCount: number;
   objectCount: number;
+  materialCount: number;
   bounds: { size: [number, number, number]; center: [number, number, number] };
+  camera: { distance: number; fov: number; aspect: number; target: [number, number, number] };
+  visual: {
+    brandProfile: "ALLPHA_UNIVERSE_V2";
+    toneMapping: "ACESFilmicToneMapping";
+    outputColorSpace: "SRGBColorSpace";
+    exposure: number;
+  };
 };
 
 
@@ -28,6 +37,15 @@ function setRuntimeMarker(state: ProductionAssetRuntimeState, metrics?: Producti
     marker.dataset.allpha3dMeshCount = String(metrics.meshCount);
     marker.dataset.allpha3dObjectCount = String(metrics.objectCount);
     marker.dataset.allpha3dBounds = metrics.bounds.size.map((value) => value.toFixed(3)).join(",");
+    marker.dataset.allpha3dMaterialCount = String(metrics.materialCount);
+    marker.dataset.allpha3dCameraDistance = metrics.camera.distance.toFixed(3);
+    marker.dataset.allpha3dCameraFov = metrics.camera.fov.toFixed(2);
+    marker.dataset.allpha3dCameraAspect = metrics.camera.aspect.toFixed(3);
+    marker.dataset.allpha3dCameraTarget = metrics.camera.target.map((value) => value.toFixed(3)).join(",");
+    marker.dataset.allpha3dVisualProfile = metrics.visual.brandProfile;
+    marker.dataset.allpha3dToneMapping = metrics.visual.toneMapping;
+    marker.dataset.allpha3dOutputColorSpace = metrics.visual.outputColorSpace;
+    marker.dataset.allpha3dExposure = metrics.visual.exposure.toFixed(2);
   }
 }
 
@@ -46,6 +64,7 @@ function ProductionAssetModel({
 }) {
   const gltf = useGLTF(url);
   const camera = useThree((state) => state.camera);
+  const viewport = useThree((state) => state.size);
   const visibleRef = useMemo(() => ({ value: false }), []);
   const prepared = useMemo(() => {
     const scene = gltf.scene.clone(true);
@@ -57,12 +76,49 @@ function ProductionAssetModel({
 
     let meshCount = 0;
     let objectCount = 0;
+    let materialCount = 0;
     scene.traverse((node: any) => {
       objectCount += 1;
       if (node.isMesh) {
         meshCount += 1;
         node.castShadow = !lowPower;
         node.receiveShadow = !lowPower;
+
+        const normalizeMaterial = (source: THREE.Material) => {
+          const material = source.clone() as THREE.Material & {
+            roughness?: number;
+            metalness?: number;
+            envMapIntensity?: number;
+            emissiveIntensity?: number;
+          };
+          if (typeof material.roughness === "number") {
+            material.roughness = THREE.MathUtils.clamp(material.roughness, 0.16, 0.92);
+          }
+          if (typeof material.metalness === "number") {
+            material.metalness = THREE.MathUtils.clamp(material.metalness, 0, 0.9);
+          }
+          if ("envMapIntensity" in material) {
+            material.envMapIntensity = lowPower ? 0.72 : 1.05;
+          }
+          if (typeof material.emissiveIntensity === "number") {
+            material.emissiveIntensity = Math.min(material.emissiveIntensity, lowPower ? 1.15 : 2.4);
+          }
+          if ("transparent" in material && (material as THREE.Material & { transparent?: boolean }).transparent) {
+            material.depthWrite = false;
+          }
+          material.needsUpdate = true;
+          return material;
+        };
+
+        if (Array.isArray(node.material)) {
+          node.material = node.material.map((material: THREE.Material) => {
+            materialCount += 1;
+            return normalizeMaterial(material);
+          });
+        } else if (node.material) {
+          materialCount += 1;
+          node.material = normalizeMaterial(node.material);
+        }
       }
     });
 
@@ -85,18 +141,63 @@ function ProductionAssetModel({
       metrics: {
         meshCount,
         objectCount,
+        materialCount,
         bounds: {
           size: [size.x, size.y, size.z] as [number, number, number],
           center: [center.x, center.y, center.z] as [number, number, number],
+        },
+        camera: { distance: 0, fov: 0, aspect: 0, target: [0, 0, 0] },
+        visual: {
+          brandProfile: "ALLPHA_UNIVERSE_V2",
+          toneMapping: "ACESFilmicToneMapping",
+          outputColorSpace: "SRGBColorSpace",
+          exposure: lowPower ? 1.0 : 1.16,
         },
       },
     };
   }, [gltf.scene, lowPower]);
 
   useEffect(() => {
-    setRuntimeMarker("loaded", prepared.metrics);
-    onLoaded?.(prepared.metrics);
-  }, [onLoaded, prepared.metrics]);
+    prepared.scene.updateMatrixWorld(true);
+    const worldBounds = new THREE.Box3().setFromObject(prepared.scene);
+    const worldSize = new THREE.Vector3();
+    const worldCenter = new THREE.Vector3();
+    const sphere = new THREE.Sphere();
+    worldBounds.getSize(worldSize);
+    worldBounds.getCenter(worldCenter);
+    worldBounds.getBoundingSphere(sphere);
+
+    if (camera instanceof THREE.PerspectiveCamera) {
+      const portrait = viewport.width > 0 && viewport.height > viewport.width;
+      const margin = lowPower ? 1.28 : portrait ? 1.34 : 1.18;
+      const fovRadians = THREE.MathUtils.degToRad(camera.fov);
+      const distance = Math.max(7.5, (sphere.radius / Math.tan(fovRadians / 2)) * margin);
+      const targetY = THREE.MathUtils.clamp(
+        worldBounds.min.y + worldSize.y * 0.46,
+        0.85,
+        Math.max(1.15, worldBounds.max.y - worldSize.y * 0.12),
+      );
+      const target = new THREE.Vector3(worldCenter.x, targetY, worldCenter.z);
+      camera.position.set(target.x, target.y + distance * 0.16, target.z + distance);
+      camera.lookAt(target);
+      camera.updateProjectionMatrix();
+
+      const metrics: ProductionAssetRuntimeMetrics = {
+        ...prepared.metrics,
+        camera: {
+          distance,
+          fov: camera.fov,
+          aspect: camera.aspect,
+          target: [target.x, target.y, target.z],
+        },
+      };
+      setRuntimeMarker("loaded", metrics);
+      onLoaded?.(metrics);
+    } else {
+      setRuntimeMarker("loaded", prepared.metrics);
+      onLoaded?.(prepared.metrics);
+    }
+  }, [camera, onLoaded, prepared, viewport.height, viewport.width, lowPower]);
 
   useFrame(({ clock }) => {
     const box = new THREE.Box3().setFromObject(prepared.scene);
