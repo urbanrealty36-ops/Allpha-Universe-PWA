@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "allpha-3d-v2-13d3d-human-visual-fidelity-review/1.0",
+  "title": "Allpha V2.13D.3D Human Visual Fidelity Review",
+  "type": "object",
+  "required": ["schema","phase","sourceRunId","sourceHeadSha","goldenReference","decision","reviewer","criteria","notes"],
+  "properties": {
+    "schema": {"const":"allpha-3d-v2-13d3d-human-visual-fidelity-review/1.0"},
+    "phase": {"const":"V2.13D.3D"},
+    "sourceRunId": {"type":"integer","minimum":1},
+    "sourceHeadSha": {"type":"string","minLength":40,"maxLength":40},
+    "goldenReference": {"const":"crystal-ai-city"},
+    "decision": {"enum":["APPROVED","REJECTED","PENDING"]},
+    "reviewer": {"type":"string","minLength":2},
+    "criteria": {
+      "type":"object",
+      "required":["themeIdentity","geometrySpatialHierarchy","silhouetteMassing","negativeSpaceComposition","categoryFidelity","materialPBR","lightingAtmosphere","cameraCinematicFraming","mobileBrowserPlausibility","crossThemeDifferentiation"],
+      "additionalProperties":false,
+      "properties": {
+        "themeIdentity":{"enum":["PASS","PARTIAL","FAIL"]},
+        "geometrySpatialHierarchy":{"enum":["PASS","PARTIAL","FAIL"]},
+        "silhouetteMassing":{"enum":["PASS","PARTIAL","FAIL"]},
+        "negativeSpaceComposition":{"enum":["PASS","PARTIAL","FAIL"]},
+        "categoryFidelity":{"enum":["PASS","PARTIAL","FAIL"]},
+        "materialPBR":{"enum":["PASS","PARTIAL","FAIL"]},
+        "lightingAtmosphere":{"enum":["PASS","PARTIAL","FAIL"]},
+        "cameraCinematicFraming":{"enum":["PASS","PARTIAL","FAIL"]},
+        "mobileBrowserPlausibility":{"enum":["PASS","PARTIAL","FAIL"]},
+        "crossThemeDifferentiation":{"enum":["PASS","PARTIAL","FAIL"]}
+      }
+    },
+    "notes":{"type":"string","minLength":1}
+  },
+  "additionalProperties":false
+}
