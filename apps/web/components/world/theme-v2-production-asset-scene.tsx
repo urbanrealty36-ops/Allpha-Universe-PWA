@@ -145,7 +145,7 @@ function ProductionAssetModel({
           size: [size.x, size.y, size.z] as [number, number, number],
           center: [center.x, center.y, center.z] as [number, number, number],
         },
-        camera: { distance: 0, fov: 0, aspect: 0, target: [0, 0, 0] },
+        camera: { distance: 0, fov: 0, aspect: 0, target: [0, 0, 0] as [number, number, number] },
         visual: {
           brandProfile: "ALLPHA_UNIVERSE_V2" as const,
           toneMapping: "ACESFilmicToneMapping" as const,
