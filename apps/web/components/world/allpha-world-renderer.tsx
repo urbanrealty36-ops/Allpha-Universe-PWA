@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 import { createSpatialCompositionV205 } from "../../lib/world-engine/spatial-composition-v2";
 import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
@@ -16,7 +16,7 @@ import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/
 import { ThemeV2SpatialScene } from "./theme-v2-spatial-scene";
 import { Cinematic3DScene, configureCinematicRenderer } from "./cinematic-3d-scene";
 import { CinematicProductionHero } from "./cinematic-production-hero";
-import { ThemeV2ProductionAssetScene } from "./theme-v2-production-asset-scene";
+import { ThemeV2ProductionAssetScene, type ProductionAssetRuntimeMetrics, type ProductionAssetRuntimeState } from "./theme-v2-production-asset-scene";
 
 type SpatialPresence = {
   id: string;
@@ -622,12 +622,12 @@ function LiveCollaborationStageView({
 }
 
 function WorldObjects({
-  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,selectedDistrictId,themePackUrl,themeKey:themeKeyOverride,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance,liveStageMode,humanPresentationActive,humanPresentationStatus,liveCollaborationActive,liveCollaborationConsentApproved,liveCollaborationRiskAllowed,liveAgentId,humanPresentationState,liveAgentStageState
+  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,selectedDistrictId,themePackUrl,themeKey:themeKeyOverride,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance,liveStageMode,humanPresentationActive,humanPresentationStatus,liveCollaborationActive,liveCollaborationConsentApproved,liveCollaborationRiskAllowed,liveAgentId,humanPresentationState,liveAgentStageState,onProductionAssetState,onProductionAssetMetrics
 }: {
   scene:WorldScene; tokens?:Record<string,unknown>; onHotspot?:Props["onHotspot"]; lowPower:boolean;
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
   spatialObjects:DistrictSpatialObject[];
-  selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; themeKey?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"]; liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState;
+  selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; themeKey?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"]; liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState; onProductionAssetState?: (state: ProductionAssetRuntimeState) => void; onProductionAssetMetrics?: (metrics: ProductionAssetRuntimeMetrics) => void;
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
   const primary=String(tokens?.["theme.color.primary"]??style.accent);
@@ -743,7 +743,22 @@ export default function AllphaWorldRenderer({
   const spatialLayer=String(scene.environment?.spatial_layer ?? "");
   const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  return <div className="relative h-[420px] w-full overflow-hidden bg-black sm:h-[560px]" data-allpha-3d-runtime="true">
+  return <div className="relative h-[420px] w-full overflow-hidden bg-black sm:h-[560px]"
+    data-allpha-3d-runtime="true"
+    data-allpha-3d-asset-state={productionAssetState}
+    data-allpha-3d-mesh-count={productionAssetMetrics?.meshCount ?? 0}
+    data-allpha-3d-object-count={productionAssetMetrics?.objectCount ?? 0}
+    data-allpha-3d-material-count={productionAssetMetrics?.materialCount ?? 0}
+    data-allpha-3d-bounds={productionAssetMetrics ? productionAssetMetrics.bounds.size.map((value) => value.toFixed(3)).join(",") : ""}
+    data-allpha-3d-camera-distance={productionAssetMetrics?.camera.distance.toFixed(3) ?? "0"}
+    data-allpha-3d-camera-fov={productionAssetMetrics?.camera.fov.toFixed(2) ?? "0"}
+    data-allpha-3d-camera-aspect={productionAssetMetrics?.camera.aspect.toFixed(3) ?? "0"}
+    data-allpha-3d-camera-target={productionAssetMetrics ? productionAssetMetrics.camera.target.map((value) => value.toFixed(3)).join(",") : ""}
+    data-allpha-3d-visual-profile={productionAssetMetrics?.visual.brandProfile ?? ""}
+    data-allpha-3d-tone-mapping={productionAssetMetrics?.visual.toneMapping ?? ""}
+    data-allpha-3d-output-color-space={productionAssetMetrics?.visual.outputColorSpace ?? ""}
+    data-allpha-3d-exposure={productionAssetMetrics?.visual.exposure.toFixed(2) ?? "0"}
+  >
     <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}} onCreated={({ gl }) => configureCinematicRenderer(gl, lowPower)}>
       <Cinematic3DScene themeKey={themeKey} layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion}>
       <SpatialMotionLayer layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion} />
@@ -752,7 +767,7 @@ export default function AllphaWorldRenderer({
       <ambientLight intensity={.22}/>
       <directionalLight position={[8,14,6]} intensity={.8} castShadow={shadows}/>
       {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}
-      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
+      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} onProductionAssetState={setProductionAssetState} onProductionAssetMetrics={setProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
           </Cinematic3DScene>
     </Canvas>
