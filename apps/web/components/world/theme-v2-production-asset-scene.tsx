@@ -259,7 +259,11 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
           setUrl(null);
         }
       });
-    return () => { cancelled = true; controller.abort(); };
+    return () => {
+      cancelled = true;
+      controller.abort();
+      onRuntimeState?.("idle");
+    };
   }, [themeKey, category, onRuntimeState]);
 
   useEffect(() => {
