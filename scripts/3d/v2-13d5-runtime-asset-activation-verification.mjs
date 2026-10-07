@@ -43,9 +43,10 @@ function readText(file) {
 }
 
 const renderer = readText("apps/web/components/world/theme-v2-production-asset-scene.tsx");
+const rendererHost = readText("apps/web/components/world/allpha-world-renderer.tsx");
 const resolver = readText("apps/web/lib/world-engine/production-3d-runtime-resolver.ts");
 const api = readText("apps/api/app/api/world_runtime.py");
-const contract = renderer + resolver + api;
+const contract = renderer + rendererHost + resolver + api;
 
 for (const required of ["asset-manifest", "useGLTF", "signed_url", "theme-v2-real-3d/v2.13", "AllphaWorldRenderer"]) {
   if (!contract.includes(required)) fail("Runtime contract marker missing: " + required);
