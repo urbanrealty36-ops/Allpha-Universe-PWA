@@ -88,7 +88,7 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
     if (c.status === "fulfilled") setContent(Array.isArray(c.value.data) ? c.value.data : []);
     if (p.status === "fulfilled") setPortals(Array.isArray(p.value.data) ? p.value.data : []);
     if (pr.status === "fulfilled") setPresence(Array.isArray(pr.value.data) ? pr.value.data : []);
-    if (t.status === "fulfilled") setThemes(Array.isArray(t.value.data) ? t.value.data : (t.value.data ? [t.value.data.theme].filter(Boolean) : []));
+    if (t.status === "fulfilled") setThemes(Array.isArray(t.value.data) ? t.value.data : []);
     setError(failures.length ? failures.join(" · ") : null);
     setLoading(false);
   }
