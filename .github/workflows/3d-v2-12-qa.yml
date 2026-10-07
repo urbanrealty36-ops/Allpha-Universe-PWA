@@ -1,4 +1,4 @@
-name: 3D-V2.12 Runtime Visual QA
+name: 3D-V2.13 Runtime Visual QA
 
 on:
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
       - name: Upload QA report
         uses: actions/upload-artifact@v4
         with:
-          name: allpha-3d-v2-12-contract-report
+          name: allpha-3d-v2-13-contract-report
           path: 3d-v2-12-qa-report.json
 
   browser-visual:
@@ -56,7 +56,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allpha-3d-v2-12-browser-evidence
+          name: allpha-3d-v2-13-browser-evidence
           path: |
             test-results/**
             playwright-report/**
