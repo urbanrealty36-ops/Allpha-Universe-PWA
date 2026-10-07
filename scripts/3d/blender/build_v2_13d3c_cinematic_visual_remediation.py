@@ -482,7 +482,10 @@ def cinematic_lighting():
 
 
 def bind_theme_palette(p):
-    a, b, c = rgb(p["accent"])
+    accents = p["accent"]
+    if not isinstance(accents, (list, tuple)) or len(accents) != 3:
+        raise ValueError("D3C_THEME_ACCENT_CONTRACT_INVALID:" + str(p.get("key", "unknown")))
+    a, b, c = (rgb(value) for value in accents)
     BASE.PALETTE.update({
         "primary": (*a, 1),
         "secondary": (*b, 1),
