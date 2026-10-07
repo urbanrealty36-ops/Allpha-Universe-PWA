@@ -8,12 +8,27 @@ async function assertLiveManifest(request: any, themeKey: string) {
   const response = await request.get(`${apiBaseURL}/api/v1/themes/world-runtime/public/themes/${encodeURIComponent(themeKey)}/asset-manifest`);
   expect(response.status(), `Live manifest HTTP for ${themeKey}`).toBe(200);
   const payload = await response.json();
-  const assets = payload?.data?.binary_3d_assets ?? [];
-  expect(assets, `${themeKey} must expose the 14 V2 categories`).toHaveLength(14);
+  const assets = (payload?.data?.binary_3d_assets ?? []).filter((asset: any) => String(asset.storage_path ?? "").startsWith(`theme-v2-real-3d/v2.13/${themeKey}/`) && asset.metadata?.phase === "V2.13D.4");
+  expect(assets, `${themeKey} must expose the 4 promoted V2.13 spatial categories`).toHaveLength(4);
   expect(payload?.data?.storage_bucket).toBe("allpha-world-assets");
   expect(payload?.data?.has_binary_3d_pack).toBe(true);
   for (const asset of assets) {
-    expect(String(asset.storage_path)).toMatch(/^theme-v2-real-3d\/[^/]+\/[^/]+\.glb$/);
+    expect(String(asset.storage_path)).toMatch(new RegExp(`^theme-v2-real-3d/v2\\.13/${themeKey}/(universe|galaxy|world|district)\\.glbimport { test, expect } from "@playwright/test";
+
+const baseURL = process.env.ALLPHA_QA_BASE_URL || "https://allphaweb-production.up.railway.app";
+const apiBaseURL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://allpha-api-production.up.railway.app").replace(/\/$/, "");
+const THEMES = ["aurora-kingdom","celestial-samurai","chronos-realm","coral-metropolis","crystal-ai-city","desert-starfall","dragon-dominion","dream-carnival","emerald-rainforest","floating-garden","galactic-frontier","heroic-nexus","kingdom-of-aether","lunar-frontier","mars-frontier","mystic-academy","neo-jakarta-2099","neon-tokyo","nusantara-raya","oceanic-atlantis","pharaoh-eternal","quantum-city","savanna-spirit","skyforge-empire","viking-fjord"];
+
+async function assertLiveManifest(request: any, themeKey: string) {
+  const response = await request.get(`${apiBaseURL}/api/v1/themes/world-runtime/public/themes/${encodeURIComponent(themeKey)}/asset-manifest`);
+  expect(response.status(), `Live manifest HTTP for ${themeKey}`).toBe(200);
+  const payload = await response.json();
+  const assets = (payload?.data?.binary_3d_assets ?? []).filter((asset: any) => String(asset.storage_path ?? "").startsWith(`theme-v2-real-3d/v2.13/${themeKey}/`) && asset.metadata?.phase === "V2.13D.4");
+  expect(assets, `${themeKey} must expose the 4 promoted V2.13 spatial categories`).toHaveLength(4);
+  expect(payload?.data?.storage_bucket).toBe("allpha-world-assets");
+  expect(payload?.data?.has_binary_3d_pack).toBe(true);
+  for (const asset of assets) {
+    ));
     expect(asset.signed_url, `${themeKey} asset must have signed_url`).toBeTruthy();
     expect(String(asset.storage_path)).not.toBe(`${themeKey}.glb`);
   }
@@ -40,14 +55,14 @@ async function assertRendererFetch(page: any, themeKey: string) {
 }
 
 test.describe("3D-V2.12 Railway live delivery chain", () => {
-  test("Railway live endpoint exposes all 25 themes and 350 signed V2 assets", async ({ request }) => {
+  test("Railway live endpoint exposes all 25 themes and 100 promoted V2.13 assets", async ({ request }) => {
     test.setTimeout(120_000);
     const results = await Promise.all(THEMES.map((themeKey) => assertLiveManifest(request, themeKey)));
     expect(results).toHaveLength(25);
-    expect(results.reduce((sum, assets) => sum + assets.length, 0)).toBe(350);
+    expect(results.reduce((sum, assets) => sum + assets.length, 0)).toBe(100);
   });
 
-  test("signed URLs fetch real GLB binaries for all 25 themes", async ({ request }) => {
+  test("signed URLs fetch promoted V2.13 GLB binaries for all 25 themes", async ({ request }) => {
     test.setTimeout(120_000);
     const checks = await Promise.all(THEMES.map(async (themeKey) => {
       const assets = await assertLiveManifest(request, themeKey);
@@ -61,12 +76,12 @@ test.describe("3D-V2.12 Railway live delivery chain", () => {
     expect(checks).toHaveLength(25);
   });
 
-  test("canonical browser renderer loads a real GLB for every theme", async ({ page }) => {
+  test("canonical browser renderer loads a promoted V2.13 GLB for every theme", async ({ page }) => {
     test.setTimeout(5 * 60 * 1000);
     for (const themeKey of THEMES) await assertRendererFetch(page, themeKey);
   });
 
-  test("mobile canonical browser renderer loads a real GLB", async ({ browser }) => {
+  test("mobile canonical browser renderer loads a promoted V2.13 GLB", async ({ browser }) => {
     test.setTimeout(90_000);
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true });
     const page = await context.newPage();
