@@ -1,0 +1,48 @@
+{
+  "schema": "allpha-3d-v2-13d3b-human-visual-fidelity-rereview/1.0",
+  "phase": "V2.13D.3B",
+  "source": {
+    "workflowRunId": 37540658850,
+    "headSha": "58e7eb21e7a709d8fb5d543b0e7bf72209317afe",
+    "themes": 25,
+    "categories": 4,
+    "assetCount": 100
+  },
+  "goldenBenchmark": "crystal-ai-city",
+  "scope": {
+    "categories": ["universe", "galaxy", "world", "district"],
+    "themeCount": 25,
+    "assetCount": 100
+  },
+  "review": {
+    "method": "human-visual-contact-sheet-review",
+    "reviewedThemeCount": 25,
+    "reviewedAssetCount": 100,
+    "criteria": {
+      "themeIdentity": "FAIL",
+      "geometrySpatialHierarchy": "FAIL",
+      "silhouetteMassing": "FAIL",
+      "negativeSpaceComposition": "FAIL",
+      "materialPbr": "PARTIAL",
+      "lightingAtmosphereCamera": "PARTIAL",
+      "categoryFidelity": "FAIL",
+      "completeness": "PASS",
+      "mobileBrowserPlausibility": "PARTIAL"
+    },
+    "overallDecision": "REJECTED",
+    "promotionEligible": false,
+    "rejectionReasons": [
+      "Common procedural tubular/arched macro grammar still dominates all four world-scale categories.",
+      "Theme-specific structural heroes are not consistently dominant in the final camera composition.",
+      "Cross-theme silhouettes remain too similar for first-impression theme recognition.",
+      "Negative-space and composition signatures remain insufficiently differentiated.",
+      "Universe, Galaxy, World and District do not read as sufficiently distinct spatial/semantic scales from the previews."
+    ]
+  },
+  "gate": {
+    "humanVisualFidelityReview": "REJECTED",
+    "productionPromotionApproval": "BLOCKED",
+    "promotionToStorage": "BLOCKED_UNTIL_REVIEW_APPROVAL_AND_REMEDIATION",
+    "storageMutationPerformed": false
+  }
+}
