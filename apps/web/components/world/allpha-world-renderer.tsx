@@ -656,6 +656,8 @@ function WorldObjects({
         category="world"
         lowPower={lowPower}
         reducedMotion={reducedMotion}
+        onRuntimeState={onProductionAssetState}
+        onRuntimeMetrics={onProductionAssetMetrics}
       />
     ) : null}
     {themePackUrl?<ThemePackEnvironment url={themePackUrl}/>:null}
