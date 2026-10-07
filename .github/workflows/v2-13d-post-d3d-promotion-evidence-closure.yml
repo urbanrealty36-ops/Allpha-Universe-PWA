@@ -1,5 +1,5 @@
 name: V2.13D Post-D3D Promotion Evidence Closure
-run-name: V2.13D Post-D3D Promotion Evidence Closure • \${{ github.event_name }}
+run-name: V2.13D Post-D3D Promotion Evidence Closure • ${{ github.event_name }}
 
 on:
   push:
@@ -30,14 +30,14 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: allpha-3d-v2-13d3c-cinematic-visual-evidence
-          github-token: \${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: urbanrealty36-ops/Allpha-Universe-PWA
-          run-id: \${{ inputs.source_run_id || '37553533713' }}
+          run-id: ${{ inputs.source_run_id || '37553533713' }}
           path: d3c-evidence
 
       - name: Write D3D human review record
         env:
-          REVIEW_JSON: \${{ inputs.review_json || '{"schema":"allpha-3d-v2-13d3d-human-visual-fidelity-review/1.0","phase":"V2.13D.3D","goldenReference":"crystal-ai-city","sourceRunId":37553533713,"sourceHeadSha":"eb6892492c4ba7188ecd6c9c8b7d00d633e2c154","reviewer":"PENDING","decision":"PENDING","criteria":[{"name":"Theme identity","result":"PASS"},{"name":"Geometry / spatial hierarchy","result":"PASS"},{"name":"Silhouette / massing","result":"PASS"},{"name":"Negative space / composition","result":"PASS"},{"name":"Category fidelity","result":"PASS"},{"name":"Material / PBR","result":"PASS"},{"name":"Lighting / atmosphere","result":"PASS"},{"name":"Camera / cinematic framing","result":"PASS"},{"name":"Mobile/browser plausibility","result":"PASS"},{"name":"Cross-theme differentiation","result":"PASS"}],"notes":"PENDING"}' }}
+          REVIEW_JSON: ${{ inputs.review_json || '{"schema":"allpha-3d-v2-13d3d-human-visual-fidelity-review/1.0","phase":"V2.13D.3D","goldenReference":"crystal-ai-city","sourceRunId":37553533713,"sourceHeadSha":"eb6892492c4ba7188ecd6c9c8b7d00d633e2c154","reviewer":"PENDING","decision":"PENDING","criteria":[{"name":"Theme identity","result":"PASS"},{"name":"Geometry / spatial hierarchy","result":"PASS"},{"name":"Silhouette / massing","result":"PASS"},{"name":"Negative space / composition","result":"PASS"},{"name":"Category fidelity","result":"PASS"},{"name":"Material / PBR","result":"PASS"},{"name":"Lighting / atmosphere","result":"PASS"},{"name":"Camera / cinematic framing","result":"PASS"},{"name":"Mobile/browser plausibility","result":"PASS"},{"name":"Cross-theme differentiation","result":"PASS"}],"notes":"PENDING"}' }}
         run: printf '%s\n' "$REVIEW_JSON" > v2-13d3d-human-review.json
 
       - name: Run post-D3D promotion decision gate
@@ -47,7 +47,7 @@ jobs:
         env:
           ALLPHA_D3C_EVIDENCE_ROOT: d3c-evidence
           ALLPHA_D3D_REVIEW_JSON: v2-13d3d-human-review.json
-          ALLPHA_3D_PRODUCTION_PROMOTION_APPROVED: \${{ vars.ALLPHA_3D_PRODUCTION_PROMOTION_APPROVED || 'false' }}
+          ALLPHA_3D_PRODUCTION_PROMOTION_APPROVED: ${{ vars.ALLPHA_3D_PRODUCTION_PROMOTION_APPROVED || 'false' }}
 
       - name: Publish decision evidence
         if: always()
