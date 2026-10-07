@@ -12,12 +12,12 @@ def err(e:SupabaseRestError,code:str)->HTTPException:
     return HTTPException(status_code=e.status_code if e.status_code in {400,401,403,404,409,422} else 500,detail={"code":code,"message":e.message})
 
 @router.get("/catalog")
-async def runtime_catalog(context:dict=Depends(get_auth_context)):
+async def runtime_catalog():
     """Read-only composition of existing platform Theme, World Template and Live Template records."""
     try:
-        themes=await select(context["user"],"themes",{"select":"*,theme_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
-        templates=await select(context["user"],"world_templates",{"select":"*,world_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
-        live=await select(context["user"],"live_experience_templates",{"select":"*,live_experience_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
+        themes=await service_select("themes",{"select":"*,theme_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
+        templates=await service_select("world_templates",{"select":"*,world_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
+        live=await service_select("live_experience_templates",{"select":"*,live_experience_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
     except SupabaseRestError as e:
         raise err(e,"WORLD_RUNTIME_CATALOG_LOAD_FAILED")
     template_by_theme={}
