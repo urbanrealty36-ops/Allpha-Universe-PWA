@@ -33,7 +33,8 @@ function addError(scope, message) {
 }
 
 async function checkSurface(browser, name, url, viewport, options = {}) {
-  const page = await browser.newPage({ viewport, deviceScaleFactor: 1 });
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, serviceWorkers: "block" });
+  const page = await context.newPage();
   const consoleErrors = [];
   const pageErrors = [];
   const failedRequests = [];
@@ -61,7 +62,7 @@ async function checkSurface(browser, name, url, viewport, options = {}) {
   const title = await page.title();
 
   report.observations.push({
-    name, url, viewport, httpStatus: response.status(), title,
+    name, url, finalUrl: page.url(), viewport, httpStatus: response.status(), title,
     canvasCount, webgl, glbResponses,
     consoleErrors, pageErrors, failedRequests: failedRequests.slice(0, 20),
     bodyMarkers: {
@@ -74,11 +75,15 @@ async function checkSurface(browser, name, url, viewport, options = {}) {
   if (consoleErrors.length || pageErrors.length) {
     addError(name, `browser errors: console=${consoleErrors.length}, pageerror=${pageErrors.length}`);
   }
-  return { page, bodyText, canvasCount, webgl, glbResponses, consoleErrors, pageErrors };
+  await context.close();
+  return { bodyText, canvasCount, webgl, glbResponses, consoleErrors, pageErrors };
 }
 
 async function main() {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    args: ["--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
+  });
   try {
     const mobile = await checkSurface(browser, "mobile-universe", `${WEB_BASE}/universe`, { width: 390, height: 844 });
     report.gates.productionPwaReachable = true;
@@ -114,6 +119,7 @@ async function main() {
   } catch (error) {
     report.decision = "FAILED";
     addError("gate", error instanceof Error ? error.message : String(error));
+    console.error("V2.13D.6 diagnostic report:", JSON.stringify(report, null, 2));
     process.exitCode = 1;
   } finally {
     fs.writeFileSync("v2-13d6-production-pwa-browser-runtime-report.json", JSON.stringify(report, null, 2) + "\n");
