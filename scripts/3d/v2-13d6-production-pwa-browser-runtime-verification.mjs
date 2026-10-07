@@ -52,7 +52,11 @@ async function checkSurface(browser, name, url, viewport, options = {}) {
   if (!response || !response.ok()) throw new Error(`${name}: HTTP ${response?.status() ?? "NO_RESPONSE"}`);
 
   await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
-  await page.waitForTimeout(options.settleMs ?? 2500);
+  await page.waitForFunction(() => {
+    const body = document.body?.innerText ?? "";
+    return Boolean(document.querySelector("canvas")) || /Enter the Universe|Spatial World|World unavailable|World scene is not available/i.test(body);
+  }, { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(options.settleMs ?? 5000);
 
   const bodyText = await page.locator("body").innerText().catch(() => "");
   const canvasCount = await page.locator("canvas").count();
