@@ -1,0 +1,143 @@
+name: V2.13D.3C Cinematic Visual Fidelity Remediation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/3d/blender/build_v2_13d3c_cinematic_visual_remediation.py"
+      - "scripts/3d/validate-v2-13d3c-cinematic-remediation.mjs"
+      - "scripts/3d/review-v2-13d3c-cinematic-pack.py"
+      - "scripts/3d/build-v2-13d3c-contact-sheets.py"
+      - ".github/workflows/v2-13d3c-cinematic-visual-remediation.yml"
+  push:
+    branches: [codex/v2-13d-3c-cinematic-visual-remediation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  cinematic-remediation:
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        theme:
+          - aurora-kingdom
+          - celestial-samurai
+          - chronos-realm
+          - coral-metropolis
+          - crystal-ai-city
+          - desert-starfall
+          - dragon-dominion
+          - dream-carnival
+          - emerald-rainforest
+          - floating-garden
+          - galactic-frontier
+          - heroic-nexus
+          - kingdom-of-aether
+          - lunar-frontier
+          - mars-frontier
+          - mystic-academy
+          - neo-jakarta-2099
+          - neon-tokyo
+          - nusantara-raya
+          - oceanic-atlantis
+          - pharaoh-eternal
+          - quantum-city
+          - savanna-spirit
+          - skyforge-empire
+          - viking-fjord
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install headless runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxrender1 libxext6 libxi6 libxfixes3
+      - name: Install Blender 4.5.3
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 2 "https://download.blender.org/release/Blender4.5/blender-4.5.3-linux-x64.tar.xz" -o /tmp/blender-4.5.3-linux-x64.tar.xz
+          sudo tar -xJf /tmp/blender-4.5.3-linux-x64.tar.xz -C /opt
+          sudo ln -sfn /opt/blender-4.5.3-linux-x64/blender /usr/local/bin/blender
+          blender --version
+      - name: Generate locked V2.13C factory manifest
+        run: |
+          node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs
+          node -e "const r=require('./allpha-v2-13c-theme-factory-manifest.json'); if(r.themes!==25||r.categories!==14||r.matrixSize!==350||r.goldenTheme!=='crystal-ai-city'||!r.ok) process.exit(1)"
+      - name: Build only 100-asset cinematic remediation
+        env:
+          ALLPHA_V213D3C_OUT: allpha-theme-v2-13d3c-visual-remediation
+          ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
+        run: |
+          set -euo pipefail
+          blender -b --python scripts/3d/blender/build_v2_13d3c_cinematic_visual_remediation.py -- --preview --theme "\${{ matrix.theme }}"
+      - name: Preflight four macro assets
+        run: |
+          set -euo pipefail
+          test -s allpha-theme-v2-13d3c-visual-remediation/manifest.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('allpha-theme-v2-13d3c-visual-remediation/manifest.json','utf8')); if(r.themes!==25||r.categories!==4||r.matrixSize!==100||r.generated!==4||!r.commonCityGrammarRemoved||r.assets.length!==4) process.exit(1); if(!r.assets.every(a=>a.themeKey==='\${{ matrix.theme }}')) process.exit(1);"
+      - name: Validate four cinematic assets
+        env:
+          ALLPHA_V213D3C_OUT: allpha-theme-v2-13d3c-visual-remediation
+          ALLPHA_V213D3C_THEME: \${{ matrix.theme }}
+        run: node scripts/3d/validate-v2-13d3c-cinematic-remediation.mjs
+      - name: Upload theme remediation
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d3c-theme-\${{ matrix.theme }}
+          path: allpha-theme-v2-13d3c-visual-remediation/
+          if-no-files-found: error
+          retention-days: 14
+
+  evidence-review:
+    needs: cinematic-remediation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all 25 cinematic packs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allpha-3d-v2-13d3c-theme-*
+          path: allpha-theme-v2-13d3c-visual-remediation
+          merge-multiple: true
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check --no-input pillow
+      - name: Assemble canonical 100-asset manifest
+        run: |
+          node <<'NODE'
+          const fs=require('fs'), path=require('path');
+          const root='allpha-theme-v2-13d3c-visual-remediation';
+          const themes=fs.readdirSync(root,{withFileTypes:true}).filter(x=>x.isDirectory()).map(x=>x.name).sort();
+          const cats=['universe','galaxy','world','district'];
+          const assets=[];
+          for(const theme of themes) for(const category of cats){
+            const dir=path.join(root,theme);
+            assets.push({themeKey:theme,category,glb:path.join(dir,category+'.glb'),preview:path.join(dir,category+'.png'),schema:'allpha-3d-v2-13d3c-cinematic-visual-fidelity/1.0',presentationOnly:true,canonicalRenderer:'AllphaWorldRenderer',remediation:'cinematic-world-scale-visual',commonCityGrammarRemoved:true});
+          }
+          fs.writeFileSync(path.join(root,'manifest.json'),JSON.stringify({schema:'allpha-3d-v2-13d3c-cinematic-visual-fidelity/1.0',phase:'V2.13D.3C',goldenReference:'crystal-ai-city',themes:25,categories:4,matrixSize:100,generated:assets.length,previewRequested:true,commonCityGrammarRemoved:true,sourceLockedEvidence:['V2.13D.1A-R3','V2.13D.2','V2.13D.3A'],sourceHumanGate:'V2.13D.3B-REJECTED',assets},null,2));
+          NODE
+      - name: Validate assembled 100-asset pack
+        env:
+          ALLPHA_V213D3C_OUT: allpha-theme-v2-13d3c-visual-remediation
+        run: node scripts/3d/validate-v2-13d3c-cinematic-remediation.mjs
+      - name: Automated silhouette and composition gate
+        env:
+          ALLPHA_V213D3C_OUT: allpha-theme-v2-13d3c-visual-remediation
+        run: python scripts/3d/review-v2-13d3c-cinematic-pack.py
+      - name: Build four human-review contact sheets
+        env:
+          ALLPHA_V213D3C_OUT: allpha-theme-v2-13d3c-visual-remediation
+          ALLPHA_V213D3C_SHEETS: v2-13d3c-review-sheets
+        run: python scripts/3d/build-v2-13d3c-contact-sheets.py
+      - name: Upload cinematic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d3c-cinematic-visual-evidence
+          path: |
+            allpha-theme-v2-13d3c-visual-remediation/
+            v2-13d3c-review-sheets/
+            3d-v2-13d3c-validation-report.json
+            3d-v2-13d3c-cinematic-visual-review.json
+          retention-days: 14
