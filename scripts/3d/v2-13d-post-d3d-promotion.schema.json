@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Allpha V2.13D Post-D3D Promotion Decision",
+  "type": "object",
+  "required": ["schema","phase","contract","gates","decision","storageMutationPerformed","supabaseMutationPerformed"],
+  "properties": {
+    "schema": {"const": "allpha-3d-post-d3d-promotion-decision/1.0"},
+    "phase": {"const": "V2.13D.POST-D3D"},
+    "contract": {"type":"object","required":["themes","categories","assets","goldenReference"]},
+    "gates": {"type":"object","required":["evidencePacketComplete","humanReviewApproved","explicitProductionPromotionApproval","promotionEligibility"]},
+    "decision": {"enum":["ELIGIBLE_FOR_PROMOTION","PROMOTION_BLOCKED"]},
+    "storageMutationPerformed": {"const": false},
+    "supabaseMutationPerformed": {"const": false}
+  }
+}
