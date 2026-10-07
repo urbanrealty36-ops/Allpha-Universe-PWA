@@ -5,7 +5,6 @@ import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { AssetCategory } from "../../lib/world-engine/asset-factory";
-import { ALLPHA_3D_MASTER_LANGUAGE } from "../../../../packages/design-tokens/3d-visual-language";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://allpha-api-production.up.railway.app").replace(/\/$/, "");
 
@@ -157,6 +156,8 @@ function ProductionAssetModel({
     };
   }, [gltf.scene, lowPower]);
 
+  const runtimeMetricsRef = useMemo(() => ({ value: prepared.metrics }), [prepared]);
+
   useEffect(() => {
     prepared.scene.updateMatrixWorld(true);
     const worldBounds = new THREE.Box3().setFromObject(prepared.scene);
@@ -191,13 +192,14 @@ function ProductionAssetModel({
           target: [target.x, target.y, target.z],
         },
       };
+      runtimeMetricsRef.value = metrics;
       setRuntimeMarker("loaded", metrics);
       onLoaded?.(metrics);
     } else {
       setRuntimeMarker("loaded", prepared.metrics);
       onLoaded?.(prepared.metrics);
     }
-  }, [camera, onLoaded, prepared, viewport.height, viewport.width, lowPower]);
+  }, [camera, onLoaded, prepared, runtimeMetricsRef, viewport.height, viewport.width, lowPower]);
 
   useFrame(({ clock }) => {
     const box = new THREE.Box3().setFromObject(prepared.scene);
@@ -213,7 +215,7 @@ function ProductionAssetModel({
     });
     if (prepared.metrics.meshCount > 0 && visibleInCamera && !visibleRef.value) {
       visibleRef.value = true;
-      setRuntimeMarker("visible", prepared.metrics);
+      setRuntimeMarker("visible", runtimeMetricsRef.value);
     }
     if (reducedMotion) return;
     const t = clock.getElapsedTime();
