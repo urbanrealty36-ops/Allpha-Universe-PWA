@@ -1,0 +1,47 @@
+name: V2.13D.6.4 Production Visual Fidelity / Brand QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "apps/web/**"
+      - "packages/design-tokens/**"
+      - "tests/d6-4-production-visual-fidelity.spec.ts"
+      - "docs/continue-context/ALLPHA_MASTER_CONTINUE_CONTEXT_20261007.md"
+      - ".github/workflows/v2-13d6-4-production-visual-fidelity.yml"
+
+jobs:
+  production-visual-fidelity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Resolve canonical World ID from Continue Context
+        shell: bash
+        run: |
+          WORLD_ID="$(sed -n '/Authoritative URL:/,+2p' docs/continue-context/ALLPHA_MASTER_CONTINUE_CONTEXT_20261007.md | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1)"
+          test -n "$WORLD_ID"
+          echo "ALLPHA_D6_WORLD_ID=$WORLD_ID" >> "$GITHUB_ENV"
+          echo "Resolved canonical World ID from the locked Continue Context."
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Production visual fidelity gate
+        env:
+          ALLPHA_QA_BASE_URL: https://allphaweb-production.up.railway.app
+          NEXT_PUBLIC_API_BASE_URL: https://allpha-api-production.up.railway.app
+        run: pnpm exec playwright test tests/d6-4-production-visual-fidelity.spec.ts --reporter=line
+      - name: Upload D6.4 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-d6-4-production-visual-fidelity-evidence
+          path: |
+            test-results/**
+            playwright-report/**
+          if-no-files-found: warn
