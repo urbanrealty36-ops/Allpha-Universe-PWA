@@ -1,0 +1,56 @@
+name: V2.13D.3B Human Visual Fidelity Re-Review
+
+on:
+  pull_request:
+    paths:
+      - "scripts/3d/v2-13d3b-human-visual-fidelity-rereview.mjs"
+      - "scripts/3d/v2-13d3b-human-visual-fidelity-rereview.schema.json"
+      - "docs/3d/V2.13D.3B-HUMAN-VISUAL-FIDELITY-RE-REVIEW.md"
+      - "docs/3d/V2.13D.3B-HUMAN-VISUAL-FIDELITY-RE-REVIEW-RESULT.md"
+      - "docs/3d/v2-13d3b-human-visual-fidelity-rereview-result.json"
+      - ".github/workflows/v2-13d3b-human-visual-fidelity-rereview.yml"
+  push:
+    branches:
+      - "codex/v2-13d-3b-human-visual-fidelity-rereview"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  evidence-preflight:
+    name: Evidence preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate source evidence metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RUN_ID=37540658850
+          HEAD_SHA=58e7eb21e7a709d8fb5d543b0e7bf72209317afe
+
+          run_json="$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}")"
+          test "$(jq -r '.head_sha' <<<"$run_json")" = "$HEAD_SHA"
+          test "$(jq -r '.conclusion' <<<"$run_json")" = "success"
+
+          artifacts="$(gh api --paginate "repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts?per_page=100")"
+          theme_count="$(jq '[.artifacts[] | select(.name | startswith("allpha-3d-v2-13d3a-theme-"))] | length' <<<"$artifacts")"
+          test "$theme_count" -eq 25
+
+          evidence_count="$(jq '[.artifacts[] | select(.name == "allpha-3d-v2-13d3a-structural-remediation-evidence")] | length' <<<"$artifacts")"
+          test "$evidence_count" -eq 1
+
+          echo "D3A source evidence locked: 25 theme artifacts + evidence artifact."
+
+      - name: Validate D3B review record
+        run: node scripts/3d/v2-13d3b-human-visual-fidelity-rereview.mjs
+
+      - name: Publish review outcome
+        if: always()
+        run: |
+          echo "D3B human visual fidelity review outcome is recorded in docs/3d/v2-13d3b-human-visual-fidelity-rereview-result.json"
+          echo "Promotion remains blocked; this phase performs no Storage mutation."
