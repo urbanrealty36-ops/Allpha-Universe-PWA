@@ -147,9 +147,9 @@ function ProductionAssetModel({
         },
         camera: { distance: 0, fov: 0, aspect: 0, target: [0, 0, 0] },
         visual: {
-          brandProfile: "ALLPHA_UNIVERSE_V2",
-          toneMapping: "ACESFilmicToneMapping",
-          outputColorSpace: "SRGBColorSpace",
+          brandProfile: "ALLPHA_UNIVERSE_V2" as const,
+          toneMapping: "ACESFilmicToneMapping" as const,
+          outputColorSpace: "SRGBColorSpace" as const,
           exposure: lowPower ? 1.0 : 1.16,
         },
       },
@@ -189,7 +189,7 @@ function ProductionAssetModel({
           distance,
           fov: camera.fov,
           aspect: camera.aspect,
-          target: [target.x, target.y, target.z],
+          target: [target.x, target.y, target.z] as [number, number, number],
         },
       };
       runtimeMetricsRef.value = metrics;
