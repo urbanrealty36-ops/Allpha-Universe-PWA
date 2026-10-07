@@ -25,7 +25,7 @@ jobs:
       - name: Resolve canonical World ID from Continue Context
         shell: bash
         run: |
-          WORLD_ID="$(sed -n '/Authoritative URL:/,+2p' docs/continue-context/ALLPHA_MASTER_CONTINUE_CONTEXT_20261007.md | grep -oE '[0-9a-f]{8}-[0-9a-f-]{27,36}' | head -1)"
+          WORLD_ID="$(sed -n '/Authoritative URL:/,+2p' docs/continue-context/ALLPHA_MASTER_CONTINUE_CONTEXT_20261007.md | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1)"
           test -n "$WORLD_ID"
           echo "ALLPHA_D6_WORLD_ID=$WORLD_ID" >> "$GITHUB_ENV"
           echo "Resolved canonical World ID from the locked Continue Context."
