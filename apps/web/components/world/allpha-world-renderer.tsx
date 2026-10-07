@@ -743,7 +743,7 @@ export default function AllphaWorldRenderer({
   const spatialLayer=String(scene.environment?.spatial_layer ?? "");
   const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  return <div className="relative h-[420px] w-full overflow-hidden bg-black sm:h-[560px]" data-allpha-3d-runtime="true" data-allpha-3d-asset-state="idle">
+  return <div className="relative h-[420px] w-full overflow-hidden bg-black sm:h-[560px]" data-allpha-3d-runtime="true">
     <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}} onCreated={({ gl }) => configureCinematicRenderer(gl, lowPower)}>
       <Cinematic3DScene themeKey={themeKey} layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion}>
       <SpatialMotionLayer layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion} />
