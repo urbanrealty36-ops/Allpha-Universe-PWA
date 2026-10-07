@@ -9,6 +9,33 @@ function worldUrl() {
   return `${baseURL}/world?world_id=${encodeURIComponent(worldId)}`;
 }
 
+async function waitForVisibleWebGL(page: any) {
+  await expect.poll(
+    async () => page.evaluate(() => {
+      const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
+      for (const canvas of canvases) {
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        if (context) return rect.width * rect.height;
+      }
+      return 0;
+    }),
+    { timeout: 120_000, intervals: [500, 1000, 2000, 5000] },
+  ).toBeGreaterThan(0);
+
+  return page.evaluate(() => {
+    const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
+    for (const canvas of canvases) {
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) continue;
+      const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (context) return { canvas: rect.width * rect.height, webgl: true };
+    }
+    return { canvas: 0, webgl: false };
+  });
+}
+
 test.describe("V2.13D.6.2 Production Browser Runtime Verification", () => {
   test("canonical World mounts AllphaWorldRenderer and requests the V2.13 world GLB", async ({ page }) => {
     test.setTimeout(4 * 60 * 1000);
@@ -32,36 +59,14 @@ test.describe("V2.13D.6.2 Production Browser Runtime Verification", () => {
       }
     });
 
-    let lastCanvas = 0;
-    let lastWebGL = false;
-
-    for (let attempt = 1; attempt <= 6; attempt += 1) {
-      await page.goto(worldUrl(), { waitUntil: "domcontentloaded", timeout: 60_000 });
-      await page.waitForTimeout(4_000);
-
-      const runtime = await page.evaluate(() => {
-        const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
-        for (const canvas of canvases) {
-          const rect = canvas.getBoundingClientRect();
-          if (rect.width <= 0 || rect.height <= 0) continue;
-          const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-          if (context) return { canvas: rect.width * rect.height, webgl: true };
-        }
-        return { canvas: 0, webgl: false };
-      });
-
-      lastCanvas = runtime.canvas;
-      lastWebGL = runtime.webgl;
-
-      if (runtime.canvas > 0 && runtime.webgl && glbResponses.length > 0) break;
-      await page.waitForTimeout(10_000);
-    }
+    await page.goto(worldUrl(), { waitUntil: "domcontentloaded", timeout: 60_000 });
+    const runtime = await waitForVisibleWebGL(page);
 
     expect(worldApiStatus, "World runtime API must respond").toBe(200);
     expect(manifestStatus, "V2.13 Crystal AI City asset manifest must respond").toBe(200);
-    expect(lastCanvas, "Production World must mount a visible canvas").toBeGreaterThan(0);
-    expect(lastWebGL, "Production World canvas must expose a WebGL context").toBe(true);
-    expect(glbResponses.length, "Production World must request the V2.13 world GLB").toBeGreaterThan(0);
+    expect(runtime.canvas, "Production World must mount a visible canvas").toBeGreaterThan(0);
+    expect(runtime.webgl, "Production World canvas must expose a WebGL context").toBe(true);
+    await expect.poll(() => glbResponses.length, { timeout: 120_000, intervals: [500, 1000, 2000, 5000] }).toBeGreaterThan(0);
     expect(glbResponses[0]).toContain("theme-v2-real-3d/v2.13/crystal-ai-city/world.glb");
     expect(consoleErrors, "Production World must have no console errors").toEqual([]);
     expect(pageErrors, "Production World must have no page errors").toEqual([]);
@@ -87,27 +92,12 @@ test.describe("V2.13D.6.2 Production Browser Runtime Verification", () => {
       }
     });
 
-    let runtime = { canvas: 0, webgl: false };
-    for (let attempt = 1; attempt <= 6; attempt += 1) {
-      await page.goto(worldUrl(), { waitUntil: "domcontentloaded", timeout: 60_000 });
-      await page.waitForTimeout(4_000);
-      runtime = await page.evaluate(() => {
-        const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
-        for (const canvas of canvases) {
-          const rect = canvas.getBoundingClientRect();
-          if (rect.width <= 0 || rect.height <= 0) continue;
-          const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-          if (context) return { canvas: rect.width * rect.height, webgl: true };
-        }
-        return { canvas: 0, webgl: false };
-      });
-      if (runtime.canvas > 0 && runtime.webgl && glbResponses.length > 0) break;
-      await page.waitForTimeout(10_000);
-    }
+    await page.goto(worldUrl(), { waitUntil: "domcontentloaded", timeout: 60_000 });
+    const runtime = await waitForVisibleWebGL(page);
 
     expect(runtime.canvas).toBeGreaterThan(0);
     expect(runtime.webgl).toBe(true);
-    expect(glbResponses.length).toBeGreaterThan(0);
+    await expect.poll(() => glbResponses.length, { timeout: 120_000, intervals: [500, 1000, 2000, 5000] }).toBeGreaterThan(0);
     expect(glbResponses[0]).toContain("theme-v2-real-3d/v2.13/crystal-ai-city/world.glb");
     expect(pageErrors).toEqual([]);
 
