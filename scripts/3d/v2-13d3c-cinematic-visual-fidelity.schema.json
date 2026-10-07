@@ -1,0 +1,21 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"allpha-3d-v2-13d3c-cinematic-visual-fidelity/1.0",
+  "title":"Allpha V2.13D.3C Cinematic Visual Fidelity Remediation",
+  "type":"object",
+  "required":["schema","phase","goldenReference","themes","categories","matrixSize","generated","previewRequested","commonCityGrammarRemoved","sourceHumanGate","assets"],
+  "properties":{
+    "schema":{"const":"allpha-3d-v2-13d3c-cinematic-visual-fidelity/1.0"},
+    "phase":{"const":"V2.13D.3C"},
+    "goldenReference":{"const":"crystal-ai-city"},
+    "themes":{"const":25},
+    "categories":{"const":4},
+    "matrixSize":{"const":100},
+    "generated":{"const":100},
+    "previewRequested":{"type":"boolean"},
+    "commonCityGrammarRemoved":{"const":true},
+    "sourceHumanGate":{"const":"V2.13D.3B-REJECTED"},
+    "assets":{"type":"array","minItems":100,"maxItems":100}
+  },
+  "additionalProperties":true
+}
