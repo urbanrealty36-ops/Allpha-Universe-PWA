@@ -555,3 +555,18 @@ If D6.3 becomes GREEN, advance to **D6.4 — Production Visual Fidelity / Camera
 **Next exact phase/subphase:**
 **V2.13D.6.5 — Desktop + Mobile Production Visual QA.**
 First gate: deploy the D6.4 commits to Railway and run the isolated D6.4 production browser workflow; if RED, fix only the proven visual/runtime root cause; if GREEN, lock D6.4 and begin responsive visual review.
+
+
+## D6.4 follow-up — build remediation evidence
+
+**Railway build failure observed:** deployment `6300173d-f6c1-4788-83c3-c8473a6f0a68` failed on TypeScript metric tuple/literal typing in `theme-v2-production-asset-scene.tsx`.
+
+**Evidence:** Railway build reached `Compiled successfully`, then TypeScript failed with:
+- `visual.brandProfile` inferred as `string` instead of the D6.4 literal contract.
+- `camera.target` inferred as `number[]` instead of the required 3-element tuple.
+
+**Remediation:** commit `230645f107390a4b1b5483644998f2077958444d` added explicit literal/tuple typing.
+
+**Latest Railway deployment:** `81b83583-03c1-4245-9809-5785ee839802`, commit `230645f107390a4b1b5483644998f2077958444d`, currently **BUILDING** at the time of this report. No GREEN claim is made.
+
+**Status remains:** IMPLEMENTED FOUNDATION / PRODUCTION VISUAL E2E PENDING.
