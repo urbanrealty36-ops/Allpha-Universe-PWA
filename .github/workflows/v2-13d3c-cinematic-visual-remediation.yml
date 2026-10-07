@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/3d/blender/build_v2_13d3c_cinematic_visual_remediation.py"
       - "scripts/3d/validate-v2-13d3c-cinematic-remediation.mjs"
+      - "scripts/3d/v2-13d3c-cinematic-visual-fidelity.schema.json"
       - "scripts/3d/review-v2-13d3c-cinematic-pack.py"
       - "scripts/3d/build-v2-13d3c-contact-sheets.py"
       - ".github/workflows/v2-13d3c-cinematic-visual-remediation.yml"
