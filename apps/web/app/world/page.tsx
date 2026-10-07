@@ -17,10 +17,18 @@ function WorldLoading() {
   );
 }
 
-export default function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ world_id?: string | string[] }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const rawWorldId = resolvedSearchParams.world_id;
+  const initialWorldId = Array.isArray(rawWorldId) ? rawWorldId[0] ?? null : rawWorldId ?? null;
+
   return (
     <Suspense fallback={<WorldLoading />}>
-      <WorldExperience />
+      <WorldExperience initialWorldId={initialWorldId} />
     </Suspense>
   );
 }
