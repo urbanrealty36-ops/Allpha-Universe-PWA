@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - codex/v2-13d-post-d3d-promotion-evidence-closure
+  pull_request:
+    types: [synchronize]
   workflow_dispatch:
     inputs:
       source_run_id:
