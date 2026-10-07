@@ -4,7 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
-import { ThemeV2Real3DAsset } from "./world/theme-v2-real-3d-asset";
+import { ThemeV2ProductionAssetScene } from "./world/theme-v2-production-asset-scene";
 import { Cinematic3DScene, configureCinematicRenderer } from "./world/cinematic-3d-scene";
 
 export type PublicUniverse3DVariant = "splash" | "universe" | "identity";
@@ -61,10 +61,9 @@ function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
   return (
     <>
       <Cinematic3DScene themeKey="crystal-ai-city" layer={layer as "universe"|"world"} lowPower={false} reducedMotion={reducedMotion}>
-        <ThemeV2Real3DAsset
+        <ThemeV2ProductionAssetScene
           themeKey="crystal-ai-city"
-          architecture="Crystal AI City"
-          layer={layer}
+          category={layer === "world" ? "world" : "universe"}
           lowPower={false}
           reducedMotion={reducedMotion}
         />
