@@ -60,13 +60,14 @@ async function main() {
   const source = verifyRendererConsumerSource();
   const themeResults = [];
   let verifiedAssets = 0;
+  const concurrency = 6;
 
-  for (const theme of THEMES) {
+  async function verifyTheme(theme) {
     const endpoint = API_BASE + "/api/v1/themes/world-runtime/public/themes/" + encodeURIComponent(theme) + "/asset-manifest";
     const payload = await json(endpoint);
     const data = payload?.data;
-    if (!data?.public || data.presentation_only !== true) fail(`runtime manifest authority invalid for ${theme}`);
-    if (data.storage_bucket !== "allpha-world-assets") fail(`bucket mismatch for ${theme}`);
+    if (!data?.public || data.presentation_only !== true) fail("runtime manifest authority invalid for " + theme);
+    if (data.storage_bucket !== "allpha-world-assets") fail("bucket mismatch for " + theme);
 
     const phaseAssets = (data.binary_3d_assets ?? []).filter(
       (asset) =>
@@ -80,28 +81,33 @@ async function main() {
         asset.signed_url.length > 0,
     );
 
-    if (phaseAssets.length !== 4) fail(`${theme}: expected exactly 4 active V2.13D.4 signed assets, got ${phaseAssets.length}`);
+    if (phaseAssets.length !== 4) fail(theme + ": expected exactly 4 active V2.13D.4 signed assets, got " + phaseAssets.length);
 
     const seen = new Set();
-    const assets = [];
-    for (const category of CATEGORIES) {
+    const assets = await Promise.all(CATEGORIES.map(async (category) => {
       const expected = expectedPrefix(theme, category);
       const asset = phaseAssets.find((item) => item.storage_path === expected);
-      if (!asset) fail(`${theme}: missing runtime asset ${category} at ${expected}`);
-      if (seen.has(asset.storage_path)) fail(`${theme}: duplicate runtime storage path ${asset.storage_path}`);
+      if (!asset) fail(theme + ": missing runtime asset " + category + " at " + expected);
+      if (seen.has(asset.storage_path)) fail(theme + ": duplicate runtime storage path " + asset.storage_path);
       seen.add(asset.storage_path);
       const binary = await verifyBinary(asset.signed_url, theme, category);
-      assets.push({ category, storagePath: asset.storage_path, binary });
-      verifiedAssets += 1;
-    }
+      return { category, storagePath: asset.storage_path, binary };
+    }));
 
-    themeResults.push({
+    return {
       theme,
       manifestEndpoint: endpoint,
       phaseAssets: phaseAssets.length,
       verifiedSignedGlbAssets: assets.length,
       assets,
-    });
+    };
+  }
+
+  for (let i = 0; i < THEMES.length; i += concurrency) {
+    const batch = THEMES.slice(i, i + concurrency);
+    const results = await Promise.all(batch.map(verifyTheme));
+    themeResults.push(...results);
+    verifiedAssets += results.reduce((sum, item) => sum + item.verifiedSignedGlbAssets, 0);
   }
 
   const result = {
