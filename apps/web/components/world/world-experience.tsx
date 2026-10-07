@@ -33,9 +33,9 @@ type CatalogItem = { id: string; name: string; slug: string; tokens?: Record<str
 
 type Tab = "districts" | "people" | "live" | "content";
 
-export default function WorldExperience() {
+export default function WorldExperience({ initialWorldId = null }: { initialWorldId?: string | null }) {
   const params = useSearchParams();
-  const worldId = params.get("world_id");
+  const worldId = params.get("world_id") ?? initialWorldId;
   const [world, setWorld] = useState<World | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
