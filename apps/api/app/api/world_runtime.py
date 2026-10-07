@@ -46,6 +46,37 @@ async def runtime_catalog(context:dict=Depends(get_auth_context)):
         })
     return {"data":result}
 
+@router.get("/public/worlds/{world_id}")
+async def public_world_runtime(world_id: str):
+    """Public read-only runtime projection for active public Worlds and their published Theme schema."""
+    try:
+        worlds = await service_select(
+            "universe_worlds",
+            {
+                "select": "id,galaxy_id,name,slug,description,world_type,visibility,status,theme_key,spatial_config,metadata",
+                "id": f"eq.{world_id}",
+                "visibility": "eq.public",
+                "status": "eq.active",
+                "limit": "1",
+            },
+        )
+        if not worlds:
+            raise HTTPException(404, detail={"code": "PUBLIC_WORLD_NOT_FOUND"})
+        world = worlds[0]
+        theme_key = world.get("theme_key")
+        theme = None
+        if theme_key:
+            themes = await service_select("themes", {"select": "id,name,slug,catalog_key,status,moderation_status", "source": "eq.platform", "status": "eq.published", "moderation_status": "eq.approved", "or": f"(slug.eq.{theme_key},catalog_key.eq.{theme_key})", "limit": "1"})
+            if themes:
+                theme = themes[0]
+                versions = await service_select("theme_versions", {"select": "id,version,tokens,world_schema,component_config,status", "theme_id": f"eq.{theme['id']}", "status": "eq.published", "order": "version.desc", "limit": "1"})
+                if versions:
+                    v = versions[0]
+                    theme.update({"theme_version_id": v.get("id"), "theme_version": v.get("version"), "tokens": v.get("tokens") or {}, "world_schema": v.get("world_schema"), "component_config": v.get("component_config") or {}})
+        return {"data": {"world": world, "theme": theme, "public": True, "presentation_only": True}}
+    except SupabaseRestError as e:
+        raise err(e, "PUBLIC_WORLD_RUNTIME_LOAD_FAILED")
+
 @router.get("/public/themes/{theme_key}/asset-manifest")
 async def public_theme_asset_manifest(theme_key: str):
     """Public read-only manifest for published, verified platform 3D presentation assets."""
