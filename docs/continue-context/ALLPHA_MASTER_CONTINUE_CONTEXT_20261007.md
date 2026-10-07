@@ -1770,77 +1770,98 @@ The product should feel like a living digital universe, not a SaaS admin dashboa
 # 17. EXACT NEXT EXECUTION OBJECTIVE
 
 ## CURRENT PHASE
-**V2.13D.6 — Production PWA Browser Runtime Verification**
+**V2.13D.6.3 — Production 3D Visual Render Verification**
 
 ## CURRENT STATUS
-**RED — World runtime does not mount renderer in production browser.**
+**PENDING — D6.2 is GREEN; D6.3 implementation is deployed, but isolated browser visual evidence is not yet proven GREEN.**
 
-## Already proven
-- V2.13D.4 storage promotion
-- V2.13D.5 runtime asset consumption
-- Universe mobile browser WebGL
-- Universe desktop browser WebGL
-- production Web HTTP availability.
+## D6.2 closure
+The previous D6.2 RED condition was repaired without changing the World authority/data model:
+- canonical World remains `b97e25db-54ac-472d-92ed-e4a8eac85a0e`;
+- production World route mounts a visible WebGL canvas;
+- production World GLB request is proven;
+- D6.2 isolated workflow run `37663320069` was SUCCESS;
+- Railway Web deployment on `a71536bae13dbc4e0ada180e46eac750c948f772` was SUCCESS.
 
-## Not proven
-- Production World browser WebGL
-- Production World browser GLB consumption
-- World → Theme V2 renderer chain
-- World visual runtime.
+D6.2 is therefore LOCKED/GREEN.
 
-## First next action
-**Root-cause the production World mount condition.**
+## D6.3 objective
+Prove the real authoritative V2.13 Crystal AI City World GLB is:
+1. fetched through the canonical signed-URL manifest;
+2. parsed into a real GLTF scene with real meshes;
+3. normalized only through presentation-space framing;
+4. inside the production camera viewport;
+5. visibly rendered on desktop and mobile;
+6. free of page/console errors.
 
-Do not start another 350 asset build.
-Do not modify D3C.
-Do not modify D3D.
-Do not modify D3D.4.
-Do not modify D5.
-Do not modify Supabase schema.
+## D6.3 implementation
+Changed only the isolated production-render path:
+- `apps/web/components/world/theme-v2-production-asset-scene.tsx`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `tests/d6-3-production-3d-visual-render.spec.ts`
+- `.github/workflows/v2-13d6-3-production-3d-visual-render.yml`
 
-After World browser runtime is fixed:
-1. rerun isolated D6
-2. evaluate browser evidence
-3. update D6 audit/report
-4. then continue the next exact phase.
+Latest Railway Web deployment:
+- `ae5d2ede-d4a7-482d-b74c-5674aa795366`
+- SUCCESS
+- commit `3ff96cf37ae42c009bd2312c85ca8b9ab72032f5`
 
----
+## D6.3 acceptance
+D6.3 becomes GREEN only after the isolated browser workflow proves:
+- runtime state = `visible`;
+- mesh count > 0;
+- non-zero bounds;
+- V2.13 World GLB HTTP success;
+- camera-projected geometry visible;
+- WebGL canvas visible;
+- desktop screenshot evidence;
+- mobile screenshot evidence;
+- no page/console errors.
+
+## Separate CI issue
+The broader `Allpha Universe CI` remains RED because `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are empty in the GitHub browser build environment. This is a separate CI configuration issue and must not be confused with D6.3 visual evidence.
+
+## Locked scope
+Do not modify:
+- D3C/D3D/D3D.4/D5 locked evidence;
+- V2.13D.4 Storage promotion;
+- V2.13D.5 runtime activation;
+- Supabase schema;
+- World authority/data model;
+- FastAPI boundary;
+- canonical AllphaWorldRenderer identity;
+- frontend privileged mutation/security boundary.
+
+## Exact next action
+Observe the isolated D6.3 browser workflow and inspect desktop/mobile screenshot artifacts. If RED, repair only the proven visual-render root cause. If GREEN, lock D6.3 and advance to **D6.4 — Production Visual Fidelity / Camera / Lighting / Material QA**.
 
 # 18. NEXT PHASES AFTER D6
 
-After D6 is genuinely GREEN, continue according to dependency/evidence rather than jumping randomly:
+After D6.3 is genuinely GREEN, continue by dependency/evidence:
 
-### Immediate
-1. V2.13D.6 — Production PWA Browser Runtime Verification → close GREEN.
-2. 3D V2 runtime visual QA / browser visual fidelity.
-3. Web World/District/Booth visual/runtime reconciliation.
-4. V2.07 Content/Feed Universe spatial realization.
-5. V2.08 Live/Human/AI Stage runtime.
-6. V2.09 Portal/Navigation FX.
-7. 350 Theme V2 category-by-category runtime verification.
-8. V2.12 mobile performance/accessibility.
-9. V2.13 visual QA.
-10. V2.14 V1→V2 canonical cutover only after all gates.
-
-### Completion Waves
-11. CW-04 World/Theme/3D Activation closure.
-12. CW-05 Live/AI Character Runtime.
-13. CW-06 Commerce/Billing/Creator Economy.
-14. CW-07 Observability/Evaluation/Security.
-15. CW-08 E2E/CI/Staging/Production Green.
-
-### Global phases
-16. Resolve Phase 26 Security Advisor blocker.
-17. Phase 30 Full Feature Activation closure.
-18. Phase 31 E2E/Security QA.
-19. Phase 32 CI/CD.
-20. Phase 33 Runtime Verification.
-21. Phase 34 Production Readiness.
-22. Phase 35 Final Production Green Gate.
+1. **D6.4 — Production Visual Fidelity / Camera / Lighting / Material QA**
+2. D6.5 — Desktop + Mobile Production Visual QA
+3. World → District → Booth visual/runtime reconciliation
+4. V2.07 Content / Feed Universe spatial realization
+5. V2.08 Live / Human / AI Stage runtime
+6. V2.09 Portal / Navigation FX
+7. V2.12 mobile performance/accessibility
+8. V2.13 visual QA
+9. V2.14 V1→V2 canonical cutover
+10. CW-04 World/Theme/3D Activation closure
+11. CW-05 Live/AI Character Runtime
+12. CW-06 Commerce/Billing/Creator Economy
+13. CW-07 Observability/Evaluation/Security
+14. CW-08 E2E/CI/Staging/Production Green
+15. Resolve Phase 26 Security Advisor blocker
+16. Phase 30 Full Feature Activation closure
+17. Phase 31 E2E/Security QA
+18. Phase 32 CI/CD
+19. Phase 33 Runtime Verification
+20. Phase 34 Production Readiness
+21. Phase 35 Final Production Green Gate
 
 Do not treat this list as permission to skip dependencies.
-
----
 
 # 19. FINAL INSTRUCTION TO THE NEW AI AGENT
 
