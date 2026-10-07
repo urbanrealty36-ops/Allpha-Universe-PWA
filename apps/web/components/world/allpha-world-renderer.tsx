@@ -737,6 +737,8 @@ export default function AllphaWorldRenderer({
   humanPresentationState,
   liveAgentStageState,
 }: Props) {
+  const [productionAssetState, setProductionAssetState] = useState<ProductionAssetRuntimeState>("idle");
+  const [productionAssetMetrics, setProductionAssetMetrics] = useState<ProductionAssetRuntimeMetrics | null>(null);
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
   const goldenLayer=String(scene.environment?.spatial_layer ?? "");
