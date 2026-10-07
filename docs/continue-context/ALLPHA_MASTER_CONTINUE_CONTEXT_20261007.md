@@ -1941,3 +1941,21 @@ D6.3 isolated browser evidence is still not observed through the available conne
 3. Inspect desktop/mobile screenshot artifacts and browser gate logs.
 4. If RED, fix only the proven D6.4 visual/runtime root cause.
 5. If GREEN, lock D6.4 and advance to **V2.13D.6.5 — Desktop + Mobile Production Visual QA**.
+
+
+### D6.4 build remediation update — 2026-10-08
+
+Railway deployment `6300173d-f6c1-4788-83c3-c8473a6f0a68` initially failed during TypeScript checking after successful Next.js compilation. The failure was limited to D6.4 evidence metric literal/tuple inference in `theme-v2-production-asset-scene.tsx`.
+
+Remediation commit:
+`230645f107390a4b1b5483644998f2077958444d`
+
+Latest deployment after remediation:
+`81b83583-03c1-4245-9809-5785ee839802`
+
+Latest deployment status at context update: **BUILDING**.
+
+Therefore:
+- D6.4 remains **PENDING / IMPLEMENTED FOUNDATION**.
+- No GREEN claim is made.
+- Production browser visual evidence remains the required next gate.
