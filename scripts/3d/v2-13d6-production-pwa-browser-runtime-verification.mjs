@@ -45,7 +45,7 @@ async function checkSurface(browser, name, url, viewport, options = {}) {
   page.on("requestfailed", req => failedRequests.push({ url: req.url(), error: req.failure()?.errorText ?? "requestfailed" }));
   page.on("response", response => {
     const u = response.url();
-    if (/\\.glb(?:[?#]|$)/i.test(u)) glbResponses.push({ url: u, status: response.status() });
+    if (/\.glb(?:[?#]|$)/i.test(u)) glbResponses.push({ url: u, status: response.status() });
   });
 
   const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
