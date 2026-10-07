@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - codex/v2-13d6-production-pwa-browser-runtime-verification
+      - codex/v2-13d6-full-runtime-public-world-glb-fix
     paths:
       - "scripts/3d/v2-13d6-production-pwa-browser-runtime-verification.mjs"
       - "docs/3d/V2.13D.6-PRODUCTION-PWA-BROWSER-RUNTIME-VERIFICATION.md"
@@ -38,7 +39,7 @@ jobs:
     env:
       ALLPHA_RUNTIME_WEB_BASE: ${{ inputs.runtime_web_base || 'https://allphaweb-production.up.railway.app' }}
       ALLPHA_RUNTIME_API_BASE: ${{ inputs.runtime_api_base || 'https://allpha-api-production.up.railway.app' }}
-      ALLPHA_PRODUCTION_WORLD_URL: ${{ inputs.production_world_url }}
+      ALLPHA_PRODUCTION_WORLD_URL: ${{ inputs.production_world_url || 'https://allphaweb-production.up.railway.app/world?world_id=b97e25db-54ac-472d-92ed-e4a8eac85a0e' }}
       ALLPHA_REQUIRE_WORLD_RUNTIME: "true"
     steps:
       - name: Checkout isolated phase
