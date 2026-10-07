@@ -61,10 +61,12 @@ function ProductionAssetModel({
     // transform: preserve geometry/materials while centering the asset and
     // placing its lowest point on the World floor.
     scene.scale.setScalar(fitScale);
-    scene.position.set(-center.x * fitScale, -bounds.min.y * fitScale, -center.z * fitScale);
+    const basePosition: [number, number, number] = [-center.x * fitScale, -bounds.min.y * fitScale, -center.z * fitScale];
+    scene.position.set(...basePosition);
 
     return {
       scene,
+      basePosition,
       metrics: {
         meshCount,
         objectCount,
@@ -84,8 +86,7 @@ function ProductionAssetModel({
     if (reducedMotion) return;
     const t = clock.getElapsedTime();
     prepared.scene.rotation.y = Math.sin(t * 0.16) * (lowPower ? 0.018 : 0.035);
-    prepared.scene.position.y = -prepared.metrics.bounds.center[1] * (Number(prepared.scene.scale.x) || 1)
-      - (prepared.metrics.bounds.size[1] * (Number(prepared.scene.scale.x) || 1)) / -2;
+    prepared.scene.position.y = prepared.basePosition[1] + Math.sin(t * 0.34) * (lowPower ? 0.006 : 0.014);
   });
 
   const scale = category === "universe" ? 1.08 : category === "galaxy" ? 1.02 : category === "world" ? 1 : 0.94;
