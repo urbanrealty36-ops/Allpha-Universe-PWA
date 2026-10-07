@@ -27,39 +27,20 @@ export type ProductionAssetRuntimeMetrics = {
 };
 
 
-function setRuntimeMarker(state: ProductionAssetRuntimeState, metrics?: ProductionAssetRuntimeMetrics) {
-  if (typeof document === "undefined") return;
-  const marker = document.querySelector<HTMLElement>("[data-allpha-3d-runtime]");
-  if (!marker) return;
-  marker.dataset.allpha3dAssetState = state;
-  if (metrics) {
-    marker.dataset.allpha3dMeshCount = String(metrics.meshCount);
-    marker.dataset.allpha3dObjectCount = String(metrics.objectCount);
-    marker.dataset.allpha3dBounds = metrics.bounds.size.map((value) => value.toFixed(3)).join(",");
-    marker.dataset.allpha3dMaterialCount = String(metrics.materialCount);
-    marker.dataset.allpha3dCameraDistance = metrics.camera.distance.toFixed(3);
-    marker.dataset.allpha3dCameraFov = metrics.camera.fov.toFixed(2);
-    marker.dataset.allpha3dCameraAspect = metrics.camera.aspect.toFixed(3);
-    marker.dataset.allpha3dCameraTarget = metrics.camera.target.map((value) => value.toFixed(3)).join(",");
-    marker.dataset.allpha3dVisualProfile = metrics.visual.brandProfile;
-    marker.dataset.allpha3dToneMapping = metrics.visual.toneMapping;
-    marker.dataset.allpha3dOutputColorSpace = metrics.visual.outputColorSpace;
-    marker.dataset.allpha3dExposure = metrics.visual.exposure.toFixed(2);
-  }
-}
-
 function ProductionAssetModel({
   url,
   category,
   lowPower,
   reducedMotion,
   onLoaded,
+  onRuntimeState,
 }: {
   url: string;
   category: AssetCategory;
   lowPower: boolean;
   reducedMotion: boolean;
   onLoaded?: (metrics: ProductionAssetRuntimeMetrics) => void;
+  onRuntimeState?: (state: ProductionAssetRuntimeState) => void;
 }) {
   const gltf = useGLTF(url);
   const camera = useThree((state) => state.camera);
@@ -193,10 +174,10 @@ function ProductionAssetModel({
         },
       };
       runtimeMetricsRef.value = metrics;
-      setRuntimeMarker("loaded", metrics);
+      onRuntimeState?.("loaded");
       onLoaded?.(metrics);
     } else {
-      setRuntimeMarker("loaded", prepared.metrics);
+      onRuntimeState?.("loaded");
       onLoaded?.(prepared.metrics);
     }
   }, [camera, onLoaded, prepared, runtimeMetricsRef, viewport.height, viewport.width, lowPower]);
