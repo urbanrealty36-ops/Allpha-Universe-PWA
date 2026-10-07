@@ -237,7 +237,7 @@ function WorldDistrictBoothV2View({ layer, lowPower, onHotspot, scene }: { layer
     source: "authoritative",
   }));
 
-  const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
+  const themeKey = typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined;
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   return <group ref={root}>
     <ThemeV2SpatialScene themeKey={themeKey} architecture={architecture} layer={layer} lowPower={lowPower} reducedMotion={reduceMotion} />
