@@ -5,6 +5,9 @@ on:
     workflows:
       - V2.13D.3C Cinematic Visual Fidelity Remediation
     types: [completed]
+  push:
+    branches:
+      - codex/v2-13d-3d-human-visual-fidelity-rereview
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -32,7 +35,8 @@ jobs:
     if: >-
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion == 'success') ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Resolve D3C source
@@ -43,13 +47,19 @@ jobs:
           EVENT_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           INPUT_RUN_ID: ${{ inputs.source_run_id }}
           INPUT_HEAD_SHA: ${{ inputs.source_head_sha }}
+          PUSH_RUN_ID: "37553533713"
+          PUSH_HEAD_SHA: "eb6892492c4ba7188ecd6c9c8b7d00d633e2c154"
         run: |
+          set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             echo "run_id=$EVENT_RUN_ID" >> "$GITHUB_OUTPUT"
             echo "head_sha=$EVENT_HEAD_SHA" >> "$GITHUB_OUTPUT"
-          else
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run_id=$INPUT_RUN_ID" >> "$GITHUB_OUTPUT"
             echo "head_sha=$INPUT_HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_id=$PUSH_RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "head_sha=$PUSH_HEAD_SHA" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Download D3C evidence artifact
