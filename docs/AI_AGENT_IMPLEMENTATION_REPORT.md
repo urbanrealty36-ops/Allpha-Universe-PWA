@@ -469,3 +469,89 @@ D6.3 is **not GREEN yet** until the isolated browser workflow and screenshot evi
 
 ## Exact next phase
 If D6.3 becomes GREEN, advance to **D6.4 — Production Visual Fidelity / Camera / Lighting / Material QA**. First gate: compare the proven Production World render against the locked Crystal AI City visual reference and verify desktop/mobile framing, lighting, materials, atmosphere, and runtime performance without replacing the canonical renderer.
+
+
+---
+
+# 2026-10-08 — V2.13D.6.4 — Production Visual Fidelity / Camera / Lighting / Material QA
+
+**Agent/task:** Implement the production visual-fidelity layer on top of the canonical V2.13D.6 production World runtime.
+
+**Objective:** Make the real V2.13 Crystal AI City World GLB use production camera framing derived from its real geometry, preserve/normalize PBR presentation safely, expose Allpha Universe V2 visual evidence, and add a desktop/mobile browser gate without creating a second renderer.
+
+**Status:** IMPLEMENTED FOUNDATION / PRODUCTION VISUAL E2E PENDING.
+
+**Canonical binding:**
+- Repository: `urbanrealty36-ops/Allpha-Universe-PWA`
+- Branch: `main`
+- World: `b97e25db-54ac-472d-92ed-e4a8eac85a0e`
+- Theme: `crystal-ai-city`
+- Asset: `theme-v2-real-3d/v2.13/crystal-ai-city/world.glb`
+- Renderer: `AllphaWorldRenderer`
+
+**Commits:**
+- `0fc1680ad95693eb9e955af7fc2dc498c149ff78` — production visual framing/material pass
+- `89e4f50077c1617894691d50552c167b61e8aedf` — preserve framed runtime metrics
+- `229ebf7039ae26a7bbe5fe053c334e61eed7e351` — D6.4 browser visual fidelity test
+- `5fc8b4eda344479afd22f662ccfcf12436d2ddd0` — D6.4 GitHub Actions gate
+- `b69b9ce2ec26b4be663db7a654a8a59bae670ed4` — D6.4 documentation
+
+**Files changed:**
+- `apps/web/components/world/theme-v2-production-asset-scene.tsx`
+- `tests/d6-4-production-visual-fidelity.spec.ts`
+- `.github/workflows/v2-13d6-4-production-visual-fidelity.yml`
+- `docs/3d/V2.13D.6.4-PRODUCTION-VISUAL-FIDELITY-BRAND-QA.md`
+- this implementation report
+
+**Database migrations:** None.
+
+**Supabase live verification:** No mutation. Existing canonical Theme/World/Storage authority remains unchanged.
+
+**API changes:** None. Existing FastAPI signed asset-manifest endpoint remains authoritative.
+
+**UI/UX / 3D changes:**
+- Real GLB world-space bounds now drive production camera distance and target.
+- Portrait/mobile and landscape/desktop framing margins are handled from viewport orientation.
+- Real GLB materials are cloned before presentation-only normalization.
+- Roughness, metalness and emissive intensity are bounded for readable production rendering.
+- Authored transparent materials receive presentation-safe depth-write behavior.
+- Runtime evidence exposes mesh/object/material counts, camera metrics, Allpha visual profile, ACES Filmic and sRGB contracts.
+- Existing `Cinematic3DScene` remains the canonical lighting/material environment authority.
+- No synthetic geometry was introduced.
+
+**Tests / automation:**
+- Added desktop + mobile D6.4 Playwright gate.
+- Gate requires real GLB HTTP 200, non-zero mesh/object/material counts, non-zero camera framing metrics, Allpha Universe V2 marker, ACES Filmic/sRGB markers, visible WebGL, luminance ratio/variance and no browser/page errors.
+- Desktop/mobile screenshots are captured as CI artifacts.
+
+**Browser/runtime QA:** Not yet proven GREEN after this implementation. D6.3 isolated browser evidence also remains unobserved through the available connector evidence.
+
+**Security checks:**
+- No service-role exposure.
+- No frontend privileged DB mutation.
+- No Supabase schema/RLS/auth mutation.
+- Signed URL lifecycle remains FastAPI-authoritative.
+- Camera/material changes are presentation-only.
+
+**Evidence/artifacts:**
+- D6.4 source implementation commits above.
+- D6.4 workflow and test source.
+- D6.4 verification document.
+- Production browser screenshots remain pending until the workflow executes successfully.
+
+**What did NOT change:**
+- D3C/D3D/D3D.4/D5 locked scopes.
+- V2.13D.4 asset promotion.
+- V2.13D.5 runtime lifecycle.
+- Canonical `AllphaWorldRenderer`.
+- Supabase schema or business authority.
+
+**Known gaps:**
+- D6.3 browser gate is not yet proven GREEN.
+- D6.4 production deployment/browser evidence is pending.
+- Human visual fidelity review against the canonical Allpha Universe reference set remains required.
+- Broader Allpha Universe CI Supabase environment-key failure remains a separate issue.
+
+**Next exact phase/subphase:**
+**V2.13D.6.5 — Desktop + Mobile Production Visual QA.**
+First gate: deploy the D6.4 commits to Railway and run the isolated D6.4 production browser workflow; if RED, fix only the proven visual/runtime root cause; if GREEN, lock D6.4 and begin responsive visual review.
