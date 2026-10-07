@@ -23,13 +23,20 @@ type World = {
   spatial_config?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
 };
+
+type WorldRuntimeData = {
+  world: World;
+  theme?: Theme | null;
+  public?: boolean;
+  presentation_only?: boolean;
+};
 type District = { id: string; world_id: string; name: string; slug: string; description?: string | null; district_type: string; theme_key?: string | null; spatial_config?: Record<string, unknown> };
 type Theme = { id: string; name: string; slug: string; description?: string | null; category?: string | null; tokens?: Record<string, unknown>; world_schema?: unknown; theme_version_id?: string | null };
 type Agent = { id: string; agent_id?: string; name?: string | null; handle?: string | null; status?: string | null; presence_role?: string | null; runtime_state?: string | null };
 type LinkedContent = { id: string; content_id?: string; title?: string | null; excerpt?: string | null; placement?: string; sort_order?: number; position?: { x: number; y: number; z: number }; gravity?: number | null; relationship_count?: number | null; relationships?: Array<{ kind: "agent" | "world" | "community" | "live" | "related"; targetId: string }>; metadata?: Record<string, unknown> };
 type Portal = { id: string; target_world_id?: string; name: string; access_policy?: string; metadata?: Record<string, unknown> };
 type Presence = { id: string; agent_id: string; state?: string; activity?: string | null; context?: Record<string, unknown> };
-type CatalogItem = { id: string; name: string; slug: string; tokens?: Record<string, unknown>; world_schema?: unknown; theme_version_id?: string | null };
+type CatalogItem = { id: string; name: string; slug: string; catalog_key?: string | null; tokens?: Record<string, unknown>; world_schema?: unknown; theme_version_id?: string | null };
 
 type Tab = "districts" | "people" | "live" | "content";
 
@@ -61,7 +68,7 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
     setLoading(true);
     setError(null);
     const requests = await Promise.allSettled([
-      publicApiFetch<{ data: World }>(`/api/v1/themes/world-runtime/public/worlds/${encodeURIComponent(worldId)}`),
+      publicApiFetch<{ data: WorldRuntimeData }>(`/api/v1/themes/world-runtime/public/worlds/${encodeURIComponent(worldId)}`),
       apiFetch<{ data: District[] }>(`/api/v1/districts?world_id=${encodeURIComponent(worldId)}&limit=100`),
       apiFetch<{ data: Agent[] }>(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/agents`),
       apiFetch<{ data: LinkedContent[] }>(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/content`),
@@ -71,7 +78,10 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
     ]);
     const [w, d, a, c, p, pr, t] = requests;
     const failures: string[] = [];
-    if (w.status === "fulfilled") { setWorld(w.value.data.world ?? w.value.data); if (w.value.data.theme) setSelectedTheme(w.value.data.theme as Theme); }
+    if (w.status === "fulfilled") {
+      setWorld(w.value.data.world);
+      if (w.value.data.theme) setSelectedTheme(w.value.data.theme);
+    }
     else failures.push("WORLD_LOAD_FAILED");
     if (d.status === "fulfilled") setDistricts(Array.isArray(d.value.data) ? d.value.data : []);
     if (a.status === "fulfilled") setAgents(Array.isArray(a.value.data) ? a.value.data : []);
@@ -88,8 +98,14 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
   useEffect(() => {
     if (!world || !themes.length) return;
     const key = world.theme_key;
-    const match = themes.find((theme) => theme.slug === key || theme.id === key || theme.name.toLowerCase() === world.name.toLowerCase()) ?? null;
-    setSelectedTheme(match as Theme | null);
+    const match = themes.find(
+      (theme) =>
+        theme.slug === key ||
+        theme.catalog_key === key ||
+        theme.id === key ||
+        theme.name.toLowerCase() === world.name.toLowerCase(),
+    ) ?? null;
+    if (match) setSelectedTheme(match);
   }, [world, themes]);
 
   const scene = useMemo<WorldScene | null>(() => {
