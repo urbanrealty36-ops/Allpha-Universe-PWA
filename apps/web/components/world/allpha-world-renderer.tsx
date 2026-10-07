@@ -741,7 +741,7 @@ export default function AllphaWorldRenderer({
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
   const goldenLayer=String(scene.environment?.spatial_layer ?? "");
   const spatialLayer=String(scene.environment?.spatial_layer ?? "");
-  const themeKey = typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined;
+  const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-black">
     <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}} onCreated={({ gl }) => configureCinematicRenderer(gl, lowPower)}>
