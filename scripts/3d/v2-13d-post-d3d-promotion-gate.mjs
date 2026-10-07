@@ -69,6 +69,6 @@ const decision = {
   lockedOutsideScope: ["D3A", "D3C", "250 non-macro assets", "350-asset rebuild", "Supabase", "Storage"],
 };
 
-fs.writeFileSync("v2-13d-post-d3d-promotion-decision.json", JSON.stringify(decision, null, 2) + "\\n");
+fs.writeFileSync("v2-13d-post-d3d-promotion-decision.json", JSON.stringify(decision, null, 2) + "\n");
 console.log(JSON.stringify(decision, null, 2));
 if (!eligible) process.exit(2);
