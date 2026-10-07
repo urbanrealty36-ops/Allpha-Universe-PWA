@@ -47,7 +47,27 @@ jobs:
           echo "D3A source evidence locked: 25 theme artifacts + evidence artifact."
 
       - name: Validate D3B review record
-        run: node scripts/3d/v2-13d3b-human-visual-fidelity-rereview.mjs
+        id: review
+        shell: bash
+        run: |
+          set +e
+          node scripts/3d/v2-13d3b-human-visual-fidelity-rereview.mjs
+          rc=$?
+          set -e
+
+          if [ "$rc" -eq 0 ]; then
+            echo "review_decision=APPROVED" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$rc" -eq 2 ]; then
+            echo "review_decision=REJECTED" >> "$GITHUB_OUTPUT"
+            echo "D3B review is REJECTED by design; the record is valid and promotion remains blocked."
+            exit 0
+          fi
+
+          echo "D3B review record validation failed with unexpected exit code $rc."
+          exit "$rc"
 
       - name: Publish review outcome
         if: always()
