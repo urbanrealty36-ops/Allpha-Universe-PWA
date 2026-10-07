@@ -183,17 +183,15 @@ function ProductionAssetModel({
   }, [camera, onLoaded, prepared, runtimeMetricsRef, viewport.height, viewport.width, lowPower]);
 
   useFrame(({ clock }) => {
-    const box = new THREE.Box3().setFromObject(prepared.scene);
-    const corners = [
-      new THREE.Vector3(box.min.x, box.min.y, box.min.z), new THREE.Vector3(box.min.x, box.min.y, box.max.z),
-      new THREE.Vector3(box.min.x, box.max.y, box.min.z), new THREE.Vector3(box.min.x, box.max.y, box.max.z),
-      new THREE.Vector3(box.max.x, box.min.y, box.min.z), new THREE.Vector3(box.max.x, box.min.y, box.max.z),
-      new THREE.Vector3(box.max.x, box.max.y, box.min.z), new THREE.Vector3(box.max.x, box.max.y, box.max.z),
-    ];
-    const visibleInCamera = corners.some((corner) => {
-      const projected = corner.clone().project(camera);
-      return projected.z >= -1 && projected.z <= 1 && projected.x >= -1.05 && projected.x <= 1.05 && projected.y >= -1.05 && projected.y <= 1.05;
-    });
+    prepared.scene.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
+    const worldBounds = new THREE.Box3().setFromObject(prepared.scene);
+    const worldSphere = new THREE.Sphere();
+    worldBounds.getBoundingSphere(worldSphere);
+    const frustum = new THREE.Frustum().setFromProjectionMatrix(
+      new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+    );
+    const visibleInCamera = frustum.intersectsSphere(worldSphere);
     if (prepared.metrics.meshCount > 0 && visibleInCamera && !visibleRef.value) {
       visibleRef.value = true;
       onRuntimeState?.("visible");
