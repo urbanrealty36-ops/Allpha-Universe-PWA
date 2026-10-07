@@ -638,7 +638,7 @@ function WorldObjects({
   const density=lowPower?Math.min(4,style.density):style.density;
   const hasThemePack=Boolean(themePackUrl);
   const spatialLayer = String(scene.environment?.spatial_layer ?? "world");
-  const themeKey = typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined;
+  const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const goldenLayer = String(scene.environment?.spatial_layer ?? "");
@@ -726,7 +726,7 @@ import { SpatialMotionLayer } from "./spatial-motion-v2";
 import { SpatialPortalFx } from "./spatial-portal-fx-v2";
 
 export default function AllphaWorldRenderer({
-  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,liveStageUrl=null,agentCharacterUrl=null,agentCharacterAsset,agentCharacterPerformance,
+  scene,tokens,lowPower=false,onHotspot,booths=[],presence=[],portals=[],content=[],spatialObjects=[],selectedBoothId,selectedDistrictId,themePackUrl=null,themeKey:themeKeyOverride=null,liveStageUrl=null,agentCharacterUrl=null,agentCharacterAsset,agentCharacterPerformance,
   liveStageMode,
   humanPresentationActive,
   humanPresentationStatus,
