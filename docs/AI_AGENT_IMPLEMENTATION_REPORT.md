@@ -570,3 +570,23 @@ First gate: deploy the D6.4 commits to Railway and run the isolated D6.4 product
 **Latest Railway deployment:** `81b83583-03c1-4245-9809-5785ee839802`, commit `230645f107390a4b1b5483644998f2077958444d`, currently **BUILDING** at the time of this report. No GREEN claim is made.
 
 **Status remains:** IMPLEMENTED FOUNDATION / PRODUCTION VISUAL E2E PENDING.
+
+
+## D6.4 RED root-cause remediation — 2026-10-08
+
+**Browser gate evidence:** GitHub Actions job `113055560519` / run `37698363804` completed **FAILURE**.
+
+Both desktop and mobile tests timed out after 180 seconds:
+- expected runtime marker state: `visible`
+- received runtime marker state: `idle`
+
+The failure was reproduced in the production browser gate, not inferred from compilation.
+
+**Proven root cause:** `AllphaWorldRenderer` rendered the runtime marker with a static React attribute:
+`data-allpha-3d-asset-state="idle"`.
+
+D6.4's `setRuntimeMarker()` intentionally updates the same DOM dataset imperatively as the real GLB progresses through `loading-manifest → manifest-resolved → loading-gltf → loaded → visible`. React still owned the static `data-allpha-3d-asset-state` prop and could reconcile it back to `idle`, so the browser gate observed `idle` even though the production runtime was executing.
+
+**Isolated fix:** commit `4334e8e43756010ac22a2a92d1c9d0e7cbed7da7` removes only the static `data-allpha-3d-asset-state="idle"` prop from the canonical renderer root. The runtime marker state is now owned solely by the D6.4 visual runtime marker function. No renderer replacement, asset change, schema change, or authority change.
+
+**Required next gate:** deploy commit `4334e8e...` and rerun D6.4 desktop/mobile browser verification. Do not claim GREEN until that rerun completes successfully.
