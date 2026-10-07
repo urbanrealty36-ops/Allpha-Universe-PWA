@@ -41,7 +41,7 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
         const candidate = assets.find((asset) => {
           const path = String(asset.storage_path ?? "").toLowerCase();
           const metadataCategory = String(asset.metadata?.category ?? "").toLowerCase();
-          return Boolean(asset.signed_url) && (metadataCategory === category || path.endsWith("/" + category + ".glb"));
+          return Boolean(asset.signed_url) && path === "theme-v2-real-3d/v2.13/" + themeKey + "/" + category + ".glb" && metadataCategory === category && asset.metadata?.phase === "V2.13D.4";
         });
         setUrl(candidate?.signed_url ?? null);
       })
