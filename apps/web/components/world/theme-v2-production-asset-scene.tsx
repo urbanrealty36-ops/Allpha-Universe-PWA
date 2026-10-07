@@ -196,6 +196,7 @@ function ProductionAssetModel({
     });
     if (prepared.metrics.meshCount > 0 && visibleInCamera && !visibleRef.value) {
       visibleRef.value = true;
+      onRuntimeState?.("visible");
     }
     if (reducedMotion) return;
     const t = clock.getElapsedTime();
@@ -267,6 +268,6 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
   }, [url, onRuntimeState]);
 
   return url
-    ? <ProductionAssetModel url={url} category={category} lowPower={lowPower} reducedMotion={reducedMotion} onLoaded={(metrics) => { onRuntimeMetrics?.(metrics); onRuntimeState?.("loaded"); }} />
+    ? <ProductionAssetModel url={url} category={category} lowPower={lowPower} reducedMotion={reducedMotion} onRuntimeState={onRuntimeState} onLoaded={(metrics) => { onRuntimeMetrics?.(metrics); onRuntimeState?.("loaded"); }} />
     : <>{fallback}</>;
 }
