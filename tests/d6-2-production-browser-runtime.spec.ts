@@ -40,11 +40,14 @@ test.describe("V2.13D.6.2 Production Browser Runtime Verification", () => {
       await page.waitForTimeout(4_000);
 
       const runtime = await page.evaluate(() => {
-        const canvas = Array.from(document.querySelectorAll("canvas"))[0] as HTMLCanvasElement | undefined;
-        if (!canvas) return { canvas: 0, webgl: false };
-        const rect = canvas.getBoundingClientRect();
-        const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        return { canvas: rect.width * rect.height, webgl: Boolean(context) };
+        const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
+        for (const canvas of canvases) {
+          const rect = canvas.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+          if (context) return { canvas: rect.width * rect.height, webgl: true };
+        }
+        return { canvas: 0, webgl: false };
       });
 
       lastCanvas = runtime.canvas;
@@ -89,11 +92,14 @@ test.describe("V2.13D.6.2 Production Browser Runtime Verification", () => {
       await page.goto(worldUrl(), { waitUntil: "domcontentloaded", timeout: 60_000 });
       await page.waitForTimeout(4_000);
       runtime = await page.evaluate(() => {
-        const canvas = Array.from(document.querySelectorAll("canvas"))[0] as HTMLCanvasElement | undefined;
-        if (!canvas) return { canvas: 0, webgl: false };
-        const rect = canvas.getBoundingClientRect();
-        const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        return { canvas: rect.width * rect.height, webgl: Boolean(context) };
+        const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
+        for (const canvas of canvases) {
+          const rect = canvas.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+          if (context) return { canvas: rect.width * rect.height, webgl: true };
+        }
+        return { canvas: 0, webgl: false };
       });
       if (runtime.canvas > 0 && runtime.webgl && glbResponses.length > 0) break;
       await page.waitForTimeout(10_000);
