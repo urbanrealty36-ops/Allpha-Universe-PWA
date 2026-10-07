@@ -1,0 +1,126 @@
+name: V2.13D.3D Human Visual Fidelity Re-Review
+
+on:
+  workflow_run:
+    workflows:
+      - V2.13D.3C Cinematic Visual Fidelity Remediation
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: D3C source workflow run ID
+        required: true
+        type: string
+        default: "37553533713"
+      source_head_sha:
+        description: D3C source head SHA
+        required: true
+        type: string
+        default: "eb6892492c4ba7188ecd6c9c8b7d00d633e2c154"
+      review_json:
+        description: Full D3D review JSON
+        required: true
+        type: string
+        default: '{"schema":"allpha-3d-v2-13d3d-human-visual-fidelity-review/1.0","phase":"V2.13D.3D","sourceRunId":37553533713,"sourceHeadSha":"eb6892492c4ba7188ecd6c9c8b7d00d633e2c154","goldenReference":"crystal-ai-city","decision":"PENDING","reviewer":"REPLACE_WITH_REVIEWER","criteria":{"themeIdentity":"PASS","geometrySpatialHierarchy":"PASS","silhouetteMassing":"PASS","negativeSpaceComposition":"PASS","categoryFidelity":"PASS","materialPBR":"PASS","lightingAtmosphere":"PASS","cameraCinematicFraming":"PASS","mobileBrowserPlausibility":"PASS","crossThemeDifferentiation":"PASS"},"notes":"REPLACE_WITH_HUMAN_REVIEW_NOTES"}'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  review-packet:
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve D3C source
+        id: source
+        shell: bash
+        env:
+          EVENT_RUN_ID: ${{ github.event.workflow_run.id }}
+          EVENT_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          INPUT_RUN_ID: ${{ inputs.source_run_id }}
+          INPUT_HEAD_SHA: ${{ inputs.source_head_sha }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "run_id=$EVENT_RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "head_sha=$EVENT_HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_id=$INPUT_RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "head_sha=$INPUT_HEAD_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download D3C evidence artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: allpha-3d-v2-13d3c-cinematic-visual-evidence
+          path: ${{ runner.temp }}/d3c-evidence
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract four human review contact sheets
+        shell: bash
+        env:
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_HEAD_SHA: ${{ steps.source.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          root="${RUNNER_TEMP}/d3d-review"
+          mkdir -p "$root"
+          for category in universe galaxy world district; do
+            src="${RUNNER_TEMP}/d3c-evidence/v2-13d3c-review-sheets/${category}-25-theme-contact-sheet.jpg"
+            test -s "$src"
+            cp "$src" "$root/${category}-25-theme-contact-sheet.jpg"
+          done
+          cat > "$root/review-source.json" <<EOF
+          {
+            "phase":"V2.13D.3D",
+            "sourceRunId":${SOURCE_RUN_ID},
+            "sourceHeadSha":"${SOURCE_HEAD_SHA}",
+            "goldenReference":"crystal-ai-city",
+            "scope":{"themes":25,"categories":4,"assets":100},
+            "categories":["universe","galaxy","world","district"],
+            "humanReviewRequired":true,
+            "promotionBlockedUntilApproval":true,
+            "storageMutationPerformed":false
+          }
+          EOF
+
+      - name: Upload D3D human review packet
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d3d-human-review-packet
+          path: ${{ runner.temp }}/d3d-review
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Human review gate status
+        run: |
+          echo "D3C evidence is packaged for V2.13D.3D human review."
+          echo "No approval is inferred from automated GREEN."
+          echo "No Supabase or Storage mutation is permitted in this phase."
+
+  record-review:
+    if: github.event_name == 'workflow_dispatch'
+    needs: review-packet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write supplied human review
+        env:
+          REVIEW_JSON: ${{ inputs.review_json }}
+        run: |
+          printf '%s' "$REVIEW_JSON" > v2-13d3d-human-review.json
+      - name: Validate human review record
+        env:
+          ALLPHA_V213D3D_REVIEW_JSON: v2-13d3d-human-review.json
+        run: node scripts/3d/v2-13d3d-human-visual-fidelity-gate.mjs
+      - name: Upload review record
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d3d-human-review-record
+          path: v2-13d3d-human-review.json
+          if-no-files-found: error
+          retention-days: 14
