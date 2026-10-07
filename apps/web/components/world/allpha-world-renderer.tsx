@@ -14,6 +14,7 @@ import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
 import type { CharacterAnimationSignal } from "../../lib/live-character-animation";
 import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/live-character-v2";
 import { ThemeV2SpatialScene } from "./theme-v2-spatial-scene";
+import { ThemeV2ProductionAssetScene } from "./theme-v2-production-asset-scene";
 import { Cinematic3DScene, configureCinematicRenderer } from "./cinematic-3d-scene";
 import { CinematicProductionHero } from "./cinematic-production-hero";
 
@@ -238,6 +239,13 @@ function WorldDistrictBoothV2View({ layer, lowPower, onHotspot, scene }: { layer
   const themeKey = typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined;
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   return <group ref={root}>
+    <ThemeV2ProductionAssetScene
+      themeKey={themeKey}
+      category={layer === "world" ? "world" : layer === "district" ? "district" : "booth"}
+      lowPower={lowPower}
+      reducedMotion={reduceMotion}
+      fallback={null}
+    />
     <ThemeV2SpatialScene themeKey={themeKey} architecture={architecture} layer={layer} lowPower={lowPower} reducedMotion={reduceMotion} />
     <mesh position={[0,-.65,0]}>
       <cylinderGeometry args={[layer==="world"?6.2:layer==="district"?4.7:2.8,.65, .55, lowPower?32:56]} />

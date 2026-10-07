@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
-from app.core.supabase_rest import SupabaseRestError, rpc, select
+from app.core.supabase_rest import SupabaseRestError, rpc, select, service_select
 
 router=APIRouter(prefix="/api/v1/universe",tags=["AI Universe"])
 OwnerType=Literal["user","agent"]
@@ -49,6 +49,32 @@ async def worlds(galaxy_id:UUID|None=None,limit:int=Query(100,ge=1,le=200),conte
     q={"select":"*","order":"updated_at.desc","limit":str(limit)}
     if galaxy_id:q["galaxy_id"]=f"eq.{galaxy_id}"
     return {"data":await select(context["user"],"universe_worlds",q)}
+
+@router.get("/public/worlds/{world_id}/runtime")
+async def public_world_runtime(world_id:UUID):
+    """Public read-only runtime projection for active public Worlds.
+
+    Presentation reads only; mutations remain behind authenticated endpoints.
+    """
+    try:
+        worlds=await service_select("universe_worlds",{"select":"id,galaxy_id,name,slug,description,world_type,visibility,status,theme_key,spatial_config,metadata","id":f"eq.{world_id}","visibility":"eq.public","status":"eq.active","limit":"1"})
+        if not worlds:
+            raise HTTPException(404,detail={"code":"PUBLIC_WORLD_NOT_FOUND"})
+        world=worlds[0]
+        districts=await service_select("districts",{"select":"id,world_id,name,slug,description,district_type,visibility,status,theme_key,spatial_config,metadata","world_id":f"eq.{world_id}","visibility":"eq.public","status":"eq.active","order":"updated_at.desc","limit":"100"})
+        agents=await service_select("universe_world_agents",{"select":"world_id,agent_id,presence_role,status","world_id":f"eq.{world_id}","status":"eq.active","limit":"100"})
+        content=await service_select("universe_world_content",{"select":"world_id,content_id,placement,sort_order","world_id":f"eq.{world_id}","order":"sort_order.asc","limit":"100"})
+        portals=await service_select("universe_world_portals",{"select":"id,source_world_id,target_world_id,name,access_policy,status,metadata","source_world_id":f"eq.{world_id}","access_policy":"eq.public","status":"eq.active","order":"created_at.asc","limit":"100"})
+        presence_rows=await service_select("universe_agent_presences",{"select":"id,world_id,agent_id,state,activity,entered_at,last_seen_at","world_id":f"eq.{world_id}","exited_at":"is.null","limit":"100"})
+        themes=await service_select("themes",{"select":"id,name,slug,description,category,catalog_key","source":"eq.platform","status":"eq.published","catalog_key":f"eq.{world.get('theme_key')}","limit":"1"})
+        theme_items=[]
+        if themes:
+            versions=await service_select("theme_versions",{"select":"id,theme_id,version,tokens,world_schema,component_config,status","theme_id":f"eq.{themes[0]['id']}","status":"eq.published","order":"version.desc","limit":"1"})
+            version=versions[0] if versions else None
+            theme_items=[{**themes[0],"theme_version_id":version.get("id") if version else None,"theme_version":version.get("version") if version else None,"tokens":version.get("tokens") if version else {},"world_schema":version.get("world_schema") if version else None,"component_config":version.get("component_config") if version else {}}]
+        return {"data":{"world":world,"districts":districts,"agents":agents,"content":content,"portals":portals,"presence":presence_rows,"themes":theme_items,"public":True,"presentation_only":True}}
+    except SupabaseRestError as e:
+        raise err(e,"PUBLIC_WORLD_RUNTIME_LOAD_FAILED")
 
 @router.post("/worlds",status_code=201)
 async def create_world(p:WorldCreate,context:dict=Depends(get_auth_context)):
