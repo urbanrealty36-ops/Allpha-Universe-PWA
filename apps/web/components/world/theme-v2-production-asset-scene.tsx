@@ -3,20 +3,33 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import type { AssetCategory } from "../../lib/world-engine/asset-factory";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://allpha-api-production.up.railway.app").replace(/\/$/, "");
 
 type ManifestAsset = { storage_path?: string | null; signed_url?: string | null; metadata?: Record<string, unknown> | null; };
 
-export type ProductionAssetRuntimeState = "idle" | "loading-manifest" | "manifest-resolved" | "loading-gltf" | "loaded" | "error";
+export type ProductionAssetRuntimeState = "idle" | "loading-manifest" | "manifest-resolved" | "loading-gltf" | "loaded" | "visible" | "error";
 
 export type ProductionAssetRuntimeMetrics = {
   meshCount: number;
   objectCount: number;
   bounds: { size: [number, number, number]; center: [number, number, number] };
 };
+
+
+function setRuntimeMarker(state: ProductionAssetRuntimeState, metrics?: ProductionAssetRuntimeMetrics) {
+  if (typeof document === "undefined") return;
+  const marker = document.querySelector<HTMLElement>("[data-allpha-3d-runtime]");
+  if (!marker) return;
+  marker.dataset.allpha3dAssetState = state;
+  if (metrics) {
+    marker.dataset.allpha3dMeshCount = String(metrics.meshCount);
+    marker.dataset.allpha3dObjectCount = String(metrics.objectCount);
+    marker.dataset.allpha3dBounds = metrics.bounds.size.map((value) => value.toFixed(3)).join(",");
+  }
+}
 
 function ProductionAssetModel({
   url,
@@ -32,6 +45,8 @@ function ProductionAssetModel({
   onLoaded?: (metrics: ProductionAssetRuntimeMetrics) => void;
 }) {
   const gltf = useGLTF(url);
+  const camera = useThree((state) => state.camera);
+  const visibleRef = useMemo(() => ({ value: false }), []);
   const prepared = useMemo(() => {
     const scene = gltf.scene.clone(true);
     const bounds = new THREE.Box3().setFromObject(scene);
@@ -79,10 +94,26 @@ function ProductionAssetModel({
   }, [gltf.scene, lowPower]);
 
   useEffect(() => {
+    setRuntimeMarker("loaded", prepared.metrics);
     onLoaded?.(prepared.metrics);
   }, [onLoaded, prepared.metrics]);
 
   useFrame(({ clock }) => {
+    const box = new THREE.Box3().setFromObject(prepared.scene);
+    const corners = [
+      new THREE.Vector3(box.min.x, box.min.y, box.min.z), new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+      new THREE.Vector3(box.min.x, box.max.y, box.min.z), new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+      new THREE.Vector3(box.max.x, box.min.y, box.min.z), new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+      new THREE.Vector3(box.max.x, box.max.y, box.min.z), new THREE.Vector3(box.max.x, box.max.y, box.max.z),
+    ];
+    const visibleInCamera = corners.some((corner) => {
+      const projected = corner.clone().project(camera);
+      return projected.z >= -1 && projected.z <= 1 && projected.x >= -1.05 && projected.x <= 1.05 && projected.y >= -1.05 && projected.y <= 1.05;
+    });
+    if (prepared.metrics.meshCount > 0 && visibleInCamera && !visibleRef.value) {
+      visibleRef.value = true;
+      setRuntimeMarker("visible", prepared.metrics);
+    }
     if (reducedMotion) return;
     const t = clock.getElapsedTime();
     prepared.scene.rotation.y = Math.sin(t * 0.16) * (lowPower ? 0.018 : 0.035);
@@ -108,9 +139,11 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
     setUrl(null);
     if (!themeKey) {
       onRuntimeState?.("idle");
+      setRuntimeMarker("idle");
       return;
     }
     onRuntimeState?.("loading-manifest");
+    setRuntimeMarker("loading-manifest");
     const controller = new AbortController();
     const endpoint = API_BASE + "/api/v1/themes/world-runtime/public/themes/" + encodeURIComponent(themeKey) + "/asset-manifest";
     fetch(endpoint, { signal: controller.signal, cache: "no-store" })
@@ -127,15 +160,18 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
         });
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
+          setRuntimeMarker("error");
           setUrl(null);
           return;
         }
         onRuntimeState?.("manifest-resolved");
+        setRuntimeMarker("manifest-resolved");
         setUrl(candidate.signed_url);
       })
       .catch(() => {
         if (!cancelled) {
           onRuntimeState?.("error");
+          setRuntimeMarker("error");
           setUrl(null);
         }
       });
@@ -143,7 +179,10 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
   }, [themeKey, category, onRuntimeState]);
 
   useEffect(() => {
-    if (url) onRuntimeState?.("loading-gltf");
+    if (url) {
+      onRuntimeState?.("loading-gltf");
+      setRuntimeMarker("loading-gltf");
+    }
   }, [url, onRuntimeState]);
 
   return url
