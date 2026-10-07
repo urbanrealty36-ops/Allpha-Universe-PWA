@@ -1959,3 +1959,36 @@ Therefore:
 - D6.4 remains **PENDING / IMPLEMENTED FOUNDATION**.
 - No GREEN claim is made.
 - Production browser visual evidence remains the required next gate.
+
+
+### D6.4 RED → isolated root-cause fix — 2026-10-08
+
+D6.4 browser job:
+- Run: `37698363804`
+- Job: `113055560519`
+- Result: **RED**
+- Desktop: expected `visible`, received `idle` after 180s.
+- Mobile: expected `visible`, received `idle` after 180s.
+- Evidence artifact: `allpha-d6-4-production-visual-fidelity-evidence`, artifact ID `11516477509`.
+
+### Proven root cause
+The canonical `AllphaWorldRenderer` root declared `data-allpha-3d-asset-state="idle"` as a static React prop while D6.4's `setRuntimeMarker()` also updated that same DOM dataset imperatively. React could reconcile the static prop back to `idle`, preventing the browser gate from observing runtime progression.
+
+### Isolated remediation
+Commit:
+`4334e8e43756010ac22a2a92d1c9d0e7cbed7da7`
+
+Change:
+- removed only the static `data-allpha-3d-asset-state="idle"` attribute;
+- retained `data-allpha-3d-runtime="true"`;
+- runtime state is now owned by the D6.4 marker lifecycle.
+
+No asset, database, renderer architecture, FastAPI authority, or production promotion changes.
+
+### Exact next action
+1. Deploy `4334e8e...` to Railway.
+2. Wait for SUCCESS.
+3. Observe the new D6.4 browser workflow.
+4. Inspect desktop/mobile evidence.
+5. If GREEN, lock D6.4 and advance to D6.5.
+6. If RED, fix only the next proven D6.4 root cause.
