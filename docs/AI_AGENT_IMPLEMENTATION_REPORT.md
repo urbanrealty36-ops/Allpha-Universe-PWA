@@ -409,3 +409,63 @@ For every 3D implementation, also record:
 **Conclusion:** V2.13D.1A execution is **NOT PROVEN GREEN**. No claim is made that 350 GLBs/previews were generated. The V2.13D production workflow remains the required execution authority.
 
 **Next exact action:** obtain a completed V2.13D workflow run and inspect its production job + evidence artifact; if it fails, repair the specific production job before any storage/runtime promotion.
+
+
+# 2026-10-08 — V2.13D.6.3 — Production 3D Visual Render Verification
+
+## Status
+**PENDING — implementation deployed; browser visual evidence pending.**
+
+## Objective
+Move D6 beyond canvas/WebGL/GLB network proof and establish evidence that the real authoritative V2.13 Crystal AI City World GLB is parsed, framed by the production camera, and visibly rendered on desktop and mobile Railway PWA.
+
+## Evidence before implementation
+- D6.2 isolated browser runtime was GREEN.
+- Railway Web deployment on commit `a71536bae13dbc4e0ada180e46eac750c948f772` was SUCCESS.
+- D6.2 proved visible WebGL canvas and successful production World GLB response, but did not prove parsed geometry was visible in the camera frame.
+- Overall `Allpha Universe CI` remains separately RED because browser Supabase build environment keys are empty; this is not treated as D6.3 visual evidence.
+
+## Files changed
+- `apps/web/components/world/theme-v2-production-asset-scene.tsx`
+- `apps/web/components/world/allpha-world-renderer.tsx`
+- `tests/d6-3-production-3d-visual-render.spec.ts`
+- `.github/workflows/v2-13d6-3-production-3d-visual-render.yml`
+- `docs/3d/V2.13D.6.3-PRODUCTION-3D-VISUAL-RENDER-VERIFICATION.md`
+
+## Implementation
+- Reused the canonical `ThemeV2ProductionAssetScene` and `AllphaWorldRenderer`.
+- Added production-only presentation normalization using the authoritative GLB's own bounds; no synthetic scene or geometry was created.
+- Added mesh/object/bounds runtime evidence.
+- Added camera-projected geometry visibility evidence.
+- Added desktop/mobile Playwright visual gate and screenshot artifacts.
+- Explicitly aimed the production camera at the World presentation origin.
+
+## What did NOT change
+- Supabase schema and World records.
+- V2.13D.4 storage promotion.
+- V2.13D.5 runtime activation.
+- D3C/D3D/D3D.4/D5 locked scopes.
+- Authority/security architecture.
+- Service-role/frontend boundary.
+- Canonical renderer identity.
+
+## Tests / CI
+- New isolated workflow: `V2.13D.6.3 Production 3D Visual Render Verification`.
+- Test: `tests/d6-3-production-3d-visual-render.spec.ts`.
+- Acceptance requires runtime state `visible`, real mesh count, non-zero bounds, successful production GLB, visible camera projection, WebGL canvas, desktop/mobile screenshots, and no page errors.
+- Workflow result is not yet observable from the available GitHub connector evidence.
+
+## Railway
+Latest production Web deployment:
+- `ae5d2ede-d4a7-482d-b74c-5674aa795366`
+- SUCCESS
+- commit `3ff96cf37ae42c009bd2312c85ca8b9ab72032f5`
+
+## Security
+No Supabase mutation, no service-role exposure, no privileged frontend DB mutation, no authority bypass.
+
+## Remaining gaps
+D6.3 is **not GREEN yet** until the isolated browser workflow and screenshot evidence are observed and pass.
+
+## Exact next phase
+If D6.3 becomes GREEN, advance to **D6.4 — Production Visual Fidelity / Camera / Lighting / Material QA**. First gate: compare the proven Production World render against the locked Crystal AI City visual reference and verify desktop/mobile framing, lighting, materials, atmosphere, and runtime performance without replacing the canonical renderer.
