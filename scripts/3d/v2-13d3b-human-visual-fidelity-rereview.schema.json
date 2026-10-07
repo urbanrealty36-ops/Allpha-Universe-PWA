@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "allpha-3d-v2-13d3b-human-visual-fidelity-rereview/1.0",
+  "title": "Allpha V2.13D.3B Human Visual Fidelity Re-Review",
+  "type": "object",
+  "required": [
+    "schema",
+    "phase",
+    "source",
+    "goldenBenchmark",
+    "scope",
+    "review",
+    "gate"
+  ],
+  "properties": {
+    "schema": { "const": "allpha-3d-v2-13d3b-human-visual-fidelity-rereview/1.0" },
+    "phase": { "const": "V2.13D.3B" },
+    "source": {
+      "type": "object",
+      "required": ["workflowRunId", "headSha", "themes", "categories", "assetCount"],
+      "properties": {
+        "workflowRunId": { "type": "integer" },
+        "headSha": { "type": "string", "minLength": 7 },
+        "themes": { "const": 25 },
+        "categories": { "const": 4 },
+        "assetCount": { "const": 100 }
+      },
+      "additionalProperties": false
+    },
+    "goldenBenchmark": { "const": "crystal-ai-city" },
+    "scope": {
+      "type": "object",
+      "required": ["categories", "themeCount", "assetCount"],
+      "properties": {
+        "categories": {
+          "const": ["universe", "galaxy", "world", "district"]
+        },
+        "themeCount": { "const": 25 },
+        "assetCount": { "const": 100 }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "method",
+        "reviewedThemeCount",
+        "reviewedAssetCount",
+        "criteria",
+        "overallDecision",
+        "promotionEligible"
+      ],
+      "properties": {
+        "method": { "const": "human-visual-contact-sheet-review" },
+        "reviewedThemeCount": { "const": 25 },
+        "reviewedAssetCount": { "const": 100 },
+        "criteria": {
+          "type": "object",
+          "required": [
+            "themeIdentity",
+            "geometrySpatialHierarchy",
+            "silhouetteMassing",
+            "negativeSpaceComposition",
+            "materialPbr",
+            "lightingAtmosphereCamera",
+            "categoryFidelity",
+            "completeness",
+            "mobileBrowserPlausibility"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "themeIdentity": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "geometrySpatialHierarchy": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "silhouetteMassing": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "negativeSpaceComposition": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "materialPbr": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "lightingAtmosphereCamera": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "categoryFidelity": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "completeness": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+            "mobileBrowserPlausibility": { "enum": ["PASS", "PARTIAL", "FAIL"] }
+          }
+        },
+        "overallDecision": { "enum": ["APPROVED", "REJECTED"] },
+        "promotionEligible": { "const": false },
+        "rejectionReasons": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "gate": {
+      "type": "object",
+      "required": [
+        "humanVisualFidelityReview",
+        "productionPromotionApproval",
+        "promotionToStorage",
+        "storageMutationPerformed"
+      ],
+      "properties": {
+        "humanVisualFidelityReview": { "enum": ["APPROVED", "REJECTED"] },
+        "productionPromotionApproval": { "const": "BLOCKED" },
+        "promotionToStorage": { "const": "BLOCKED_UNTIL_REVIEW_APPROVAL_AND_REMEDIATION" },
+        "storageMutationPerformed": { "const": false }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
