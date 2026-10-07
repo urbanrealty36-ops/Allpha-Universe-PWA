@@ -1890,3 +1890,54 @@ For every implementation:
 The project's current priority is **Full Web UI/UX Refactor + Theme V2 25×14=350 spatial asset realization + production runtime activation**, with the immediate blocker being **V2.13D.6 Production World browser renderer mounting**.
 
 Never sacrifice architectural correctness or evidence quality merely to obtain a GREEN workflow.
+
+
+---
+
+# 2026-10-08 — CONTINUATION UPDATE — V2.13D.6.4
+
+## Current status
+**V2.13D.6.4 — PENDING / IMPLEMENTED FOUNDATION.**
+
+D6.4 implementation is committed to `main`, but it is **not GREEN** until production browser evidence is observed.
+
+### D6.4 implementation
+- Production World camera framing is now derived from the real GLB bounds and responsive viewport orientation.
+- Real GLB materials are cloned and receive presentation-only PBR normalization.
+- Runtime evidence exposes mesh/object/material counts, camera metrics, `ALLPHA_UNIVERSE_V2`, ACES Filmic, sRGB and exposure markers.
+- Existing `Cinematic3DScene` remains the canonical lighting authority.
+- Added desktop/mobile Playwright verification and CI workflow.
+- No database, storage promotion, authority, or renderer architecture changes.
+
+### D6.4 commits
+- `0fc1680ad95693eb9e955af7fc2dc498c149ff78`
+- `89e4f50077c1617894691d50552c167b61e8aedf`
+- `229ebf7039ae26a7bbe5fe053c334e61eed7e351`
+- `5fc8b4eda344479afd22f662ccfcf12436d2ddd0`
+- `b69b9ce2ec26b4be663db7a654a8a59bae670ed4`
+
+### D6.4 files
+- `apps/web/components/world/theme-v2-production-asset-scene.tsx`
+- `tests/d6-4-production-visual-fidelity.spec.ts`
+- `.github/workflows/v2-13d6-4-production-visual-fidelity.yml`
+- `docs/3d/V2.13D.6.4-PRODUCTION-VISUAL-FIDELITY-BRAND-QA.md`
+
+## Locked scope
+No changes to:
+- Supabase schema
+- V2.13D.4 production promotion
+- V2.13D.5 lifecycle
+- D3C/D3D/D3D.4/D5
+- canonical `AllphaWorldRenderer`
+- FastAPI authority boundary
+- frontend privileged mutation rules
+
+## Important prerequisite
+D6.3 isolated browser evidence is still not observed through the available connector evidence. Therefore D6.4 must be treated as a downstream implementation/pending gate, not as proof that the World visual runtime is GREEN.
+
+## Exact next action
+1. Railway must deploy the D6.4 source commits.
+2. Run `V2.13D.6.4 Production Visual Fidelity / Brand QA`.
+3. Inspect desktop/mobile screenshot artifacts and browser gate logs.
+4. If RED, fix only the proven D6.4 visual/runtime root cause.
+5. If GREEN, lock D6.4 and advance to **V2.13D.6.5 — Desktop + Mobile Production Visual QA**.
