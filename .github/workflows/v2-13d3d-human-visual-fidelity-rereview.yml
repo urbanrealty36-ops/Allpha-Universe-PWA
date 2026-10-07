@@ -1,5 +1,7 @@
 name: V2.13D.3D Human Visual Fidelity Re-Review
 
+run-name: V2.13D.3D Human Visual Fidelity Re-Review • ${{ github.event_name }}
+
 on:
   workflow_run:
     workflows:
