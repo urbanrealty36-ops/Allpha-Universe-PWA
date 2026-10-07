@@ -72,21 +72,21 @@ jobs:
           ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
         run: |
           set -euo pipefail
-          blender -b --python scripts/3d/blender/build_v2_13d3c_cinematic_visual_remediation.py -- --preview --theme "\${{ matrix.theme }}"
+          blender -b --python scripts/3d/blender/build_v2_13d3c_cinematic_visual_remediation.py -- --preview --theme "${{ matrix.theme }}"
       - name: Preflight four macro assets
         run: |
           set -euo pipefail
           test -s allpha-theme-v2-13d3c-visual-remediation/manifest.json
-          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('allpha-theme-v2-13d3c-visual-remediation/manifest.json','utf8')); if(r.themes!==25||r.categories!==4||r.matrixSize!==100||r.generated!==4||!r.commonCityGrammarRemoved||r.assets.length!==4) process.exit(1); if(!r.assets.every(a=>a.themeKey==='\${{ matrix.theme }}')) process.exit(1);"
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('allpha-theme-v2-13d3c-visual-remediation/manifest.json','utf8')); if(r.themes!==25||r.categories!==4||r.matrixSize!==100||r.generated!==4||!r.commonCityGrammarRemoved||r.assets.length!==4) process.exit(1); if(!r.assets.every(a=>a.themeKey==='${{ matrix.theme }}')) process.exit(1);"
       - name: Validate four cinematic assets
         env:
           ALLPHA_V213D3C_OUT: allpha-theme-v2-13d3c-visual-remediation
-          ALLPHA_V213D3C_THEME: \${{ matrix.theme }}
+          ALLPHA_V213D3C_THEME: ${{ matrix.theme }}
         run: node scripts/3d/validate-v2-13d3c-cinematic-remediation.mjs
       - name: Upload theme remediation
         uses: actions/upload-artifact@v4
         with:
-          name: allpha-3d-v2-13d3c-theme-\${{ matrix.theme }}
+          name: allpha-3d-v2-13d3c-theme-${{ matrix.theme }}
           path: allpha-theme-v2-13d3c-visual-remediation/
           if-no-files-found: error
           retention-days: 14
