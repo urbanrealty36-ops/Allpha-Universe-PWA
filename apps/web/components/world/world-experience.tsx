@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { apiFetch } from "../../lib/api";
+import { apiFetch, publicApiFetch } from "../../lib/api";
 import { normalizeWorldScene, type WorldScene, type SceneNode } from "../../lib/world-engine/scene-schema";
 
 const AllphaWorldRenderer = dynamic(() => import("./allpha-world-renderer"), {
@@ -61,30 +61,24 @@ export default function WorldExperience() {
     setLoading(true);
     setError(null);
     const requests = await Promise.allSettled([
-      apiFetch<{ data: World }>(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}`),
+      publicApiFetch<{ data: World }>(`/api/v1/themes/world-runtime/public/worlds/${encodeURIComponent(worldId)}`),
       apiFetch<{ data: District[] }>(`/api/v1/districts?world_id=${encodeURIComponent(worldId)}&limit=100`),
       apiFetch<{ data: Agent[] }>(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/agents`),
       apiFetch<{ data: LinkedContent[] }>(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/content`),
       apiFetch<{ data: Portal[] }>(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/portals`),
       apiFetch<{ data: Presence[] }>(`/api/v1/universe/worlds/${encodeURIComponent(worldId)}/presence`),
-      apiFetch<{ data: CatalogItem[] }>(`/api/v1/themes/world-runtime/catalog`),
+      publicApiFetch<{ data: CatalogItem[] }>(`/api/v1/themes/world-runtime/catalog`),
     ]);
     const [w, d, a, c, p, pr, t] = requests;
     const failures: string[] = [];
-    if (w.status === "fulfilled") setWorld(w.value.data);
+    if (w.status === "fulfilled") { setWorld(w.value.data.world ?? w.value.data); if (w.value.data.theme) setSelectedTheme(w.value.data.theme as Theme); }
     else failures.push("WORLD_LOAD_FAILED");
     if (d.status === "fulfilled") setDistricts(Array.isArray(d.value.data) ? d.value.data : []);
-    else failures.push("DISTRICT_DISCOVERY_UNAVAILABLE");
     if (a.status === "fulfilled") setAgents(Array.isArray(a.value.data) ? a.value.data : []);
-    else failures.push("WORLD_AGENTS_UNAVAILABLE");
     if (c.status === "fulfilled") setContent(Array.isArray(c.value.data) ? c.value.data : []);
-    else failures.push("WORLD_CONTENT_UNAVAILABLE");
     if (p.status === "fulfilled") setPortals(Array.isArray(p.value.data) ? p.value.data : []);
-    else failures.push("WORLD_PORTALS_UNAVAILABLE");
     if (pr.status === "fulfilled") setPresence(Array.isArray(pr.value.data) ? pr.value.data : []);
-    else failures.push("WORLD_PRESENCE_UNAVAILABLE");
-    if (t.status === "fulfilled") setThemes(Array.isArray(t.value.data) ? t.value.data : []);
-    else failures.push("WORLD_THEME_UNAVAILABLE");
+    if (t.status === "fulfilled") setThemes(Array.isArray(t.value.data) ? t.value.data : (t.value.data ? [t.value.data.theme].filter(Boolean) : []));
     setError(failures.length ? failures.join(" · ") : null);
     setLoading(false);
   }

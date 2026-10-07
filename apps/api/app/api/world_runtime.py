@@ -12,12 +12,12 @@ def err(e:SupabaseRestError,code:str)->HTTPException:
     return HTTPException(status_code=e.status_code if e.status_code in {400,401,403,404,409,422} else 500,detail={"code":code,"message":e.message})
 
 @router.get("/catalog")
-async def runtime_catalog(context:dict=Depends(get_auth_context)):
+async def runtime_catalog():
     """Read-only composition of existing platform Theme, World Template and Live Template records."""
     try:
-        themes=await select(context["user"],"themes",{"select":"*,theme_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
-        templates=await select(context["user"],"world_templates",{"select":"*,world_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
-        live=await select(context["user"],"live_experience_templates",{"select":"*,live_experience_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
+        themes=await service_select("themes",{"select":"*,theme_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
+        templates=await service_select("world_templates",{"select":"*,world_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
+        live=await service_select("live_experience_templates",{"select":"*,live_experience_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
     except SupabaseRestError as e:
         raise err(e,"WORLD_RUNTIME_CATALOG_LOAD_FAILED")
     template_by_theme={}
@@ -45,6 +45,37 @@ async def runtime_catalog(context:dict=Depends(get_auth_context)):
             "live_templates": [x for x in live if x.get("catalog_order")==theme.get("catalog_order")],
         })
     return {"data":result}
+
+@router.get("/public/worlds/{world_id}")
+async def public_world_runtime(world_id: str):
+    """Public read-only runtime projection for active public Worlds and their published Theme schema."""
+    try:
+        worlds = await service_select(
+            "universe_worlds",
+            {
+                "select": "id,galaxy_id,name,slug,description,world_type,visibility,status,theme_key,spatial_config,metadata",
+                "id": f"eq.{world_id}",
+                "visibility": "eq.public",
+                "status": "eq.active",
+                "limit": "1",
+            },
+        )
+        if not worlds:
+            raise HTTPException(404, detail={"code": "PUBLIC_WORLD_NOT_FOUND"})
+        world = worlds[0]
+        theme_key = world.get("theme_key")
+        theme = None
+        if theme_key:
+            themes = await service_select("themes", {"select": "id,name,slug,catalog_key,status,moderation_status", "source": "eq.platform", "status": "eq.published", "moderation_status": "eq.approved", "or": f"(slug.eq.{theme_key},catalog_key.eq.{theme_key})", "limit": "1"})
+            if themes:
+                theme = themes[0]
+                versions = await service_select("theme_versions", {"select": "id,version,tokens,world_schema,component_config,status", "theme_id": f"eq.{theme['id']}", "status": "eq.published", "order": "version.desc", "limit": "1"})
+                if versions:
+                    v = versions[0]
+                    theme.update({"theme_version_id": v.get("id"), "theme_version": v.get("version"), "tokens": v.get("tokens") or {}, "world_schema": v.get("world_schema"), "component_config": v.get("component_config") or {}})
+        return {"data": {"world": world, "theme": theme, "public": True, "presentation_only": True}}
+    except SupabaseRestError as e:
+        raise err(e, "PUBLIC_WORLD_RUNTIME_LOAD_FAILED")
 
 @router.get("/public/themes/{theme_key}/asset-manifest")
 async def public_theme_asset_manifest(theme_key: str):
