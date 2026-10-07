@@ -196,7 +196,6 @@ function ProductionAssetModel({
     });
     if (prepared.metrics.meshCount > 0 && visibleInCamera && !visibleRef.value) {
       visibleRef.value = true;
-      setRuntimeMarker("visible", runtimeMetricsRef.value);
     }
     if (reducedMotion) return;
     const t = clock.getElapsedTime();
@@ -223,11 +222,9 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
     setUrl(null);
     if (!themeKey) {
       onRuntimeState?.("idle");
-      setRuntimeMarker("idle");
       return;
     }
     onRuntimeState?.("loading-manifest");
-    setRuntimeMarker("loading-manifest");
     const controller = new AbortController();
     const endpoint = API_BASE + "/api/v1/themes/world-runtime/public/themes/" + encodeURIComponent(themeKey) + "/asset-manifest";
     fetch(endpoint, { signal: controller.signal, cache: "no-store" })
@@ -244,18 +241,15 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
         });
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
-          setRuntimeMarker("error");
           setUrl(null);
           return;
         }
         onRuntimeState?.("manifest-resolved");
-        setRuntimeMarker("manifest-resolved");
         setUrl(candidate.signed_url);
       })
       .catch(() => {
         if (!cancelled) {
           onRuntimeState?.("error");
-          setRuntimeMarker("error");
           setUrl(null);
         }
       });
@@ -269,7 +263,6 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
   useEffect(() => {
     if (url) {
       onRuntimeState?.("loading-gltf");
-      setRuntimeMarker("loading-gltf");
     }
   }, [url, onRuntimeState]);
 
