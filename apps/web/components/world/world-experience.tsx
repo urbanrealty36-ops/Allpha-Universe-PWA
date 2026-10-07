@@ -221,6 +221,7 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
               {scene ? (
                 <AllphaWorldRenderer
                   scene={scene}
+                  themeKey={world.theme_key}
                   tokens={selectedTheme?.tokens}
                   lowPower={lowPower}
                   presence={activePresence}
