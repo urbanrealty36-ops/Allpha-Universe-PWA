@@ -1,0 +1,55 @@
+name: 3D-V2.13D Reference Real Production Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/3d/blender/build_v2_13d_reference_real.py"
+      - "scripts/3d/validate-v2-13d-reference-real.mjs"
+      - ".github/workflows/3d-v2-13d-reference-real-build.yml"
+  workflow_dispatch:
+    inputs:
+      preview:
+        description: "Render 100 portrait reference previews"
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  reference-real-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender 4.5.3
+        run: |
+          set -euo pipefail
+          V=4.5.3
+          curl -fsSL --retry 3 "https://download.blender.org/release/Blender4.5/blender-${V}-linux-x64.tar.xz" -o /tmp/blender.tar.xz
+          sudo tar -xJf /tmp/blender.tar.xz -C /opt
+          sudo ln -sfn "/opt/blender-${V}-linux-x64/blender" /usr/local/bin/blender
+          blender --version
+      - name: Generate locked V2.13C factory manifest
+        run: node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs
+      - name: Build reference-real 100 macro GLBs
+        env:
+          ALLPHA_V213D_OUT: allpha-theme-v2-13d-reference-real
+          ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
+        run: |
+          if [ "${{ inputs.preview }}" = "false" ]; then
+            blender -b --python scripts/3d/blender/build_v2_13d_reference_real.py --
+          else
+            blender -b --python scripts/3d/blender/build_v2_13d_reference_real.py -- --preview
+          fi
+      - name: Validate reference-real pack
+        env:
+          ALLPHA_V213D_OUT: allpha-theme-v2-13d-reference-real
+        run: node scripts/3d/validate-v2-13d-reference-real.mjs
+      - name: Upload reference-real evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-reference-real-evidence
+          path: |
+            allpha-theme-v2-13d-reference-real/
+            3d-v2-13d-reference-real-validation-report.json
+          retention-days: 30
