@@ -1,6 +1,6 @@
 name: V2.13D.6.4 Production Visual Fidelity / Brand QA
 # D6.4 gate: browser-native runtime marker verification.
-# D6.4 rerun: execute after canonical Railway runtime deployment of 752fe52 settles.
+# D6.4 rerun: execute after canonical Railway runtime deployment of 114b5ae settles.
 
 on:
   workflow_dispatch:
