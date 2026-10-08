@@ -1,0 +1,96 @@
+name: 3D-V2.13D Reference Real Golden Preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/3d/blender/build_v2_13d_reference_real.py"
+      - "scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
+      - "packages/design-tokens/3d-visual-language.ts"
+      - "apps/web/lib/world-engine/asset-factory.ts"
+      - ".github/workflows/3d-v2-13d-reference-real-golden-preview.yml"
+  workflow_dispatch:
+
+jobs:
+  golden-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Blender 4.5.3
+        run: |
+          set -euo pipefail
+          V=4.5.3
+          curl -fsSL --retry 3 "https://download.blender.org/release/Blender4.5/blender-${V}-linux-x64.tar.xz" -o /tmp/blender.tar.xz
+          sudo tar -xJf /tmp/blender.tar.xz -C /opt
+          sudo ln -sfn "/opt/blender-${V}-linux-x64/blender" /usr/local/bin/blender
+          blender --version
+
+      - name: Generate locked V2.13C factory manifest
+        run: node scripts/3d/generate-v2-13c-theme-factory-manifest.mjs
+
+      - name: Render Crystal AI City golden previews
+        env:
+          ALLPHA_V213D_OUT: golden-reference-preview
+          ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
+        run: |
+          set -euo pipefail
+          blender -b --python scripts/3d/blender/build_v2_13d_reference_real.py -- --preview --theme crystal-ai-city
+          test -f golden-reference-preview/crystal-ai-city/universe.png
+          test -f golden-reference-preview/crystal-ai-city/galaxy.png
+          test -f golden-reference-preview/crystal-ai-city/world.png
+          test -f golden-reference-preview/crystal-ai-city/district.png
+
+      - name: Build human-review contact sheet
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps, ImageDraw
+          root = Path("golden-reference-preview/crystal-ai-city")
+          names = ["universe", "galaxy", "world", "district"]
+          images = [Image.open(root / f"{name}.png").convert("RGB") for name in names]
+          thumb_w = 720
+          thumbs = []
+          for name, img in zip(names, images):
+              ratio = thumb_w / img.width
+              thumb = img.resize((thumb_w, int(img.height * ratio)), Image.Resampling.LANCZOS)
+              canvas = Image.new("RGB", (thumb.width, thumb.height + 56), "black")
+              canvas.paste(thumb, (0, 56))
+              draw = ImageDraw.Draw(canvas)
+              draw.text((24, 18), f"CRYSTAL AI CITY — {name.upper()}", fill="white")
+              thumbs.append(canvas)
+          gap = 20
+          w = max(x.width for x in thumbs)
+          h = sum(x.height for x in thumbs) + gap * (len(thumbs)-1)
+          sheet = Image.new("RGB", (w, h), "#080b12")
+          y = 0
+          for img in thumbs:
+              sheet.paste(img, (0, y))
+              y += img.height + gap
+          sheet.save("golden-reference-preview/crystal-ai-city-contact-sheet.jpg", quality=92, optimize=True)
+          PY
+
+      - name: Golden preview integrity gate
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root = Path("golden-reference-preview/crystal-ai-city")
+          for category in ["universe","galaxy","world","district"]:
+              glb = root / f"{category}.glb"
+              png = root / f"{category}.png"
+              assert glb.stat().st_size >= 50000, f"{category}: GLB too small"
+              with Image.open(png) as im:
+                  assert im.width >= 512 and im.height >= 512, f"{category}: preview too small"
+          print("GOLDEN_REFERENCE_PREVIEW_GATE=PASS")
+          PY
+
+      - name: Upload golden preview evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-golden-reference-preview
+          path: golden-reference-preview/
+          retention-days: 30
