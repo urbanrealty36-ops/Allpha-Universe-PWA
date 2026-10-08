@@ -21,13 +21,26 @@ for(const item of m.assets||[]){
  if(!fs.existsSync(file)) { errors.push("GLB_MISSING:"+key); continue; }
  const b=fs.readFileSync(file);
  if(b.subarray(0,4).toString("ascii")!=="glTF") errors.push("GLB_HEADER:"+key);
- const gltfText=b.toString("utf8");
- if((item.category==="world"||item.category==="district") && !gltfText.includes("StudioFloor"))
-   errors.push("REFERENCE_STUDIO_MISSING:"+key);
- if((item.category==="world"||item.category==="district") && !gltfText.includes("PresentationDesk"))
-   errors.push("REFERENCE_STAGE_MISSING:"+key);
- if((item.category==="world"||item.category==="district") && !gltfText.includes("FigureHead"))
-   errors.push("REFERENCE_PRESENCE_MISSING:"+key);
+ let gltf=null;
+ try {
+   const version=b.readUInt32LE(4);
+   const jsonLength=b.readUInt32LE(12);
+   const jsonType=b.readUInt32LE(16);
+   if(version!==2 || jsonType!==0x4e4f534a) throw new Error("invalid GLB JSON chunk");
+   const jsonStart=20;
+   gltf=JSON.parse(b.subarray(jsonStart,jsonStart+jsonLength).toString("utf8").trim());
+ } catch (err) {
+   errors.push("GLB_JSON_INVALID:"+key+":"+err.message);
+ }
+ const nodeNames=new Set((gltf?.nodes||[]).map(n=>n?.name).filter(Boolean));
+ const required = item.category==="world"||item.category==="district"
+   ? ["StudioFloor","PresentationDesk","FigureHead","BroadcastCamera","MediaScreen"]
+   : [];
+ for(const requiredName of required) if(!nodeNames.has(requiredName))
+   errors.push("REFERENCE_NODE_MISSING:"+key+":"+requiredName);
+ const forbidden=["FacadeBand","CivicRing","StageLightRing","AIHeadHalo","DistrictPortal"];
+ for(const name of forbidden) if(nodeNames.has(name))
+   errors.push("FORBIDDEN_R1_HERO_GRAMMAR:"+key+":"+name);
  if(b.length<50000) errors.push("GLB_TOO_SMALL_REFERENCE_REAL:"+key+":"+b.length);
  if(item.artQuality!=="reference-realistic-production-v2") errors.push("ART_QUALITY:"+key);
  assets.push({theme:item.themeKey,category:item.category,bytes:b.length,sha256:crypto.createHash("sha256").update(b).digest("hex")});
@@ -39,7 +52,7 @@ for(const d of fs.readdirSync(root,{withFileTypes:true}).filter(x=>x.isDirectory
  const gs=fs.readdirSync(path.join(root,d.name)).filter(x=>x.endsWith(".glb"));
  if(gs.length!==4) errors.push("CATEGORY_COUNT:"+d.name+":"+gs.length);
 }
-const report={schema:"allpha-3d-v2-13d-reference-real-validation/1.0",phase:"V2.13D-REFERENCE-REAL",ok:errors.length===0,generated:assets.length,expected:100,humanVisualGateRequired:true,errors,assets};
+const report={schema:"allpha-3d-v2-13d-reference-real-validation/1.1",phase:"V2.13D.1-R1",ok:errors.length===0,generated:assets.length,expected:100,humanVisualGateRequired:true,errors,assets};
 fs.writeFileSync("3d-v2-13d-reference-real-validation-report.json",JSON.stringify(report,null,2)+"\n");
 console.log(JSON.stringify({ok:report.ok,generated:report.generated,errors:errors.length},null,2));
 process.exit(errors.length?1:0);
