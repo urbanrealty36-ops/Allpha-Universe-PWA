@@ -21,7 +21,7 @@ async function readProductionMarker(page: any) {
     const cameraFov = Number(element.dataset.allpha3dCameraFov ?? 0);
     const cameraAspect = Number(element.dataset.allpha3dCameraAspect ?? 0);
     const target = element.dataset.allpha3dCameraTarget ?? "";
-    if (!["loaded", "visible"].includes(state) || meshCount <= 0 || objectCount <= 0 ||
+    if (state !== "visible" || meshCount <= 0 || objectCount <= 0 ||
         materialCount <= 0 || cameraDistance <= 0 || cameraFov <= 0 || cameraAspect <= 0 || !target) {
       return false;
     }
