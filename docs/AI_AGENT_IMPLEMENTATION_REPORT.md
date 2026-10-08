@@ -590,3 +590,38 @@ D6.4's `setRuntimeMarker()` intentionally updates the same DOM dataset imperativ
 **Isolated fix:** commit `4334e8e43756010ac22a2a92d1c9d0e7cbed7da7` removes only the static `data-allpha-3d-asset-state="idle"` prop from the canonical renderer root. The runtime marker state is now owned solely by the D6.4 visual runtime marker function. No renderer replacement, asset change, schema change, or authority change.
 
 **Required next gate:** deploy commit `4334e8e...` and rerun D6.4 desktop/mobile browser verification. Do not claim GREEN until that rerun completes successfully.
+
+
+---
+
+# 2026-10-08 — D6.5 Visual Realization Remediation — Production Asset Authority / Blender Golden Scene
+
+**Agent/task:** Continue D6.5 remediation without restarting Theme V2 or changing the canonical architecture.
+
+**Objective:** Remove remaining procedural visual overlays/fallbacks from the production World/Universe presentation path and deepen the Crystal AI City Blender golden production recipe so the runtime consumes authored production geometry rather than raw procedural presentation primitives.
+
+**Canonical binding:**
+- Repository: `urbanrealty36-ops/Allpha-Universe-PWA`
+- Branch: `main`
+- Canonical renderer: `AllphaWorldRenderer`
+- Golden theme: `crystal-ai-city`
+- Production World: `b97e25db-54ac-472d-92ed-e4a8eac85a0e`
+
+**Implementation commits:**
+- `7248e7a326b9192551b46ff0440b8b00503742cd` — make production manifest the visual authority while retaining an explicit opt-in procedural fallback API.
+- `0a96630dfda20e8ad1cd64148ad5491a4cc16f22` — remove the procedural World/District/Booth presentation overlay from `AllphaWorldRenderer`; production GLB is the sole visual authority for those layers.
+- `38cf19dfe606c87f9528d5681d7ae9adb7f6d67e` — disable procedural public-universe fallback so the public experience cannot silently present raw procedural geometry when production assets are unavailable.
+- `bf55f3b54abfeed68f1b2c642ac38710b2fc52b1` — deepen the Crystal AI City Blender production recipe by reusing the existing richer deterministic city/galaxy/universe production scene for the golden benchmark.
+
+**3D / Blender pattern preserved:**
+`Blender production art → GLB → Storage/theme_assets → FastAPI signed manifest → ThemeV2ProductionAssetScene → AllphaWorldRenderer → browser/mobile QA`.
+
+No second renderer, Theme Engine, World Engine, database, authority layer, or frontend signing path was introduced.
+
+**Important runtime consequence:** If a production manifest asset is absent, the affected production 3D surface now remains non-synthetic instead of silently falling back to raw procedural primitives. This exposes the real asset lifecycle gap instead of masking it.
+
+**Railway:** the three web commits triggered sequential production deployments automatically. The latest deployment was still initializing/building at the time of this checkpoint; no GREEN claim is made.
+
+**Known remaining gap:** The deployed Supabase V2.13 storage asset must be replaced/promoted with the improved Blender-authored Crystal AI City production GLB before the Railway visual output can match the supplied cinematic reference. Code-side runtime authority has now been aligned to consume that authored asset without a procedural overlay.
+
+**Next exact action:** observe the latest Railway deployment, run the isolated D6.5 browser gate, then execute the guarded Blender production build/promotion path for the Crystal AI City golden asset if visual evidence still shows the old/raw asset. D6.5 remains RED until browser evidence proves the target runtime and visual fidelity.
