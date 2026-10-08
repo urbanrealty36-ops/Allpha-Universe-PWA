@@ -139,6 +139,37 @@ function ProductionAssetModel({
 
   const runtimeMetricsRef = useMemo(() => ({ value: prepared.metrics }), [prepared]);
 
+  // D6.4 evidence is owned by the production DOM marker. The R3F child can
+  // outlive/re-render independently of the parent callback path, so write the
+  // authoritative runtime evidence directly to the mounted marker as well.
+  const writeRuntimeState = (state: ProductionAssetRuntimeState) => {
+    if (typeof document === "undefined") return;
+    const marker = document.querySelector<HTMLElement>("[data-allpha-3d-runtime]");
+    if (marker) marker.dataset.allpha3dAssetState = state;
+    onRuntimeState?.(state);
+  };
+
+  const writeRuntimeMetrics = (metrics: ProductionAssetRuntimeMetrics) => {
+    if (typeof document !== "undefined") {
+      const marker = document.querySelector<HTMLElement>("[data-allpha-3d-runtime]");
+      if (marker) {
+        marker.dataset.allpha3dMeshCount = String(metrics.meshCount);
+        marker.dataset.allpha3dObjectCount = String(metrics.objectCount);
+        marker.dataset.allpha3dMaterialCount = String(metrics.materialCount);
+        marker.dataset.allpha3dBounds = metrics.bounds.size.map((value) => value.toFixed(3)).join(",");
+        marker.dataset.allpha3dCameraDistance = metrics.camera.distance.toFixed(3);
+        marker.dataset.allpha3dCameraFov = metrics.camera.fov.toFixed(2);
+        marker.dataset.allpha3dCameraAspect = metrics.camera.aspect.toFixed(3);
+        marker.dataset.allpha3dCameraTarget = metrics.camera.target.map((value) => value.toFixed(3)).join(",");
+        marker.dataset.allpha3dVisualProfile = metrics.visual.brandProfile;
+        marker.dataset.allpha3dToneMapping = metrics.visual.toneMapping;
+        marker.dataset.allpha3dOutputColorSpace = metrics.visual.outputColorSpace;
+        marker.dataset.allpha3dExposure = metrics.visual.exposure.toFixed(2);
+      }
+    }
+    onLoaded?.(metrics);
+  };
+
   useEffect(() => {
     prepared.scene.updateMatrixWorld(true);
     const worldBounds = new THREE.Box3().setFromObject(prepared.scene);
@@ -174,11 +205,11 @@ function ProductionAssetModel({
         },
       };
       runtimeMetricsRef.value = metrics;
-      onRuntimeState?.("loaded");
-      onLoaded?.(metrics);
+      writeRuntimeState("loaded");
+      writeRuntimeMetrics(metrics);
     } else {
-      onRuntimeState?.("loaded");
-      onLoaded?.(prepared.metrics);
+      writeRuntimeState("loaded");
+      writeRuntimeMetrics(prepared.metrics);
     }
   }, [camera, onLoaded, prepared, runtimeMetricsRef, viewport.height, viewport.width, lowPower]);
 
@@ -194,7 +225,7 @@ function ProductionAssetModel({
     const visibleInCamera = frustum.intersectsSphere(worldSphere);
     if (prepared.metrics.meshCount > 0 && visibleInCamera && !visibleRef.value) {
       visibleRef.value = true;
-      onRuntimeState?.("visible");
+      writeRuntimeState("visible");
     }
     if (reducedMotion) return;
     const t = clock.getElapsedTime();
