@@ -38,6 +38,21 @@ def dome(name,loc,radius,mat):
 
 def signature(m,p,c):
     k,f,g=p["key"],p["family"],p["geometry"]
+
+    # Crystal AI City is the V2 golden benchmark. Reuse the richer deterministic
+    # Blender production-art scene instead of the compact theme-factory primitives.
+    # This keeps Blender as the art-authoring source of truth while preserving the
+    # existing 25x14 manifest and canonical AllphaWorldRenderer runtime.
+    if k == "crystal-ai-city":
+        if c == "universe":
+            BASE.add_universe_or_galaxy(m, galaxy=False)
+            return
+        if c == "galaxy":
+            BASE.add_universe_or_galaxy(m, galaxy=True)
+            return
+        if c in {"world", "district"}:
+            BASE.add_city(m)
+            return
     if "pagoda" in g:
         for i in range(4): prism(f"{k}_PagodaTier",(0,.5+i*.8,1.5),1.8-i*.3,.28,m["architectural"],8)
     elif "clockwork" in g:
