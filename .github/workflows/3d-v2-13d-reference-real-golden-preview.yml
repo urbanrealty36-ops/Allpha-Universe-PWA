@@ -9,6 +9,14 @@ on:
       - "packages/design-tokens/3d-visual-language.ts"
       - "apps/web/lib/world-engine/asset-factory.ts"
       - ".github/workflows/3d-v2-13d-reference-real-golden-preview.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/3d/blender/build_v2_13d_reference_real.py"
+      - "scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
+      - "packages/design-tokens/3d-visual-language.ts"
+      - "apps/web/lib/world-engine/asset-factory.ts"
+      - ".github/workflows/3d-v2-13d-reference-real-golden-preview.yml"
   workflow_dispatch:
 
 jobs:
