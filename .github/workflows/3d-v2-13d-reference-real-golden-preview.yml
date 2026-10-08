@@ -8,6 +8,7 @@ on:
       - "scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
       - "packages/design-tokens/3d-visual-language.ts"
       - "apps/web/lib/world-engine/asset-factory.ts"
+      - "scripts/3d/validate-v2-13d-golden-visual-pregate.py"
       - ".github/workflows/3d-v2-13d-reference-real-golden-preview.yml"
   pull_request:
     branches: [main]
@@ -79,6 +80,11 @@ jobs:
               y += img.height + gap
           sheet.save("golden-reference-preview/crystal-ai-city-contact-sheet.jpg", quality=92, optimize=True)
           PY
+
+      - name: Machine visual pre-gate
+        run: |
+          set -euo pipefail
+          python scripts/3d/validate-v2-13d-golden-visual-pregate.py
 
       - name: Golden preview integrity gate
         run: |
