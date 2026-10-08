@@ -2,16 +2,17 @@ name: 3D-V2.13 Runtime Visual QA
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "apps/web/**"
-      - "apps/api/**"
-      - "scripts/3d/**"
-      - "tests/3d-v2-12-runtime-visual.spec.ts"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "docs/audits/3D_V2_12_FULL_THEME_V2_RUNTIME_VISUAL_QA_20261005.md"
-      - ".github/workflows/3d-v2-12-qa.yml"
+  # Legacy V2.12 runtime QA is manual-only; it is not allowed to validate/consume legacy assets on push.
+  # push:
+  #   paths:
+  #     - "apps/web/**"
+  #     - "apps/api/**"
+  #     - "scripts/3d/**"
+  #     - "tests/3d-v2-12-runtime-visual.spec.ts"
+  #     - "package.json"
+  #     - "pnpm-workspace.yaml"
+  #     - "docs/audits/3D_V2_12_FULL_THEME_V2_RUNTIME_VISUAL_QA_20261005.md"
+  #     - ".github/workflows/3d-v2-12-qa.yml"
 
 jobs:
   contract-and-supabase:
