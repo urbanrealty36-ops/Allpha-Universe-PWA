@@ -459,6 +459,7 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
           <div className="absolute inset-0 bg-[#02040b]">
             {scene && boothNode ? (
               <AllphaWorldRenderer
+                productionSpatialLayer="booth"
                 scene={scene}
                 tokens={theme?.tokens}
                 lowPower={lowPower}
