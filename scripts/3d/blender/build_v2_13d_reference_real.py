@@ -146,8 +146,11 @@ def planet(m,theme_i):
         a=i*math.tau/8
         x=math.cos(a)*1.8; z=1.2+math.sin(a)*1.35
         sph("Continent",(x,3.65,z),(.75,.18,.52),m["green"])
-    tor("Atmosphere",(0,3.5,1.2),2.72,.075,m["ice"],(math.pi/2,.15,.08),128)
-    tor("PlanetRing",(0,3.5,1.2),3.5,.035,m["light"],(.95,.15,.22),128)
+    sph("AtmosphereShell",(0,3.5,1.2),(2.74,2.74,2.74),m["glass"])
+    for i in range(18):
+        a=i*math.tau/18
+        sph("AtmosphericCloud",(math.cos(a)*2.5,3.5+math.sin(a*2)*.22,1.2+math.sin(a)*2.0),
+            (.10,.035,.28),m["ice"])
 
 def galaxy(m,theme_i):
     # Dense spiral field with an actual focal core and curved arms.
@@ -160,14 +163,28 @@ def galaxy(m,theme_i):
             x=math.cos(a)*r; z=1.0+math.sin(a)*r*.62; y=3.8+math.sin(a*1.7)*.45
             s=.018+.035*(1-t)
             sph("Star",(x,y,z),(s,s,s),m["ice"] if i%7 else m["light"])
-    for r in (2.1,3.4,4.7): tor("GalaxyDustBand",(0,3.8,1.0),r,.018,m["accent"],(.72,.2,0),112)
+    # Dust is represented as irregular spiral clusters, not decorative rings.
+    random.seed(8100 + theme_i)
+    for arm in range(3):
+        for i in range(34):
+            t=i/33
+            r=1.2+4.9*t
+            a=arm*math.tau/3 + t*math.tau*1.35 + random.uniform(-.05,.05)
+            x=math.cos(a)*r
+            z=1.0+math.sin(a)*r*.62
+            y=3.8+random.uniform(-.18,.18)
+            sph("GalaxyDust",(x,y,z),(.055+.045*(1-t),.018,.055+.045*(1-t)),m["accent"])
 
 def universe(m,p,theme_i):
     galaxy(m,theme_i); planet(m,theme_i)
     city(m,p,theme_i,False)
     for pos,scale in [((-6,6,7),.55),((6,7,8),.75),((7,3,1),.45)]:
         sph("DistantWorld",pos,(scale,scale,scale),m["glass"])
-        tor("DistantOrbit",(pos[0],pos[1],pos[2]),scale*1.5,.015,m["light"],(.8,.3,.1),64)
+        for j in range(6):
+            a=j*math.tau/6
+            sph("DistantOrbitMarker",
+                (pos[0]+math.cos(a)*scale*1.55,pos[1]+math.sin(a)*.12,pos[2]+math.sin(a)*scale*1.55),
+                (.025,.025,.025),m["light"])
 
 
 def seat(m, x, z, rot=0):
