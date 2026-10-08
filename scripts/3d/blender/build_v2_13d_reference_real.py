@@ -329,7 +329,7 @@ def build_one(theme,p,category,preview):
         reference_environment(m,category,ti,p)
     else:
         city(m,p,ti,True)
-        reference_environment(m,category,ti)
+        reference_environment(m,category,ti,p)
     BASE.add_stars(m,360 if category in ("universe","galaxy") else 120)
     metadata(theme,category,p); camera(category)
     out=os.path.join(ROOT,theme); os.makedirs(out,exist_ok=True)
