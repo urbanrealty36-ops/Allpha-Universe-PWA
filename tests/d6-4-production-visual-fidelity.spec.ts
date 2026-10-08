@@ -9,26 +9,45 @@ function worldUrl() {
 }
 
 async function waitForProductionVisualMarker(page: any) {
+  let marker: {
+    state: string;
+    meshCount: number;
+    objectCount: number;
+    materialCount: number;
+    bounds: string;
+    cameraDistance: number;
+    cameraFov: number;
+    cameraAspect: number;
+    cameraTarget: string;
+    visualProfile: string;
+    toneMapping: string;
+    outputColorSpace: string;
+    exposure: number;
+  } | null = null;
+
   await expect.poll(
-    async () => page.locator("[data-allpha-3d-runtime]").getAttribute("data-allpha-3d-asset-state"),
+    async () => {
+      marker = await page.locator("[data-allpha-3d-runtime]").evaluate((element: HTMLElement) => ({
+        state: element.dataset.allpha3dAssetState ?? "unknown",
+        meshCount: Number(element.dataset.allpha3dMeshCount ?? 0),
+        objectCount: Number(element.dataset.allpha3dObjectCount ?? 0),
+        materialCount: Number(element.dataset.allpha3dMaterialCount ?? 0),
+        bounds: element.dataset.allpha3dBounds ?? "",
+        cameraDistance: Number(element.dataset.allpha3dCameraDistance ?? 0),
+        cameraFov: Number(element.dataset.allpha3dCameraFov ?? 0),
+        cameraAspect: Number(element.dataset.allpha3dCameraAspect ?? 0),
+        cameraTarget: element.dataset.allpha3dCameraTarget ?? "",
+        visualProfile: element.dataset.allpha3dVisualProfile ?? "",
+        toneMapping: element.dataset.allpha3dToneMapping ?? "",
+        outputColorSpace: element.dataset.allpha3dOutputColorSpace ?? "",
+        exposure: Number(element.dataset.allpha3dExposure ?? 0),
+      }));
+      return marker.state;
+    },
     { timeout: 180_000, intervals: [500, 1000, 2000, 5000] },
   ).toBe("visible");
 
-  return page.locator("[data-allpha-3d-runtime]").evaluate((element: HTMLElement) => ({
-    state: element.dataset.allpha3dAssetState ?? "unknown",
-    meshCount: Number(element.dataset.allpha3dMeshCount ?? 0),
-    objectCount: Number(element.dataset.allpha3dObjectCount ?? 0),
-    materialCount: Number(element.dataset.allpha3dMaterialCount ?? 0),
-    bounds: element.dataset.allpha3dBounds ?? "",
-    cameraDistance: Number(element.dataset.allpha3dCameraDistance ?? 0),
-    cameraFov: Number(element.dataset.allpha3dCameraFov ?? 0),
-    cameraAspect: Number(element.dataset.allpha3dCameraAspect ?? 0),
-    cameraTarget: element.dataset.allpha3dCameraTarget ?? "",
-    visualProfile: element.dataset.allpha3dVisualProfile ?? "",
-    toneMapping: element.dataset.allpha3dToneMapping ?? "",
-    outputColorSpace: element.dataset.allpha3dOutputColorSpace ?? "",
-    exposure: Number(element.dataset.allpha3dExposure ?? 0),
-  }));
+  return marker!;
 }
 
 async function inspectVisualCanvas(page: any) {
