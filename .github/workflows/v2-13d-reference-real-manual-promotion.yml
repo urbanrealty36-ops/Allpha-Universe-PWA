@@ -1,5 +1,8 @@
 name: V2.13D Reference Real Manual Production Promotion
 on:
+  push:
+    branches:
+      - __never__
   workflow_dispatch:
     inputs:
       build_run_id:
