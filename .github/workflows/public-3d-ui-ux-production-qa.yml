@@ -1,0 +1,42 @@
+name: Public 3D UI/UX Production QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "apps/web/components/public-worlds-gallery.tsx"
+      - "apps/web/components/public-universe-3d.tsx"
+      - "apps/web/components/universe-entry-surface.tsx"
+      - "apps/web/components/identity/universe-identity-experience.tsx"
+      - "apps/web/app/page.tsx"
+      - "apps/web/app/worlds/page.tsx"
+      - "tests/public-3d-ui-ux.spec.ts"
+      - ".github/workflows/public-3d-ui-ux-production-qa.yml"
+
+jobs:
+  public-3d-ui-ux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Public 3D UI/UX production QA
+        env:
+          ALLPHA_QA_BASE_URL: https://allphaweb-production.up.railway.app
+        run: pnpm exec playwright test tests/public-3d-ui-ux.spec.ts --reporter=line
+      - name: Upload public 3D UI/UX evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-public-3d-ui-ux-evidence
+          path: |
+            test-results/**
+            playwright-report/**
+          if-no-files-found: warn
