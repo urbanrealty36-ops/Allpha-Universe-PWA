@@ -45,3 +45,5 @@ jobs:
             test-results/**
             playwright-report/**
           if-no-files-found: warn
+
+# D6.5 verification rerun after canonical test fixes; no threshold relaxation.
