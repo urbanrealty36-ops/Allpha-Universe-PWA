@@ -115,7 +115,7 @@ def city(m,p,theme_i,district=False):
     road(m,(-7,-2.6),(7,-2.6),1.15); road(m,(-5,-.2),(5,4.6),.62)
     if any(k in fam for k in ("ocean","submerged","atlantis")):
         cube("WaterPlane",(0,-.02,4.6),(7.8,.04,2.1),m["water"],.02)
-        for x in (-5,-2,1,4): sph(m,(x,1.1,5.1),(.75,.7,.75),m["glass"])
+        for x in (-5,-2,1,4): sph("WaterPod",(x,1.1,5.1),(.75,.7,.75),m["glass"])
     if any(k in fam for k in ("desert","pharaoh","ancient")):
         for x in (-6,6): cube("DuneBlock",(x,.25,4.7),(1.3,.25,1.7),m["warm"],.25)
     if any(k in fam for k in ("rainforest","organic","living")):
