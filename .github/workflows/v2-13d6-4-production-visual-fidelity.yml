@@ -1,4 +1,5 @@
 name: V2.13D.6.4 Production Visual Fidelity / Brand QA
+# D6.4 gate: browser-native runtime marker verification.
 
 on:
   workflow_dispatch:
