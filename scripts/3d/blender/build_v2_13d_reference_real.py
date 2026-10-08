@@ -169,6 +169,83 @@ def universe(m,p,theme_i):
         sph("DistantWorld",pos,(scale,scale,scale),m["glass"])
         tor("DistantOrbit",(pos[0],pos[1],pos[2]),scale*1.5,.015,m["light"],(.8,.3,.1),64)
 
+
+def seat(m, x, z, rot=0):
+    # Believable upholstered lounge chair, built from rounded primitives and scaled to human proportion.
+    cube("SeatBase",(x,.38,z),(.42,.16,.42),m["dark"],.12,rot)
+    cube("SeatCushion",(x,.62,z),(.39,.10,.36),m["skin"],.09,rot)
+    cube("SeatBack",(x,.98,z+.30),(.39,.38,.10),m["skin"],.09,rot)
+
+def human_figure(m, x, z, scale=1.0, rot=0, ai=False):
+    # Presentation-scale human/AI figure for reference-led environments.
+    body_mat = m["ice"] if ai else m["skin"]
+    suit_mat = m["dark"] if not ai else m["metal"]
+    cyl("FigureLegL",(x-.13*scale,.55*scale,z),.085*scale,.85*scale,suit_mat,24,.025)
+    cyl("FigureLegR",(x+.13*scale,.55*scale,z),.085*scale,.85*scale,suit_mat,24,.025)
+    sph("FigureTorso",(x,1.20*scale,z),(.30*scale,.48*scale,.20*scale),suit_mat)
+    sph("FigureHead",(x,1.86*scale,z),(.22*scale,.25*scale,.22*scale),body_mat)
+    if ai:
+        tor("AIHeadHalo",(x,1.86*scale,z),.27*scale,.012*scale,m["light"],(math.pi/2,0,0),64)
+        cube("AIEyeBand",(x,1.87*scale,z-.215*scale),(.13*scale,.025*scale,.012*scale),m["light"],.01)
+    else:
+        sph("FigureHair",(x,2.06*scale,z),(.23*scale,.08*scale,.22*scale),m["dark"])
+    for side in (-1,1):
+        cyl("FigureArm",(x+side*.38*scale,1.23*scale,z),.065*scale,.72*scale,suit_mat,20,.02)
+    o=bpy.context.object
+    o.rotation_euler[2]=rot
+
+def display_screen(m, x, y, z, w, h, rot=0):
+    cube("MediaScreen",(x,y,z),(w/2,h/2,.035),m["dark"],.035,rot)
+    cube("MediaScreenGlow",(x,y,z-.045),(w*.44,h*.40,.012),m["light"],.015,rot)
+
+def studio_set(m, variant=0):
+    # Reference-led AI media/live studio: floor, wall panels, practical shelves,
+    # cameras, stage desk, display wall and presenter/owned-agent presence.
+    cube("StudioFloor",(0,.0,1.0),(7.6,.08,5.7),m["ground"],.14)
+    cube("StudioBackWall",(0,3.2,7.0),(7.6,3.2,.18),m["dark"],.12)
+    for x in (-6.3,-4.2,4.2,6.3):
+        cube("WallPanel",(x,3.2,6.72),(1.55,2.7,.05),m["metal"],.06)
+    for x in (-5.8,-3.9,3.9,5.8):
+        display_screen(m,x,3.45,6.62,1.55,1.05)
+    # Warm shelf bands create the practical-lighting language of the reference.
+    for y in (1.35,2.2,3.05):
+        cube("Shelf",(0,y,6.72),(6.6,.035,.34),m["warm"],.025)
+    for x in (-5.8,-4.7,-3.6,3.6,4.7,5.8):
+        cyl("ShelfPlantStem",(x,1.55,6.38),.025,.36,m["green"],12,.01)
+        sph("ShelfPlant",(x,1.78,6.38),(.18,.22,.18),m["green"])
+    # Large hero display.
+    display_screen(m,0,3.0,6.42,4.8,2.45)
+    # Presentation desk / stage.
+    cube("StageDeck",(0,.24,2.0),(3.7,.16,1.65),m["metal"],.16)
+    tor("StageLightRing",(0,.42,2.0),3.05,.045,m["light"],(math.pi/2,0,0),128)
+    cube("PresentationDesk",(0,1.15,1.35),(1.65,.12,.62),m["glass"],.08)
+    display_screen(m,0,1.45,1.0,2.55,1.05)
+    human_figure(m,-1.25,.85,1.0,ai=False)
+    human_figure(m,1.25,.85,1.0,ai=True)
+    # Audience / lounge furniture.
+    for x,z in [(-4.7,-1.7),(-2.2,-1.9),(2.2,-1.9),(4.7,-1.7)]:
+        seat(m,x,z,0)
+    # Studio camera rigs.
+    for x,z in (-5.8,-1.4),(5.8,-1.4):
+        cube("CameraTripodBase",(x,.28,z),(.28,.10,.28),m["dark"],.08)
+        cyl("CameraColumn",(x,1.18,z),.055,1.75,m["metal"],20,.018)
+        cube("BroadcastCamera",(x,2.05,z),(.34,.22,.28),m["dark"],.07)
+        display_screen(m,x,2.12,z-.31,.22,.12)
+    # Overhead softboxes.
+    for x in (-4.8,-1.6,1.6,4.8):
+        cube("Softbox",(x,6.3,1.4),(1.05,.10,.55),m["ice"],.08)
+        cyl("SoftboxRig",(x,6.0,1.4),.025,.55,m["metal"],12,.008)
+
+def reference_environment(m, category, theme_i):
+    if category == "district":
+        studio_set(m, theme_i)
+    elif category == "world":
+        # World remains a city-scale environment but gains a recognizable media campus.
+        city(m, None, theme_i, False)
+        studio_set(m, theme_i)
+    else:
+        return
+
 def lights(m):
     p=BASE.PALETTE
     BASE.area_light("ReferenceKey",(7,11,9),1900,p["cyan"],6.0,(0,3,0))
@@ -204,8 +281,12 @@ def build_one(theme,p,category,preview):
     ti=sum((i+1)*ord(c) for i,c in enumerate(theme))%25
     if category=="universe": universe(m,p,ti)
     elif category=="galaxy": galaxy(m,ti)
-    elif category=="world": city(m,p,ti,False)
-    else: city(m,p,ti,True)
+    elif category=="world":
+        city(m,p,ti,False)
+        reference_environment(m,category,ti)
+    else:
+        city(m,p,ti,True)
+        reference_environment(m,category,ti)
     BASE.add_stars(m,360 if category in ("universe","galaxy") else 120)
     metadata(theme,category,p); camera(category)
     out=os.path.join(ROOT,theme); os.makedirs(out,exist_ok=True)
