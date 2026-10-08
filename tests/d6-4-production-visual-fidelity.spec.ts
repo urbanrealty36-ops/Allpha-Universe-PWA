@@ -1,3 +1,4 @@
+import { inflateSync } from "node:zlib";
 import { test, expect } from "@playwright/test";
 
 const baseURL = (process.env.ALLPHA_QA_BASE_URL || "https://allphaweb-production.up.railway.app").replace(/\/$/, "");
@@ -59,53 +60,128 @@ async function waitForProductionVisualMarker(page: any) {
 }
 
 async function inspectVisualCanvas(page: any) {
-  return page.evaluate(() => {
-    const canvas = Array.from(document.querySelectorAll("canvas"))
-      .find((item) => {
-        const rect = item.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
-      }) as HTMLCanvasElement | undefined;
-    if (!canvas) return { visible: false, webgl: false, sampledPixels: 0, litRatio: 0, variance: 0 };
+  const canvas = page.locator("canvas").filter({ visible: true }).first();
+  const box = await canvas.boundingBox();
+  if (!box) return { visible: false, webgl: false, sampledPixels: 0, litRatio: 0, variance: 0 };
 
-    const rect = canvas.getBoundingClientRect();
-    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    if (!gl) return { visible: rect.width > 0 && rect.height > 0, webgl: false, sampledPixels: 0, litRatio: 0, variance: 0 };
-
-    const width = gl.drawingBufferWidth;
-    const height = gl.drawingBufferHeight;
-    const pixels = new Uint8Array(width * height * 4);
-    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-    let sampledPixels = 0;
-    let litPixels = 0;
-    let sum = 0;
-    let sumSq = 0;
-    const step = Math.max(1, Math.floor(Math.max(width, height) / 220));
-
-    for (let y = 0; y < height; y += step) {
-      for (let x = 0; x < width; x += step) {
-        const i = (y * width + x) * 4;
-        const luminance = pixels[i] * 0.2126 + pixels[i + 1] * 0.7152 + pixels[i + 2] * 0.0722;
-        sampledPixels += 1;
-        sum += luminance;
-        sumSq += luminance * luminance;
-        if (luminance > 18 && pixels[i + 3] > 0) litPixels += 1;
-      }
-    }
-
-    const mean = sampledPixels ? sum / sampledPixels : 0;
-    const variance = sampledPixels ? Math.max(0, sumSq / sampledPixels - mean * mean) : 0;
+  const webgl = await page.evaluate(() => {
+    const item = Array.from(document.querySelectorAll("canvas")).find((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    }) as HTMLCanvasElement | undefined;
+    if (!item) return { ok: false, preserveDrawingBuffer: false };
+    const gl = item.getContext("webgl2") || item.getContext("webgl") || item.getContext("experimental-webgl");
     return {
-      visible: rect.width > 0 && rect.height > 0,
-      webgl: true,
-      sampledPixels,
-      litRatio: sampledPixels ? litPixels / sampledPixels : 0,
-      variance,
-      drawingBuffer: [width, height],
+      ok: Boolean(gl),
+      preserveDrawingBuffer: Boolean(gl?.getContextAttributes()?.preserveDrawingBuffer),
     };
   });
-}
 
+  if (!webgl.ok) {
+    return { visible: true, webgl: false, sampledPixels: 0, litRatio: 0, variance: 0 };
+  }
+
+  // The production canvas uses the default WebGL drawing buffer, where
+  // preserveDrawingBuffer is false. readPixels() from that default buffer is
+  // not a reliable post-compositor visual assertion and was returning zeroed
+  // pixels in CI despite the trace proving a visible 3D canvas. Sample the
+  // compositor output instead via a clipped PNG screenshot.
+  const png = await page.screenshot({ clip: box, animations: "disabled" });
+  const bytes = Buffer.from(png);
+  if (bytes.toString("ascii", 1, 4) !== "PNG") {
+    return { visible: true, webgl: true, sampledPixels: 0, litRatio: 0, variance: 0, preserveDrawingBuffer: webgl.preserveDrawingBuffer };
+  }
+
+  let width = 0;
+  let height = 0;
+  let bitDepth = 0;
+  let colorType = 0;
+  let interlace = 0;
+  const idat: Buffer[] = [];
+  let offset = 8;
+  while (offset + 8 <= bytes.length) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.toString("ascii", offset + 4, offset + 8);
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+    if (dataEnd + 4 > bytes.length) break;
+    if (type === "IHDR") {
+      width = bytes.readUInt32BE(dataStart);
+      height = bytes.readUInt32BE(dataStart + 4);
+      bitDepth = bytes[dataStart + 8];
+      colorType = bytes[dataStart + 9];
+      interlace = bytes[dataStart + 12];
+    } else if (type === "IDAT") {
+      idat.push(bytes.subarray(dataStart, dataEnd));
+    } else if (type === "IEND") {
+      break;
+    }
+    offset = dataEnd + 4;
+  }
+
+  if (!width || !height || bitDepth !== 8 || interlace !== 0 || !idat.length || ![2, 6].includes(colorType)) {
+    return { visible: true, webgl: true, sampledPixels: 0, litRatio: 0, variance: 0, preserveDrawingBuffer: webgl.preserveDrawingBuffer };
+  }
+
+  const channels = colorType === 6 ? 4 : 3;
+  const stride = width * channels;
+  const raw = inflateSync(Buffer.concat(idat));
+  const rows = Buffer.alloc(height * stride);
+  let src = 0;
+  for (let y = 0; y < height; y += 1) {
+    const filter = raw[src++];
+    const rowStart = y * stride;
+    for (let x = 0; x < stride; x += 1) {
+      const value = raw[src++];
+      const left = x >= channels ? rows[rowStart + x - channels] : 0;
+      const up = y > 0 ? rows[rowStart - stride + x] : 0;
+      const upLeft = y > 0 && x >= channels ? rows[rowStart - stride + x - channels] : 0;
+      let decoded = value;
+      if (filter === 1) decoded = (value + left) & 0xff;
+      else if (filter === 2) decoded = (value + up) & 0xff;
+      else if (filter === 3) decoded = (value + Math.floor((left + up) / 2)) & 0xff;
+      else if (filter === 4) {
+        const p = left + up - upLeft;
+        const pa = Math.abs(p - left);
+        const pb = Math.abs(p - up);
+        const pc = Math.abs(p - upLeft);
+        const predictor = pa <= pb && pa <= pc ? left : pb <= pc ? up : upLeft;
+        decoded = (value + predictor) & 0xff;
+      }
+      rows[rowStart + x] = decoded;
+    }
+  }
+
+  let sampledPixels = 0;
+  let litPixels = 0;
+  let sum = 0;
+  let sumSq = 0;
+  const step = Math.max(1, Math.floor(Math.max(width, height) / 220));
+  for (let y = 0; y < height; y += step) {
+    for (let x = 0; x < width; x += step) {
+      const i = (y * stride) + (x * channels);
+      const luminance = rows[i] * 0.2126 + rows[i + 1] * 0.7152 + rows[i + 2] * 0.0722;
+      const alpha = channels === 4 ? rows[i + 3] : 255;
+      sampledPixels += 1;
+      sum += luminance;
+      sumSq += luminance * luminance;
+      if (luminance > 18 && alpha > 0) litPixels += 1;
+    }
+  }
+
+  const mean = sampledPixels ? sum / sampledPixels : 0;
+  const variance = sampledPixels ? Math.max(0, sumSq / sampledPixels - mean * mean) : 0;
+  return {
+    visible: true,
+    webgl: true,
+    sampledPixels,
+    litRatio: sampledPixels ? litPixels / sampledPixels : 0,
+    variance,
+    screenshotSize: bytes.length,
+    preserveDrawingBuffer: webgl.preserveDrawingBuffer,
+    drawingBuffer: [width, height],
+  };
+}
 async function assertD64(page: any, glbResponses: string[]) {
   const marker = await waitForProductionVisualMarker(page);
   const canvas = await inspectVisualCanvas(page);
