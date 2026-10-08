@@ -4,16 +4,17 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "packages/design-tokens/3d-visual-language.ts"
-      - "packages/design-tokens/3d-golden-theme-factory.ts"
-      - "scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
-      - "scripts/3d/blender/build_v2_13_production_art.py"
-      - "scripts/3d/blender/build_v2_13d_theme_production.py"
-      - "scripts/3d/validate-v2-13d-theme-production.mjs"
-      - "scripts/3d/review-v2-13d-preview-pack.py"
-      - ".github/workflows/3d-v2-13d-theme-production.yml"
-  push:
-    branches: [codex/3d-v2-13d-25-theme-production-expansion, main]
+  #     - "packages/design-tokens/3d-visual-language.ts"
+  #     - "packages/design-tokens/3d-golden-theme-factory.ts"
+  #     - "scripts/3d/generate-v2-13c-theme-factory-manifest.mjs"
+  #     - "scripts/3d/blender/build_v2_13_production_art.py"
+  #     - "scripts/3d/blender/build_v2_13d_theme_production.py"
+  #     - "scripts/3d/validate-v2-13d-theme-production.mjs"
+  #     - "scripts/3d/review-v2-13d-preview-pack.py"
+  #     - ".github/workflows/3d-v2-13d-theme-production.yml"
+  # Legacy V2.13D factory pipeline is manual/PR-only; it must not supersede Reference Real.
+  # push:
+  #   branches: [codex/3d-v2-13d-25-theme-production-expansion, main]
     paths:
       - "packages/design-tokens/3d-visual-language.ts"
       - "packages/design-tokens/3d-golden-theme-factory.ts"
