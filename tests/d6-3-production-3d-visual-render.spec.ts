@@ -32,44 +32,110 @@ async function waitForVisibleProductionAsset(page: any) {
 }
 
 async function inspectRenderedCanvas(page: any) {
-  return page.evaluate(() => {
-    const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
-    const canvas = canvases.find((item) => {
+  const canvas = page.locator("canvas").first();
+  const box = await canvas.boundingBox();
+  if (!box) return { canvas: 0, webgl: false, sampledPixels: 0, litPixels: 0, depthPixels: 0, litRatio: 0 };
+
+  const webgl = await page.evaluate(() => {
+    const node = Array.from(document.querySelectorAll("canvas")).find((item) => {
       const rect = item.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
-    });
-    if (!canvas) return { canvas: 0, webgl: false, sampledPixels: 0, litPixels: 0, depthPixels: 0 };
-
-    const rect = canvas.getBoundingClientRect();
-    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    if (!gl) return { canvas: rect.width * rect.height, webgl: false, sampledPixels: 0, litPixels: 0, depthPixels: 0 };
-
-    const width = gl.drawingBufferWidth;
-    const height = gl.drawingBufferHeight;
-    const pixels = new Uint8Array(width * height * 4);
-    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-    let sampledPixels = 0;
-    let litPixels = 0;
-    const step = Math.max(1, Math.floor(Math.max(width, height) / 240));
-    for (let y = 0; y < height; y += step) {
-      for (let x = 0; x < width; x += step) {
-        const i = (y * width + x) * 4;
-        const luminance = pixels[i] * 0.2126 + pixels[i + 1] * 0.7152 + pixels[i + 2] * 0.0722;
-        sampledPixels += 1;
-        if (luminance > 18 && pixels[i + 3] > 0) litPixels += 1;
-      }
-    }
-
-    return {
-      canvas: rect.width * rect.height,
-      webgl: true,
-      sampledPixels,
-      litPixels,
-      litRatio: sampledPixels ? litPixels / sampledPixels : 0,
-      drawingBuffer: [width, height],
-    };
+    }) as HTMLCanvasElement | undefined;
+    if (!node) return false;
+    return Boolean(node.getContext("webgl2") || node.getContext("webgl") || node.getContext("experimental-webgl"));
   });
+  if (!webgl) return { canvas: box.width * box.height, webgl: false, sampledPixels: 0, litPixels: 0, depthPixels: 0, litRatio: 0 };
+
+  const png = await page.screenshot({ clip: box, animations: "disabled" });
+  const bytes = Buffer.from(png);
+  if (bytes.toString("ascii", 1, 4) !== "PNG") {
+    return { canvas: box.width * box.height, webgl: true, sampledPixels: 0, litPixels: 0, depthPixels: 0, litRatio: 0 };
+  }
+
+  let width = 0, height = 0, bitDepth = 0, colorType = 0, interlace = 0;
+  const idat: Buffer[] = [];
+  let offset = 8;
+  while (offset + 8 <= bytes.length) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.toString("ascii", offset + 4, offset + 8);
+    const startOffset = offset + 8, endOffset = startOffset + length;
+    if (endOffset + 4 > bytes.length) break;
+    if (type === "IHDR") {
+      width = bytes.readUInt32BE(startOffset);
+      height = bytes.readUInt32BE(startOffset + 4);
+      bitDepth = bytes[startOffset + 8];
+      colorType = bytes[startOffset + 9];
+      interlace = bytes[startOffset + 12];
+    } else if (type === "IDAT") {
+      idat.push(bytes.subarray(startOffset, endOffset));
+    } else if (type === "IEND") {
+      break;
+    }
+    offset = endOffset + 4;
+  }
+
+  if (!width || !height || bitDepth !== 8 || interlace !== 0 || !idat.length || ![2, 6].includes(colorType)) {
+    return { canvas: box.width * box.height, webgl: true, sampledPixels: 0, litPixels: 0, depthPixels: 0, litRatio: 0 };
+  }
+
+  const channels = colorType === 6 ? 4 : 3;
+  const stride = width * channels;
+  const raw = inflateSync(Buffer.concat(idat));
+  const rows = Buffer.alloc(height * stride);
+  let src = 0;
+
+  for (let y = 0; y < height; y++) {
+    const filter = raw[src++];
+    const row = y * stride;
+    for (let x = 0; x < stride; x++) {
+      const value = raw[src++];
+      const left = x >= channels ? rows[row + x - channels] : 0;
+      const up = y ? rows[row - stride + x] : 0;
+      const upLeft = y && x >= channels ? rows[row - stride + x - channels] : 0;
+      let decoded = value;
+      if (filter === 1) decoded = (value + left) & 255;
+      else if (filter === 2) decoded = (value + up) & 255;
+      else if (filter === 3) decoded = (value + Math.floor((left + up) / 2)) & 255;
+      else if (filter === 4) {
+        const p = left + up - upLeft;
+        const pa = Math.abs(p - left), pb = Math.abs(p - up), pc = Math.abs(p - upLeft);
+        const predictor = pa <= pb && pa <= pc ? left : pb <= pc ? up : upLeft;
+        decoded = (value + predictor) & 255;
+      }
+      rows[row + x] = decoded;
+    }
+  }
+
+  let sampledPixels = 0;
+  let litPixels = 0;
+  let sum = 0;
+  let sumSq = 0;
+  const step = Math.max(1, Math.floor(Math.max(width, height) / 220));
+
+  for (let y = 0; y < height; y += step) {
+    for (let x = 0; x < width; x += step) {
+      const i = y * stride + x * channels;
+      const luminance = rows[i] * 0.2126 + rows[i + 1] * 0.7152 + rows[i + 2] * 0.0722;
+      const alpha = channels === 4 ? rows[i + 3] : 255;
+      sampledPixels += 1;
+      sum += luminance;
+      sumSq += luminance * luminance;
+      if (luminance > 18 && alpha > 0) litPixels += 1;
+    }
+  }
+
+  const mean = sampledPixels ? sum / sampledPixels : 0;
+  const variance = sampledPixels ? Math.max(0, sumSq / sampledPixels - mean * mean) : 0;
+  return {
+    canvas: box.width * box.height,
+    webgl: true,
+    sampledPixels,
+    litPixels,
+    depthPixels: 0,
+    litRatio: sampledPixels ? litPixels / sampledPixels : 0,
+    variance,
+    drawingBuffer: [width, height],
+  };
 }
 
 test.describe("V2.13D.6.3 Production 3D Visual Render Verification", () => {
