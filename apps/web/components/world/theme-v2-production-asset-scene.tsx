@@ -183,13 +183,13 @@ function ProductionAssetModel({
 
     if (camera instanceof THREE.PerspectiveCamera) {
       const portrait = viewport.width > 0 && viewport.height > viewport.width;
-      const margin = lowPower ? 1.28 : portrait ? 0.84 : 1.18;
+      const margin = lowPower ? 1.28 : portrait ? 1.34 : 1.18;
       const fovRadians = THREE.MathUtils.degToRad(camera.fov);
       const distance = Math.max(7.5, (sphere.radius / Math.tan(fovRadians / 2)) * margin);
       const targetY = THREE.MathUtils.clamp(
-        worldBounds.min.y + worldSize.y * 0.46,
-        0.85,
-        Math.max(1.15, worldBounds.max.y - worldSize.y * 0.12),
+        worldBounds.min.y + worldSize.y * (portrait ? 0.22 : 0.46),
+        portrait ? 0.45 : 0.85,
+        Math.max(portrait ? 0.9 : 1.15, worldBounds.max.y - worldSize.y * 0.12),
       );
       const target = new THREE.Vector3(worldCenter.x, targetY, worldCenter.z);
       camera.position.set(target.x, target.y + distance * 0.16, target.z + distance);
