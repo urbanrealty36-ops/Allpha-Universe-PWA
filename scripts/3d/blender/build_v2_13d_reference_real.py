@@ -232,3 +232,5 @@ def main():
     print(json.dumps({"ok":True,"phase":"V2.13D-REFERENCE-REAL","generated":len(rows),"root":ROOT},indent=2))
 
 if __name__=="__main__": main()
+
+# V2.13D golden visual gate QA trigger: Crystal AI City reference preview.
