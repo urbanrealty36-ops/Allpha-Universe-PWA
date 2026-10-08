@@ -1,0 +1,41 @@
+name: V2.13D.7 World → District → Booth Production Visual Runtime Reconciliation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "apps/web/components/world/**"
+      - "apps/web/components/district-experience-surface.tsx"
+      - "apps/web/components/booth-experience-surface.tsx"
+      - "apps/web/components/world/world-experience.tsx"
+      - "tests/world-district-booth-production-reconciliation.spec.ts"
+      - ".github/workflows/v2-13d7-world-district-booth-production-reconciliation.yml"
+
+jobs:
+  production-reconciliation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: World → District → Booth production reconciliation
+        env:
+          ALLPHA_QA_BASE_URL: https://allphaweb-production.up.railway.app
+          NEXT_PUBLIC_API_BASE_URL: https://allpha-api-production.up.railway.app
+        run: pnpm exec playwright test tests/world-district-booth-production-reconciliation.spec.ts --reporter=line
+      - name: Upload reconciliation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-v2-13d7-world-district-booth-reconciliation-evidence
+          path: |
+            test-results/**
+            playwright-report/**
+          if-no-files-found: warn
