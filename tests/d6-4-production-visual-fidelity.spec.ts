@@ -9,26 +9,15 @@ function worldUrl() {
 }
 
 async function waitForProductionVisualMarker(page: any) {
-  let marker: {
-    state: string;
-    meshCount: number;
-    objectCount: number;
-    materialCount: number;
-    bounds: string;
-    cameraDistance: number;
-    cameraFov: number;
-    cameraAspect: number;
-    cameraTarget: string;
-    visualProfile: string;
-    toneMapping: string;
-    outputColorSpace: string;
-    exposure: number;
-  } | null = null;
+  const locator = page.locator("[data-allpha-3d-runtime]").first();
 
-  await expect.poll(
-    async () => {
-      marker = await page.locator("[data-allpha-3d-runtime]").evaluate((element: HTMLElement) => ({
-        state: element.dataset.allpha3dAssetState ?? "unknown",
+  return await page.waitForFunction(
+    () => {
+      const element = document.querySelector("[data-allpha-3d-runtime]") as HTMLElement | null;
+      if (!element || element.dataset.allpha3dAssetState !== "visible") return false;
+
+      return {
+        state: element.dataset.allpha3dAssetState,
         meshCount: Number(element.dataset.allpha3dMeshCount ?? 0),
         objectCount: Number(element.dataset.allpha3dObjectCount ?? 0),
         materialCount: Number(element.dataset.allpha3dMaterialCount ?? 0),
@@ -41,13 +30,16 @@ async function waitForProductionVisualMarker(page: any) {
         toneMapping: element.dataset.allpha3dToneMapping ?? "",
         outputColorSpace: element.dataset.allpha3dOutputColorSpace ?? "",
         exposure: Number(element.dataset.allpha3dExposure ?? 0),
-      }));
-      return marker.state;
+      };
     },
-    { timeout: 180_000, intervals: [500, 1000, 2000, 5000] },
-  ).toBe("visible");
-
-  return marker!;
+    { timeout: 180_000 },
+  ).then(async (handle: any) => {
+    try {
+      return await handle.jsonValue();
+    } finally {
+      await handle.dispose();
+    }
+  });
 }
 
 async function inspectVisualCanvas(page: any) {
