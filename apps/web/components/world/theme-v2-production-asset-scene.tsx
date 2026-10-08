@@ -44,6 +44,7 @@ function ProductionAssetModel({
 }) {
   const gltf = useGLTF(url);
   const camera = useThree((state) => state.camera);
+  const controls = useThree((state) => state.controls);
   const viewport = useThree((state) => state.size);
   const visibleRef = useMemo(() => ({ value: false }), []);
   const prepared = useMemo(() => {
@@ -194,6 +195,11 @@ function ProductionAssetModel({
       camera.position.set(target.x, target.y + distance * 0.16, target.z + distance);
       camera.lookAt(target);
       camera.updateProjectionMatrix();
+      if (controls && typeof controls === "object") {
+        const orbitControls = controls as { target?: THREE.Vector3; update?: () => void };
+        orbitControls.target?.copy(target);
+        orbitControls.update?.();
+      }
 
       const metrics: ProductionAssetRuntimeMetrics = {
         ...prepared.metrics,
@@ -211,7 +217,7 @@ function ProductionAssetModel({
       writeRuntimeState("loaded");
       writeRuntimeMetrics(prepared.metrics);
     }
-  }, [camera, onLoaded, prepared, runtimeMetricsRef, viewport.height, viewport.width, lowPower]);
+  }, [camera, controls, onLoaded, prepared, runtimeMetricsRef, viewport.height, viewport.width, lowPower]);
 
   useFrame(({ clock }) => {
     prepared.scene.updateMatrixWorld(true);
