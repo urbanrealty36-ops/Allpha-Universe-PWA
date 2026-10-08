@@ -730,12 +730,19 @@ export default function AllphaWorldRenderer({
   liveAgentStageState,
 }: Props) {
   const productionRuntimeMarkerRef = useRef<HTMLDivElement | null>(null);
-  const handleProductionAssetState = useCallback((state: ProductionAssetRuntimeState) => {
-    const marker = productionRuntimeMarkerRef.current;
-    if (marker) marker.dataset.allpha3dAssetState = state;
+  const resolveProductionRuntimeMarker = useCallback(() => {
+    return productionRuntimeMarkerRef.current ?? (
+      typeof document !== "undefined"
+        ? document.querySelector("[data-allpha-3d-runtime]") as HTMLDivElement | null
+        : null
+    );
   }, []);
+  const handleProductionAssetState = useCallback((state: ProductionAssetRuntimeState) => {
+    const marker = resolveProductionRuntimeMarker();
+    if (marker) marker.dataset.allpha3dAssetState = state;
+  }, [resolveProductionRuntimeMarker]);
   const handleProductionAssetMetrics = useCallback((metrics: ProductionAssetRuntimeMetrics) => {
-    const marker = productionRuntimeMarkerRef.current;
+    const marker = resolveProductionRuntimeMarker();
     if (!marker) return;
     marker.dataset.allpha3dMeshCount = String(metrics.meshCount);
     marker.dataset.allpha3dObjectCount = String(metrics.objectCount);
