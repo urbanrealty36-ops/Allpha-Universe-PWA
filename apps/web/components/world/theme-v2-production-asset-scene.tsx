@@ -240,7 +240,7 @@ function ProductionAssetModel({
   });
 
   const scale = category === "universe" ? 1.08 : category === "galaxy" ? 1.02 : category === "world" ? 1 : 0.94;
-  return <primitive object={prepared.scene} scale={scale} />;
+  return <primitive object={prepared.scene} scale={scale * prepared.fitScale} />;
 }
 
 export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = false, reducedMotion = false, fallback = null, onRuntimeState, onRuntimeMetrics }: {
