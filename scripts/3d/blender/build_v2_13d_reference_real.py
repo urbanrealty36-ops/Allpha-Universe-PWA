@@ -279,12 +279,12 @@ def studio_set(m, variant=0):
         cube("Softbox",(x,6.3,1.4),(1.05,.10,.55),m["ice"],.08)
         cyl("SoftboxRig",(x,6.0,1.4),.025,.55,m["metal"],12,.008)
 
-def reference_environment(m, category, theme_i):
+def reference_environment(m, category, theme_i, p):
     if category == "district":
         studio_set(m, theme_i)
     elif category == "world":
         # World remains a city-scale environment but gains a recognizable media campus.
-        city(m, None, theme_i, False)
+        city(m, p, theme_i, False)
         studio_set(m, theme_i)
     else:
         return
@@ -326,7 +326,7 @@ def build_one(theme,p,category,preview):
     elif category=="galaxy": galaxy(m,ti)
     elif category=="world":
         city(m,p,ti,False)
-        reference_environment(m,category,ti)
+        reference_environment(m,category,ti,p)
     else:
         city(m,p,ti,True)
         reference_environment(m,category,ti)
