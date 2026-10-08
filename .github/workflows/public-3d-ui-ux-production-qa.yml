@@ -40,3 +40,5 @@ jobs:
             test-results/**
             playwright-report/**
           if-no-files-found: warn
+
+# Public 3D UI/UX gate runs against the canonical Railway production surface.
