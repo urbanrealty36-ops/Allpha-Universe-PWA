@@ -66,6 +66,7 @@ function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
           category={layer === "world" ? "world" : "universe"}
           lowPower={false}
           reducedMotion={reducedMotion}
+          allowProceduralFallback={false}
         />
         <HumanSilhouette identity={variant === "identity"} />
       </Cinematic3DScene>
