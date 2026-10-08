@@ -46,7 +46,7 @@ test.describe("World → District → Booth production visual/runtime reconcilia
 
   test("canonical production World remains visually live", async ({ page }) => {
     await page.goto(`${BASE_URL}/world?world_id=${WORLD_ID}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await expect(page.getByRole("heading", { name: WORLD_NAME })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("h1").filter({ hasText: WORLD_NAME })).toBeVisible({ timeout: 60_000 });
 
     const marker = page.locator("[data-allpha-3d-runtime]").first();
     await expect.poll(
