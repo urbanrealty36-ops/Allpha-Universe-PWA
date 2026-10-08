@@ -112,13 +112,13 @@ function ProductionAssetModel({
     // guaranteed to match the runtime camera. Normalize only the presentation
     // transform: preserve geometry/materials while centering the asset and
     // placing its lowest point on the World floor.
-    scene.scale.setScalar(fitScale);
     const basePosition: [number, number, number] = [-center.x * fitScale, -bounds.min.y * fitScale, -center.z * fitScale];
     scene.position.set(...basePosition);
 
     return {
       scene,
       basePosition,
+      fitScale,
       metrics: {
         meshCount,
         objectCount,
