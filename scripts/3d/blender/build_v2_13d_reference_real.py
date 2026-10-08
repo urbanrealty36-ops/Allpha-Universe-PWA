@@ -4,7 +4,7 @@ This replaces the rejected primitive D3C visual grammar with reference-led,
 architectural production scenes. Blender is the art-authoring layer only.
 Runtime authority remains AllphaWorldRenderer.
 
-Scope: 25 themes x Universe/Galaxy/World/District = 100 macro assets.
+Scope: 25 themes x Universe/Galaxy/World/District = 100 macro assets.\nAuthoritative asset generation: V2.13D Reference Real only; legacy V2.13/V2.13B production builders are not runtime sources.
 Reference language: cinematic depth, believable scale, architectural detail,
 PBR-like materials, practical/emissive lighting, atmospheric separation,
 mobile-portrait composition, real spatial environments.
