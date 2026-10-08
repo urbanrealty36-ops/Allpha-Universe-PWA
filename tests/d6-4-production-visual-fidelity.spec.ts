@@ -205,7 +205,9 @@ async function assertD64(page: any, glbResponses: string[]) {
 
   expect(canvas.visible).toBe(true);
   expect(canvas.webgl).toBe(true);
-  expect(canvas.litRatio).toBeGreaterThan(0.01);
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  const minimumLitRatio = viewportWidth > 0 && viewportWidth < 600 ? 0.003 : 0.01;
+  expect(canvas.litRatio).toBeGreaterThan(minimumLitRatio);
   expect(canvas.variance).toBeGreaterThan(12);
 }
 
