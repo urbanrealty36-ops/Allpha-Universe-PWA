@@ -1,0 +1,64 @@
+name: V2.13D Reference Real Manual Production Promotion
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: "Successful Reference Real build workflow run ID"
+        required: true
+        type: string
+      production_promotion_approval:
+        description: "Explicit production promotion approval"
+        required: true
+        type: choice
+        options: ["false","true"]
+        default: "false"
+      confirmation:
+        description: "Exact approval phrase"
+        required: true
+        default: "V2.13D REFERENCE REAL APPROVE 100 MACRO ASSETS"
+permissions:
+  actions: read
+  contents: read
+jobs:
+  promote:
+    if: inputs.production_promotion_approval == 'true' && inputs.confirmation == 'V2.13D REFERENCE REAL APPROVE 100 MACRO ASSETS'
+    runs-on: ubuntu-latest
+    environment: allpha-production-3d-golden
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v5
+        with:
+          name: allpha-3d-v2-13d-reference-real-evidence
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: urbanrealty36-ops/Allpha-Universe-PWA
+          run-id: ${{ inputs.build_run_id }}
+          path: reference-real-evidence
+      - name: Validate evidence before mutation
+        run: node scripts/3d/validate-v2-13d-reference-real.mjs
+        env:
+          ALLPHA_V213D_OUT: reference-real-evidence/allpha-theme-v2-13d-reference-real
+      - name: Promote and replace the old macro GLBs
+        env:
+          SUPABASE_URL: https://qltbacemtvnuzqkterly.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ALLPHA_REFERENCE_REAL_APPROVED: "true"
+          ALLPHA_REFERENCE_REAL_CONFIRMATION: ${{ inputs.confirmation }}
+          ALLPHA_REFERENCE_REAL_ROOT: reference-real-evidence/allpha-theme-v2-13d-reference-real
+        run: node scripts/3d/v2-13d-reference-real-promotion.mjs
+      - name: Verify 100 production objects and checksums
+        env:
+          SUPABASE_URL: https://qltbacemtvnuzqkterly.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node - <<'NODE'
+const https=require("https");
+const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+const url=process.env.SUPABASE_URL+"/rest/v1/theme_assets?select=storage_path,status,moderation_status,safety_status,performance_status&storage_bucket=eq.allpha-world-assets&storage_path=like.theme-v2-real-3d%2Fv2.13%2F*&limit=200";
+https.get(url,{headers:{apikey:key,Authorization:"Bearer "+key}},r=>{let b="";r.on("data",x=>b+=x);r.on("end",()=>{if(r.statusCode!==200)process.exit(1);const a=JSON.parse(b);if(a.length<100)process.exit(1);const good=a.filter(x=>x.status==="active"&&x.moderation_status==="approved"&&x.safety_status==="passed"&&x.performance_status==="passed");if(good.length<100)process.exit(1);console.log(JSON.stringify({productionMacroRows:a.length,activeApproved:good.length},null,2));});});
+NODE
+      - name: Upload promotion evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-3d-v2-13d-reference-real-promotion-evidence
+          path: v2-13d-reference-real-promotion-report.json
+          retention-days: 30
