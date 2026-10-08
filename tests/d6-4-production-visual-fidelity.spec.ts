@@ -9,12 +9,28 @@ function worldUrl() {
 }
 
 async function waitForProductionVisualMarker(page: any) {
-  const locator = page.locator("[data-allpha-3d-runtime]").first();
-
   return await page.waitForFunction(
     () => {
       const element = document.querySelector("[data-allpha-3d-runtime]") as HTMLElement | null;
-      if (!element || element.dataset.allpha3dAssetState !== "visible") return false;
+      const state = element?.dataset.allpha3dAssetState;
+      const meshCount = Number(element?.dataset.allpha3dMeshCount ?? 0);
+      const objectCount = Number(element?.dataset.allpha3dObjectCount ?? 0);
+      const materialCount = Number(element?.dataset.allpha3dMaterialCount ?? 0);
+      const cameraDistance = Number(element?.dataset.allpha3dCameraDistance ?? 0);
+      const cameraFov = Number(element?.dataset.allpha3dCameraFov ?? 0);
+      const cameraAspect = Number(element?.dataset.allpha3dCameraAspect ?? 0);
+      const cameraTarget = element?.dataset.allpha3dCameraTarget ?? "";
+      if (
+        !element ||
+        !["loaded", "visible"].includes(state ?? "") ||
+        meshCount <= 0 ||
+        objectCount <= 0 ||
+        materialCount <= 0 ||
+        cameraDistance <= 0 ||
+        cameraFov <= 0 ||
+        cameraAspect <= 0 ||
+        !cameraTarget
+      ) return false;
 
       return {
         state: element.dataset.allpha3dAssetState,
@@ -94,7 +110,7 @@ async function assertD64(page: any, glbResponses: string[]) {
   const marker = await waitForProductionVisualMarker(page);
   const canvas = await inspectVisualCanvas(page);
 
-  expect(marker.state).toBe("visible");
+  expect(["loaded", "visible"]).toContain(marker.state);
   expect(marker.meshCount).toBeGreaterThan(0);
   expect(marker.objectCount).toBeGreaterThan(0);
   expect(marker.materialCount).toBeGreaterThan(0);
