@@ -220,6 +220,7 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
             <div className="min-h-[420px] sm:min-h-[560px]">
               {scene ? (
                 <AllphaWorldRenderer
+                  productionSpatialLayer="world"
                   scene={scene}
                   themeKey={world.theme_key}
                   tokens={selectedTheme?.tokens}
