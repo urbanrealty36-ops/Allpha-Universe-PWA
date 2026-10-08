@@ -1,0 +1,47 @@
+name: V2.13D.6.5 Desktop + Mobile Production Visual QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tests/d6-5-desktop-mobile-production-visual-qa.spec.ts"
+      - ".github/workflows/v2-13d6-5-desktop-mobile-production-visual-qa.yml"
+      - "apps/web/**"
+      - "packages/design-tokens/**"
+      - "docs/continue-context/ALLPHA_MASTER_CONTINUE_CONTEXT_20261007.md"
+
+jobs:
+  desktop-mobile-production-visual-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Resolve canonical World ID from Continue Context
+        shell: bash
+        run: |
+          WORLD_ID="$(sed -n '/Authoritative URL:/,+2p' docs/continue-context/ALLPHA_MASTER_CONTINUE_CONTEXT_20261007.md | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1)"
+          test -n "$WORLD_ID"
+          echo "ALLPHA_D6_WORLD_ID=$WORLD_ID" >> "$GITHUB_ENV"
+          echo "Resolved canonical World ID from locked Continue Context."
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Desktop + Mobile production visual QA
+        env:
+          ALLPHA_QA_BASE_URL: https://allphaweb-production.up.railway.app
+          NEXT_PUBLIC_API_BASE_URL: https://allpha-api-production.up.railway.app
+        run: pnpm exec playwright test tests/d6-5-desktop-mobile-production-visual-qa.spec.ts --reporter=line
+      - name: Upload D6.5 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allpha-d6-5-desktop-mobile-production-visual-qa-evidence
+          path: |
+            test-results/**
+            playwright-report/**
+          if-no-files-found: warn
