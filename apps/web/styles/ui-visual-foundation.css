@@ -564,3 +564,10 @@ body.allpha-ui-foundation-v1 ::-webkit-scrollbar-thumb:hover { background: rgba(
 @media(prefers-reduced-motion:reduce){
   .allpha-ui-foundation-v1 .allpha-public-node{transition:none}
 }
+
+
+/* Public 3D UI/UX — public World gateway */
+.allpha-ui-foundation-v1 .allpha-public-splash-actions{display:flex;flex-direction:column;align-items:center;gap:9px;width:min(390px,100%);margin-top:22px}
+.allpha-ui-foundation-v1 .allpha-public-splash-actions .allpha-auth-primary-wide{margin-top:0}
+.allpha-ui-foundation-v1 .allpha-public-splash-explore{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(3,7,18,.24);color:rgba(255,255,255,.62);font-size:9px;font-weight:700;letter-spacing:.02em;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);text-decoration:none}
+.allpha-ui-foundation-v1 .allpha-public-splash-explore:hover{border-color:rgba(103,232,249,.28);color:#e9fcff;background:rgba(103,232,249,.06)}
