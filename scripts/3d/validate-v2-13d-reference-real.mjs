@@ -21,6 +21,13 @@ for(const item of m.assets||[]){
  if(!fs.existsSync(file)) { errors.push("GLB_MISSING:"+key); continue; }
  const b=fs.readFileSync(file);
  if(b.subarray(0,4).toString("ascii")!=="glTF") errors.push("GLB_HEADER:"+key);
+ const gltfText=b.toString("utf8");
+ if((item.category==="world"||item.category==="district") && !gltfText.includes("StudioFloor"))
+   errors.push("REFERENCE_STUDIO_MISSING:"+key);
+ if((item.category==="world"||item.category==="district") && !gltfText.includes("PresentationDesk"))
+   errors.push("REFERENCE_STAGE_MISSING:"+key);
+ if((item.category==="world"||item.category==="district") && !gltfText.includes("FigureHead"))
+   errors.push("REFERENCE_PRESENCE_MISSING:"+key);
  if(b.length<50000) errors.push("GLB_TOO_SMALL_REFERENCE_REAL:"+key+":"+b.length);
  if(item.artQuality!=="reference-realistic-production-v2") errors.push("ART_QUALITY:"+key);
  assets.push({theme:item.themeKey,category:item.category,bytes:b.length,sha256:crypto.createHash("sha256").update(b).digest("hex")});
