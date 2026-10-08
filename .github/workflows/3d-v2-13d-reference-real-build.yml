@@ -8,12 +8,6 @@ on:
       - "scripts/3d/validate-v2-13d-reference-real.mjs"
       - ".github/workflows/3d-v2-13d-reference-real-build.yml"
   workflow_dispatch:
-    inputs:
-      preview:
-        description: "Render 100 portrait reference previews"
-        required: true
-        default: true
-        type: boolean
 
 jobs:
   reference-real-build:
@@ -42,12 +36,7 @@ jobs:
         env:
           ALLPHA_V213D_OUT: allpha-theme-v2-13d-reference-real
           ALLPHA_V213C_MANIFEST: allpha-v2-13c-theme-factory-manifest.json
-        run: |
-          if [ "${{ inputs.preview }}" = "false" ]; then
-            blender -b --python scripts/3d/blender/build_v2_13d_reference_real.py --
-          else
-            blender -b --python scripts/3d/blender/build_v2_13d_reference_real.py -- --preview
-          fi
+        run: blender -b --python scripts/3d/blender/build_v2_13d_reference_real.py --
       - name: Validate reference-real pack
         env:
           ALLPHA_V213D_OUT: allpha-theme-v2-13d-reference-real
