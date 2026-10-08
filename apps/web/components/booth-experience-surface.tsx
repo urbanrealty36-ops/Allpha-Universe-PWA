@@ -460,6 +460,7 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
             {scene && boothNode ? (
               <AllphaWorldRenderer
                 productionSpatialLayer="booth"
+                productionAssetUrl={typeof boothNode.metadata?.model_url === "string" ? boothNode.metadata.model_url : null}
                 scene={scene}
                 tokens={theme?.tokens}
                 lowPower={lowPower}
