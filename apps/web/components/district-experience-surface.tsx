@@ -422,6 +422,7 @@ export default function DistrictExperienceSurface({ districtId }: { districtId: 
           <div className="absolute inset-0 bg-[#02040b]">
             {scene ? (
               <AllphaWorldRenderer
+                productionSpatialLayer="district"
                 scene={scene}
                 tokens={activeTheme?.tokens}
                 lowPower={lowPower}
