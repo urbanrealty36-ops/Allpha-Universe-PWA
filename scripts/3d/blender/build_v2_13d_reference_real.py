@@ -55,6 +55,8 @@ def materials():
       "warm":mat("REF_Warm",(.42,.16,.045,1),.08,.30,(1,.28,.06,1),2.2),
       "green":mat("REF_Green",(.025,.11,.055,1),.05,.68),
       "water":mat("REF_Water",(.006,.045,.075,1),.16,.08,p["cyan"],.12,.34),
+      "wood":mat("REF_Wood",(.20,.065,.028,1),.05,.34),
+      "fabric":mat("REF_Fabric",(.045,.055,.075,1),0,.72),
       "skin":mat("REF_Skin",p["skin"],0,.42),
     }
 
@@ -82,7 +84,7 @@ def building(m,x,z,w,h,d,theme_i,style=0):
         cube("FacadeFin",(x+side*(w/2-.08),h*.58,z),(0.035,h*.39,d*.53),m["accent"],.018,rot)
     for level in (0.34,.62,.86):
         if h>5:
-            tor("FacadeBand",(x,h*level,z),w*.54,.018,m["light"],(0,0,0),64)
+            cube("FacadeLightBand",(x,h*level,z-d/2-.035),(w*.40,.018,.028),m["light"],.008,rot)
     if style%3==0:
         cube("RoofGarden",(x,h+.08,z),(w*.30,.08,d*.30),m["green"],.025,rot)
     if style%4==1:
@@ -124,20 +126,29 @@ def city(m,p,theme_i,district=False):
            (-1.0,5.0,1.35,9.5),(1.0,5.3,1.55,11.0)]
     for i,(x,z,w,h) in enumerate(specs):
         building(m,x,z,w,h,w*.72,theme_i,i)
-    # Civic landmark: layered tower rather than primitive monolith.
-    for i in range(5):
-        y=.4+i*.72; r=1.75-i*.19
-        cyl("CivicTier",(0,y,.9),r,.34,m["metal"],64,.035)
-        tor("CivicLight",(0,y+.18,.9),r*.9,.022,m["light"],(math.pi/2,0,0),96)
-    cyl("CivicCore",(0,4.2,.9),.62,7.4,m["glass"],64,.05)
-    for y in (1.6,2.6,3.6,4.6,5.6,6.6): tor("CivicRing",(0,y,.9),.86,.026,m["ice"],(math.pi/2,0,0),80)
+    # Civic landmark: architectural tower with stepped podium, glazing and vertical fins.
+    cube("CivicPodium",(0,.35,.9),(2.15,.28,1.25),m["metal"],.18)
+    for i in range(4):
+        y=.95+i*1.45
+        width=1.72-i*.18
+        depth=1.05-i*.10
+        cube("CivicLevel",(0,y,.9),(width,.55,depth),m["glass"],.12)
+        cube("CivicFrontLight",(0,y,.9-depth-.035),(width*.72,.035,.026),m["light"],.008)
+    cyl("CivicCore",(0,4.25,.9),.54,7.3,m["glass"],64,.05)
+    for x in (-.72,.72):
+        cube("CivicVerticalFin",(x,4.15,.15),(.075,3.55,.10),m["ice"],.02)
+    cube("CivicCrown",(0,8.05,.9),(1.18,.18,.78),m["metal"],.12)
+    cube("CivicCrownLight",(0,8.22,.9),(.82,.025,.52),m["light"],.01)
     # Pedestrian scale.
     for x,z in [(-6,-2.3),(-4,-2.2),(4,-2.2),(6,-2.3),(0,-1.9)]:
         streetlight(m,x,z,2.6)
     for x,z in [(-6.8,-1.7),(-5.5,1.7),(5.8,1.4),(6.7,3.8)]: tree(m,x,z,.9)
     if district:
-        for x in (-2.2,2.2): cube("DistrictGateway",(x,1.8,-.6),(.18,1.8,.18),m["accent"],.03)
-        tor("DistrictPortal",(0,2.2,-.6),2.2,.05,m["light"],(math.pi/2,0,0),112)
+        for x in (-2.2,2.2):
+            cube("DistrictGateway",(x,1.8,-.6),(.18,1.8,.18),m["accent"],.03)
+            cube("DistrictGatewayLight",(x,1.85,-.80),(.035,1.35,.025),m["light"],.01)
+        cube("DistrictGatewayHeader",(0,3.55,-.6),(2.38,.18,.18),m["accent"],.06)
+        cube("DistrictGatewayHeaderLight",(0,3.56,-.80),(1.85,.025,.025),m["light"],.01)
 
 def planet(m,theme_i):
     sph("Planet",(0,3.5,1.2),(2.55,2.55,2.55),m["ground"])
@@ -200,14 +211,18 @@ def human_figure(m, x, z, scale=1.0, rot=0, ai=False):
     cyl("FigureLegL",(x-.13*scale,.55*scale,z),.085*scale,.85*scale,suit_mat,24,.025)
     cyl("FigureLegR",(x+.13*scale,.55*scale,z),.085*scale,.85*scale,suit_mat,24,.025)
     sph("FigureTorso",(x,1.20*scale,z),(.30*scale,.48*scale,.20*scale),suit_mat)
+    sph("FigureShoulders",(x,1.43*scale,z),(.40*scale,.14*scale,.23*scale),suit_mat)
+    cyl("FigureNeck",(x,1.57*scale,z),.075*scale,.16*scale,body_mat,20,.018)
     sph("FigureHead",(x,1.86*scale,z),(.22*scale,.25*scale,.22*scale),body_mat)
     if ai:
-        tor("AIHeadHalo",(x,1.86*scale,z),.27*scale,.012*scale,m["light"],(math.pi/2,0,0),64)
         cube("AIEyeBand",(x,1.87*scale,z-.215*scale),(.13*scale,.025*scale,.012*scale),m["light"],.01)
+        cube("AIJawAccent",(x,1.72*scale,z-.19*scale),(.12*scale,.025*scale,.035*scale),m["ice"],.01)
     else:
         sph("FigureHair",(x,2.06*scale,z),(.23*scale,.08*scale,.22*scale),m["dark"])
     for side in (-1,1):
         cyl("FigureArm",(x+side*.38*scale,1.23*scale,z),.065*scale,.72*scale,suit_mat,20,.02)
+        sph("FigureHand",(x+side*.38*scale,.86*scale,z),(.075*scale,.09*scale,.075*scale),body_mat)
+        cube("FigureShoe",(x+side*.13*scale,.12*scale,z-.08*scale),(.16*scale,.08*scale,.26*scale),m["dark"],.04)
     o=bpy.context.object
     o.rotation_euler[2]=rot
 
@@ -218,8 +233,14 @@ def display_screen(m, x, y, z, w, h, rot=0):
 def studio_set(m, variant=0):
     # Reference-led AI media/live studio: floor, wall panels, practical shelves,
     # cameras, stage desk, display wall and presenter/owned-agent presence.
-    cube("StudioFloor",(0,.0,1.0),(7.6,.08,5.7),m["ground"],.14)
+    cube("StudioFloor",(0,.0,1.0),(7.6,.08,5.7),m["wood"],.14)
     cube("StudioBackWall",(0,3.2,7.0),(7.6,3.2,.18),m["dark"],.12)
+    cube("StudioSideWallL",(-7.45,3.0,1.0),(.16,3.0,5.7),m["metal"],.10)
+    cube("StudioSideWallR",(7.45,3.0,1.0),(.16,3.0,5.7),m["metal"],.10)
+    for x in (-6.0,-3.0,0,3.0,6.0):
+        cube("CeilingBeam",(x,6.1,1.0),(1.15,.10,5.3),m["metal"],.04)
+    for z in (-3.8,-1.2,1.4,4.0):
+        cube("FloorInlay",(0,.10,z),(6.7,.018,.025),m["warm"],.006)
     for x in (-6.3,-4.2,4.2,6.3):
         cube("WallPanel",(x,3.2,6.72),(1.55,2.7,.05),m["metal"],.06)
     for x in (-5.8,-3.9,3.9,5.8):
@@ -232,9 +253,14 @@ def studio_set(m, variant=0):
         sph("ShelfPlant",(x,1.78,6.38),(.18,.22,.18),m["green"])
     # Large hero display.
     display_screen(m,0,3.0,6.42,4.8,2.45)
+    for x in (-2.7,-1.8,1.8,2.7):
+        cube("AcousticPanel",(x,2.8,6.46),(.34,1.65,.06),m["fabric"],.035)
     # Presentation desk / stage.
     cube("StageDeck",(0,.24,2.0),(3.7,.16,1.65),m["metal"],.16)
-    tor("StageLightRing",(0,.42,2.0),3.05,.045,m["light"],(math.pi/2,0,0),128)
+    cube("StageLightFront",(0,.47,.38),(3.0,.035,.04),m["light"],.012)
+    cube("StageLightLeft",(-3.05,.47,2.0),(.04,.035,1.25),m["light"],.012)
+    cube("StageLightRight",(3.05,.47,2.0),(.04,.035,1.25),m["light"],.012)
+    cube("StageStepFront",(0,.14,.25),(3.2,.10,.42),m["dark"],.10)
     cube("PresentationDesk",(0,1.15,1.35),(1.65,.12,.62),m["glass"],.08)
     display_screen(m,0,1.45,1.0,2.55,1.05)
     human_figure(m,-1.25,.85,1.0,ai=False)
