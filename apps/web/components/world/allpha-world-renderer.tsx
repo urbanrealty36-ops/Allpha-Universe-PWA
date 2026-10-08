@@ -81,6 +81,7 @@ type Props = {
   liveAgentId?: string | null;
   humanPresentationState?: LiveStageActorState;
   liveAgentStageState?: LiveStageActorState;
+  productionSpatialLayer?: "world" | "district" | "booth";
 };
 
 function Structure({ kind, color, accent, position, scale = 1 }: {
@@ -622,11 +623,12 @@ function LiveCollaborationStageView({
 }
 
 function WorldObjects({
-  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,selectedBoothId,selectedDistrictId,themePackUrl,themeKey:themeKeyOverride,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance,liveStageMode,humanPresentationActive,humanPresentationStatus,liveCollaborationActive,liveCollaborationConsentApproved,liveCollaborationRiskAllowed,liveAgentId,humanPresentationState,liveAgentStageState,onProductionAssetState,onProductionAssetMetrics
+  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,productionSpatialLayer,selectedBoothId,selectedDistrictId,themePackUrl,themeKey:themeKeyOverride,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance,liveStageMode,humanPresentationActive,humanPresentationStatus,liveCollaborationActive,liveCollaborationConsentApproved,liveCollaborationRiskAllowed,liveAgentId,humanPresentationState,liveAgentStageState,onProductionAssetState,onProductionAssetMetrics
 }: {
   scene:WorldScene; tokens?:Record<string,unknown>; onHotspot?:Props["onHotspot"]; lowPower:boolean;
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
   spatialObjects:DistrictSpatialObject[];
+  productionSpatialLayer?: "world" | "district" | "booth";
   selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; themeKey?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"]; liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState; onProductionAssetState?: (state: ProductionAssetRuntimeState) => void; onProductionAssetMetrics?: (metrics: ProductionAssetRuntimeMetrics) => void;
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
@@ -637,7 +639,7 @@ function WorldObjects({
   const zones=scene.zones;
   const density=lowPower?Math.min(4,style.density):style.density;
   const hasThemePack=Boolean(themePackUrl);
-  const spatialLayer = String(scene.environment?.spatial_layer ?? "world");
+  const spatialLayer = productionSpatialLayer ?? String(scene.environment?.spatial_layer ?? "world");
   const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -728,6 +730,7 @@ export default function AllphaWorldRenderer({
   liveAgentId,
   humanPresentationState,
   liveAgentStageState,
+  productionSpatialLayer,
 }: Props) {
   const productionRuntimeMarkerRef = useRef<HTMLDivElement | null>(null);
   const resolveProductionRuntimeMarker = useCallback(() => {
@@ -760,7 +763,7 @@ export default function AllphaWorldRenderer({
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
   const goldenLayer=String(scene.environment?.spatial_layer ?? "");
-  const spatialLayer=String(scene.environment?.spatial_layer ?? "");
+  const spatialLayer=productionSpatialLayer ?? String(scene.environment?.spatial_layer ?? "");
   const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return <div className="relative h-[420px] w-full overflow-hidden bg-black sm:h-[560px]"
@@ -788,7 +791,7 @@ export default function AllphaWorldRenderer({
       <ambientLight intensity={.22}/>
       <directionalLight position={[8,14,6]} intensity={.8} castShadow={shadows}/>
       {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}
-      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} onProductionAssetState={handleProductionAssetState} onProductionAssetMetrics={handleProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
+      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} productionSpatialLayer={productionSpatialLayer} onProductionAssetState={handleProductionAssetState} onProductionAssetMetrics={handleProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
       {/* Production V2.13 World framing can legitimately exceed the generic editor orbit ceiling. */}\n      <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={spatialLayer === "world" ? 128 : 32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
           </Cinematic3DScene>
     </Canvas>
