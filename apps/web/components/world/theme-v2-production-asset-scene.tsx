@@ -233,10 +233,10 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
         const assets: ManifestAsset[] = payload?.data?.binary_3d_assets ?? [];
         const candidate = assets.find((asset) => {
           const path = String(asset.storage_path ?? "").toLowerCase();
-          const expectedPath = "theme-v2-real-3d/v2.13/" + themeKey + "/" + category + ".glb";
-          const metadataCategory = String(asset.metadata?.category ?? "").toLowerCase();
-          const categoryMatches = !metadataCategory || metadataCategory === category;
-          return Boolean(asset.signed_url) && path === expectedPath && categoryMatches && asset.metadata?.phase === "V2.13D.4";
+          const expectedPath = ("theme-v2-real-3d/v2.13/" + themeKey + "/" + category + ".glb").toLowerCase();
+          // The canonical V2.13 storage path is the runtime identity for this asset.
+          // Lifecycle/approval is already enforced by the public manifest API.
+          return Boolean(asset.signed_url) && path === expectedPath;
         });
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
