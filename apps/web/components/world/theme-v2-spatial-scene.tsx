@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeV2Real3DAsset } from "./theme-v2-real-3d-asset";
-import { ThemeV2ProductionAssetScene } from "./theme-v2-production-asset-scene";
+import { ThemeV2ProductionAssetScene, type ProductionAssetRuntimeMetrics, type ProductionAssetRuntimeState } from "./theme-v2-production-asset-scene";
 import type { AssetCategory } from "../../lib/world-engine/asset-factory";
 import { resolveProduction3DAsset } from "../../lib/world-engine/production-3d-runtime-resolver";
 
@@ -27,6 +27,8 @@ export function ThemeV2SpatialScene(props: {
   category?: AssetCategory;
   lowPower?: boolean;
   reducedMotion?: boolean;
+  onRuntimeState?: (state: ProductionAssetRuntimeState) => void;
+  onRuntimeMetrics?: (metrics: ProductionAssetRuntimeMetrics) => void;
 }) {
   const category = resolveThemeV2Category(props.layer ?? "world", props.category);
   const production = resolveProduction3DAsset(props.themeKey, category);
@@ -51,6 +53,8 @@ export function ThemeV2SpatialScene(props: {
         category={category}
         lowPower={props.lowPower}
         reducedMotion={props.reducedMotion}
+        onRuntimeState={props.onRuntimeState}
+        onRuntimeMetrics={props.onRuntimeMetrics}
         fallback={<ThemeV2Real3DAsset {...props} />}
       />
     </group>
