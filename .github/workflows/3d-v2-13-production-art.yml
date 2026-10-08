@@ -3,13 +3,14 @@ name: 3D-V2.13 Production Realistic Art Gate
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "scripts/3d/blender/**"
-      - "scripts/3d/qa-v2-13-production-art.mjs"
-      - "apps/web/lib/world-engine/production-realistic-art-v2-13.ts"
-      - ".github/workflows/3d-v2-13-production-art.yml"
-      - "package.json"
+  # Legacy V2.13 pipeline retained for manual historical validation only; new reference-real pipeline is authoritative.
+  # push:
+  #   paths:
+  #     - "scripts/3d/blender/**"
+  #     - "scripts/3d/qa-v2-13-production-art.mjs"
+  #     - "apps/web/lib/world-engine/production-realistic-art-v2-13.ts"
+  #     - ".github/workflows/3d-v2-13-production-art.yml"
+  #     - "package.json"
 
 jobs:
   contract:
