@@ -640,7 +640,6 @@ function WorldObjects({
   const color=primary.startsWith("#")?primary:style.accent;
   const zones=scene.zones;
   const density=lowPower?Math.min(4,style.density):style.density;
-  const hasThemePack=Boolean(themePackUrl);
   const spatialLayer = productionSpatialLayer ?? String(scene.environment?.spatial_layer ?? "world");
   const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
