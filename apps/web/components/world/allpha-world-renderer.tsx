@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 import { createSpatialCompositionV205 } from "../../lib/world-engine/spatial-composition-v2";
 import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
@@ -739,8 +739,27 @@ export default function AllphaWorldRenderer({
   humanPresentationState,
   liveAgentStageState,
 }: Props) {
-  const [productionAssetState, setProductionAssetState] = useState<ProductionAssetRuntimeState>("idle");
-  const [productionAssetMetrics, setProductionAssetMetrics] = useState<ProductionAssetRuntimeMetrics | null>(null);
+  const productionRuntimeMarkerRef = useRef<HTMLDivElement | null>(null);
+  const handleProductionAssetState = useCallback((state: ProductionAssetRuntimeState) => {
+    const marker = productionRuntimeMarkerRef.current;
+    if (marker) marker.dataset.allpha3dAssetState = state;
+  }, []);
+  const handleProductionAssetMetrics = useCallback((metrics: ProductionAssetRuntimeMetrics) => {
+    const marker = productionRuntimeMarkerRef.current;
+    if (!marker) return;
+    marker.dataset.allpha3dMeshCount = String(metrics.meshCount);
+    marker.dataset.allpha3dObjectCount = String(metrics.objectCount);
+    marker.dataset.allpha3dMaterialCount = String(metrics.materialCount);
+    marker.dataset.allpha3dBounds = metrics.bounds.size.map((value) => value.toFixed(3)).join(",");
+    marker.dataset.allpha3dCameraDistance = metrics.camera.distance.toFixed(3);
+    marker.dataset.allpha3dCameraFov = metrics.camera.fov.toFixed(2);
+    marker.dataset.allpha3dCameraAspect = metrics.camera.aspect.toFixed(3);
+    marker.dataset.allpha3dCameraTarget = metrics.camera.target.map((value) => value.toFixed(3)).join(",");
+    marker.dataset.allpha3dVisualProfile = metrics.visual.brandProfile;
+    marker.dataset.allpha3dToneMapping = metrics.visual.toneMapping;
+    marker.dataset.allpha3dOutputColorSpace = metrics.visual.outputColorSpace;
+    marker.dataset.allpha3dExposure = metrics.visual.exposure.toFixed(2);
+  }, []);
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
   const goldenLayer=String(scene.environment?.spatial_layer ?? "");
@@ -748,20 +767,21 @@ export default function AllphaWorldRenderer({
   const themeKey = themeKeyOverride ?? (typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined);
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return <div className="relative h-[420px] w-full overflow-hidden bg-black sm:h-[560px]"
+    ref={productionRuntimeMarkerRef}
     data-allpha-3d-runtime="true"
-    data-allpha-3d-asset-state={productionAssetState}
-    data-allpha-3d-mesh-count={productionAssetMetrics?.meshCount ?? 0}
-    data-allpha-3d-object-count={productionAssetMetrics?.objectCount ?? 0}
-    data-allpha-3d-material-count={productionAssetMetrics?.materialCount ?? 0}
-    data-allpha-3d-bounds={productionAssetMetrics ? productionAssetMetrics.bounds.size.map((value) => value.toFixed(3)).join(",") : ""}
-    data-allpha-3d-camera-distance={productionAssetMetrics?.camera.distance.toFixed(3) ?? "0"}
-    data-allpha-3d-camera-fov={productionAssetMetrics?.camera.fov.toFixed(2) ?? "0"}
-    data-allpha-3d-camera-aspect={productionAssetMetrics?.camera.aspect.toFixed(3) ?? "0"}
-    data-allpha-3d-camera-target={productionAssetMetrics ? productionAssetMetrics.camera.target.map((value) => value.toFixed(3)).join(",") : ""}
-    data-allpha-3d-visual-profile={productionAssetMetrics?.visual.brandProfile ?? ""}
-    data-allpha-3d-tone-mapping={productionAssetMetrics?.visual.toneMapping ?? ""}
-    data-allpha-3d-output-color-space={productionAssetMetrics?.visual.outputColorSpace ?? ""}
-    data-allpha-3d-exposure={productionAssetMetrics?.visual.exposure.toFixed(2) ?? "0"}
+    data-allpha-3d-asset-state="idle"
+    data-allpha-3d-mesh-count="0"
+    data-allpha-3d-object-count="0"
+    data-allpha-3d-material-count="0"
+    data-allpha-3d-bounds=""
+    data-allpha-3d-camera-distance="0"
+    data-allpha-3d-camera-fov="0"
+    data-allpha-3d-camera-aspect="0"
+    data-allpha-3d-camera-target=""
+    data-allpha-3d-visual-profile=""
+    data-allpha-3d-tone-mapping=""
+    data-allpha-3d-output-color-space=""
+    data-allpha-3d-exposure="0"
   >
     <Canvas dpr={dpr} shadows={shadows} performance={{min:.55}} gl={{antialias:!lowPower,powerPreference:lowPower?"low-power":"high-performance"}} onCreated={({ gl }) => configureCinematicRenderer(gl, lowPower)}>
       <Cinematic3DScene themeKey={themeKey} layer={(spatialLayer || goldenLayer || "universe") as any} lowPower={lowPower} reducedMotion={reducedMotion}>
@@ -771,7 +791,7 @@ export default function AllphaWorldRenderer({
       <ambientLight intensity={.22}/>
       <directionalLight position={[8,14,6]} intensity={.8} castShadow={shadows}/>
       {(["world","district","booth"].includes(spatialLayer)) ? <WorldDistrictBoothV2View layer={spatialLayer as "world"|"district"|"booth"} lowPower={lowPower} onHotspot={onHotspot} scene={scene}/> : null}
-      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} onProductionAssetState={setProductionAssetState} onProductionAssetMetrics={setProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
+      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} onProductionAssetState={handleProductionAssetState} onProductionAssetMetrics={handleProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
       <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
           </Cinematic3DScene>
     </Canvas>
