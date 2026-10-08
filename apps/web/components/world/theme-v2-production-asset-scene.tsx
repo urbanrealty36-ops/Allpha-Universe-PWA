@@ -243,9 +243,10 @@ function ProductionAssetModel({
   return <primitive object={prepared.scene} scale={scale * prepared.fitScale} />;
 }
 
-export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = false, reducedMotion = false, fallback = null, onRuntimeState, onRuntimeMetrics }: {
+export function ThemeV2ProductionAssetScene({ themeKey, category, directAssetUrl = null, lowPower = false, reducedMotion = false, fallback = null, onRuntimeState, onRuntimeMetrics }: {
   themeKey?: string | null;
   category: AssetCategory;
+  directAssetUrl?: string | null;
   lowPower?: boolean;
   reducedMotion?: boolean;
   fallback?: ReactNode;
@@ -256,6 +257,11 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
   useEffect(() => {
     let cancelled = false;
     setUrl(null);
+    if (directAssetUrl) {
+      onRuntimeState?.("loading-gltf");
+      setUrl(directAssetUrl);
+      return () => { onRuntimeState?.("idle"); };
+    }
     if (!themeKey) {
       onRuntimeState?.("idle");
       return;
@@ -294,7 +300,7 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, lowPower = fal
       controller.abort();
       onRuntimeState?.("idle");
     };
-  }, [themeKey, category, onRuntimeState]);
+  }, [themeKey, category, directAssetUrl, onRuntimeState]);
 
   useEffect(() => {
     if (url) {
