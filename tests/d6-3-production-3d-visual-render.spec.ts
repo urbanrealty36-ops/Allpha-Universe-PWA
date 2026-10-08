@@ -9,27 +9,26 @@ function worldUrl() {
 }
 
 async function waitForVisibleProductionAsset(page: any) {
-  let marker: {
-    state: string;
-    meshCount: number;
-    objectCount: number;
-    bounds: string;
-  } | null = null;
+  return await page.waitForFunction(
+    () => {
+      const element = document.querySelector("[data-allpha-3d-runtime]") as HTMLElement | null;
+      if (!element || element.dataset.allpha3dAssetState !== "visible") return false;
 
-  await expect.poll(
-    async () => {
-      marker = await page.locator("[data-allpha-3d-runtime]").evaluate((element: HTMLElement) => ({
-        state: element.dataset.allpha3dAssetState ?? "unknown",
+      return {
+        state: element.dataset.allpha3dAssetState,
         meshCount: Number(element.dataset.allpha3dMeshCount ?? 0),
         objectCount: Number(element.dataset.allpha3dObjectCount ?? 0),
         bounds: element.dataset.allpha3dBounds ?? "",
-      }));
-      return marker.state;
+      };
     },
-    { timeout: 180_000, intervals: [500, 1000, 2000, 5000] },
-  ).toBe("visible");
-
-  return marker!;
+    { timeout: 180_000 },
+  ).then(async (handle: any) => {
+    try {
+      return await handle.jsonValue();
+    } finally {
+      await handle.dispose();
+    }
+  });
 }
 
 async function inspectRenderedCanvas(page: any) {
