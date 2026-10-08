@@ -650,19 +650,9 @@ function WorldObjects({
   }
 
   return <>
-    {spatialLayer === "world" ? (
-      <ThemeV2ProductionAssetScene
-        themeKey={themeKey}
-        category="world"
-        lowPower={lowPower}
-        reducedMotion={reducedMotion}
-        onRuntimeState={onProductionAssetState}
-        onRuntimeMetrics={onProductionAssetMetrics}
-      />
-    ) : null}
     {themePackUrl?<ThemePackEnvironment url={themePackUrl}/>:null}
     {liveStageMode ? <LiveCollaborationStageView stageUrl={liveStageUrl} lowPower={lowPower} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} collaborationActive={liveCollaborationActive} consentApproved={liveCollaborationConsentApproved} riskAllowed={liveCollaborationRiskAllowed} agentId={liveAgentId} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined} humanState={humanPresentationState} agentState={liveAgentStageState}/> : (liveStageUrl ? <LiveStage3DAsset url={liveStageUrl}/> : null)}
-    {!hasThemePack ? <ThemeV2SpatialScene themeKey={themeKey} architecture={architecture} layer={(["universe","galaxy","world","district","booth","content","live"].includes(spatialLayer) ? spatialLayer : "world") as "universe"|"galaxy"|"world"|"district"|"booth"|"content"|"live"} lowPower={lowPower} reducedMotion={reducedMotion} /> : null}
+    {!hasThemePack ? <ThemeV2SpatialScene themeKey={themeKey} architecture={architecture} layer={(["universe","galaxy","world","district","booth","content","live"].includes(spatialLayer) ? spatialLayer : "world") as "universe"|"galaxy"|"world"|"district"|"booth"|"content"|"live"} lowPower={lowPower} reducedMotion={reducedMotion} onRuntimeState={onProductionAssetState} onRuntimeMetrics={onProductionAssetMetrics} /> : null}
 
     {zones.map((zone,i)=>{
       const angle=(i/Math.max(1,zones.length))*Math.PI*2;
