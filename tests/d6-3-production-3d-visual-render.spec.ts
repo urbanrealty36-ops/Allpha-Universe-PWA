@@ -1,3 +1,4 @@
+import { inflateSync } from "node:zlib";
 import { test, expect } from "@playwright/test";
 
 const baseURL = (process.env.ALLPHA_QA_BASE_URL || "https://allphaweb-production.up.railway.app").replace(/\/$/, "");
