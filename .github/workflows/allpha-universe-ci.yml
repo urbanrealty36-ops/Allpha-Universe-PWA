@@ -57,8 +57,8 @@ jobs:
     name: Super Admin build gate
     runs-on: ubuntu-latest
     env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: https://qltbacemtvnuzqkterly.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_Mlit8qjZdM8OBlGm-jypIw_fd4LsQPZ
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
