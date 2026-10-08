@@ -744,23 +744,23 @@ export default function AllphaWorldRenderer({
   }, []);
   const handleProductionAssetState = useCallback((state: ProductionAssetRuntimeState) => {
     const marker = resolveProductionRuntimeMarker();
-    if (marker) marker.dataset.allpha3dAssetState = state;
+    if (marker) marker.setAttribute("data-allpha-3d-asset-state", state);
   }, [resolveProductionRuntimeMarker]);
   const handleProductionAssetMetrics = useCallback((metrics: ProductionAssetRuntimeMetrics) => {
     const marker = resolveProductionRuntimeMarker();
     if (!marker) return;
-    marker.dataset.allpha3dMeshCount = String(metrics.meshCount);
-    marker.dataset.allpha3dObjectCount = String(metrics.objectCount);
-    marker.dataset.allpha3dMaterialCount = String(metrics.materialCount);
-    marker.dataset.allpha3dBounds = metrics.bounds.size.map((value) => value.toFixed(3)).join(",");
-    marker.dataset.allpha3dCameraDistance = metrics.camera.distance.toFixed(3);
-    marker.dataset.allpha3dCameraFov = metrics.camera.fov.toFixed(2);
-    marker.dataset.allpha3dCameraAspect = metrics.camera.aspect.toFixed(3);
-    marker.dataset.allpha3dCameraTarget = metrics.camera.target.map((value) => value.toFixed(3)).join(",");
-    marker.dataset.allpha3dVisualProfile = metrics.visual.brandProfile;
-    marker.dataset.allpha3dToneMapping = metrics.visual.toneMapping;
-    marker.dataset.allpha3dOutputColorSpace = metrics.visual.outputColorSpace;
-    marker.dataset.allpha3dExposure = metrics.visual.exposure.toFixed(2);
+    marker.setAttribute("data-allpha-3d-mesh-count", String(metrics.meshCount));
+    marker.setAttribute("data-allpha-3d-object-count", String(metrics.objectCount));
+    marker.setAttribute("data-allpha-3d-material-count", String(metrics.materialCount));
+    marker.setAttribute("data-allpha-3d-bounds", metrics.bounds.size.map((value) => value.toFixed(3)).join(","));
+    marker.setAttribute("data-allpha-3d-camera-distance", metrics.camera.distance.toFixed(3));
+    marker.setAttribute("data-allpha-3d-camera-fov", metrics.camera.fov.toFixed(2));
+    marker.setAttribute("data-allpha-3d-camera-aspect", metrics.camera.aspect.toFixed(3));
+    marker.setAttribute("data-allpha-3d-camera-target", metrics.camera.target.map((value) => value.toFixed(3)).join(","));
+    marker.setAttribute("data-allpha-3d-visual-profile", metrics.visual.brandProfile);
+    marker.setAttribute("data-allpha-3d-tone-mapping", metrics.visual.toneMapping);
+    marker.setAttribute("data-allpha-3d-output-color-space", metrics.visual.outputColorSpace);
+    marker.setAttribute("data-allpha-3d-exposure", metrics.visual.exposure.toFixed(2));
   }, []);
   if(!scene)return <div className="flex h-full min-h-[520px] items-center justify-center bg-black/30 p-8 text-center text-sm text-white/40">No validated Theme/World Scene is available for this layer.</div>;
   const shadows=!lowPower,style=proceduralThemeStyle(scene),dpr=(lowPower?[1,1.25]:[1,1.75]) as [number,number];
