@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.api.dependencies import get_auth_context
 from app.core.agent_runtime import AgentRuntimeError, execute_command
 from app.core.auth import AuthenticatedUser
-from app.core.supabase_rest import SupabaseRestError, rpc, select
+from app.core.supabase_rest import SupabaseRestError, rpc, select, service_select
 
 router = APIRouter(prefix="/api/v1/workflows", tags=["Workflow & Mission Engine"])
 
@@ -161,13 +161,25 @@ async def execute_run(run_id: UUID, context: dict = Depends(get_auth_context)) -
     user = context["user"]
     try:
         rows = await select(user, "workflow_runs", {
-            "select": "id,command_id,status",
+            "select": "id,command_id,status,input,output,workflow_id",
             "id": f"eq.{run_id}",
             "limit": "1",
         })
         if not rows:
             raise HTTPException(status_code=404, detail={"code": "WORKFLOW_RUN_NOT_FOUND", "message": "Workflow run is not available."})
         run = rows[0]
+        workflow_output = run.get("output") if isinstance(run.get("output"), dict) else {}
+        workflow_input = run.get("input") if isinstance(run.get("input"), dict) else {}
+        if workflow_output.get("execution_mode") == "theme_package_orchestrator":
+            package_id = workflow_input.get("package_id")
+            if not package_id:
+                raise HTTPException(status_code=500, detail={"code":"THEME_WORKFLOW_PACKAGE_LINK_MISSING","message":"Theme workflow run has no package link."})
+            package_rows = await service_select("theme_generation_packages", {"select":"*","id":f"eq.{package_id}","owner_user_id":f"eq.{user.user_id}","limit":"1"})
+            if not package_rows:
+                raise HTTPException(status_code=404, detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Theme package not found."})
+            from app.api.theme_generation import _refresh_package
+            result = await _refresh_package(package_rows[0])
+            return {"data":{"run_id":str(run_id),"workflow_id":run.get("workflow_id"),"package":result["package"],"items":result["items"]}}
         if not run.get("command_id"):
             prepared = await rpc(user, "prepare_workflow_run", {"p_workflow_run_id": str(run_id)})
             run = prepared.get("workflow_run", run)
