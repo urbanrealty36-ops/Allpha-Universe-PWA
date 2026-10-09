@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { apiFetch } from "../lib/api";
+
 
 type GenerationItem = {
   id?: string;
@@ -28,6 +28,7 @@ type PricingResponse = { data?: { enabled?: boolean; credits_per_asset?: number;
 const categories = ["Universe", "Galaxy", "World", "District", "Booth", "Content Capsule", "Live Stage", "AI Character", "Uniform"];
 
 export default function TripoGenerationPanel() {
+  const [ownerKey, setOwnerKey] = useState("");
   const [category, setCategory] = useState("Universe");
   const [theme, setTheme] = useState("Crystal AI City");
   const [direction, setDirection] = useState("Cosmic blue-violet universe environment, cinematic realistic PBR materials, premium architectural visualization, atmospheric depth, elegant cyan-violet emissive accents, detailed physically plausible geometry, coherent scale and lighting. Must be a real scene asset suitable for AllphaWorldRenderer, not a primitive placeholder.");
@@ -41,16 +42,16 @@ export default function TripoGenerationPanel() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-    apiFetch<PricingResponse>("/api/v1/theme-generation/pricing")
-      .then((result) => { if (!cancelled) setPricing(result.data ?? null); })
-      .catch((cause) => { if (!cancelled) setError(cause instanceof Error ? cause.message : "THEME_PRICING_LOAD_FAILED"); });
-    return () => { cancelled = true; };
-  }, []);
+  async function ownerFetch<T>(path: string, init?: RequestInit): Promise<T> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!baseUrl) throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+    const response = await fetch(baseUrl.replace(/\\/$/, "") + path, { ...init, headers: { Accept: "application/json", ...(init?.body ? { "Content-Type": "application/json" } : {}), "X-Allpha-Owner-Studio-Key": ownerKey, ...(init?.headers ?? {}) }, cache: "no-store" });
+    if (!response.ok) { const body = await response.json().catch(() => null); throw new Error(body?.detail?.code ?? "API_" + response.status); }
+    return response.json() as Promise<T>;
+  }
 
   async function refreshPackage(id: string, quiet = false) {
-    const result = await apiFetch<PackageResponse>(`/api/v1/theme-generation/packages/${encodeURIComponent(id)}`);
+    const result = await ownerFetch<PackageResponse>("/api/v1/theme-generation/owner/packages/" + encodeURIComponent(id));
     const nextPackage = result.data?.package ?? null;
     const nextItem = result.data?.items?.[0] ?? null;
     setPkg(nextPackage);
@@ -72,7 +73,7 @@ export default function TripoGenerationPanel() {
     setBusy(true); setNotice(""); setError(""); setPkg(null); setItem(null); setPackageId("");
     try {
       const key = `theme-studio-${crypto.randomUUID()}`;
-      const result = await apiFetch<PackageResponse>("/api/v1/theme-generation/packages", {
+      const result = await ownerFetch<PackageResponse>("/api/v1/theme-generation/owner/packages", {
         method: "POST",
         body: JSON.stringify({
           theme_name: theme.trim(),
@@ -111,12 +112,13 @@ export default function TripoGenerationPanel() {
       <header className="border-b border-white/10 p-5 sm:p-6">
         <p className="text-[10px] uppercase tracking-[.28em] text-cyan-300">ALLPHA THEME STUDIO · TRIPO V3</p>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div><h2 className="text-2xl font-semibold">Generate 3D Theme</h2><p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400">Jalur kanonis: AI Credits reservation → Tripo task → GLB validation → Supabase Storage → theme_assets draft → signed URL. Aset tetap draft sampai moderation, validation, dan publish gates lolos.</p></div>
+          <div><h2 className="text-2xl font-semibold">Generate 3D Theme</h2><p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400">Jalur kanonis: Owner bypass (no user session/AI Credits) → Tripo task → GLB validation → Supabase Storage → theme_assets draft → signed URL. Aset tetap draft sampai moderation, validation, dan publish gates lolos.</p></div>
           <span className="w-fit rounded-full border border-cyan-300/20 bg-cyan-300/5 px-3 py-1.5 text-[10px] text-cyan-100">TRIPO_API_KEY server-side</span>
         </div>
       </header>
       <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,.8fr)]">
         <form onSubmit={generate} className="space-y-4 p-5 sm:p-6">
+          <label className="block text-xs text-slate-400">Owner Studio access key<input type="password" value={ownerKey} onChange={(e) => setOwnerKey(e.target.value)} required autoComplete="off" placeholder="Owner-only key · no user session or AI Credits" className="mt-2 w-full rounded-xl border border-cyan-300/20 bg-black/30 px-3 py-3 font-mono text-sm text-white outline-none focus:border-cyan-300/50" /></label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs text-slate-400">Theme name<input value={theme} onChange={(e) => setTheme(e.target.value)} required maxLength={160} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-cyan-300/50" /></label>
             <label className="text-xs text-slate-400">3D asset category<select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-cyan-300/50">{categories.map((value) => <option key={value}>{value}</option>)}</select></label>
@@ -127,8 +129,8 @@ export default function TripoGenerationPanel() {
           {pricing && <p className="rounded-xl border border-white/10 bg-black/20 p-3 text-[11px] text-slate-400">Billing policy: {pricing.enabled ? "enabled" : "disabled"} · {pricing.credits_per_asset ?? "—"} AI Credits / asset · max {pricing.max_assets_per_package ?? "—"} assets/package. Satu aset akan dikirim pada eksekusi ini.</p>}
           {error && <p role="alert" className="rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-cyan-300/20 bg-cyan-300/5 p-3 text-xs text-cyan-100">{notice}</p>}
-          <button disabled={busy || pricing?.enabled === false} className="w-full rounded-xl bg-cyan-300 px-4 py-3.5 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? "Processing canonical pipeline…" : "Generate 3D Theme ↗"}</button>
-          <p className="text-[10px] leading-4 text-slate-500">Menggunakan autentikasi admin, reservasi AI Credits, dan workflow kanonis. Provider task sukses tidak otomatis berarti aset published.</p>
+          <button disabled={busy || !ownerKey.trim()} className="w-full rounded-xl bg-cyan-300 px-4 py-3.5 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? "Processing canonical pipeline…" : "Generate 3D Theme ↗"}</button>
+          <p className="text-[10px] leading-4 text-slate-500">Owner-only pipeline melewati autentikasi user dan AI Credits; workflow, validasi, moderasi, serta publish gates tetap wajib.</p>
         </form>
         <aside className="border-t border-white/10 p-5 sm:p-6 lg:border-l lg:border-t-0">
           <div className="flex items-center justify-between gap-3"><h3 className="text-sm font-semibold">Pipeline evidence</h3><span className={`rounded-full border px-2.5 py-1 text-[10px] ${completed ? "border-emerald-300/30 text-emerald-200" : failed ? "border-rose-300/30 text-rose-200" : "border-white/10 text-slate-400"}`}>{item?.status ?? pkg?.status ?? "Waiting"}</span></div>
