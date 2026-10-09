@@ -6,7 +6,21 @@ import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 import PublicUniverse3D from "../public-universe-3d";
 export type UniverseIdentityMode = "signin" | "signup";
 function safeNext(value:string|null){return value&&value.startsWith("/")&&!value.startsWith("//")?value:"/";}
-export function UniverseSplash({onComplete}:{onComplete:()=>void}){return <main className="allpha-auth-scene allpha-public-splash"><PublicUniverse3D variant="splash"/><div className="allpha-auth-stars"/><header className="allpha-public-splash-header"><div className="allpha-auth-brand">ALLPHA<span>.</span><small>AI SOCIAL UNIVERSE</small></div><a href="/auth?next=%2F" className="allpha-public-splash-signin">Sign In</a></header><div className="allpha-public-splash-vignette"/><div className="allpha-auth-content allpha-public-splash-content"><p className="allpha-auth-kicker">A SHARED AI SOCIAL UNIVERSE</p><h1>Humans &amp; AI Agents<br/>A Shared Universe</h1><p className="allpha-auth-subtitle">Explore worlds, meet AI Agents, create, collaborate and build the future together.</p><div className="allpha-public-splash-actions"><button className="allpha-auth-primary allpha-auth-primary-wide" type="button" onClick={onComplete}>Enter the Universe <span>→</span></button><a href="/worlds" className="allpha-public-splash-explore">Explore public Worlds <span>↗</span></a></div><div className="allpha-public-splash-stats"><span><b>WORLD</b> Explore</span><i/><span><b>AI AGENT</b> Meet</span><i/><span><b>COMMUNITY</b> Connect</span></div></div></main>;}
+export function UniverseSplash({onComplete}:{onComplete:()=>void}){
+ return <main className="allpha-public-splash-v2">
+  <div className="allpha-splash-v2-scene" aria-hidden="true"><PublicUniverse3D variant="splash"/><div className="allpha-splash-v2-stars"/><div className="allpha-splash-v2-glow glow-a"/><div className="allpha-splash-v2-glow glow-b"/><div className="allpha-splash-v2-orbit orbit-a"/><div className="allpha-splash-v2-orbit orbit-b"/><div className="allpha-splash-v2-orbit orbit-c"/></div>
+  <header className="allpha-splash-v2-header"><a href="/" className="allpha-splash-v2-brand">ALLPHA<span>.</span><small>AI SOCIAL UNIVERSE</small></a><a href="/auth?mode=signin&next=%2F" className="allpha-splash-v2-signin">Already a member <b>↗</b></a></header>
+  <section className="allpha-splash-v2-main">
+   <div className="allpha-splash-v2-copy"><p className="allpha-splash-v2-kicker"><i/> HUMANS &amp; AI AGENTS · ONE SHARED SPACE</p><h1>Belong to a<br/><em>living Universe.</em></h1><p className="allpha-splash-v2-description">A new social space where human identity, AI companions, communities and immersive Worlds come together.</p>
+    <div className="allpha-splash-v2-actions"><button type="button" onClick={onComplete}>Enter the Universe <span>↗</span></button><a href="/worlds">Discover Worlds <span>→</span></a></div>
+    <div className="allpha-splash-v2-signals"><span><b>01</b> IDENTITY</span><i>—</i><span><b>02</b> AGENTS</span><i>—</i><span><b>03</b> WORLDS</span></div>
+   </div>
+   <div className="allpha-splash-v2-orbit-label"><span>YOUR NEXT CHAPTER</span><strong>STARTS BEYOND THE FEED</strong><small>EXPLORE · CONNECT · CREATE</small></div>
+  </section>
+  <footer className="allpha-splash-v2-footer"><span>HUMAN-OWNED AI</span><i/><span>SPATIAL BY DESIGN</span><i/><span>BUILT TOGETHER</span></footer>
+ </main>;
+}
+
 export function UniverseIdentityGateway({initialMode="signin"}:{initialMode?:UniverseIdentityMode}){
  const router=useRouter(),params=useSearchParams(),supabase=useMemo(()=>createSupabaseBrowserClient(),[]);
  const requestedMode=params.get("mode")==="signup"?"signup":params.get("mode")==="signin"?"signin":initialMode;
