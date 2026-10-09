@@ -67,9 +67,12 @@ async def _route_prompt(user, package_id: str, asset_key: str, prompt: str) -> t
         return prompt, {"model_router": "fallback", "error_code": "AI_ROUTER_UNAVAILABLE"}
 
 
-async def _tripo_create(prompt: str, face_limit: int) -> dict[str, Any]:
+async def _tripo_create(prompt: str, face_limit: int, *, textured: bool = True) -> dict[str, Any]:
     headers = {"Authorization": f"Bearer {_require_tripo()}", "Content-Type": "application/json"}
-    payload = {"prompt": prompt, "model": "v3.1-20260211", "face_limit": face_limit, "texture": True, "pbr": True, "texture_quality": "detailed"}
+    # Low-credit owner retries intentionally disable texture/PBR; provider pricing can vary by model/account.
+    payload = {"prompt": prompt, "model": "v3.1-20260211", "face_limit": face_limit, "texture": textured}
+    if textured:
+        payload.update({"pbr": True, "texture_quality": "detailed"})
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=10.0)) as client:
             response = await client.post(f"{TRIPO_BASE_URL}/generation/text-to-model", headers=headers, json=payload)
@@ -252,6 +255,50 @@ async def create_owner_package(payload: PackageCreate, x_allpha_owner_studio_key
             await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"status":"failed", "error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"), "error_message":safe_message, "metadata":failure_metadata})
     current = await service_select("theme_generation_packages", {"select":"*", "id":"eq." + str(package["id"]), "limit":"1"})
     return await _refresh_package(current[0] if current else package)
+
+@router.post("/owner/packages/{package_id}/retry-priority-low-cost")
+async def retry_owner_priority_low_cost(package_id: UUID, x_allpha_owner_studio_key: str | None = Header(default=None)) -> dict[str, Any]:
+    """Retry only Universe Core and AI Character Companion, without textures, through the owner-only flow."""
+    _require_owner_studio_key(x_allpha_owner_studio_key)
+    _require_tripo()
+    packages = await service_select("theme_generation_packages", {"select":"*", "id":"eq." + str(package_id), "limit":"1"})
+    if not packages or not (packages[0].get("metadata") or {}).get("owner_operated_bypass"):
+        raise HTTPException(status_code=404, detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Owner Theme package not found."})
+    package = packages[0]
+    target_keys = {"universe_core", "ai_character_companion"}
+    items = await service_select("theme_generation_items", {
+        "select":"*", "package_id":"eq." + str(package_id), "status":"eq.failed",
+        "asset_key":"in.(" + ",".join(sorted(target_keys)) + ")", "order":"created_at.asc"
+    })
+    if not items:
+        return {"data": await _refresh_package(package), "message":"No selected priority assets are currently failed; no new tasks submitted."}
+    results = []
+    for item in items:
+        # Idempotency/safety: never resubmit an item already associated with a provider task.
+        if item.get("provider_task_id"):
+            results.append({"asset_key":item.get("asset_key"),"status":item.get("status"),"message":"Skipped because a provider task ID already exists."})
+            continue
+        try:
+            task = await _tripo_create(str(item["prompt"]), int((package.get("metadata") or {}).get("face_limit") or 50000), textured=False)
+            updated = await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {
+                "provider_task_id":task["task_id"], "status":"running", "error_code":None, "error_message":None,
+                "metadata":{**(item.get("metadata") if isinstance(item.get("metadata"),dict) else {}),
+                            "owner_operated_bypass":True, "generation_profile":"low_credit_no_texture",
+                            "texture_enabled":False, "provider_status":task.get("status")}
+            })
+            results.append({"asset_key":item.get("asset_key"),"status":"running","provider_task_id":task["task_id"]})
+        except (HTTPException, SupabaseRestError) as exc:
+            detail = exc.detail if isinstance(exc, HTTPException) and isinstance(exc.detail, dict) else {}
+            message = str(detail.get("provider_message") or detail.get("message") or "Provider rejected task.")[:300]
+            await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {
+                "status":"failed", "error_code":detail.get("code","THEME_ASSET_RETRY_FAILED"), "error_message":message,
+                "metadata":{**(item.get("metadata") if isinstance(item.get("metadata"),dict) else {}),
+                            "owner_operated_bypass":True, "generation_profile":"low_credit_no_texture",
+                            "texture_enabled":False}
+            })
+            results.append({"asset_key":item.get("asset_key"),"status":"failed","message":message})
+    refreshed = await _refresh_package(package)
+    return {"data":refreshed,"retry_results":results,"generation_profile":"low_credit_no_texture"}
 
 @router.get("/owner/packages/{package_id}")
 async def get_owner_package(package_id: UUID, x_allpha_owner_studio_key: str | None = Header(default=None)) -> dict[str, Any]:
