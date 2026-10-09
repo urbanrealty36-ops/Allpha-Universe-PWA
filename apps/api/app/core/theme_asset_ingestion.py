@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
+import struct
 from typing import Any
 from urllib.parse import quote
 
@@ -9,6 +11,60 @@ import httpx
 
 from app.core.config import get_settings
 from app.core.supabase_rest import service_insert, service_select, service_update
+
+
+def _validate_glb(content: bytes) -> None:
+    """Reject malformed or non-renderable GLB containers before Storage upload."""
+    if len(content) < 20 or len(content) > 100 * 1024 * 1024:
+        raise ThemeAssetIngestionError("THEME_ASSET_SIZE_INVALID", "Generated GLB is empty, truncated, or exceeds the 100 MB ingestion limit.")
+    magic, version, declared_length = struct.unpack_from("<III", content, 0)
+    if magic != 0x46546C67 or version != 2 or declared_length != len(content):
+        raise ThemeAssetIngestionError("THEME_ASSET_NOT_GLB", "Provider output is not a valid GLB 2.0 binary container.")
+    offset = 12
+    chunk_index = 0
+    document: dict[str, Any] | None = None
+    saw_binary = False
+    while offset < len(content):
+        if offset + 8 > len(content):
+            raise ThemeAssetIngestionError("THEME_ASSET_GLB_CHUNK_INVALID", "GLB chunk header is truncated.")
+        chunk_length, chunk_type = struct.unpack_from("<II", content, offset)
+        offset += 8
+        if chunk_length == 0 or chunk_length % 4 or offset + chunk_length > len(content):
+            raise ThemeAssetIngestionError("THEME_ASSET_GLB_CHUNK_INVALID", "GLB chunk length or alignment is invalid.")
+        chunk = content[offset:offset + chunk_length]
+        if chunk_index == 0 and chunk_type != 0x4E4F534A:
+            raise ThemeAssetIngestionError("THEME_ASSET_GLB_JSON_MISSING", "GLB JSON chunk must be first.")
+        if chunk_type == 0x4E4F534A:
+            if document is not None or chunk_index != 0:
+                raise ThemeAssetIngestionError("THEME_ASSET_GLB_JSON_INVALID", "GLB JSON chunk is duplicated or out of order.")
+            try:
+                document = json.loads(chunk.decode("utf-8").rstrip(" \\t\\r\\n\\x00"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise ThemeAssetIngestionError("THEME_ASSET_GLB_JSON_INVALID", "GLB JSON chunk is invalid.") from exc
+        elif chunk_type == 0x004E4942:
+            if document is None or saw_binary:
+                raise ThemeAssetIngestionError("THEME_ASSET_GLB_CHUNK_INVALID", "GLB binary chunk is duplicated or out of order.")
+            saw_binary = True
+        else:
+            raise ThemeAssetIngestionError("THEME_ASSET_GLB_CHUNK_INVALID", "GLB contains an unsupported chunk type.")
+        offset += chunk_length
+        chunk_index += 1
+    if offset != len(content) or not isinstance(document, dict) or document.get("asset", {}).get("version") != "2.0":
+        raise ThemeAssetIngestionError("THEME_ASSET_NOT_GLB", "GLB does not contain a valid glTF 2.0 document.")
+    scenes = document.get("scenes")
+    nodes = document.get("nodes")
+    meshes = document.get("meshes")
+    if not isinstance(scenes, list) or not scenes or not isinstance(nodes, list) or not isinstance(meshes, list) or not meshes:
+        raise ThemeAssetIngestionError("THEME_ASSET_SCENE_EMPTY", "GLB must contain at least one scene, node list, and mesh.")
+    mesh_node_indices = {
+        node.get("mesh") for node in nodes
+        if isinstance(node, dict) and isinstance(node.get("mesh"), int)
+    }
+    if not any(isinstance(scene, dict) and any(
+        isinstance(index, int) and 0 <= index < len(nodes) and nodes[index].get("mesh") in mesh_node_indices
+        for index in scene.get("nodes", []) if isinstance(scene.get("nodes"), list)
+    ) for scene in scenes):
+        raise ThemeAssetIngestionError("THEME_ASSET_SCENE_EMPTY", "GLB scenes do not reference mesh-bearing nodes.")
 
 
 class ThemeAssetIngestionError(RuntimeError):
