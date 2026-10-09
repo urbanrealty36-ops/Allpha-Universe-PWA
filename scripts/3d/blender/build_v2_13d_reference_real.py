@@ -237,8 +237,7 @@ def studio_set(m, variant=0):
     cube("StudioBackWall",(0,3.2,7.0),(7.6,3.2,.18),m["dark"],.12)
     cube("StudioSideWallL",(-7.45,3.0,1.0),(.16,3.0,5.7),m["metal"],.10)
     cube("StudioSideWallR",(7.45,3.0,1.0),(.16,3.0,5.7),m["metal"],.10)
-    for x in (-6.0,-3.0,0,3.0,6.0):
-        cube("CeilingBeam",(x,6.1,1.0),(1.15,.10,5.3),m["metal"],.04)
+    # Keep the overhead clear in portrait views; the previous deep beams occluded the entire stage.
     for z in (-3.8,-1.2,1.4,4.0):
         cube("FloorInlay",(0,.10,z),(6.7,.018,.025),m["warm"],.006)
     for x in (-6.3,-4.2,4.2,6.3):
@@ -304,7 +303,7 @@ def camera(category):
     if category=="universe": cam.location=(14,8.8,18.5); target=(0,3.3,1)
     elif category=="galaxy": cam.location=(12,7.6,17); target=(0,3.6,1)
     elif category=="world": cam.location=(12.5,6.8,16.5); target=(0,3.0,.8)
-    else: cam.location=(9.2,4.0,13.8); target=(0,2.3,1.8); cam.data.lens=42
+    else: cam.location=(11.8,3.6,18.0); target=(0,1.65,1.4); cam.data.lens=36
     cam.data.dof.focus_distance=(Vector(target)-cam.location).length
     BASE.look_at(cam,target); scene.camera=cam
 
