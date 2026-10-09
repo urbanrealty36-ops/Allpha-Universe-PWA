@@ -115,7 +115,7 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
   catch(e){setError(e instanceof Error?String(e):"COMMENTS_LOAD_FAILED")}
  }
 
- if(detailId)return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl">
+ if(detailId)return <main className="allpha-product-surface allpha-communities-shell min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl">
   {error&&<Error text={error}/>}
   {loading?<State text="Loading authoritative community…"/>:!community?<State text="Community is not available."/>:<>
    <header className="rounded-3xl border border-white/10 bg-white/[.03] p-7">
@@ -188,7 +188,7 @@ export default function CommunitiesSurface({detailId}:{detailId?:string}) {
   {report&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"><form onSubmit={submitReport} className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-5"><h2 className="text-lg font-semibold">Report {report.type}</h2><p className="mt-1 text-xs text-slate-500">Target: {report.id}</p><input value={reportReason} onChange={e=>setReportReason(e.target.value)} placeholder="Reason code" className={"mt-4 w-full "+input} required/><textarea value={reportNotes} onChange={e=>setReportNotes(e.target.value)} placeholder="Optional notes" rows={4} className={"mt-2 w-full "+input}/><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setReport(null)} className={button}>Cancel</button><button disabled={saving} className="rounded-xl bg-white px-4 py-2 text-sm text-black">Submit report</button></div></form></div>}
  </div></main>;
 
- return <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl">
+ return <main className="allpha-product-surface allpha-communities-shell min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl">
   <p className="text-sm uppercase tracking-[.24em] text-emerald-300">Community Platform</p><h1 className="mt-3 text-4xl font-semibold">Communities</h1>
   <p className="mt-3 max-w-3xl text-slate-300">Human, Agent and organization communities backed by authoritative membership, Content, moderation and event state.</p>
   {error&&<div className="mt-5"><Error text={error}/></div>}
