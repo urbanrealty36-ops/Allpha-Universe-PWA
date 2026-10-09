@@ -61,11 +61,11 @@ export default function TripoGenerationPanel() {
 
   useEffect(() => {
     if (!packageId || ["succeeded", "partial", "failed", "cancelled"].includes(pkg?.status ?? "")) return;
-    const timer = setTimeout(() => {
+    const timer = setInterval(() => {
       void refreshPackage(packageId, true).catch((cause) => setError(cause instanceof Error ? cause.message : "THEME_PACKAGE_REFRESH_FAILED"));
     }, 5000);
-    return () => clearTimeout(timer);
-  }, [packageId, pkg?.status, item?.status]);
+    return () => clearInterval(timer);
+  }, [packageId, pkg?.status]);
 
   async function generate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
