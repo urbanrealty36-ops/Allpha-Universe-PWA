@@ -273,7 +273,7 @@ export default function ThemePackageGenerator() {
     }
   }
   return (
-    <main className="min-h-screen bg-[#05070d] px-4 py-6 text-white sm:px-7 sm:py-9">
+    <main className="allpha-theme-lab min-h-screen px-4 py-6 text-white sm:px-7 sm:py-9">
       <div className="mx-auto max-w-7xl">
         <a href="/theme-studio" className="text-xs text-cyan-200 hover:text-cyan-100">← Back to Theme Studio</a>
         <header className="mt-5 rounded-[2rem] border border-cyan-200/15 bg-gradient-to-br from-[#142536] via-[#0b111e] to-[#080a11] p-6 sm:p-9">
