@@ -1,6 +1,5 @@
 "use client";
 
-import UniversePrimaryNavigation from "../universe/universe-primary-navigation";
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -543,7 +542,6 @@ export default function LiveExperienceRuntimeSetup() {
 
   return (
     <>
-      <UniversePrimaryNavigation />
       <section className="mx-auto w-full max-w-6xl px-4 pb-10 pt-4">
       <div className={card + " p-5"}>
         <div className="mb-5">
