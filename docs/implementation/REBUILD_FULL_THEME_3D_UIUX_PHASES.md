@@ -1,5 +1,5 @@
 # Allpha Universe — Full 3D Theme & UI/UX Rebuild Plan
-**Status:** APPROVED DIRECTION / IMPLEMENTATION NOT STARTED  
+**Status:** REBUILD-00/01 GATES REPORTED GREEN BY USER; REBUILD-02 IN PROGRESS  
 **Date:** 2026-10-09  
 **Canonical repository:** `urbanrealty36-ops/Allpha-Universe-PWA` — `main`  
 **Canonical Supabase:** `AllphaDb-Universe` — `qltbacemtvnuzqkterly` — `ap-south-1`
@@ -133,9 +133,10 @@ This section is the current status record and supersedes any implication that th
 
 | Phase | Current status | Evidence |
 |---|---|---|
-| REBUILD-00 — Baseline, reference lock, inventory | **IN PROGRESS** | [Live inventory and evidence lock](../audits/REBUILD_00_EVIDENCE_LOCK_INVENTORY_20261009.md). Repository governance, renderer/runtime paths, Storage object counts and `theme_assets` counts were inspected. Fresh path-level inventory after manual Storage deletion is still required. |
-| REBUILD-01 — Legacy Theme/UI retirement | **IN PROGRESS** | [Retirement log](../audits/REBUILD_01_LEGACY_RETIREMENT_LOG_20261009.md). Retired the old V2.12/V2.13/V2.13D generation/QA automation and 3D scripts, removed the old V2 theme factory/resolver modules and procedural Universe/Galaxy/Orbit/character placeholders, and switched runtime loading to an authorized manifest-driven scene. Current GitHub Actions audit/build is not yet verified. |
-| REBUILD-02 through REBUILD-15 | **NOT STARTED** | Follow the phase order above; do not mark green without the defined exit evidence. |
+| REBUILD-00 — Baseline, reference lock, inventory | **CI GREEN; EVIDENCE CLOSEOUT** | [Live inventory and evidence lock](../audits/REBUILD_00_EVIDENCE_LOCK_INVENTORY_20261009.md). User confirmed GitHub Actions green. CI success is recorded; remaining evidence must match the defined path-level inventory and reference-lock exit gate. |
+| REBUILD-01 — Legacy Theme/UI retirement | **CI GREEN; RUNTIME CLOSEOUT** | [Retirement log](../audits/REBUILD_01_LEGACY_RETIREMENT_LOG_20261009.md). Legacy modules/workflows and procedural placeholders were retired; manifest-driven runtime is in place. CI success is recorded; final runtime/storage reconciliation evidence remains a distinct exit-gate concern. |
+| REBUILD-02 — Visual System & Mobile Design Foundation | **IN PROGRESS** | Added reusable `GlassChip`, `SectionHeading`, `IconButton`, and `StatusBadge` primitives with semantic styles, focus states, disabled states, small-screen layout and reduced-motion support. Responsive/browser evidence and full component adoption remain open. |
+| REBUILD-03 through REBUILD-15 | **NOT STARTED** | Follow the phase order above; do not mark green without the defined exit evidence. |
 
 ### Execution boundary
 - The canonical renderer is still `AllphaWorldRenderer`; the new `ThemeManifestAssetScene` resolves assets from the authorized public manifest and does not require the retired `theme-v2-real-3d/v2.13/` prefix.
@@ -150,3 +151,10 @@ The user's manual Storage deletion has now been verified: `allpha-world-assets` 
 
 ### Canonical Tripo storage contract
 The new public Theme manifest now filters only `theme-v3-tripo/*` paths in `apps/api/app/api/world_runtime.py`; the old `theme-v2-real-3d/*` public-manifest filter was removed. New assets should use `theme-v3-tripo/{themeKey}/{category}.glb` (or a documented versioned subpath that retains the same theme/category suffix), be registered through the existing `theme_assets` lifecycle, and remain unpublished until validation/moderation/performance gates pass. The CI audit now checks that the API manifest does not regress to the old prefix.
+
+
+### REBUILD-02 execution log — 2026-10-09
+- Confirmed latest canonical GitHub Actions run `37960725635` completed with conclusion `success`; Super Admin build, User PWA build, API syntax, and Security/Supply-chain jobs all succeeded.
+- Added reusable semantic UI primitives in `apps/web/components/ui/allpha-primitives.tsx`: `GlassChip`, `SectionHeading`, `IconButton` (requires an accessible label), and `StatusBadge`.
+- Added matching semantic styles for responsive section headers, 36px chips, keyboard focus visibility, disabled controls, status tones, and reduced-motion behavior in `apps/web/styles/ui-visual-foundation.css`.
+- **Not yet GREEN:** no claim of mobile/desktop visual QA until browser/device checks and evidence are recorded. Existing routes still need adoption of these primitives in subsequent UI phases.
