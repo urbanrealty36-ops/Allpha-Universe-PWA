@@ -571,3 +571,74 @@ body.allpha-ui-foundation-v1 ::-webkit-scrollbar-thumb:hover { background: rgba(
 .allpha-ui-foundation-v1 .allpha-public-splash-actions .allpha-auth-primary-wide{margin-top:0}
 .allpha-ui-foundation-v1 .allpha-public-splash-explore{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(3,7,18,.24);color:rgba(255,255,255,.62);font-size:9px;font-weight:700;letter-spacing:.02em;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);text-decoration:none}
 .allpha-ui-foundation-v1 .allpha-public-splash-explore:hover{border-color:rgba(103,232,249,.28);color:#e9fcff;background:rgba(103,232,249,.06)}
+
+
+/* REBUILD-02 — reusable semantic components and accessible interaction states. */
+.allpha-ui-foundation-v1 .allpha-ui-chip {
+  min-height: 36px;
+  padding-inline: 12px;
+  font-size: var(--allpha-text-xs, .6875rem);
+}
+.allpha-ui-foundation-v1 .allpha-ui-icon-button:focus-visible,
+.allpha-ui-foundation-v1 .allpha-button:focus-visible {
+  outline: 2px solid var(--allpha-border-focus, #75dfff);
+  outline-offset: 3px;
+}
+.allpha-ui-foundation-v1 .allpha-button:disabled,
+.allpha-ui-foundation-v1 .allpha-ui-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+  transform: none;
+  box-shadow: none;
+}
+.allpha-ui-foundation-v1 .allpha-ui-section-header {
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.allpha-ui-foundation-v1 .allpha-ui-section-header h2 {
+  font-size: clamp(1.35rem, 4.5vw, 2.125rem);
+  line-height: var(--allpha-leading-tight, 1.08);
+  letter-spacing: -.035em;
+}
+.allpha-ui-foundation-v1 .allpha-ui-section-action {
+  display: flex;
+  align-items: center;
+  gap: var(--allpha-space-2, .5rem);
+}
+.allpha-ui-foundation-v1 .allpha-ui-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid var(--allpha-ui-line);
+  border-radius: 999px;
+  background: var(--allpha-ui-panel-soft);
+  color: var(--allpha-ui-text-2);
+  font-size: var(--allpha-text-xs, .6875rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.allpha-ui-foundation-v1 .allpha-ui-status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.allpha-ui-foundation-v1 .allpha-ui-status-badge.tone-primary,
+.allpha-ui-foundation-v1 .allpha-ui-status-badge.tone-cyan { color: var(--allpha-ui-cyan); }
+.allpha-ui-foundation-v1 .allpha-ui-status-badge.tone-violet { color: var(--allpha-ui-violet); }
+.allpha-ui-foundation-v1 .allpha-ui-status-badge.tone-success { color: #6ee7a0; }
+.allpha-ui-foundation-v1 .allpha-ui-status-badge.tone-warning { color: #ffd166; }
+.allpha-ui-foundation-v1 .allpha-ui-status-badge.tone-danger { color: #ff8585; }
+@media (max-width: 520px) {
+  .allpha-ui-foundation-v1 .allpha-ui-section-header { align-items: flex-start; }
+  .allpha-ui-foundation-v1 .allpha-ui-section-action { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .allpha-ui-foundation-v1 .allpha-ui-icon-button { transition: none; }
+  .allpha-ui-foundation-v1 .allpha-ui-icon-button:hover { transform: none; }
+}
