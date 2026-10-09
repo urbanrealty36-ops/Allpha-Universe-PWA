@@ -270,7 +270,7 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
             await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"status":"submitting"})
             routed_prompt, router_meta = await _route_prompt(user, str(package["id"]), str(item["asset_key"]), str(item["prompt"]))
             task = await _tripo_create(routed_prompt, payload.face_limit)
-            await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"provider_task_id":task["task_id"],"status":"running","metadata":{"provider_created_at":task.get("created_at"),"provider_status":task.get("status"),"routed_prompt":routed_prompt,**router_meta}})
+            await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"provider_task_id":task["task_id"],"status":"running","metadata":{**(item.get("metadata") if isinstance(item.get("metadata"), dict) else {}),"provider_created_at":task.get("created_at"),"provider_status":task.get("status"),"routed_prompt":routed_prompt,**router_meta}})
         except (HTTPException, SupabaseRestError) as exc:
             detail = exc.detail if isinstance(exc, HTTPException) and isinstance(exc.detail, dict) else {}
             await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"status":"failed","error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"),"error_message":detail.get("message","Could not submit asset task.")})
