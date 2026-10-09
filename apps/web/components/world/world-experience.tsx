@@ -52,7 +52,6 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
   const [presence, setPresence] = useState<Presence[]>([]);
   const [themes, setThemes] = useState<CatalogItem[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
-  const [productionAssetUrl, setProductionAssetUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("districts");
   const [entered, setEntered] = useState(false);
   const [lowPower, setLowPower] = useState(false);
@@ -110,41 +109,21 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
     if (match) setSelectedTheme(match);
   }, [world, themes]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadCrystalAssetManifest() {
-      setProductionAssetUrl(null);
-      const key = [world?.slug, world?.theme_key, selectedTheme?.slug, selectedTheme?.name]
-        .filter(Boolean).join(" ").toLowerCase().replaceAll("_", "-");
-      if (!key.includes("crystal-ai-city") && !key.includes("crystal ai city")) return;
-      try {
-        const response = await publicApiFetch<{ data?: { assets?: Array<{ signed_url?: string | null; asset_type?: string; status?: string; storage_path?: string }>; binary_3d_assets?: Array<{ signed_url?: string | null; id?: string; storage_path?: string }>; has_binary_3d_pack?: boolean } }>(
-          "/api/v1/themes/world-runtime/public/themes/crystal-ai-city/asset-manifest",
-        );
-        const candidates = [
-          ...(response.data?.binary_3d_assets ?? []),
-          ...(response.data?.assets ?? []),
-        ];
-        const asset = candidates.find((item) => typeof item.signed_url === "string" && item.signed_url.length > 0 && item.storage_path === "theme-v2-real-3d/v2.13/crystal-ai-city/world.glb") ?? candidates.find((item) => typeof item.signed_url === "string" && item.signed_url.length > 0 && item.storage_path?.endsWith("/world.glb"));
-        if (!cancelled) setProductionAssetUrl(asset?.signed_url ?? null);
-      } catch {
-        if (!cancelled) setProductionAssetUrl(null);
-      }
-    }
-    void loadCrystalAssetManifest();
-    return () => { cancelled = true; };
-  }, [world?.slug, world?.theme_key, selectedTheme?.slug, selectedTheme?.name]);
 
   const scene = useMemo<WorldScene | null>(() => {
     const raw = selectedTheme?.world_schema;
     if (raw) return normalizeWorldScene(raw);
     const key = [world?.slug, world?.theme_key, selectedTheme?.slug, selectedTheme?.name]
       .filter(Boolean).join(" ").toLowerCase().replaceAll("_", "-");
-    if (productionAssetUrl && (key.includes("crystal-ai-city") || key.includes("crystal ai city"))) {
+    // Mount the canonical renderer for Crystal AI City even when its signed
+    // asset manifest is temporarily unavailable. The renderer owns the sole
+    // Theme V2 manifest -> signed GLB loading path; gating the scene on that
+    // same manifest created a deadlock where no renderer meant no canvas.
+    if (key.includes("crystal-ai-city") || key.includes("crystal ai city")) {
       return createGoldenScene("universe");
     }
     return null;
-  }, [selectedTheme, world?.slug, world?.theme_key, productionAssetUrl]);
+  }, [selectedTheme, world?.slug, world?.theme_key]);
 
   const activePresence = useMemo(() => {
     const ids = new Set(presence.map((item) => item.agent_id));
@@ -254,7 +233,6 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
               {scene ? (
                 <AllphaWorldRenderer
                   productionSpatialLayer="world"
-                  productionAssetUrl={productionAssetUrl}
                   scene={scene}
                   themeKey={world.theme_key}
                   tokens={selectedTheme?.tokens}
