@@ -234,7 +234,7 @@ def studio_set(m, variant=0):
     # Reference-led AI media/live studio: floor, wall panels, practical shelves,
     # cameras, stage desk, display wall and presenter/owned-agent presence.
     cube("StudioFloor",(0,.0,1.0),(7.6,.08,5.7),m["wood"],.14)
-    cube("StudioBackWall",(0,3.2,-5.0),(7.6,3.2,.18),m["dark"],.12)
+    cube("StudioBackWall",(0,3.2,7.0),(7.6,3.2,.18),m["dark"],.12)
     cube("StudioSideWallL",(-7.45,3.0,1.0),(.16,3.0,5.7),m["metal"],.10)
     cube("StudioSideWallR",(7.45,3.0,1.0),(.16,3.0,5.7),m["metal"],.10)
     for x in (-6.0,-3.0,0,3.0,6.0):
@@ -242,19 +242,19 @@ def studio_set(m, variant=0):
     for z in (-3.8,-1.2,1.4,4.0):
         cube("FloorInlay",(0,.10,z),(6.7,.018,.025),m["warm"],.006)
     for x in (-6.3,-4.2,4.2,6.3):
-        cube("WallPanel",(x,3.2,-4.72),(1.55,2.7,.05),m["metal"],.06)
+        cube("WallPanel",(x,3.2,6.72),(1.55,2.7,.05),m["metal"],.06)
     for x in (-5.8,-3.9,3.9,5.8):
-        display_screen(m,x,3.45,-4.62,1.55,1.05)
+        display_screen(m,x,3.45,6.62,1.55,1.05)
     # Warm shelf bands create the practical-lighting language of the reference.
     for y in (1.35,2.2,3.05):
-        cube("Shelf",(0,y,-4.72),(6.6,.035,.34),m["warm"],.025)
+        cube("Shelf",(0,y,6.72),(6.6,.035,.34),m["warm"],.025)
     for x in (-5.8,-4.7,-3.6,3.6,4.7,5.8):
-        cyl("ShelfPlantStem",(x,1.55,-4.42),.025,.36,m["green"],12,.01)
-        sph("ShelfPlant",(x,1.78,-4.42),(.18,.22,.18),m["green"])
+        cyl("ShelfPlantStem",(x,1.55,6.38),.025,.36,m["green"],12,.01)
+        sph("ShelfPlant",(x,1.78,6.38),(.18,.22,.18),m["green"])
     # Large hero display.
-    display_screen(m,0,3.0,-4.48,4.8,2.45)
+    display_screen(m,0,3.0,6.42,4.8,2.45)
     for x in (-2.7,-1.8,1.8,2.7):
-        cube("AcousticPanel",(x,2.8,-4.48),(.34,1.65,.06),m["fabric"],.035)
+        cube("AcousticPanel",(x,2.8,6.46),(.34,1.65,.06),m["fabric"],.035)
     # Presentation desk / stage.
     cube("StageDeck",(0,.24,2.0),(3.7,.16,1.65),m["metal"],.16)
     cube("StageLightFront",(0,.47,.38),(3.0,.035,.04),m["light"],.012)
@@ -304,7 +304,7 @@ def camera(category):
     if category=="universe": cam.location=(14,8.8,18.5); target=(0,3.3,1)
     elif category=="galaxy": cam.location=(12,7.6,17); target=(0,3.6,1)
     elif category=="world": cam.location=(12.5,6.8,16.5); target=(0,3.0,.8)
-    else: cam.location=(10.2,6.0,13.8); target=(0,2.7,.1); cam.data.lens=42
+    else: cam.location=(9.2,4.0,13.8); target=(0,2.3,1.8); cam.data.lens=42
     cam.data.dof.focus_distance=(Vector(target)-cam.location).length
     BASE.look_at(cam,target); scene.camera=cam
 
