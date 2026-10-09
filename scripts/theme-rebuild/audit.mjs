@@ -70,6 +70,35 @@ const visualSystemContract = {
   ].filter(([, passed]) => !passed).map(([name]) => name),
 };
 
+const assetPipelineFiles = {
+  validator: "scripts/theme-rebuild/validate-glb.mjs",
+  tests: "scripts/theme-rebuild/validate-glb.test.mjs",
+  ingestion: "apps/api/app/core/theme_asset_ingestion.py",
+  contract: "docs/audits/REBUILD_03_ASSET_PIPELINE_CONTRACT_20261009.md",
+};
+const assetPipeline = {};
+for (const [key, path] of Object.entries(assetPipelineFiles)) {
+  assetPipeline[key] = await readFile(join(root, path), "utf8").catch(() => "");
+}
+const assetPipelineContract = {
+  missingFiles: Object.entries(assetPipelineFiles).filter(([key]) => !assetPipeline[key]).map(([, path]) => path),
+  missingValidatorChecks: [
+    ["GLB v2 header", /GLB_VERSION_UNSUPPORTED/.test(assetPipeline.validator)],
+    ["declared file length", /GLB_LENGTH_MISMATCH/.test(assetPipeline.validator)],
+    ["glTF scene mesh content", /GLTF_SCENE_HAS_NO_MESHES/.test(assetPipeline.validator)],
+    ["SHA-256 digest", /createHash\("sha256"\)/.test(assetPipeline.validator)],
+    ["validator test suite", /node:test/.test(assetPipeline.tests)],
+  ].filter(([, passed]) => !passed).map(([name]) => name),
+  missingIngestionGuards: [
+    ["HTTPS provider URL", /model_url\.startswith\("https:\/\/"/.test(assetPipeline.ingestion)],
+    ["100 MiB ceiling", /100 \* 1024 \* 1024/.test(assetPipeline.ingestion)],
+    ["GLB binary signature", /content\[:4\] != b"glTF"/.test(assetPipeline.ingestion)],
+    ["SHA-256 asset checksum", /hashlib\.sha256\(content\)/.test(assetPipeline.ingestion)],
+    ["canonical asset registry", /service_insert\("theme_assets"/.test(assetPipeline.ingestion)],
+    ["server-side Storage auth", /supabase_service_role_key/.test(assetPipeline.ingestion)],
+  ].filter(([, passed]) => !passed).map(([name]) => name),
+};
+
 const publicManifestPath = "apps/api/app/api/world_runtime.py";
 const publicManifest = await readFile(join(root, publicManifestPath), "utf8").catch(() => "");
 const legacyPublicManifestPrefix = publicManifest.includes('"storage_path": "like.theme-v2-real-3d/*"');
@@ -94,6 +123,6 @@ console.log(JSON.stringify({
   legacyPublicManifestPrefix,
   missingTripoManifestPrefix,
   visualSystemContract,
-  status: missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length ? "FAIL" : "PASS",
+  status: missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length || assetPipelineContract.missingFiles.length || assetPipelineContract.missingValidatorChecks.length || assetPipelineContract.missingIngestionGuards.length ? "FAIL" : "PASS",
 }, null, 2));
-if (missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length) process.exitCode = 1;
+if (missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length || assetPipelineContract.missingFiles.length || assetPipelineContract.missingValidatorChecks.length || assetPipelineContract.missingIngestionGuards.length) process.exitCode = 1;
