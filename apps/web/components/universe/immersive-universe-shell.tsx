@@ -429,7 +429,7 @@ export default function ImmersiveUniverseShell() {
 
         <header className="allpha-universe-home-topbar-v2 pointer-events-none absolute inset-x-0 top-0 z-30 p-3 sm:p-6">
           <div className="pointer-events-auto mb-3 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[.16em] text-white/50"><span className="rounded-full border border-white/10 bg-black/30 px-2 py-1">Theme: {activeTheme?.catalog_key || activeTheme?.slug || "unbound"}</span><span className="rounded-full border border-white/10 bg-black/30 px-2 py-1">Version: {activeTheme?.theme_version ?? "—"}</span><span className={themePackUrl?"rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-1 text-emerald-200":"rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-1 text-amber-200"}>Theme V2 manifest: {themePackUrl?"resolved":"not resolved"}</span></div><div className="pointer-events-auto flex items-start justify-between gap-3">
-            <div className="rounded-2xl border border-white/10 bg-black/35 px-3 py-2.5 shadow-2xl backdrop-blur-2xl sm:rounded-full sm:px-5 sm:py-2.5">
+            <div className="glass-panel rounded-2xl border border-white/10 bg-black/35 px-3 py-2.5 shadow-2xl backdrop-blur-2xl sm:rounded-full sm:px-5 sm:py-2.5">
               <p className="text-[9px] uppercase tracking-[0.3em] text-cyan-300">Allpha AI · Living Universe</p>
               <div className="mt-1 flex max-w-[78vw] items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] text-white/65 sm:text-xs">
                 <button onClick={() => { setLevel("galaxy"); setSelectedGalaxy(null); setSelectedWorld(null); setSelectedDistrict(null); setSelectedBooth(null); }} className="hover:text-white">Universe</button>
@@ -506,7 +506,7 @@ export default function ImmersiveUniverseShell() {
               {error && <div className="rounded-2xl border border-red-300/20 bg-red-500/10 px-4 py-3 text-xs text-red-100 backdrop-blur-xl">{error}</div>}
 
               <div
-                className="rounded-[1.75rem] border border-white/10 bg-black/45 p-4 shadow-2xl backdrop-blur-2xl transition-all duration-300 sm:p-5"
+                className="glass-panel-glow rounded-[1.75rem] border border-white/10 bg-black/45 p-4 shadow-2xl backdrop-blur-2xl transition-all duration-300 sm:p-5"
                 onTouchStart={(event) => {
                   const start = event.changedTouches[0]?.clientY ?? 0;
                   event.currentTarget.dataset.touchY = String(start);
@@ -521,7 +521,7 @@ export default function ImmersiveUniverseShell() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.25em] text-violet-300">Spatial HUD</p>
-                    <h1 className="mt-1 text-lg font-semibold sm:text-2xl">
+                    <h1 className="font-display mt-1 text-lg font-semibold sm:text-2xl">
                       {selectedBooth?.name || selectedDistrict?.name || selectedWorld?.name || selectedGalaxy?.name || "Enter the Universe"}
                     </h1>
                   </div>
