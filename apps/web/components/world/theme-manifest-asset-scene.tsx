@@ -274,12 +274,43 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
       .then((payload) => {
         if (cancelled) return;
         const assets: ManifestAsset[] = payload?.data?.binary_3d_assets ?? [];
+        const aliases: Record<AssetCategory, string[]> = {
+          universe: ["universe", "galaxy_navigator", "universe_core"],
+          galaxy: ["galaxy", "galaxy_navigator"],
+          world: ["world", "world_planet"],
+          orbit: ["orbit", "navigation_orbit"],
+          capsule: ["capsule", "content_capsule"],
+          district: ["district", "district_city"],
+          booth: ["booth", "booth_tenant"],
+          "content-feed": ["content-feed", "content_feed", "content_capsule"],
+          "agent-character": ["agent-character", "agent_character", "ai_character_companion"],
+          "live-stage": ["live-stage", "live_stage", "podcast_stage", "classroom_stage"],
+          "human-live": ["human-live", "human_live", "human_uniform_formal", "human_uniform_hero"],
+          "sticker-social": ["sticker-social", "sticker_social"],
+          animation: ["animation", "ai_character_animation"],
+          "navigation-fx": ["navigation-fx", "navigation_fx", "spatial_fx"],
+        };
+        const normalize = (value: unknown) => String(value ?? "")
+          .toLowerCase()
+          .replace(/\\.glb$/, "")
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_+|_+$/g, "");
+        const accepted = aliases[category] ?? [category];
         const candidate = assets.find((asset) => {
-          const path = String(asset.storage_path ?? "").replace(/^\/+/, "").toLowerCase();
-          const expectedSuffix = ("/" + themeKey + "/" + category + ".glb").toLowerCase();
-          // The authorized server manifest is the source of truth for the Storage prefix.
-          // Match the requested theme/category without binding the renderer to a retired V2.13 folder.
-          return Boolean(asset.signed_url) && path.endsWith(expectedSuffix);
+          if (!asset.signed_url) return false;
+          const metadata = asset.metadata ?? {};
+          const path = String(asset.storage_path ?? "").replace(/^\\/+/, "");
+          const basename = path.split("/").pop() ?? "";
+          const declaredCategory = normalize(metadata.category ?? metadata.asset_category ?? metadata.assetCategory);
+          const declaredKey = normalize(metadata.asset_key ?? metadata.assetKey ?? metadata.name ?? basename);
+          const categoryMatches = accepted.some((alias) => {
+            const key = normalize(alias);
+            return declaredCategory === key || declaredKey === key;
+          });
+          const legacySuffix = path.toLowerCase().endsWith(("/" + themeKey + "/" + category + ".glb").toLowerCase());
+          // Only assets already authorized by the canonical signed manifest are eligible.
+          // Prefer explicit category/key metadata; retain the legacy path contract for older manifests.
+          return categoryMatches || legacySuffix;
         });
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
