@@ -23,7 +23,7 @@ const packageParts = [
 export default function ThemePackageGenerator() {
   const [themeName, setThemeName] = useState("Crystal AI City");
   const [themeDirection, setThemeDirection] = useState("Photorealistic cinematic sci-fi, premium architectural visualization, physically based materials, refined cyan and violet accents, consistent material language, no text or watermark.");
-  const [selected, setSelected] = useState<string[]>(packageParts.map((part) => part.key));
+  const [selected, setSelected] = useState<string[]>(["universe"]);
   const [faceLimit, setFaceLimit] = useState(50000);
   const [tasks, setTasks] = useState<AssetTask[]>([]);
   const [packageId, setPackageId] = useState("");
@@ -274,8 +274,8 @@ export default function ThemePackageGenerator() {
         <a href="/theme-studio" className="text-xs text-cyan-200 hover:text-cyan-100">← Back to Theme Studio</a>
         <header className="mt-5 rounded-[2rem] border border-cyan-200/15 bg-gradient-to-br from-[#142536] via-[#0b111e] to-[#080a11] p-6 sm:p-9">
           <p className="text-[10px] uppercase tracking-[.32em] text-cyan-200">Allpha Universe · Theme Package Lab</p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">Generate one complete Theme package</h1>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Satu arah visual untuk Universe, World, Booth, Content, Live Stage, AI Character dan aset pendukung. Setiap komponen menjadi task 3D draft yang dapat ditinjau sebelum masuk ke pipeline Blender, animasi, Storage, dan manifest.</p>
+          <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">Generate one golden Theme V2 model</h1>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Mulai dari satu golden asset untuk Allpha Web App: Crystal AI City — Universe / Galaxy. Validasi kualitas visual, GLB, signed URL, registrasi theme_assets, dan render di AllphaWorldRenderer sebelum memperluas ke model berikutnya.</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Selected assets</p><p className="mt-2 text-2xl font-semibold">{selected.length}<span className="text-sm text-slate-500"> / {packageParts.length}</span></p></div>
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Successful tasks</p><p className="mt-2 text-2xl font-semibold">{finished}</p></div>
@@ -293,7 +293,7 @@ export default function ThemePackageGenerator() {
             <label className="mt-4 block text-xs text-slate-400">Shared art direction<textarea value={themeDirection} onChange={(event) => setThemeDirection(event.target.value)} maxLength={600} rows={3} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 text-white outline-none focus:border-cyan-300/50" /></label>
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Super Admin · AI Credits Policy</p><div className="mt-3 grid gap-3 sm:grid-cols-3"><label className="text-xs text-slate-400">Credits / asset<input type="number" min={1} max={100000} value={creditsPerAsset} onChange={(event) => setCreditsPerAsset(Math.max(1, Number(event.target.value) || 1))} className="mt-2 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white" /></label><label className="text-xs text-slate-400">Max assets / package<input type="number" min={1} max={25} value={maxAssets} onChange={(event) => setMaxAssets(Math.max(1, Math.min(25, Number(event.target.value) || 1)))} className="mt-2 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white" /></label><label className="flex items-center gap-2 pt-5 text-xs text-slate-300"><input type="checkbox" checked={generationEnabled} onChange={(event) => setGenerationEnabled(event.target.checked)} className="accent-cyan-300" /> Enable generation</label></div><p className="mt-3 text-xs text-slate-400">Estimated reservation: {generationEnabled ? selected.length * creditsPerAsset : 0} credits</p><button type="button" onClick={() => void savePricing()} disabled={pricingSaving} className="mt-3 rounded-lg border border-cyan-200/20 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50">{pricingSaving ? "Saving policy…" : "Save pricing policy"}</button>{pricingError && <p className="mt-2 text-xs text-amber-200">{pricingError}</p>}</div>
             <h2 className="mt-7 text-lg font-semibold">2. Package components</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Pilih komponen untuk satu paket tema. Setiap komponen akan membuat task Tripo tersendiri dengan nama tema dan art direction yang sama.</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Fokus awal hanya satu model. Universe / Galaxy dipilih sebagai golden asset; jangan pilih komponen lain sampai model pertama lolos visual dan runtime QA.</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {packageParts.map((part, index) => {
                 const chosen = selected.includes(part.key);
