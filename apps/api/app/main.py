@@ -180,7 +180,24 @@ async def _start_owner_theme_batch_once() -> None:
     except Exception as exc:
         print("ALLPHA_OWNER_THEME_AUTO_BATCH_FAILED", type(exc).__name__, str(exc)[:300])
 
+
+async def _start_priority_asset_retry_once() -> None:
+    """One-shot, narrowly scoped retry for Universe Core and AI Character Companion."""
+    if os.getenv("ALLPHA_THEME_STUDIO_AUTO_PRIORITY_RETRY", "").strip().lower() != "enabled":
+        return
+    from uuid import UUID
+    from app.api.theme_generation import retry_owner_priority_low_cost
+    package_id = UUID("1773c99d-2caf-4416-a111-a8bf2d679e70")
+    token = os.getenv("ALLPHA_THEME_STUDIO_OWNER_TOKEN", "").strip()
+    try:
+        result = await retry_owner_priority_low_cost(package_id, token)
+        print("ALLPHA_PRIORITY_ASSET_RETRY_RESULT", result)
+    except Exception as exc:
+        print("ALLPHA_PRIORITY_ASSET_RETRY_FAILED", type(exc).__name__, str(exc)[:300])
+
 @app.on_event("startup")
 async def schedule_owner_theme_batch() -> None:
+    if os.getenv("ALLPHA_THEME_STUDIO_AUTO_PRIORITY_RETRY", "").strip().lower() == "enabled":
+        asyncio.create_task(_start_priority_asset_retry_once())
     if os.getenv("ALLPHA_THEME_STUDIO_AUTO_GENERATE", "").strip().lower() == "enabled":
         asyncio.create_task(_start_owner_theme_batch_once())
