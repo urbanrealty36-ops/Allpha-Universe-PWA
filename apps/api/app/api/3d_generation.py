@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any, Literal
 
 import httpx
@@ -11,6 +12,7 @@ from app.api.dependencies import get_auth_context
 
 router = APIRouter(prefix="/api/v1/3d-generation", tags=["AI 3D Theme Generation"])
 TRIPO_BASE_URL = "https://openapi.tripo3d.ai/v3"
+TASK_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{6,160}$")
 
 
 class TextToModelRequest(BaseModel):
@@ -45,23 +47,34 @@ def _api_key() -> str:
     return key
 
 
+def _upstream_error(status: int, code: str) -> HTTPException:
+    # Never relay provider response bodies: they are not needed by the browser and
+    # can contain implementation details. Keep provider diagnostics in server logs.
+    return HTTPException(
+        status_code=502,
+        detail={"code": code, "provider_status": status, "message": "Tripo rejected or could not complete the request."},
+    )
+
+
 async def _tripo_post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
     headers = {"Authorization": f"Bearer {_api_key()}", "Content-Type": "application/json"}
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=10.0)) as client:
             response = await client.post(f"{TRIPO_BASE_URL}{path}", headers=headers, json=payload)
     except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail={"code": "TRIPO_UPSTREAM_UNAVAILABLE", "message": str(exc)}) from exc
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_UPSTREAM_UNAVAILABLE", "message": "Tripo is temporarily unavailable."}) from exc
     if response.status_code >= 400:
-        # Do not return upstream headers or credentials to clients.
-        raise HTTPException(
-            status_code=502,
-            detail={"code": "TRIPO_UPSTREAM_ERROR", "status": response.status_code, "message": response.text[:1000]},
-        )
-    data = response.json()
-    if data.get("code", 0) != 0:
-        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_REJECTED", "message": data.get("message", "Generation request failed")})
-    return data.get("data", data)
+        raise _upstream_error(response.status_code, "TRIPO_UPSTREAM_ERROR")
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_INVALID_RESPONSE", "message": "Tripo returned an invalid response."}) from exc
+    if not isinstance(body, dict) or body.get("code", 0) != 0:
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_REJECTED", "message": "Tripo did not accept the generation request."})
+    result = body.get("data", body)
+    if not isinstance(result, dict):
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_INVALID_RESPONSE", "message": "Tripo returned an unexpected response shape."})
+    return result
 
 
 @router.post("/text-to-model", status_code=202)
@@ -79,6 +92,8 @@ async def text_to_model(payload: TextToModelRequest, context: dict = Depends(get
             "texture_quality": payload.texture_quality,
         },
     )
+    if not result.get("task_id"):
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a task ID."})
     return {"data": result, "provider": "tripo", "status": "queued"}
 
 
@@ -96,21 +111,31 @@ async def image_to_model(payload: ImageToModelRequest, context: dict = Depends(g
             "texture_quality": payload.texture_quality,
         },
     )
+    if not result.get("task_id"):
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a task ID."})
     return {"data": result, "provider": "tripo", "status": "queued"}
 
 
 @router.get("/tasks/{task_id}")
 async def get_task(task_id: str, context: dict = Depends(get_auth_context)):
     _ = context
+    if not TASK_ID_PATTERN.fullmatch(task_id):
+        raise HTTPException(status_code=422, detail={"code": "TRIPO_TASK_ID_INVALID", "message": "Invalid Tripo task ID."})
     headers = {"Authorization": f"Bearer {_api_key()}"}
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(20.0, connect=10.0)) as client:
             response = await client.get(f"{TRIPO_BASE_URL}/tasks/{task_id}", headers=headers)
     except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail={"code": "TRIPO_UPSTREAM_UNAVAILABLE", "message": str(exc)}) from exc
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_UPSTREAM_UNAVAILABLE", "message": "Tripo is temporarily unavailable."}) from exc
     if response.status_code >= 400:
-        raise HTTPException(status_code=502, detail={"code": "TRIPO_UPSTREAM_ERROR", "status": response.status_code, "message": response.text[:1000]})
-    body = response.json()
-    if body.get("code", 0) != 0:
-        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_QUERY_FAILED", "message": body.get("message", "Task query failed")})
-    return {"data": body.get("data", body), "provider": "tripo"}
+        raise _upstream_error(response.status_code, "TRIPO_TASK_QUERY_FAILED")
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_INVALID_RESPONSE", "message": "Tripo returned an invalid response."}) from exc
+    if not isinstance(body, dict) or body.get("code", 0) != 0:
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_QUERY_FAILED", "message": "Tripo task query failed."})
+    data = body.get("data", body)
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_INVALID_RESPONSE", "message": "Tripo returned an unexpected response shape."})
+    return {"data": data, "provider": "tripo"}
