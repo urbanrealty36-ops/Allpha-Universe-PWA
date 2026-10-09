@@ -16,7 +16,7 @@ import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/
 import { ThemeV2SpatialScene } from "./theme-v2-spatial-scene";
 import { Cinematic3DScene, configureCinematicRenderer } from "./cinematic-3d-scene";
 import { CinematicProductionHero } from "./cinematic-production-hero";
-import { ThemeV2ProductionAssetScene, type ProductionAssetRuntimeMetrics, type ProductionAssetRuntimeState } from "./theme-v2-production-asset-scene";
+import type { ProductionAssetRuntimeMetrics, ProductionAssetRuntimeState } from "./theme-v2-production-asset-scene";
 
 type SpatialPresence = {
   id: string;
@@ -793,7 +793,7 @@ export default function AllphaWorldRenderer({
       <ambientLight intensity={.22}/>
       <directionalLight position={[8,14,6]} intensity={.8} castShadow={shadows}/>
       <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} productionSpatialLayer={productionSpatialLayer} productionAssetUrl={productionAssetUrl} onProductionAssetState={handleProductionAssetState} onProductionAssetMetrics={handleProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
-      {/* Production V2.13 World framing can legitimately exceed the generic editor orbit ceiling. */}\n      <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={spatialLayer === "world" ? 128 : 32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
+      {/* World camera framing supports large production environments. */}\n      <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={spatialLayer === "world" ? 128 : 32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
           </Cinematic3DScene>
     </Canvas>
   </div>;
