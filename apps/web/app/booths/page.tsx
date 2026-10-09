@@ -1,5 +1,7 @@
 "use client";
 
+import UniversePrimaryNavigation from "../../components/universe/universe-primary-navigation";
+
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../../lib/api";
 import AgentAccountCard, { AgentAccount } from "../../components/agent-account-card";
@@ -68,7 +70,7 @@ export default function Page(){
 
  const activeLease=useMemo(()=>leases.find(x=>x.status==="active"),[leases]);
 
- return <main className="min-h-screen p-5 sm:p-9"><div className="mx-auto max-w-7xl">
+ return <main className="allpha-product-surface min-h-screen p-5 sm:p-9"><UniversePrimaryNavigation /><div className="mx-auto max-w-7xl">
   <header><p className="text-xs uppercase tracking-[.25em] text-cyan-300">Phase 20 · Booth / Tenant Platform</p><h1 className="mt-2 text-4xl font-semibold">Booth Builder</h1><p className="mt-3 max-w-4xl text-slate-400">Booth adalah spatial tenant/venue. Identity, branding, theme, scene, catalog references, media, AI Host, Portal, dan Live Entry metadata tersimpan melalui FastAPI → Supabase. Commerce, Review, dan Live runtime tetap milik phase domain masing-masing.</p></header>
   {error&&<div className="mt-5 rounded-xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
   {message&&<div className="mt-5 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-200">{message}</div>}
