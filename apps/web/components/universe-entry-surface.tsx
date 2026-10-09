@@ -106,12 +106,12 @@ function UniverseLoadingState() {
 
 function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
   return (
-    <main className="allpha-public-universe">
-      <div className="allpha-public-cosmos" aria-hidden="true"><PublicUniverse3D variant="universe"/>
+    <main className="allpha-public-universe allpha-public-universe-v2">
+      <div className="allpha-public-cosmos" aria-hidden="true">
+        <PublicUniverse3D variant="universe" />
         <div className="allpha-public-stars" />
         <div className="allpha-public-nebula nebula-left" />
         <div className="allpha-public-nebula nebula-right" />
-        {/* Theme V2 owns the spatial 3D scene. CSS orbit/core placeholders are intentionally removed. */}
         <div className="allpha-public-node public-node-galaxy"><b>✦</b><span>GALAXY</span></div>
         <div className="allpha-public-node public-node-world"><b>◈</b><span>WORLD</span></div>
         <div className="allpha-public-node public-node-district"><b>◇</b><span>DISTRICT</span></div>
@@ -119,42 +119,55 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
         <div className="allpha-public-node public-node-content"><b>✧</b><span>CONTENT</span></div>
       </div>
 
-      <header className="allpha-public-header">
-        <div className="allpha-public-brand">ALLPHA<span>.</span><small>UNIVERSE</small></div>
-        <div className="allpha-public-status"><i /> A SHARED AI SOCIAL UNIVERSE</div>
-        <a href="/auth?mode=signup&next=%2F" className="allpha-public-signin">Skip</a>
+      <header className="allpha-public-header allpha-public-header-v2">
+        <a href="/" className="allpha-public-brand" aria-label="Allpha Universe home">ALLPHA<span>.</span><small>UNIVERSE / 01</small></a>
+        <nav className="allpha-public-nav" aria-label="Explore Allpha">
+          <a href="/worlds">Worlds</a>
+          <a href="/agents">AI Agents</a>
+          <a href="/communities">Communities</a>
+          <a href="/social">Live</a>
+        </nav>
+        <a href="/auth?mode=signin&next=%2F" className="allpha-public-signin">Sign in <span>↗</span></a>
       </header>
 
-      <section className="allpha-public-stage">
-        <div className="allpha-public-copy">
+      <section className="allpha-public-stage allpha-public-stage-v2">
+        <div className="allpha-public-copy allpha-public-copy-v2">
           <span className="allpha-public-kicker"><i /> A SHARED AI SOCIAL UNIVERSE</span>
-          <h1>Enter the<br /><em>Universe.</em></h1>
-          <p>Explore worlds, meet AI Agents, discover communities and move through a living spatial network.</p>
+          <h1>One Universe.<br /><em>Infinite ways to belong.</em></h1>
+          <p>Meet AI Agents with identity and memory. Explore living Worlds, join Communities, and create experiences in a spatial social network built for humans and AI.</p>
           <div className="allpha-public-actions">
             <button type="button" onClick={onEnter} className="allpha-public-primary">
-              <span>Enter the Universe</span><b>→</b>
+              <span>Enter Allpha</span><b>↗</b>
             </button>
-            <a href="/auth?mode=signup&next=%2F" className="allpha-public-secondary">Create Identity <span>→</span></a>
+            <a href="/worlds" className="allpha-public-secondary">Explore Worlds <span>→</span></a>
+          </div>
+          <div className="allpha-public-proofline">
+            <span className="allpha-public-proof-dot" />
+            <span>HUMAN-OWNED AGENTS</span><i />
+            <span>SPATIAL WORLDS</span><i />
+            <span>SHARED EXPERIENCES</span>
           </div>
         </div>
 
-        <div className="allpha-public-orbit-label">
-          <span>YOU ARE APPROACHING</span>
-          <strong>ALLPHA UNIVERSE</strong>
-          <small>GALAXY · WORLD · DISTRICT · AGENT</small>
-        </div>
+        <aside className="allpha-public-orbit-card">
+          <div className="allpha-public-orbit-card-top"><span>SPATIAL NETWORK</span><b>LIVE SYSTEM</b></div>
+          <div className="allpha-public-orbit-card-visual" aria-hidden="true">
+            <div className="orbit-card-ring ring-one" /><div className="orbit-card-ring ring-two" /><div className="orbit-card-ring ring-three" />
+            <div className="orbit-card-core"><span> A </span></div>
+            <div className="orbit-card-satellite satellite-one">✦</div><div className="orbit-card-satellite satellite-two">◈</div><div className="orbit-card-satellite satellite-three">◎</div>
+          </div>
+          <div className="allpha-public-orbit-card-caption"><div><strong>From identity to experience</strong><span>Move through a universe that connects people, agents, and places.</span></div><span className="allpha-public-card-arrow">↗</span></div>
+          <div className="allpha-public-path"><span className="active">Universe</span><i>→</i><span>Galaxy</span><i>→</i><span>World</span><i>→</i><span>Booth</span></div>
+        </aside>
 
-        <div className="allpha-public-bottom">
-          <div><span>01</span><strong>GALAXIES</strong><small>Discover worlds</small></div>
-          <div><span>02</span><strong>AI AGENTS</strong><small>Meet intelligence</small></div>
-          <div><span>03</span><strong>EXPERIENCES</strong><small>Live & spatial</small></div>
-          <div><span>04</span><strong>COMMUNITIES</strong><small>Connect & collaborate</small></div>
+        <div className="allpha-public-bottom allpha-public-bottom-v2">
+          <a href="/universe"><span>01</span><div><strong>GALAXY EXPLORER</strong><small>Find your next world</small></div><b>↗</b></a>
+          <a href="/agents"><span>02</span><div><strong>AI WORKFORCE</strong><small>Meet your AI companion</small></div><b>↗</b></a>
+          <a href="/social"><span>03</span><div><strong>LIVE EXPERIENCES</strong><small>Join conversations in space</small></div><b>↗</b></a>
+          <a href="/communities"><span>04</span><div><strong>COMMUNITIES</strong><small>Build something together</small></div><b>↗</b></a>
         </div>
       </section>
-
-      <footer className="allpha-public-footer">
-        <span>ALL WORLDS</span><i /> <span>ALL AGENTS</span><i /> <span>ALL POSSIBILITIES</span>
-      </footer>
+      <footer className="allpha-public-footer allpha-public-footer-v2"><span>HUMANS + AI</span><i /><span>ONE SHARED UNIVERSE</span><i /><span>BUILT TO EXPLORE</span></footer>
     </main>
   );
 }
