@@ -76,6 +76,7 @@ const assetPipelineFiles = {
   ingestion: "apps/api/app/core/theme_asset_ingestion.py",
   contract: "docs/audits/REBUILD_03_ASSET_PIPELINE_CONTRACT_20261009.md",
   blender: "scripts/theme-rebuild/blender_process_glb.py",
+  apiDockerfile: "railway/api.Dockerfile",
 };
 const assetPipeline = {};
 for (const [key, path] of Object.entries(assetPipelineFiles)) {
@@ -92,6 +93,8 @@ const assetPipelineContract = {
     ["Blender headless process", /bpy\.ops\.import_scene\.gltf/.test(assetPipeline.blender)],
     ["Blender GLB export", /export_format="GLB"/.test(assetPipeline.blender)],
     ["Blender report hashes", /output_sha256/.test(assetPipeline.blender)],
+    ["Railway API image installs Blender", /apt-get install -y --no-install-recommends blender/.test(assetPipeline.apiDockerfile)],
+    ["Railway API image includes canonical Blender script", /COPY scripts\/theme-rebuild\/blender_process_glb.py/.test(assetPipeline.apiDockerfile)],
   ].filter(([, passed]) => !passed).map(([name]) => name),
   missingIngestionGuards: [
     ["HTTPS provider URL", /model_url\.startswith\("https:\/\/"/.test(assetPipeline.ingestion)],
