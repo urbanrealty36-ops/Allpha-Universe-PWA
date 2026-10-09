@@ -75,6 +75,7 @@ const assetPipelineFiles = {
   tests: "scripts/theme-rebuild/validate-glb.test.mjs",
   ingestion: "apps/api/app/core/theme_asset_ingestion.py",
   contract: "docs/audits/REBUILD_03_ASSET_PIPELINE_CONTRACT_20261009.md",
+  blender: "scripts/theme-rebuild/blender_process_glb.py",
 };
 const assetPipeline = {};
 for (const [key, path] of Object.entries(assetPipelineFiles)) {
@@ -88,6 +89,9 @@ const assetPipelineContract = {
     ["glTF scene mesh content", /GLTF_SCENE_HAS_NO_MESHES/.test(assetPipeline.validator)],
     ["SHA-256 digest", /createHash\("sha256"\)/.test(assetPipeline.validator)],
     ["validator test suite", /node:test/.test(assetPipeline.tests)],
+    ["Blender headless process", /bpy\.ops\.import_scene\.gltf/.test(assetPipeline.blender)],
+    ["Blender GLB export", /export_format="GLB"/.test(assetPipeline.blender)],
+    ["Blender report hashes", /output_sha256/.test(assetPipeline.blender)],
   ].filter(([, passed]) => !passed).map(([name]) => name),
   missingIngestionGuards: [
     ["HTTPS provider URL", /model_url\.startswith\("https:\/\/"/.test(assetPipeline.ingestion)],
