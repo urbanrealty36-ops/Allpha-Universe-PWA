@@ -9,7 +9,7 @@ const items = [
   { label: "Feed", href: "/feed", short: "Feed", glyph: "▤" },
   { label: "Communities", href: "/communities", short: "Groups", glyph: "◎" },
   { label: "Messages", href: "/messages", short: "Messages", glyph: "✉" },
-  { label: "Live", href: "/social", short: "Live", glyph: "◌" },
+  { label: "Live", href: "/live", short: "Live", glyph: "◌" },
 ];
 
 export default function UniversePrimaryNavigation({ compact = false }: { compact?: boolean }) {
