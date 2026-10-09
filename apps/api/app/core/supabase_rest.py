@@ -174,5 +174,15 @@ async def service_rpc(function: str, payload: dict[str, Any]) -> Any:
     async with httpx.AsyncClient(timeout=8.0) as client:
         response = await client.post(url, json=payload, headers=headers)
     if response.status_code >= 400:
-        raise SupabaseRestError(response.status_code, "Supabase service RPC failed.")
+        body = response.text
+        safe_codes = (
+            "INSUFFICIENT_AI_CREDITS",
+            "THEME_CREDIT_AMOUNT_INVALID",
+            "THEME_CREDIT_RESERVATION_CLOSED",
+            "THEME_CREDIT_RESERVATION_NOT_FOUND",
+            "THEME_CREDIT_SETTLEMENT_INVALID",
+            "THEME_CREDIT_SETTLEMENT_EXCEEDS_RESERVATION",
+        )
+        message = next((code for code in safe_codes if code in body), "Supabase service RPC failed.")
+        raise SupabaseRestError(response.status_code, message)
     return response.json()
