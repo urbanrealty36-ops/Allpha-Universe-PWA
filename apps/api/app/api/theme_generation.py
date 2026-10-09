@@ -138,6 +138,8 @@ async def _refresh_item(item: dict[str, Any], package: dict[str, Any]) -> dict[s
                 return {**item, "model_url": signed_url}
             except ThemeAssetIngestionError as exc:
                 patch.update({"status":"failed","error_code":exc.code,"error_message":str(exc),"model_url":None})
+            except SupabaseRestError:
+                patch.update({"status":"failed","error_code":"THEME_ASSET_REGISTRATION_FAILED","error_message":"Asset ingestion or theme_assets registration failed.","model_url":None})
         updated = await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {k:v for k,v in patch.items() if v != "now()"})
         return updated[0] if updated else {**item, **patch}
     except HTTPException:
@@ -296,6 +298,9 @@ async def retry_failed(package_id: UUID, context: dict = Depends(require_permiss
     if not packages:
         raise HTTPException(status_code=404,detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Theme package not found."})
     package=packages[0]
+    package_metadata = package.get("metadata") if isinstance(package.get("metadata"), dict) else {}
+    if package_metadata.get("credits_settlement"):
+        raise HTTPException(status_code=409, detail={"code":"THEME_PACKAGE_BILLING_SETTLED","message":"This package is already settled. A retry must create a new package so additional provider cost is reserved and billed safely."})
     items=await service_select("theme_generation_items", {"select":"*","package_id":f"eq.{package_id}","status":"eq.failed","order":"created_at.asc"})
     if not items:
         raise HTTPException(status_code=409,detail={"code":"NO_FAILED_ASSETS","message":"This package has no failed assets to retry."})
