@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -114,3 +115,50 @@ for _router in [
     world_runtime_router,
 ]:
     app.include_router(_router)
+
+async def _start_owner_theme_batch_once() -> None:
+    """One-shot owner-operated Tripo kickoff; idempotency is enforced by the canonical package table."""
+    if os.getenv("ALLPHA_THEME_STUDIO_AUTO_GENERATE", "").strip().lower() != "enabled":
+        return
+    from app.api.theme_generation import PackageAssetInput, PackageCreate, create_owner_package
+    token = os.getenv("ALLPHA_THEME_STUDIO_OWNER_TOKEN", "").strip()
+    direction = "Allpha Universe premium 3D visual language: cinematic high-end PBR, physically plausible geometry, clean silhouette, detailed materials, restrained cosmic cyan-violet emissive accents, realistic scale and lighting. Create a complete usable 3D asset, not a primitive placeholder; no text, logos, watermarks, or flat illustration."
+    specs = [
+      ("universe_core","Universe Core","A monumental crystalline universe core with layered orbital rings, volumetric depth, premium glass-metal materials and luminous energy channels."),
+      ("galaxy_navigator","Galaxy Navigator","A sculptural spiral galaxy navigator with distinct arms, dense star clusters, elegant orbital paths and cinematic depth."),
+      ("world_planet","World Planet","A detailed habitable world with atmospheric rim, landforms, clouds, surface relief and a premium readable silhouette."),
+      ("district_city","District City","A cohesive futuristic city district with varied buildings, walkable streets, plazas, transit connections and realistic architectural detail."),
+      ("booth_tenant","Booth Tenant","A premium modular tenant booth with architectural framing, display surfaces, layered materials and interactive-ready open frontage."),
+      ("content_capsule","Content Capsule","A distinctive floating content capsule with layered transparent shell, internal display volume, bevels and physically based materials."),
+      ("portal_gate","Portal Gate","A monumental traversable portal with concentric frames, detailed structural supports and restrained emissive accents."),
+      ("navigation_orbit","Navigation Orbit","A high quality 3D navigation-orbit assembly with multiple distinct orbit bands, nodes, connectors and balanced composition."),
+      ("spatial_fx","Spatial FX","A reusable spatial-effects sculpture with layered energy ribbons, particles represented as geometry and controlled luminous materials."),
+      ("live_stage","Live Experience Stage","A production-ready live talk-show stage with central platform, lighting rigs, display walls, seating and acoustic design cues."),
+      ("podcast_stage","Podcast Studio","A premium podcast set with desk, microphones, headphones, acoustic panels, practical lights and camera-friendly composition."),
+      ("presentation_stage","Presentation Stage","A modern presentation and pitching stage with a large display, podium, layered platform and realistic event lighting."),
+      ("classroom_stage","Classroom Stage","A contemporary learning room with presentation screen, instructor zone, desks, chairs and clear circulation."),
+      ("mentor_room","Mentor Room","A warm premium mentoring room with paired seating, small table, practical lighting and realistic soft furnishings."),
+      ("news_stage","News Studio","A broadcast news set with curved desk, wall displays, camera zones and refined studio lighting."),
+      ("human_uniform_formal","Human Uniform Formal","A full-body formal human outfit asset on a neutral mannequin, tailored jacket, trousers, shoes and detailed fabric materials."),
+      ("human_uniform_nusantara","Human Uniform Nusantara","A full-body contemporary Nusantara-inspired formal uniform on a neutral mannequin, refined woven textile detail and respectful original design."),
+      ("human_uniform_hero","Human Uniform Hero","An original futuristic hero-style full-body uniform on a neutral mannequin, layered protective materials and no copyrighted symbols."),
+      ("ai_character_companion","AI Character Companion","An original friendly premium AI companion character with expressive face, articulated limbs, coherent anatomy and production-ready materials."),
+      ("ai_character_guide","AI Character Guide","An original futuristic AI guide character with distinct silhouette, expressive face, articulated body and detailed clothing."),
+      ("ai_character_mentor","AI Character Mentor","An original approachable mentor character, realistic stylized proportions, thoughtful expression, articulated body and high-quality materials."),
+      ("ai_sticker_social","AI Sticker Social","A dimensional social reaction sticker asset with bold readable silhouette, clean bevels, polished materials and no text."),
+      ("ai_cosmetics","AI Cosmetics","A premium set-like 3D cosmetic accessory asset with refined metallic, glass and soft-touch material detail."),
+      ("marketplace_portal","Marketplace Portal","A premium marketplace entrance with product plinths, modular display alcoves, navigation framing and realistic architectural detail."),
+      ("community_hub","Community Hub","A welcoming 3D community gathering hub with circular seating, shared focal point, layered planting and ambient architectural lighting."),
+    ]
+    payload = PackageCreate(theme_name="Allpha Universe — Reference Batch 01", theme_direction=direction, assets=[PackageAssetInput(key=k,label=label,prompt=prompt + " " + direction) for k,label,prompt in specs], idempotency_key="allpha-owner-auto-reference-batch-01-v1", face_limit=50000)
+    try:
+        result = await create_owner_package(payload, token)
+        package = result.get("data", {}).get("package", result.get("package", {}))
+        print("ALLPHA_OWNER_THEME_AUTO_BATCH", {"package_id": package.get("id"), "status": package.get("status"), "asset_count": len(specs)})
+    except Exception as exc:
+        print("ALLPHA_OWNER_THEME_AUTO_BATCH_FAILED", type(exc).__name__, str(exc)[:300])
+
+@app.on_event("startup")
+async def schedule_owner_theme_batch() -> None:
+    if os.getenv("ALLPHA_THEME_STUDIO_AUTO_GENERATE", "").strip().lower() == "enabled":
+        asyncio.create_task(_start_owner_theme_batch_once())
