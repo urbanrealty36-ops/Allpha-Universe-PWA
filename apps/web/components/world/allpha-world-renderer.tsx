@@ -13,10 +13,10 @@ import type { WorldScene, SceneNode } from "../../lib/world-engine/scene-schema"
 import { proceduralThemeStyle } from "../../lib/world-engine/procedural-theme";
 import type { CharacterAnimationSignal } from "../../lib/live-character-animation";
 import { createCharacterV2Profile, normalizeCharacterV2Signal } from "../../lib/live-character-v2";
-import { ThemeV2SpatialScene } from "./theme-v2-spatial-scene";
+import { ThemeSpatialScene } from "./theme-spatial-scene";
 import { Cinematic3DScene, configureCinematicRenderer } from "./cinematic-3d-scene";
 import { CinematicProductionHero } from "./cinematic-production-hero";
-import type { ProductionAssetRuntimeMetrics, ProductionAssetRuntimeState } from "./theme-v2-production-asset-scene";
+import type { ThemeAssetRuntimeMetrics, ThemeAssetRuntimeState } from "./theme-manifest-asset-scene";
 
 type SpatialPresence = {
   id: string;
@@ -242,7 +242,7 @@ function WorldDistrictBoothV2View({ layer, lowPower, onHotspot, scene }: { layer
   const themeKey = typeof scene.environment?.theme_key === "string" ? String(scene.environment.theme_key) : typeof scene.environment?.golden_theme === "string" ? String(scene.environment.golden_theme) : undefined;
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   return <group ref={root}>
-    <ThemeV2SpatialScene themeKey={themeKey} architecture={architecture} layer={layer} lowPower={lowPower} reducedMotion={reduceMotion} />
+    <ThemeSpatialScene themeKey={themeKey} architecture={architecture} layer={layer} lowPower={lowPower} reducedMotion={reduceMotion} />
     <mesh position={[0,-.65,0]}>
       <cylinderGeometry args={[layer==="world"?6.2:layer==="district"?4.7:2.8,.65, .55, lowPower?32:56]} />
       <meshStandardMaterial color="#07101d" metalness={.72} roughness={.26} />
@@ -339,7 +339,7 @@ function GoldenSpatialLayerView({
 
   return (
     <group ref={root}>
-      <ThemeV2SpatialScene themeKey="crystal-ai-city" architecture="Crystal AI City" layer={layer} lowPower={lowPower} reducedMotion={reducedMotion} />
+      <ThemeSpatialScene themeKey="crystal-ai-city" architecture="Crystal AI City" layer={layer} lowPower={lowPower} reducedMotion={reducedMotion} />
       <mesh position={[0, -0.65, 0]}>
         <sphereGeometry args={[layer === "universe" ? 2.1 : layer === "galaxy" ? 1.55 : 1.15, lowPower ? 16 : 24, lowPower ? 12 : 18]} />
         <meshStandardMaterial color={colors.core} emissive={colors.core} emissiveIntensity={1.1} transparent opacity={0.2} />
@@ -631,7 +631,7 @@ function WorldObjects({
   spatialObjects:DistrictSpatialObject[];
   productionSpatialLayer?: "world" | "district" | "booth";
   productionAssetUrl?: string | null;
-  selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; themeKey?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"]; liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState; onProductionAssetState?: (state: ProductionAssetRuntimeState) => void; onProductionAssetMetrics?: (metrics: ProductionAssetRuntimeMetrics) => void;
+  selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; themeKey?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"]; liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState; onProductionAssetState?: (state: ThemeAssetRuntimeState) => void; onProductionAssetMetrics?: (metrics: ThemeAssetRuntimeMetrics) => void;
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
   const primary=String(tokens?.["theme.color.primary"]??style.accent);
@@ -655,7 +655,7 @@ function WorldObjects({
   return <>
     {themePackUrl?<ThemePackEnvironment url={themePackUrl}/>:null}
     {liveStageMode ? <LiveCollaborationStageView stageUrl={liveStageUrl} lowPower={lowPower} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} collaborationActive={liveCollaborationActive} consentApproved={liveCollaborationConsentApproved} riskAllowed={liveCollaborationRiskAllowed} agentId={liveAgentId} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined} humanState={humanPresentationState} agentState={liveAgentStageState}/> : (liveStageUrl ? <LiveStage3DAsset url={liveStageUrl}/> : null)}
-    <ThemeV2SpatialScene themeKey={themeKey} architecture={architecture} layer={(["universe","galaxy","world","district","booth","content","live"].includes(spatialLayer) ? spatialLayer : "world") as "universe"|"galaxy"|"world"|"district"|"booth"|"content"|"live"} directAssetUrl={productionAssetUrl} lowPower={lowPower} reducedMotion={reducedMotion} onRuntimeState={onProductionAssetState} onRuntimeMetrics={onProductionAssetMetrics} />
+    <ThemeSpatialScene themeKey={themeKey} architecture={architecture} layer={(["universe","galaxy","world","district","booth","content","live"].includes(spatialLayer) ? spatialLayer : "world") as "universe"|"galaxy"|"world"|"district"|"booth"|"content"|"live"} directAssetUrl={productionAssetUrl} lowPower={lowPower} reducedMotion={reducedMotion} onRuntimeState={onProductionAssetState} onRuntimeMetrics={onProductionAssetMetrics} />
 
     {zones.map((zone,i)=>{
       const angle=(i/Math.max(1,zones.length))*Math.PI*2;
@@ -742,11 +742,11 @@ export default function AllphaWorldRenderer({
         : null
     );
   }, []);
-  const handleProductionAssetState = useCallback((state: ProductionAssetRuntimeState) => {
+  const handleProductionAssetState = useCallback((state: ThemeAssetRuntimeState) => {
     const marker = resolveProductionRuntimeMarker();
     if (marker) marker.setAttribute("data-allpha-3d-asset-state", state);
   }, [resolveProductionRuntimeMarker]);
-  const handleProductionAssetMetrics = useCallback((metrics: ProductionAssetRuntimeMetrics) => {
+  const handleProductionAssetMetrics = useCallback((metrics: ThemeAssetRuntimeMetrics) => {
     const marker = resolveProductionRuntimeMarker();
     if (!marker) return;
     marker.setAttribute("data-allpha-3d-mesh-count", String(metrics.meshCount));
