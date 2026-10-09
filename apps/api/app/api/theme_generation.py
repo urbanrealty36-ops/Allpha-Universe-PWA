@@ -5,7 +5,7 @@ from typing import Any, Literal
 from uuid import UUID
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.api.dependencies import require_permission
@@ -165,7 +165,7 @@ async def _refresh_package(package: dict[str, Any]) -> dict[str, Any]:
         patch["completed_at"] = datetime.now(timezone.utc).isoformat()
     if status in {"succeeded","partial","failed","cancelled"}:
         metadata = package.get("metadata") if isinstance(package.get("metadata"), dict) else {}
-        if not metadata.get("credits_settlement"):
+        if not metadata.get("credits_settlement") and not metadata.get("owner_operated_bypass"):
             try:
                 settlement = await service_rpc("settle_theme_generation_credits", {
                     "p_user_id": str(package["owner_user_id"]),
@@ -181,6 +181,62 @@ async def _refresh_package(package: dict[str, Any]) -> dict[str, Any]:
     current_package = updated[0] if updated else {**package,"status":status}
     await sync_theme_workflow_run(current_package, refreshed, status)
     return {"package": current_package, "items":refreshed}
+
+def _require_owner_studio_key(candidate: str | None) -> None:
+    import hmac
+    expected = os.getenv("ALLPHA_THEME_STUDIO_OWNER_TOKEN", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail={"code":"OWNER_THEME_STUDIO_NOT_CONFIGURED","message":"Owner Theme Studio token is not configured on the API service."})
+    if not candidate or not hmac.compare_digest(candidate, expected):
+        raise HTTPException(status_code=403, detail={"code":"OWNER_THEME_STUDIO_KEY_INVALID","message":"Owner Theme Studio access key is invalid."})
+
+@router.post("/owner/packages", status_code=201)
+async def create_owner_package(payload: PackageCreate, x_allpha_owner_studio_key: str | None = Header(default=None)) -> dict[str, Any]:
+    """Owner generation bypasses end-user session, admin permission and AI Credits; publish gates remain intact."""
+    _require_owner_studio_key(x_allpha_owner_studio_key)
+    _require_tripo()
+    owner_id = os.getenv("ALLPHA_THEME_STUDIO_OWNER_USER_ID", "").strip()
+    try:
+        UUID(owner_id)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=503, detail={"code":"OWNER_THEME_STUDIO_IDENTITY_NOT_CONFIGURED","message":"Configure the owner identity UUID on the API service."})
+    existing = await service_select("theme_generation_packages", {"select":"*", "owner_user_id":"eq." + owner_id, "idempotency_key":"eq." + payload.idempotency_key, "limit":"1"})
+    if existing:
+        return await _refresh_package(existing[0])
+    metadata = {"asset_count":len(payload.assets), "face_limit":payload.face_limit, "owner_operated_bypass":True, "billing_mode":"owner_internal_no_ai_credits", "generation_provider":"tripo_v3", "publication_state":"draft_pending_qa"}
+    try:
+        rows = await service_insert("theme_generation_packages", {"owner_user_id":owner_id, "theme_name":payload.theme_name, "theme_direction":payload.theme_direction, "idempotency_key":payload.idempotency_key, "status":"queued", "metadata":metadata})
+        if not rows:
+            raise HTTPException(status_code=500, detail={"code":"THEME_PACKAGE_PERSIST_FAILED","message":"Owner package could not be persisted."})
+        package = rows[0]
+        await service_insert("theme_generation_items", [{"package_id":package["id"], "owner_user_id":owner_id, "asset_key":a.key, "asset_label":a.label, "prompt":(payload.theme_name + ": " + a.label + ". " + payload.theme_direction + " Asset brief: " + a.prompt)[:1024], "status":"queued", "metadata":{"owner_operated_bypass":True}} for a in payload.assets], returning=False)
+        package = await ensure_theme_records(package)
+        items = await service_select("theme_generation_items", {"select":"*", "package_id":"eq." + str(package["id"]), "order":"created_at.asc"})
+        workflow = await create_theme_workflow_run(package, items)
+        package = workflow["package"]
+        items = await service_select("theme_generation_items", {"select":"*", "package_id":"eq." + str(package["id"]), "order":"created_at.asc"})
+    except HTTPException:
+        raise
+    except (SupabaseRestError, ThemeAssetIngestionError, RuntimeError) as exc:
+        raise HTTPException(status_code=503, detail={"code":"OWNER_THEME_PACKAGE_SETUP_FAILED","message":"Canonical package, Theme draft, or workflow setup failed before provider submission."}) from exc
+    for item in items:
+        try:
+            await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"status":"submitting"})
+            task = await _tripo_create(str(item["prompt"]), payload.face_limit)
+            await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"provider_task_id":task["task_id"], "status":"running", "metadata":{**(item.get("metadata") if isinstance(item.get("metadata"),dict) else {}), "owner_operated_bypass":True, "provider_created_at":task.get("created_at"), "provider_status":task.get("status")}})
+        except (HTTPException, SupabaseRestError) as exc:
+            detail = exc.detail if isinstance(exc, HTTPException) and isinstance(exc.detail,dict) else {}
+            await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"status":"failed", "error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"), "error_message":detail.get("message","Could not submit owner-operated Tripo task.")})
+    current = await service_select("theme_generation_packages", {"select":"*", "id":"eq." + str(package["id"]), "limit":"1"})
+    return await _refresh_package(current[0] if current else package)
+
+@router.get("/owner/packages/{package_id}")
+async def get_owner_package(package_id: UUID, x_allpha_owner_studio_key: str | None = Header(default=None)) -> dict[str, Any]:
+    _require_owner_studio_key(x_allpha_owner_studio_key)
+    packages = await service_select("theme_generation_packages", {"select":"*", "id":"eq." + str(package_id), "limit":"1"})
+    if not packages or not (packages[0].get("metadata") or {}).get("owner_operated_bypass"):
+        raise HTTPException(status_code=404, detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Owner Theme package not found."})
+    return {"data":await _refresh_package(packages[0])}
 
 @router.get("/pricing")
 async def get_pricing(context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
