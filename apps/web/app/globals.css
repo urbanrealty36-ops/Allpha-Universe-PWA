@@ -1209,3 +1209,57 @@ a { color: inherit; }
  .allpha-universe-home-hud-v2>div>div:last-child>button{min-height:34px;padding:0 11px;font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.allpha-universe-home-v2 *{scroll-behavior:auto}}
+
+
+/* WEB-16 — Splash / identity arrival */
+.allpha-public-splash-v2{position:relative;isolation:isolate;min-height:100svh;overflow:hidden;background:#02040b;color:#fff}
+.allpha-splash-v2-scene{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 67% 50%,rgba(70,87,255,.16),transparent 28%),radial-gradient(ellipse at 78% 55%,rgba(0,211,255,.09),transparent 33%),linear-gradient(125deg,#02040b,#060a19 55%,#080516)}
+.allpha-splash-v2-scene>div:first-child{position:absolute;inset:0}
+.allpha-splash-v2-stars{position:absolute;inset:0;opacity:.45;background-image:radial-gradient(circle,rgba(255,255,255,.8) 0 1px,transparent 1.5px),radial-gradient(circle,rgba(105,226,255,.7) 0 1px,transparent 1.5px);background-size:118px 118px,197px 173px;animation:allpha-splash-stars 55s linear infinite}
+@keyframes allpha-splash-stars{to{transform:translate3d(118px,118px,0)}}
+.allpha-splash-v2-glow{position:absolute;width:42vw;aspect-ratio:1;border-radius:50%;filter:blur(70px);pointer-events:none}
+.allpha-splash-v2-glow.glow-a{right:4%;top:12%;background:rgba(76,95,255,.13)}
+.allpha-splash-v2-glow.glow-b{right:19%;bottom:-25%;background:rgba(20,216,255,.09)}
+.allpha-splash-v2-orbit{position:absolute;left:69%;top:53%;border:1px solid rgba(131,217,255,.16);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%) rotate(-25deg)}
+.allpha-splash-v2-orbit.orbit-a{width:min(47vw,680px);height:min(23vw,280px);animation:allpha-v2-orbit 38s linear infinite}
+.allpha-splash-v2-orbit.orbit-b{width:min(63vw,900px);height:min(31vw,360px);border-color:rgba(171,139,255,.15);transform:translate(-50%,-50%) rotate(32deg);animation:allpha-v2-orbit 46s linear infinite reverse}
+.allpha-splash-v2-orbit.orbit-c{width:min(36vw,520px);height:min(54vw,680px);border-color:rgba(131,217,255,.1);transform:translate(-50%,-50%) rotate(58deg)}
+.allpha-splash-v2-header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:26px clamp(20px,5vw,72px)}
+.allpha-splash-v2-brand{font-size:24px;font-weight:900;line-height:.9;letter-spacing:-.08em;text-decoration:none}
+.allpha-splash-v2-brand>span{color:#67e8f9}
+.allpha-splash-v2-brand small{display:block;margin-top:8px;color:rgba(167,219,255,.48);font-size:7px;font-weight:700;letter-spacing:.3em}
+.allpha-splash-v2-signin{display:inline-flex;align-items:center;gap:18px;min-height:44px;padding:0 17px;border:1px solid rgba(164,206,255,.18);border-radius:999px;background:rgba(4,8,20,.42);color:rgba(234,243,255,.7);font-size:10px;text-decoration:none;backdrop-filter:blur(18px)}
+.allpha-splash-v2-signin b{color:#84eaff;font-size:15px;font-weight:400}
+.allpha-splash-v2-main{position:relative;z-index:5;min-height:calc(100svh - 124px);display:flex;align-items:center;padding:30px clamp(20px,8vw,120px) 90px}
+.allpha-splash-v2-copy{max-width:700px}
+.allpha-splash-v2-kicker{display:flex;align-items:center;gap:9px;color:rgba(161,226,255,.75);font-size:9px;font-weight:800;letter-spacing:.2em}
+.allpha-splash-v2-kicker i{width:6px;height:6px;border-radius:50%;background:#66eaff;box-shadow:0 0 16px #66eaff}
+.allpha-splash-v2-copy h1{margin:27px 0 0;font-size:clamp(60px,8vw,118px);font-weight:750;line-height:.9;letter-spacing:-.085em}
+.allpha-splash-v2-copy h1 em{display:inline-block;margin-top:9px;font-style:normal;background:linear-gradient(100deg,#7defff,#7394ff 54%,#bd9aff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.allpha-splash-v2-description{max-width:490px;margin-top:24px;color:rgba(226,235,255,.57);font-size:14px;line-height:1.8}
+.allpha-splash-v2-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:30px}
+.allpha-splash-v2-actions button,.allpha-splash-v2-actions>a{display:inline-flex;align-items:center;justify-content:center;gap:20px;min-height:54px;padding:0 22px;border-radius:999px;font-size:11px;font-weight:750;text-decoration:none;cursor:pointer}
+.allpha-splash-v2-actions button{border:0;background:linear-gradient(105deg,#57dff5,#6376ff 60%,#9a63f6);color:white;box-shadow:0 12px 45px rgba(58,153,255,.22)}
+.allpha-splash-v2-actions button span{font-size:16px}
+.allpha-splash-v2-actions>a{border:1px solid rgba(168,205,255,.17);background:rgba(5,10,24,.4);color:rgba(232,241,255,.74)}
+.allpha-splash-v2-actions>a span{color:#81eaff;font-size:15px}
+.allpha-splash-v2-signals{display:flex;align-items:center;gap:12px;margin-top:38px;color:rgba(187,211,245,.4);font-size:8px;font-weight:800;letter-spacing:.14em}
+.allpha-splash-v2-signals b{margin-right:6px;color:rgba(111,226,255,.7);font-size:8px}
+.allpha-splash-v2-signals i{color:rgba(118,211,255,.3);font-style:normal}
+.allpha-splash-v2-orbit-label{position:absolute;right:clamp(20px,7vw,110px);bottom:18%;display:grid;gap:7px;text-align:right}
+.allpha-splash-v2-orbit-label span{font-size:7px;letter-spacing:.25em;color:rgba(205,221,247,.32)}
+.allpha-splash-v2-orbit-label strong{font-size:11px;letter-spacing:.16em;color:rgba(163,224,255,.7)}
+.allpha-splash-v2-orbit-label small{font-size:7px;letter-spacing:.2em;color:rgba(205,221,247,.27)}
+.allpha-splash-v2-footer{position:absolute;z-index:10;bottom:19px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:12px;color:rgba(190,214,244,.25);font-size:7px;letter-spacing:.2em}
+.allpha-splash-v2-footer i{width:3px;height:3px;border-radius:50%;background:rgba(105,226,255,.6)}
+@media(max-width:700px){
+ .allpha-splash-v2-header{padding:19px 18px}.allpha-splash-v2-brand{font-size:20px}.allpha-splash-v2-signin{min-height:40px;padding:0 13px;font-size:9px}
+ .allpha-splash-v2-main{min-height:calc(100svh - 80px);align-items:flex-start;padding:clamp(70px,13vh,115px) 20px 100px}
+ .allpha-splash-v2-copy{max-width:100%}.allpha-splash-v2-kicker{font-size:7px;letter-spacing:.12em}.allpha-splash-v2-copy h1{margin-top:22px;font-size:clamp(48px,12vw,72px);line-height:.95}.allpha-splash-v2-description{max-width:390px;margin-top:18px;font-size:12px;line-height:1.75}
+ .allpha-splash-v2-actions{gap:9px;margin-top:23px}.allpha-splash-v2-actions button,.allpha-splash-v2-actions>a{min-height:48px;padding:0 15px;gap:10px;font-size:10px}
+ .allpha-splash-v2-signals{gap:7px;margin-top:27px;font-size:6px;letter-spacing:.08em}.allpha-splash-v2-signals b{margin-right:3px;font-size:6px}
+ .allpha-splash-v2-orbit{left:67%;top:61%}.allpha-splash-v2-orbit.orbit-a{width:420px;height:190px}.allpha-splash-v2-orbit.orbit-b{width:520px;height:260px}.allpha-splash-v2-orbit.orbit-c{width:280px;height:450px}
+ .allpha-splash-v2-orbit-label{right:18px;bottom:13%;opacity:.65}.allpha-splash-v2-orbit-label strong{font-size:8px}.allpha-splash-v2-footer{bottom:12px;font-size:6px;gap:7px}
+}
+@media(max-width:380px){.allpha-splash-v2-copy h1{font-size:46px}.allpha-splash-v2-description{font-size:11px}.allpha-splash-v2-actions button,.allpha-splash-v2-actions>a{padding:0 12px;font-size:9px}}
+@media(prefers-reduced-motion:reduce){.allpha-splash-v2-stars,.allpha-splash-v2-orbit{animation:none}}
