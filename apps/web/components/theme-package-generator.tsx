@@ -5,6 +5,7 @@ import { apiFetch } from "../../lib/api";
 
 type AssetTask = { key: string; label: string; prompt: string; taskId?: string; status: string; progress?: number; modelUrl?: string; previewUrl?: string; error?: string };
 type ApiResponse = { data?: { task_id?: string; status?: string; progress?: number; output?: { model_url?: string; rendered_image_url?: string; [key: string]: unknown }; credits_consumed?: number } };
+type PackageResponse = { package?: { id: string; status: string }; items?: Array<{ asset_key: string; provider_task_id?: string; status: string; progress?: number; model_url?: string; preview_url?: string; error_message?: string }> };
 
 const packageParts = [
   { key: "universe", label: "Universe / Galaxy", prompt: "Cinematic premium 3D universe environment, monumental luminous galaxy architecture, layered nebula, physically based materials, refined sci-fi worldbuilding, strong composition, optimized clean topology." },
@@ -24,6 +25,7 @@ export default function ThemePackageGenerator() {
   const [selected, setSelected] = useState<string[]>(packageParts.map((part) => part.key));
   const [faceLimit, setFaceLimit] = useState(50000);
   const [tasks, setTasks] = useState<AssetTask[]>([]);
+  const [packageId, setPackageId] = useState("");
   const [busy, setBusy] = useState(false);
   const [current, setCurrent] = useState("");
   const [rigCheckId, setRigCheckId] = useState("");
@@ -42,35 +44,39 @@ export default function ThemePackageGenerator() {
     setBusy(true);
     setError("");
     const chosen = packageParts.filter((part) => selected.includes(part.key));
-    const initial = chosen.map((part) => ({ ...part, status: "queued" }));
-    setTasks(initial);
-    for (const part of chosen) {
-      setCurrent(part.label);
-      setTasks((items) => items.map((item) => item.key === part.key ? { ...item, status: "submitting" } : item));
-      try {
-        const response = await apiFetch<ApiResponse>("/api/v1/3d-generation/text-to-model", {
-          method: "POST",
-          body: JSON.stringify({
+    setTasks(chosen.map((part) => ({ ...part, status: "queued" })));
+    setCurrent("Theme Package Orchestrator");
+    try {
+      const response = await apiFetch<PackageResponse>("/api/v1/theme-generation/packages", {
+        method: "POST",
+        body: JSON.stringify({
+          theme_name: themeName.trim(),
+          theme_direction: themeDirection,
+          idempotency_key: `theme-package-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          face_limit: faceLimit,
+          assets: chosen.map((part) => ({
+            key: part.key,
+            label: part.label,
             prompt: `${themeName}: ${part.label}. ${themeDirection} Asset-specific brief: ${part.prompt}`.slice(0, 1024),
-            negative_prompt: "low quality, blurry, primitive placeholder geometry, broken topology, text, watermark, inconsistent style",
-            face_limit: faceLimit,
-            texture: true,
-            pbr: true,
-            texture_quality: "detailed",
-          }),
-        });
-        const id = response.data?.task_id;
-        setTasks((items) => items.map((item) => item.key === part.key ? { ...item, taskId: id, status: id ? "queued" : "error", error: id ? undefined : "Tripo tidak mengembalikan task_id." } : item));
-      } catch (cause) {
-        const message = cause instanceof Error ? cause.message : "TRIPO_GENERATION_FAILED";
-        setTasks((items) => items.map((item) => item.key === part.key ? { ...item, status: "error", error: message } : item));
-        setError((value) => value || `Sebagian task gagal dikirim. Periksa ${part.label} dan coba ulang hanya aset yang gagal.`);
-      }
+          })),
+        }),
+      });
+      const pkg = response.package;
+      if (!pkg?.id) throw new Error("THEME_PACKAGE_ID_MISSING");
+      setPackageId(pkg.id);
+      const items = response.items ?? [];
+      setTasks(chosen.map((part) => {
+        const item = items.find((candidate) => candidate.asset_key === part.key);
+        return { ...part, taskId: item?.provider_task_id, status: item?.status ?? "queued", progress: item?.progress, modelUrl: item?.model_url, previewUrl: item?.preview_url, error: item?.error_message };
+      }));
+      if (items.some((item) => item.status === "failed")) setError("Sebagian aset gagal dikirim. Periksa provider lalu retry aset gagal.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "THEME_PACKAGE_CREATE_FAILED");
+    } finally {
+      setCurrent("");
+      setBusy(false);
     }
-    setCurrent("");
-    setBusy(false);
   }
-
   async function providerTask(taskId: string) {
     const response = await apiFetch<ApiResponse>(`/api/v1/3d-generation/tasks/${encodeURIComponent(taskId)}`);
     return response.data;
@@ -155,24 +161,23 @@ export default function ThemePackageGenerator() {
   }
 
   async function refreshOne(key: string) {
+    if (!packageId) return;
     const task = tasks.find((item) => item.key === key);
-    if (!task?.taskId) return;
+    if (!task) return;
     setTasks((items) => items.map((item) => item.key === key ? { ...item, status: "checking" } : item));
     try {
-      const response = await apiFetch<ApiResponse>(`/api/v1/3d-generation/tasks/${encodeURIComponent(task.taskId)}`);
-      const data = response.data;
-      setTasks((items) => items.map((item) => item.key === key ? {
-        ...item,
-        status: data?.status ?? "unknown",
-        progress: data?.progress,
-        modelUrl: data?.output?.model_url,
-        previewUrl: data?.output?.rendered_image_url,
-      } : item));
+      const response = await apiFetch<{ data?: { data?: PackageResponse } }>(`/api/v1/theme-generation/packages/${packageId}`);
+      const items = response.data?.data?.items ?? [];
+      const item = items.find((candidate) => candidate.asset_key === key);
+      if (!item) throw new Error("THEME_ASSET_NOT_FOUND");
+      setTasks((currentItems) => currentItems.map((currentItem) => currentItem.key === key ? {
+        ...currentItem, taskId: item.provider_task_id, status: item.status, progress: item.progress,
+        modelUrl: item.model_url, previewUrl: item.preview_url, error: item.error_message,
+      } : currentItem));
     } catch (cause) {
-      setTasks((items) => items.map((item) => item.key === key ? { ...item, status: "error", error: cause instanceof Error ? cause.message : "TASK_QUERY_FAILED" } : item));
+      setTasks((items) => items.map((item) => item.key === key ? { ...item, status: "error", error: cause instanceof Error ? cause.message : "THEME_PACKAGE_REFRESH_FAILED" } : item));
     }
   }
-
   return (
     <main className="min-h-screen bg-[#05070d] px-4 py-6 text-white sm:px-7 sm:py-9">
       <div className="mx-auto max-w-7xl">
@@ -206,12 +211,12 @@ export default function ThemePackageGenerator() {
             </div>
             {error && <p role="alert" className="mt-4 rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
             <button type="button" onClick={() => void generatePackage()} disabled={busy || !selected.length || !themeName.trim()} className="mt-6 w-full rounded-xl bg-cyan-300 px-4 py-4 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? `Submitting ${current}…` : `Generate ${selected.length} draft assets ↗`}</button>
-            <p className="mt-3 text-[10px] leading-5 text-amber-100/70">Admin-only during integration verification. Each task may consume provider credits. Allpha AI Credits debit is not enabled yet, so this page must not be exposed to end users until the Super Admin pricing policy and server-side debit/refund flow are connected.</p>
+            <p className="mt-3 text-[10px] leading-5 text-amber-100/70">Admin-only: task creation and status are persisted by the backend Theme Package Orchestrator. Credit reservation/debit/refund and production asset promotion remain disabled until the Allpha billing policy is wired and verified.</p>
           </section>
 
           <aside className="space-y-4">
             <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
-              <h2 className="font-semibold">3. Task monitor</h2>
+              <h2 className="font-semibold">3. Task monitor</h2>{packageId && <p className="mt-2 break-all font-mono text-[10px] text-cyan-200">Package ID: {packageId}</p>}
               <p className="mt-1 text-xs leading-5 text-slate-500">Submit status and result links from the real Tripo v3 API.</p>
               <div className="mt-4 space-y-3">
                 {tasks.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-slate-600">Belum ada task package.</p> : tasks.map((task) => <div key={task.key} className="rounded-2xl border border-white/10 bg-black/20 p-3"><div className="flex items-start justify-between gap-2"><p className="text-xs font-medium">{task.label}</p><span className="rounded-full border border-white/10 px-2 py-1 text-[9px] text-slate-400">{task.status}</span></div>{typeof task.progress === "number" && <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-cyan-300" style={{ width: `${Math.max(0, Math.min(100, task.progress))}%` }} /></div>}{task.taskId && <p className="mt-2 break-all font-mono text-[9px] text-slate-600">{task.taskId}</p>}{task.error && <p className="mt-2 text-[10px] text-rose-200">{task.error}</p>}{task.taskId && <button type="button" onClick={() => void refreshOne(task.key)} disabled={busy} className="mt-3 w-full rounded-lg border border-cyan-300/20 px-3 py-2 text-[10px] text-cyan-100 disabled:opacity-50">Refresh status</button>}{task.previewUrl && <a href={task.previewUrl} target="_blank" rel="noreferrer" className="mt-2 block text-[10px] text-cyan-200">Open preview ↗</a>}{task.modelUrl && <a href={task.modelUrl} target="_blank" rel="noreferrer" className="mt-2 block break-all text-[10px] text-emerald-200">Open GLB model ↗</a>}</div>)}
