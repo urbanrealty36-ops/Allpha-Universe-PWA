@@ -101,7 +101,7 @@ async def public_theme_asset_manifest(theme_key: str):
                 "select": "id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,metadata,sort_order,status,moderation_status,safety_status,performance_status,content_size_bytes,checksum_sha256,uploaded_at",
                 "theme_id": f"eq.{theme['id']}",
                 "asset_type": "in.(3d_scene,model)",
-                "storage_path": "like.theme-v2-real-3d/*",
+                "storage_path": "like.theme-v3-tripo/*",
                 "status": "eq.active",
                 "moderation_status": "eq.approved",
                 "safety_status": "eq.passed",
