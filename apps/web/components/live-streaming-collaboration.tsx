@@ -1,6 +1,6 @@
 "use client";
 
-import UniversePrimaryNavigation from "../universe/universe-primary-navigation";
+import UniversePrimaryNavigation from "./universe/universe-primary-navigation";
 
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
