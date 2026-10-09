@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 
 type AssetTask = { key: string; label: string; prompt: string; taskId?: string; status: string; progress?: number; modelUrl?: string; previewUrl?: string; error?: string };
 type ApiResponse = { data?: { task_id?: string; status?: string; progress?: number; output?: { model_url?: string; rendered_image_url?: string; [key: string]: unknown }; credits_consumed?: number } };
-type PackageResponse = { package?: { id: string; status: string }; items?: Array<{ asset_key: string; provider_task_id?: string; status: string; progress?: number; model_url?: string; preview_url?: string; error_message?: string }> };
+type PackageResponse = { package?: { id: string; status: string; metadata?: Record<string, unknown> }; items?: Array<{ asset_key: string; provider_task_id?: string; status: string; progress?: number; model_url?: string; preview_url?: string; error_message?: string }> };
+type PricingResponse = { data?: { enabled: boolean; credits_per_asset: number; max_assets_per_package: number } };
 
 const packageParts = [
   { key: "universe", label: "Universe / Galaxy", prompt: "Cinematic premium 3D universe environment, monumental luminous galaxy architecture, layered nebula, physically based materials, refined sci-fi worldbuilding, strong composition, optimized clean topology." },
@@ -26,6 +27,8 @@ export default function ThemePackageGenerator() {
   const [faceLimit, setFaceLimit] = useState(50000);
   const [tasks, setTasks] = useState<AssetTask[]>([]);
   const [packageId, setPackageId] = useState("");
+  const [pricing, setPricing] = useState<PricingResponse["data"] | null>(null);
+  const [pricingError, setPricingError] = useState("");
   const [busy, setBusy] = useState(false);
   const [current, setCurrent] = useState("");
   const [rigCheckId, setRigCheckId] = useState("");
@@ -37,6 +40,14 @@ export default function ThemePackageGenerator() {
   const [error, setError] = useState("");
 
   const finished = useMemo(() => tasks.filter((task) => task.status === "success").length, [tasks]);
+  useEffect(() => {
+    let mounted = true;
+    void apiFetch<PricingResponse>("/api/v1/theme-generation/pricing")
+      .then((response) => { if (mounted) setPricing(response.data ?? null); })
+      .catch((cause) => { if (mounted) setPricingError(cause instanceof Error ? cause.message : "THEME_PRICING_LOAD_FAILED"); });
+    return () => { mounted = false; };
+  }, []);
+
   const toggle = (key: string) => setSelected((items) => items.includes(key) ? items.filter((item) => item !== key) : [...items, key]);
 
   async function generatePackage() {
@@ -52,7 +63,7 @@ export default function ThemePackageGenerator() {
         body: JSON.stringify({
           theme_name: themeName.trim(),
           theme_direction: themeDirection,
-          idempotency_key: `theme-package-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          idempotency_key: globalThis.crypto.randomUUID(),
           face_limit: faceLimit,
           assets: chosen.map((part) => ({
             key: part.key,
@@ -166,8 +177,8 @@ export default function ThemePackageGenerator() {
     if (!task) return;
     setTasks((items) => items.map((item) => item.key === key ? { ...item, status: "checking" } : item));
     try {
-      const response = await apiFetch<{ data?: { data?: PackageResponse } }>(`/api/v1/theme-generation/packages/${packageId}`);
-      const items = response.data?.data?.items ?? [];
+      const response = await apiFetch<{ data?: PackageResponse }>(`/api/v1/theme-generation/packages/${packageId}`);
+      const items = response.data?.items ?? [];
       const item = items.find((candidate) => candidate.asset_key === key);
       if (!item) throw new Error("THEME_ASSET_NOT_FOUND");
       setTasks((currentItems) => currentItems.map((currentItem) => currentItem.key === key ? {
@@ -201,6 +212,7 @@ export default function ThemePackageGenerator() {
               <label className="text-xs text-slate-400">Geometry budget · faces<span className="mt-2 block text-sm text-cyan-200">{faceLimit.toLocaleString("en-US")}</span><input type="range" min={10000} max={100000} step={10000} value={faceLimit} onChange={(event) => setFaceLimit(Number(event.target.value))} className="mt-3 w-full accent-cyan-300" /></label>
             </div>
             <label className="mt-4 block text-xs text-slate-400">Shared art direction<textarea value={themeDirection} onChange={(event) => setThemeDirection(event.target.value)} maxLength={600} rows={3} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 text-white outline-none focus:border-cyan-300/50" /></label>
+            <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Allpha AI Credits</p>{pricing ? <><p className="mt-2 text-sm">{pricing.enabled ? pricing.credits_per_asset + " credits / asset" : "Generation disabled by billing policy"}</p><p className="mt-1 text-xs text-slate-500">Estimated reservation: {pricing.enabled ? selected.length * pricing.credits_per_asset : 0} credits · maximum {pricing.max_assets_per_package} assets/package</p></> : <p className="mt-2 text-xs text-amber-200">{pricingError || "Loading pricing policy…"}</p>}</div>
             <h2 className="mt-7 text-lg font-semibold">2. Package components</h2>
             <p className="mt-1 text-xs leading-5 text-slate-500">Pilih komponen untuk satu paket tema. Setiap komponen akan membuat task Tripo tersendiri dengan nama tema dan art direction yang sama.</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -210,14 +222,14 @@ export default function ThemePackageGenerator() {
               })}
             </div>
             {error && <p role="alert" className="mt-4 rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
-            <button type="button" onClick={() => void generatePackage()} disabled={busy || !selected.length || !themeName.trim()} className="mt-6 w-full rounded-xl bg-cyan-300 px-4 py-4 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? `Submitting ${current}…` : `Generate ${selected.length} draft assets ↗`}</button>
+            <button type="button" onClick={() => void generatePackage()} disabled={busy || !selected.length || !themeName.trim() || !pricing?.enabled || selected.length > (pricing?.max_assets_per_package ?? 0)} className="mt-6 w-full rounded-xl bg-cyan-300 px-4 py-4 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? `Submitting ${current}…` : `Generate ${selected.length} draft assets ↗`}</button>
             <p className="mt-3 text-[10px] leading-5 text-amber-100/70">Admin-only: task creation and status are persisted by the backend Theme Package Orchestrator. Credit reservation/debit/refund and production asset promotion remain disabled until the Allpha billing policy is wired and verified.</p>
           </section>
 
           <aside className="space-y-4">
             <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
               <h2 className="font-semibold">3. Task monitor</h2>{packageId && <p className="mt-2 break-all font-mono text-[10px] text-cyan-200">Package ID: {packageId}</p>}
-              <p className="mt-1 text-xs leading-5 text-slate-500">Submit status and result links from the real Tripo v3 API.</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">Persisted task and workflow status from the backend Theme Package Orchestrator.</p>
               <div className="mt-4 space-y-3">
                 {tasks.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-slate-600">Belum ada task package.</p> : tasks.map((task) => <div key={task.key} className="rounded-2xl border border-white/10 bg-black/20 p-3"><div className="flex items-start justify-between gap-2"><p className="text-xs font-medium">{task.label}</p><span className="rounded-full border border-white/10 px-2 py-1 text-[9px] text-slate-400">{task.status}</span></div>{typeof task.progress === "number" && <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-cyan-300" style={{ width: `${Math.max(0, Math.min(100, task.progress))}%` }} /></div>}{task.taskId && <p className="mt-2 break-all font-mono text-[9px] text-slate-600">{task.taskId}</p>}{task.error && <p className="mt-2 text-[10px] text-rose-200">{task.error}</p>}{task.taskId && <button type="button" onClick={() => void refreshOne(task.key)} disabled={busy} className="mt-3 w-full rounded-lg border border-cyan-300/20 px-3 py-2 text-[10px] text-cyan-100 disabled:opacity-50">Refresh status</button>}{task.previewUrl && <a href={task.previewUrl} target="_blank" rel="noreferrer" className="mt-2 block text-[10px] text-cyan-200">Open preview ↗</a>}{task.modelUrl && <a href={task.modelUrl} target="_blank" rel="noreferrer" className="mt-2 block break-all text-[10px] text-emerald-200">Open GLB model ↗</a>}</div>)}
               </div>
@@ -238,7 +250,7 @@ export default function ThemePackageGenerator() {
             </section>
             <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
               <h2 className="font-semibold">5. Promotion gate</h2>
-              <p className="mt-2 text-xs leading-5 text-slate-500">Tidak ada task yang otomatis mendaftarkan file ke theme_assets atau mengaktifkan production manifest. Perlu Storage upload, checksum, metadata, Blender QA, visual approval, dan promosi terkontrol.</p>
+              <p className="mt-2 text-xs leading-5 text-slate-500">GLB yang berhasil dibuat diunggah ke allpha-world-assets dan diregistrasikan sebagai draft di theme_assets. Status tetap pending sampai Blender QA, safety/performance validation, visual approval, dan promosi terkontrol selesai.</p>
             </section>
           </aside>
         </div>
