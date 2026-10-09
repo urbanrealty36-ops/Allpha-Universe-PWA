@@ -369,11 +369,44 @@ export default function ImmersiveUniverseShell() {
         const response = await apiFetch<{
           data?: {
             has_binary_3d_pack?: boolean;
-            binary_3d_assets?: Array<{ signed_url?: string | null; metadata?: Record<string, unknown> }>;
+            binary_3d_assets?: Array<{
+              storage_path?: string | null;
+              signed_url?: string | null;
+              metadata?: Record<string, unknown>;
+            }>;
           };
         }>(`/api/v1/themes/world-runtime/themes/${activeTheme.id}/asset-manifest`);
-        const url = response.data?.binary_3d_assets?.find((asset) => typeof asset.signed_url === "string")?.signed_url;
-        if (!cancelled) setThemePackUrl(url ?? null);
+        const assets = response.data?.binary_3d_assets ?? [];
+        const categoryAliases: Record<Level, string[]> = {
+          galaxy: ["universe", "galaxy_navigator", "universe_core"],
+          world: ["world", "world_planet"],
+          district: ["district", "district_city"],
+          booth: ["booth", "booth_tenant"],
+        };
+        const normalize = (value: unknown) =>
+          String(value ?? "")
+            .toLowerCase()
+            .replace(/\\.glb$/, "")
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+        const accepted = categoryAliases[level];
+        const asset = assets.find((candidate) => {
+          if (!candidate.signed_url) return false;
+          const metadata = candidate.metadata ?? {};
+          const path = String(candidate.storage_path ?? "");
+          const basename = path.split("/").pop() ?? "";
+          const keys = [
+            metadata.category,
+            metadata.asset_category,
+            metadata.assetCategory,
+            metadata.asset_key,
+            metadata.assetKey,
+            metadata.name,
+            basename,
+          ].map(normalize);
+          return accepted.some((alias) => keys.includes(normalize(alias)));
+        });
+        if (!cancelled) setThemePackUrl(asset?.signed_url ?? null);
       } catch {
         if (!cancelled) setThemePackUrl(null);
       }
@@ -382,7 +415,7 @@ export default function ImmersiveUniverseShell() {
     return () => {
       cancelled = true;
     };
-  }, [activeTheme?.id]);
+  }, [activeTheme?.id, level]);
 
   function goBack() {
     beginTransition();
@@ -718,6 +751,13 @@ function ImmersiveStage({
           <PerspectiveCamera makeDefault position={[0, 5.8, 15]} fov={56} />
           <ambientLight intensity={0.7} />
           <directionalLight position={[5, 10, 4]} intensity={2.2} />
+          <ThemeManifestAssetScene
+            themeKey={activeTheme?.catalog_key ?? activeTheme?.slug ?? null}
+            category="world"
+            lowPower={lowPower}
+            reducedMotion={lowPower}
+            fallback={null}
+          />
           <WorldNavigationScene worlds={worlds} portals={portals} content={content} presence={presence} activeTheme={activeTheme} onWorld={onWorld} onPortal={onPortal} onContent={onContent} onPresence={onPresence} />
           <OrbitControls enablePan={false} minDistance={7} maxDistance={22} enableDamping dampingFactor={0.09} />
         </Canvas>
