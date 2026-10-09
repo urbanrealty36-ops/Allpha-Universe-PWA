@@ -125,6 +125,24 @@ async def service_select(table: str, query: dict[str, str]) -> list[dict[str, An
     return data if isinstance(data, list) else []
 
 
+async def service_insert(table: str, payload: dict[str, Any], *, returning: bool = True) -> list[dict[str, Any]]:
+    settings = get_settings()
+    if not settings.supabase_service_role_key:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for server-side service operations.")
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "Accept": "application/json",
+        "Prefer": "return=representation" if returning else "return=minimal",
+    }
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        response = await client.post(_url(table), json=payload, headers=headers)
+    if response.status_code >= 400:
+        raise SupabaseRestError(response.status_code, "Supabase service insert failed.")
+    data = response.json() if returning and response.content else []
+    return data if isinstance(data, list) else []
+
+
 async def service_update(table: str, filters: dict[str, str], payload: dict[str, Any]) -> list[dict[str, Any]]:
     settings = get_settings()
     if not settings.supabase_service_role_key:
