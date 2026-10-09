@@ -300,7 +300,12 @@ async def validate_package(package_id: UUID, context: dict = Depends(require_per
     package = packages[0]
     if not package.get("theme_version_id"):
         raise HTTPException(status_code=409, detail={"code":"THEME_VERSION_NOT_READY","message":"Theme version has not been created."})
-    result = await rpc(user, "validate_theme_version", {"p_theme_version_id":str(package["theme_version_id"])})
+    if package.get("status") not in {"succeeded", "partial"}:
+        raise HTTPException(status_code=409, detail={"code":"THEME_PACKAGE_NOT_TERMINAL","message":"All provider tasks must finish before theme validation."})
+    try:
+        result = await rpc(user, "validate_theme_version", {"p_theme_version_id":str(package["theme_version_id"])})
+    except SupabaseRestError as exc:
+        raise _http_error(exc,"THEME_VERSION_VALIDATE_FAILED") from exc
     metadata = package.get("metadata") if isinstance(package.get("metadata"), dict) else {}
     updated = await service_update("theme_generation_packages", {"id":f"eq.{package_id}"}, {"metadata":{**metadata,"validation_result":result}})
     return {"data":{"package":updated[0] if updated else package,"validation":result}}
@@ -314,6 +319,9 @@ async def submit_package_for_review(package_id: UUID, context: dict = Depends(re
     package = packages[0]
     if not package.get("theme_id") or not package.get("theme_version_id"):
         raise HTTPException(status_code=409, detail={"code":"THEME_VERSION_NOT_READY","message":"Theme draft has not been created."})
+    versions = await service_select("theme_versions", {"select":"id,validation_status,moderation_status,status","id":f"eq.{package['theme_version_id']}","theme_id":f"eq.{package['theme_id']}","limit":"1"})
+    if not versions or versions[0].get("validation_status") != "passed":
+        raise HTTPException(status_code=409, detail={"code":"THEME_VALIDATION_REQUIRED","message":"The canonical Theme Version validator must pass before review submission."})
     try:
         result = await rpc(user, "submit_theme", {"p_theme_id":str(package["theme_id"])})
     except SupabaseRestError as exc:
