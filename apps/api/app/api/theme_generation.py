@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.api.dependencies import require_permission
+from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
 from app.core.supabase_rest import SupabaseRestError, service_insert, service_select, service_update
 
 router = APIRouter(prefix="/api/v1/theme-generation", tags=["Theme Package Orchestration"])
@@ -35,6 +36,29 @@ def _require_tripo() -> str:
 def _http_error(exc: SupabaseRestError, code: str) -> HTTPException:
     status = exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
     return HTTPException(status_code=status, detail={"code":code,"message":exc.message})
+
+async def _route_prompt(user, package_id: str, asset_key: str, prompt: str) -> tuple[str, dict[str, Any]]:
+    """Use the canonical Allpha AI Gateway/Model Router for prompt refinement when configured."""
+    try:
+        result = await generate(
+            user,
+            [
+                GatewayMessage(role="system", content="You are Allpha Theme Studio's 3D art director. Preserve the user's intent and asset type. Return only one concise, production-oriented text-to-3D prompt, with no commentary, no markdown, and no new brand names."),
+                GatewayMessage(role="user", content=prompt),
+            ],
+            capabilities=["text"],
+            idempotency_key=f"theme-prompt-{package_id}-{asset_key}-v1",
+            metadata={"feature": "theme_package_generation", "package_id": package_id, "asset_key": asset_key},
+        )
+        routed = result.text.strip()
+        if not routed:
+            return prompt, {"model_router": "empty_response_fallback"}
+        return routed[:1024], {"model_router": "used", "request_id": result.request_id, "model_id": result.model_id, "provider_id": result.provider_id}
+    except AIGatewayError as exc:
+        return prompt, {"model_router": "fallback", "error_code": exc.code}
+    except Exception:
+        return prompt, {"model_router": "fallback", "error_code": "AI_ROUTER_UNAVAILABLE"}
+
 
 async def _tripo_create(prompt: str, face_limit: int) -> dict[str, Any]:
     headers = {"Authorization": f"Bearer {_require_tripo()}", "Content-Type": "application/json"}
@@ -148,8 +172,9 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
     for item in items:
         try:
             await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"status":"submitting"})
-            task = await _tripo_create(str(item["prompt"]), payload.face_limit)
-            await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"provider_task_id":task["task_id"],"status":"running","metadata":{"provider_created_at":task.get("created_at"),"provider_status":task.get("status")}})
+            routed_prompt, router_meta = await _route_prompt(user, str(package["id"]), str(item["asset_key"]), str(item["prompt"]))
+            task = await _tripo_create(routed_prompt, payload.face_limit)
+            await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"provider_task_id":task["task_id"],"status":"running","metadata":{"provider_created_at":task.get("created_at"),"provider_status":task.get("status"),"routed_prompt":routed_prompt,**router_meta}})
         except (HTTPException, SupabaseRestError) as exc:
             detail = exc.detail if isinstance(exc, HTTPException) and isinstance(exc.detail, dict) else {}
             await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"status":"failed","error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"),"error_message":detail.get("message","Could not submit asset task.")})
