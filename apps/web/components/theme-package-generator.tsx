@@ -29,6 +29,10 @@ export default function ThemePackageGenerator() {
   const [packageId, setPackageId] = useState("");
   const [pricing, setPricing] = useState<PricingResponse["data"] | null>(null);
   const [pricingError, setPricingError] = useState("");
+  const [pricingSaving, setPricingSaving] = useState(false);
+  const [creditsPerAsset, setCreditsPerAsset] = useState(1);
+  const [generationEnabled, setGenerationEnabled] = useState(true);
+  const [maxAssets, setMaxAssets] = useState(25);
   const [busy, setBusy] = useState(false);
   const [current, setCurrent] = useState("");
   const [rigCheckId, setRigCheckId] = useState("");
@@ -43,10 +47,27 @@ export default function ThemePackageGenerator() {
   useEffect(() => {
     let mounted = true;
     void apiFetch<PricingResponse>("/api/v1/theme-generation/pricing")
-      .then((response) => { if (mounted) setPricing(response.data ?? null); })
+      .then((response) => { if (mounted) { setPricing(response.data ?? null); setCreditsPerAsset(response.data?.credits_per_asset ?? 1); setGenerationEnabled(response.data?.enabled ?? false); setMaxAssets(response.data?.max_assets_per_package ?? 25); } })
       .catch((cause) => { if (mounted) setPricingError(cause instanceof Error ? cause.message : "THEME_PRICING_LOAD_FAILED"); });
     return () => { mounted = false; };
   }, []);
+
+  async function savePricing() {
+    if (pricingSaving) return;
+    setPricingSaving(true);
+    setPricingError("");
+    try {
+      const response = await apiFetch<PricingResponse>("/api/v1/theme-generation/pricing", {
+        method: "PUT",
+        body: JSON.stringify({ enabled: generationEnabled, credits_per_asset: creditsPerAsset, max_assets_per_package: maxAssets }),
+      });
+      setPricing(response.data ?? null);
+    } catch (cause) {
+      setPricingError(cause instanceof Error ? cause.message : "THEME_PRICING_UPDATE_FAILED");
+    } finally {
+      setPricingSaving(false);
+    }
+  }
 
   const toggle = (key: string) => setSelected((items) => items.includes(key) ? items.filter((item) => item !== key) : [...items, key]);
 
@@ -212,7 +233,7 @@ export default function ThemePackageGenerator() {
               <label className="text-xs text-slate-400">Geometry budget · faces<span className="mt-2 block text-sm text-cyan-200">{faceLimit.toLocaleString("en-US")}</span><input type="range" min={10000} max={100000} step={10000} value={faceLimit} onChange={(event) => setFaceLimit(Number(event.target.value))} className="mt-3 w-full accent-cyan-300" /></label>
             </div>
             <label className="mt-4 block text-xs text-slate-400">Shared art direction<textarea value={themeDirection} onChange={(event) => setThemeDirection(event.target.value)} maxLength={600} rows={3} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 text-white outline-none focus:border-cyan-300/50" /></label>
-            <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Allpha AI Credits</p>{pricing ? <><p className="mt-2 text-sm">{pricing.enabled ? pricing.credits_per_asset + " credits / asset" : "Generation disabled by billing policy"}</p><p className="mt-1 text-xs text-slate-500">Estimated reservation: {pricing.enabled ? selected.length * pricing.credits_per_asset : 0} credits · maximum {pricing.max_assets_per_package} assets/package</p></> : <p className="mt-2 text-xs text-amber-200">{pricingError || "Loading pricing policy…"}</p>}</div>
+            <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Super Admin · AI Credits Policy</p><div className="mt-3 grid gap-3 sm:grid-cols-3"><label className="text-xs text-slate-400">Credits / asset<input type="number" min={1} max={100000} value={creditsPerAsset} onChange={(event) => setCreditsPerAsset(Math.max(1, Number(event.target.value) || 1))} className="mt-2 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white" /></label><label className="text-xs text-slate-400">Max assets / package<input type="number" min={1} max={25} value={maxAssets} onChange={(event) => setMaxAssets(Math.max(1, Math.min(25, Number(event.target.value) || 1)))} className="mt-2 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white" /></label><label className="flex items-center gap-2 pt-5 text-xs text-slate-300"><input type="checkbox" checked={generationEnabled} onChange={(event) => setGenerationEnabled(event.target.checked)} className="accent-cyan-300" /> Enable generation</label></div><p className="mt-3 text-xs text-slate-400">Estimated reservation: {generationEnabled ? selected.length * creditsPerAsset : 0} credits</p><button type="button" onClick={() => void savePricing()} disabled={pricingSaving} className="mt-3 rounded-lg border border-cyan-200/20 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50">{pricingSaving ? "Saving policy…" : "Save pricing policy"}</button>{pricingError && <p className="mt-2 text-xs text-amber-200">{pricingError}</p>}</div>
             <h2 className="mt-7 text-lg font-semibold">2. Package components</h2>
             <p className="mt-1 text-xs leading-5 text-slate-500">Pilih komponen untuk satu paket tema. Setiap komponen akan membuat task Tripo tersendiri dengan nama tema dan art direction yang sama.</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
