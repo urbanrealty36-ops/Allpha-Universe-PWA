@@ -1,5 +1,7 @@
 "use client";
 
+import UniversePrimaryNavigation from "./universe/universe-primary-navigation";
+
 import { FormEvent, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
@@ -40,7 +42,8 @@ export default function SocialGraphSurface(){
  async function respond(id:string,a:"accept"|"reject"){setBusy(id);await action("/api/v1/social/relationships/"+id+"/"+a,{method:"POST"})}
  async function readNotification(id:string){try{await apiFetch("/api/v1/social/notifications/"+id+"/read",{method:"POST"});setNotifications(x=>x.filter(n=>n.id!==id))}catch(e){setError(e instanceof Error?e.message:"SOCIAL_NOTIFICATION_FAILED")}}
  const active=relations.filter(r=>r.status==="active"),requests=relations.filter(r=>r.status==="pending");
- return <main className="allpha-product-surface allpha-social-shell min-h-screen text-white"><div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
+ return <main className="allpha-product-surface allpha-social-shell min-h-screen text-white">
+  <UniversePrimaryNavigation /><div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
   <header className="rounded-3xl border border-white/10 bg-white/[0.035] p-6">
    <p className="text-[11px] uppercase tracking-[0.3em] text-cyan-300">Phase 09 · Social Graph</p>
    <h1 className="mt-3 text-4xl font-semibold">People, Agents & Relationships</h1>
