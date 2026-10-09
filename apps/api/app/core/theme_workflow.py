@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.core.supabase_rest import service_insert, service_update
+from app.core.supabase_rest import service_insert, service_select, service_update
 
 
 async def create_theme_workflow_run(package: dict[str, Any], items: list[dict[str, Any]]) -> dict[str, Any]:
@@ -124,15 +124,19 @@ async def sync_theme_workflow_run(package: dict[str, Any], items: list[dict[str,
             "error_code": item.get("error_code"),
             "error_message": item.get("error_message"),
         })
-    run_status = "completed" if package_status in {"succeeded", "partial"} else ("failed" if package_status == "failed" else "cancelled")
+    run_status = "running" if not terminal else ("completed" if package_status in {"succeeded", "partial"} else ("failed" if package_status == "failed" else "cancelled"))
     from datetime import datetime, timezone
+    current_rows = await service_select("workflow_runs", {"select":"id,status","id":f"eq.{run_id}","limit":"1"})
+    previous_status = current_rows[0].get("status") if current_rows else None
     patch: dict[str, Any] = {"status": run_status, "output": {"package_id": package["id"], "package_status": package_status, "successful_assets": sum(1 for item in items if item.get("status") == "success"), "failed_assets": sum(1 for item in items if item.get("status") == "failed")}}
     if terminal:
         patch["completed_at"] = datetime.now(timezone.utc).isoformat()
     await service_update("workflow_runs", {"id": f"eq.{run_id}"}, patch)
-    await service_insert("workflow_events", {
-        "workflow_run_id": run_id,
-        "event_type": "theme_package.status_changed",
-        "to_status": run_status,
-        "metadata": {"package_id": package["id"], "package_status": package_status, "asset_count": len(items)},
-    }, returning=False)
+    if previous_status != run_status:
+        await service_insert("workflow_events", {
+            "workflow_run_id": run_id,
+            "event_type": "theme_package.status_changed",
+            "from_status": previous_status,
+            "to_status": run_status,
+            "metadata": {"package_id": package["id"], "package_status": package_status, "asset_count": len(items)},
+        }, returning=False)
