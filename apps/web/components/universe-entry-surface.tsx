@@ -7,7 +7,6 @@ import SpatialUniverseChrome from "./universe/spatial-universe-chrome";
 import { UniverseSplash } from "./identity/universe-identity-experience";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 import PublicUniverse3D from "./public-universe-3d";
-import UniversePrimaryNavigation from "./universe/universe-primary-navigation";
 
 type EntryState = "loading" | "splash" | "anonymous" | "authenticated";
 
@@ -83,7 +82,6 @@ export default function UniverseEntrySurface() {
         <div className="relative min-h-[100svh] overflow-hidden bg-[#03050b] text-white">
           <ImmersiveUniverseShell />
           <SpatialUniverseChrome email={email} onSignOut={() => void signOut()} />
-          <UniversePrimaryNavigation />
         </div>
       </main>
     );
