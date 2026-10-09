@@ -1,5 +1,5 @@
 # Allpha Universe — Full 3D Theme & UI/UX Rebuild Plan
-**Status:** REBUILD-00/01 GATES REPORTED GREEN BY USER; REBUILD-02 IN PROGRESS  
+**Status:** REBUILD-00/01 CI GREEN (runtime/storage closeout evidence pending); REBUILD-02 CI GREEN (visual QA pending); REBUILD-03 IN PROGRESS — structural validator and server-side GLB ingestion gate added, production golden asset not yet verified  
 **Date:** 2026-10-09  
 **Canonical repository:** `urbanrealty36-ops/Allpha-Universe-PWA` — `main`  
 **Canonical Supabase:** `AllphaDb-Universe` — `qltbacemtvnuzqkterly` — `ap-south-1`
@@ -45,6 +45,8 @@ Build the Allpha visual language from the supplied references: cosmic navy/black
 **Exit gate:** documented design tokens and implemented reusable PWA components; mobile and desktop responsive checks pass.
 
 ### REBUILD-03 — Production 3D Asset Pipeline
+
+**Implementation evidence:** `scripts/theme-rebuild/validate-glb.mjs` provides offline structural checks and SHA-256 reporting; `scripts/theme-rebuild/validate-glb.test.mjs` covers malformed headers, length mismatch, unsupported versions, extension and empty scene; `apps/api/app/core/theme_asset_ingestion.py` validates GLB v2 container/chunks/glTF scene mesh content before uploading to the existing Storage bucket and registering in `theme_assets`. Run `pnpm test:theme-glb`, `pnpm validate:theme-glb -- path/to/asset.glb`, and `pnpm audit:theme-rebuild`. These checks do not prove Blender visual quality, manifest resolution, signed URL delivery, or browser/mobile rendering.
 Establish the reproducible Tripo → Blender → GLB pipeline: generation inputs and provenance, scene assembly, PBR material validation, texture packing/compression, lighting, scale/origin, normals, animation contract, LOD, Draco/Meshopt where supported, texture budgets, thumbnail/previews, validation and deterministic manifests. Store outputs in a clean versioned Storage prefix and register through the existing asset lifecycle.  
 **Exit gate:** golden asset passes geometry/material/scale/size/texture/manifest/signed-URL checks; no mock or placeholder asset accepted.
 
