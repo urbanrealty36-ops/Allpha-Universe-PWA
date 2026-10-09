@@ -27,8 +27,8 @@ const legacyGenerators = files.filter((path) =>
 );
 const required = [
   "apps/web/components/world/allpha-world-renderer.tsx",
-  "apps/web/components/world/theme-v2-production-asset-scene.tsx",
-  "apps/web/lib/world-engine/production-3d-runtime-resolver.ts",
+  "apps/web/components/world/theme-manifest-asset-scene.tsx",
+  "apps/web/components/world/theme-spatial-scene.tsx",
   "docs/implementation/REBUILD_FULL_THEME_3D_UIUX_PHASES.md",
 ];
 const missing = required.filter((path) => !files.includes(path));
