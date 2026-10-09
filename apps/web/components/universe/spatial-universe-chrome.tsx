@@ -26,7 +26,7 @@ export default function SpatialUniverseChrome({ email, onSignOut }: Props) {
 
         <nav className="allpha-spatial-chrome-nav" aria-label="Spatial Universe navigation">
           <a className={isActive("/") ? "is-active" : undefined} aria-current={isActive("/") ? "page" : undefined} href="/">Universe</a>
-          <a className={isActive("/social") ? "is-active" : undefined} aria-current={isActive("/social") ? "page" : undefined} href="/social">Live</a>
+          <a className={isActive("/live") ? "is-active" : undefined} aria-current={isActive("/live") ? "page" : undefined} href="/live">Live</a>
           <a className={isActive("/universe") ? "is-active" : undefined} aria-current={isActive("/universe") ? "page" : undefined} href="/universe">Galaxy</a>
           <a className={isActive("/communities") ? "is-active" : undefined} aria-current={isActive("/communities") ? "page" : undefined} href="/communities">Communities</a>
           <button type="button" onClick={() => setCreateOpen(true)}>Create</button>
@@ -57,7 +57,7 @@ export default function SpatialUniverseChrome({ email, onSignOut }: Props) {
         <a className={isActive("/districts") ? "is-active" : undefined} href="/districts"><span>⌘</span> Districts</a>
         <a className={isActive("/booths") ? "is-active" : undefined} href="/booths"><span>▣</span> Booths</a>
         <a className={isActive("/content") ? "is-active" : undefined} href="/content"><span>✧</span> Capsules</a>
-        <a className={isActive("/social") ? "is-active" : undefined} href="/social"><span>◉</span> Live</a>
+        <a className={isActive("/live") ? "is-active" : undefined} href="/live"><span>◉</span> Live</a>
       </nav>
 
       <div className="allpha-spatial-layer-legend" aria-label="Spatial hierarchy">
