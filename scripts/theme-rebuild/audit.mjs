@@ -20,7 +20,7 @@ async function walk(dir) {
 await walk(root);
 const legacyAutomation = files.filter((path) =>
   path.startsWith(".github/workflows/") &&
-  /(?:3d-v2-12|3d-v2-13|v2-13d)/i.test(path)
+  /(?:3d-v2-12|3d-v2-13|v2-13d|d6-2-production-browser-runtime)/i.test(path)
 );
 const legacyGenerators = files.filter((path) =>
   /^(?:scripts\/3d\/|tools\/theme_assets\/generate_allpha_25_theme_3d_pack\.py$)/.test(path)
