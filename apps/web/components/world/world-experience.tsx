@@ -118,14 +118,14 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
         .filter(Boolean).join(" ").toLowerCase().replaceAll("_", "-");
       if (!key.includes("crystal-ai-city") && !key.includes("crystal ai city")) return;
       try {
-        const response = await publicApiFetch<{ data?: { assets?: Array<{ signed_url?: string | null; asset_type?: string; status?: string }>; binary_3d_assets?: Array<{ signed_url?: string | null; id?: string }>; has_binary_3d_pack?: boolean } }>(
+        const response = await publicApiFetch<{ data?: { assets?: Array<{ signed_url?: string | null; asset_type?: string; status?: string; storage_path?: string }>; binary_3d_assets?: Array<{ signed_url?: string | null; id?: string; storage_path?: string }>; has_binary_3d_pack?: boolean } }>(
           "/api/v1/themes/world-runtime/public/themes/crystal-ai-city/asset-manifest",
         );
         const candidates = [
           ...(response.data?.binary_3d_assets ?? []),
           ...(response.data?.assets ?? []),
         ];
-        const asset = candidates.find((item) => typeof item.signed_url === "string" && item.signed_url.length > 0);
+        const asset = candidates.find((item) => typeof item.signed_url === "string" && item.signed_url.length > 0 && item.storage_path === "theme-v2-real-3d/v2.13/crystal-ai-city/world.glb") ?? candidates.find((item) => typeof item.signed_url === "string" && item.signed_url.length > 0 && item.storage_path?.endsWith("/world.glb"));
         if (!cancelled) setProductionAssetUrl(asset?.signed_url ?? null);
       } catch {
         if (!cancelled) setProductionAssetUrl(null);
