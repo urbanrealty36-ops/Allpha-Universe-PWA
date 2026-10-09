@@ -75,7 +75,7 @@ export default function ThemePackageGenerator() {
     }
   }
 
-  const toggle = (key: string) => setSelected((items) => items.includes(key) ? items.filter((item) => item !== key) : [...items, key]);
+  const toggle = (key: string) => { if (key !== "universe") return; setSelected(["universe"]); };
 
   async function generatePackage() {
     if (!selected.length || busy) return;
@@ -295,14 +295,14 @@ export default function ThemePackageGenerator() {
             <h2 className="mt-7 text-lg font-semibold">2. Package components</h2>
             <p className="mt-1 text-xs leading-5 text-slate-500">Fokus awal hanya satu model. Universe / Galaxy dipilih sebagai golden asset; jangan pilih komponen lain sampai model pertama lolos visual dan runtime QA.</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {packageParts.map((part, index) => {
+              {packageParts.filter((part) => part.key === "universe").map((part, index) => {
                 const chosen = selected.includes(part.key);
                 return <button key={part.key} type="button" onClick={() => toggle(part.key)} className={`rounded-2xl border p-4 text-left transition ${chosen ? "border-cyan-300/50 bg-cyan-300/[.06]" : "border-white/10 bg-black/20 hover:border-white/20"}`}><div className="flex items-start justify-between gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-xs text-cyan-200">{String(index + 1).padStart(2, "0")}</span><span className={`rounded-full px-2 py-1 text-[9px] ${chosen ? "bg-cyan-300 text-slate-950" : "bg-white/5 text-slate-500"}`}>{chosen ? "IN PACKAGE" : "OPTIONAL"}</span></div><p className="mt-4 text-sm font-medium">{part.label}</p><p className="mt-2 text-[11px] leading-5 text-slate-500">{part.prompt}</p></button>;
               })}
             </div>
             {error && <p role="alert" className="mt-4 rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
-            <button type="button" onClick={() => void generatePackage()} disabled={busy || !selected.length || !themeName.trim() || !pricing?.enabled || selected.length > (pricing?.max_assets_per_package ?? 0)} className="mt-6 w-full rounded-xl bg-cyan-300 px-4 py-4 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? `Submitting ${current}…` : `Generate ${selected.length} draft assets ↗`}</button>
-            <p className="mt-3 text-[10px] leading-5 text-amber-100/70">Admin-only: task creation and status are persisted by the backend Theme Package Orchestrator. Credit reservation/debit/refund and production asset promotion remain disabled until the Allpha billing policy is wired and verified.</p>
+            <button type="button" onClick={() => void generatePackage()} disabled={busy || !selected.length || !themeName.trim() || !pricing?.enabled || selected.length > (pricing?.max_assets_per_package ?? 0)} className="mt-6 w-full rounded-xl bg-cyan-300 px-4 py-4 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? `Submitting ${current}…` : `Generate ${selected.length} golden model ↗`}</button>
+            <p className="mt-3 text-[10px] leading-5 text-amber-100/70">Admin-only: satu task 3D dikirim melalui Theme Package Orchestrator dan Tripo. AI Credits direservasi sebelum generasi, diselesaikan sesuai hasil aset, dan GLB masuk sebagai draft; tidak ada auto-promotion.</p>
           </section>
 
           <aside className="space-y-4">
