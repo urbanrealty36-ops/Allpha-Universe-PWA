@@ -8,7 +8,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, HttpUrl
 
-from app.api.dependencies import get_auth_context
+from app.api.dependencies import require_permission
 
 router = APIRouter(prefix="/api/v1/3d-generation", tags=["AI 3D Theme Generation"])
 TRIPO_BASE_URL = "https://openapi.tripo3d.ai/v3"
@@ -37,23 +37,12 @@ class ImageToModelRequest(BaseModel):
 def _api_key() -> str:
     key = os.getenv("TRIPO_API_KEY", "").strip()
     if not key:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "TRIPO_NOT_CONFIGURED",
-                "message": "3D generation is not configured. Set TRIPO_API_KEY on the API service.",
-            },
-        )
+        raise HTTPException(status_code=503, detail={"code": "TRIPO_NOT_CONFIGURED", "message": "3D generation is not configured. Set TRIPO_API_KEY on the API service."})
     return key
 
 
 def _upstream_error(status: int, code: str) -> HTTPException:
-    # Never relay provider response bodies: they are not needed by the browser and
-    # can contain implementation details. Keep provider diagnostics in server logs.
-    return HTTPException(
-        status_code=502,
-        detail={"code": code, "provider_status": status, "message": "Tripo rejected or could not complete the request."},
-    )
+    return HTTPException(status_code=502, detail={"code": code, "provider_status": status, "message": "Tripo rejected or could not complete the request."})
 
 
 async def _tripo_post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -78,46 +67,40 @@ async def _tripo_post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.post("/text-to-model", status_code=202)
-async def text_to_model(payload: TextToModelRequest, context: dict = Depends(get_auth_context)):
+async def text_to_model(payload: TextToModelRequest, context: dict = Depends(require_permission("admin.manage"))):
     _ = context
-    result = await _tripo_post(
-        "/generation/text-to-model",
-        {
-            "prompt": payload.prompt,
-            "negative_prompt": payload.negative_prompt,
-            "model": payload.model,
-            "face_limit": payload.face_limit,
-            "texture": payload.texture,
-            "pbr": payload.pbr,
-            "texture_quality": payload.texture_quality,
-        },
-    )
+    result = await _tripo_post("/generation/text-to-model", {
+        "prompt": payload.prompt,
+        "negative_prompt": payload.negative_prompt,
+        "model": payload.model,
+        "face_limit": payload.face_limit,
+        "texture": payload.texture,
+        "pbr": payload.pbr,
+        "texture_quality": payload.texture_quality,
+    })
     if not result.get("task_id"):
         raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a task ID."})
     return {"data": result, "provider": "tripo", "status": "queued"}
 
 
 @router.post("/image-to-model", status_code=202)
-async def image_to_model(payload: ImageToModelRequest, context: dict = Depends(get_auth_context)):
+async def image_to_model(payload: ImageToModelRequest, context: dict = Depends(require_permission("admin.manage"))):
     _ = context
-    result = await _tripo_post(
-        "/generation/image-to-model",
-        {
-            "input": str(payload.image_url),
-            "model": payload.model,
-            "face_limit": payload.face_limit,
-            "texture": payload.texture,
-            "pbr": payload.pbr,
-            "texture_quality": payload.texture_quality,
-        },
-    )
+    result = await _tripo_post("/generation/image-to-model", {
+        "input": str(payload.image_url),
+        "model": payload.model,
+        "face_limit": payload.face_limit,
+        "texture": payload.texture,
+        "pbr": payload.pbr,
+        "texture_quality": payload.texture_quality,
+    })
     if not result.get("task_id"):
         raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a task ID."})
     return {"data": result, "provider": "tripo", "status": "queued"}
 
 
 @router.get("/tasks/{task_id}")
-async def get_task(task_id: str, context: dict = Depends(get_auth_context)):
+async def get_task(task_id: str, context: dict = Depends(require_permission("admin.manage"))):
     _ = context
     if not TASK_ID_PATTERN.fullmatch(task_id):
         raise HTTPException(status_code=422, detail={"code": "TRIPO_TASK_ID_INVALID", "message": "Invalid Tripo task ID."})
