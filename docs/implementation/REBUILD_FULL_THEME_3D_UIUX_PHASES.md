@@ -142,3 +142,8 @@ This section is the current status record and supersedes any implication that th
 - No Tripo GLB assets have been generated in REBUILD-00/01. Missing/unpublished assets intentionally do not receive synthetic character, ring, sphere, or booth-box substitutes. Production art creation starts in REBUILD-03/04.
 - The user will delete legacy objects from Supabase Storage manually. Until a fresh inventory confirms that deletion, do not claim Storage cleanup is complete. `theme_assets` metadata also needs reconciliation after the Storage action.
 - Old V2 generation commands, scripts, workflows and V2-coupled tests have been removed from the active repository tree. The new audit script `pnpm audit:theme-rebuild` runs in CI and fails if the retired workflow/generator artifacts or fixed V2.13 runtime path are reintroduced.
+
+### Storage retirement reconciliation update
+The user's manual Storage deletion has now been verified: `allpha-world-assets` contains no real objects (only Supabase's 0-byte `.emptyFolderPlaceholder`). The 475 `theme_assets` records, 25 `themes` records and 25 `theme_versions` records were moved from published/active to archived/removed states. History and foreign-key integrity are preserved; no database rows were physically deleted. New Tripo outputs must be registered as new theme versions/assets and must pass validation before publication.
+
+**Current phase gates remain open** until the latest GitHub Actions run confirms the repository audit and PWA build. No Tripo-generated GLB has been produced yet.
