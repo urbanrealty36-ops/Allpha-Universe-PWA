@@ -120,7 +120,7 @@ export default function PublicWorldsGallery() {
                 <div key={index} className="h-48 animate-pulse rounded-[26px] border border-white/10 bg-white/[0.025]" />
               ))}
             </div>
-          ) : themes.length ? (
+          ) : filteredThemes.length ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {filteredThemes.map((theme) => (
                 <article key={theme.id} className="glass-panel-glow group rounded-[26px] p-5 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40">
