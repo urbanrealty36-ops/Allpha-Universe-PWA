@@ -25,12 +25,14 @@ for(const category of cats){
   try{ gltf=readGlbJson(file); }catch(e){ errors.push("INVALID_GLTF:"+category+":"+e.message); continue; }
   const names=new Set((gltf.nodes||[]).map(n=>n?.name).filter(Boolean));
   if((gltf.nodes||[]).length<30) errors.push("LOW_NODE_COUNT:"+category+":"+((gltf.nodes||[]).length));
-  const minMaterials = category==="galaxy" ? 3 : category==="universe" ? 6 : 10;
+  const minMaterials = category==="galaxy" ? 3 : category==="universe" ? 6 : category==="world" ? 8 : 10;
   if((gltf.materials||[]).length<minMaterials) errors.push("LOW_MATERIAL_COUNT:"+category+":"+((gltf.materials||[]).length)+":expected>="+minMaterials);
-  if(category==="world"||category==="district"){
-    for(const required of ["StudioFloor","PresentationDesk","FigureHead","BroadcastCamera","MediaScreen"]){
-      if(!names.has(required)) errors.push("REFERENCE_NODE_MISSING:"+category+":"+required);
-    }
+  const requiredByCategory = {
+    world: ["BuildingBody","BuildingGlass","CivicPodium","CivicCore","Road"],
+    district: ["StudioFloor","PresentationDesk","FigureHead","BroadcastCamera","MediaScreen"]
+  };
+  for(const required of (requiredByCategory[category] || [])){
+    if(!names.has(required)) errors.push("REFERENCE_NODE_MISSING:"+category+":"+required);
   }
   for(const forbidden of ["FacadeBand","CivicRing","StageLightRing","AIHeadHalo","DistrictPortal"]){
     if(names.has(forbidden)) errors.push("FORBIDDEN_R1_HERO_GRAMMAR:"+category+":"+forbidden);
