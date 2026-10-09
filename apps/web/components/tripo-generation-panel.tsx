@@ -42,6 +42,7 @@ export default function TripoGenerationPanel() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [storedQa, setStoredQa] = useState<Array<{ packageId: string; valid: number; invalid: number; total: number; errors: string[] }>>([]);
 
   async function ownerFetch<T>(path: string, init?: RequestInit): Promise<T> {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -49,6 +50,21 @@ export default function TripoGenerationPanel() {
     const response = await fetch(baseUrl.replace(/\/$/, "") + path, { ...init, headers: { Accept: "application/json", ...(init?.body ? { "Content-Type": "application/json" } : {}), "X-Allpha-Owner-Studio-Key": ownerKey, ...(init?.headers ?? {}) }, cache: "no-store" });
     if (!response.ok) { const body = await response.json().catch(() => null); throw new Error(body?.detail?.code ?? "API_" + response.status); }
     return response.json() as Promise<T>;
+  }
+
+  async function validateExistingStoredAssets() {
+    const packageIds = ["300818e1-9432-452f-8548-4ad8c361b000", "1773c99d-2caf-4416-a111-a8bf2d679e70"];
+    setBusy(true); setError(""); setNotice("Validating existing stored GLBs through the canonical QA endpoint…"); setStoredQa([]);
+    try {
+      const reports: Array<{ packageId: string; valid: number; invalid: number; total: number; errors: string[] }> = [];
+      for (const id of packageIds) {
+        const response = await ownerFetch<{ data?: { asset_count?: number; valid_count?: number; invalid_count?: number; assets?: Array<{ asset_key?: string | null; validated?: boolean; error_code?: string; error?: string }> } }>("/api/v1/theme-generation/owner/packages/" + encodeURIComponent(id) + "/validate-stored-assets", { method: "POST" });
+        const data = response.data; if (!data) throw new Error("THEME_STORED_ASSET_QA_EMPTY_RESPONSE");
+        reports.push({ packageId: id, valid: data.valid_count ?? 0, invalid: data.invalid_count ?? 0, total: data.asset_count ?? 0, errors: (data.assets ?? []).filter((asset) => !asset.validated).map((asset) => (asset.asset_key ?? "unknown") + ": " + (asset.error_code ?? asset.error ?? "validation failed")) });
+      }
+      setStoredQa(reports); const valid = reports.reduce((sum, item) => sum + item.valid, 0); const invalid = reports.reduce((sum, item) => sum + item.invalid, 0);
+      setNotice("Stored GLB QA complete: " + valid + " valid, " + invalid + " invalid. No approval or publication was performed.");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "THEME_STORED_ASSET_QA_FAILED"); setNotice(""); } finally { setBusy(false); }
   }
 
   async function refreshPackage(id: string, quiet = false) {
@@ -158,6 +174,12 @@ export default function TripoGenerationPanel() {
           <p className="text-[10px] leading-4 text-slate-500">Owner-only pipeline melewati autentikasi user dan AI Credits; workflow, validasi, moderasi, serta publish gates tetap wajib.</p>
         </form>
         <aside className="border-t border-white/10 p-5 sm:p-6 lg:border-l lg:border-t-0">
+          <div className="mb-5 rounded-2xl border border-cyan-300/20 bg-cyan-300/[.04] p-4">
+            <div className="text-sm font-semibold text-white">Validate existing Theme V3 assets</div>
+            <p className="mt-1 text-xs leading-5 text-slate-400">Validates already-registered GLBs in Reference Batch 01 and Failed Asset Retry 02. No upload, generation, moderation bypass, approval, or publication occurs in this step.</p>
+            <button type="button" onClick={() => void validateExistingStoredAssets()} disabled={busy || !ownerKey.trim()} className="mt-3 w-full rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-3 py-3 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/15 disabled:opacity-50">{busy ? "Validating stored GLBs…" : "Validate existing GLB files"}</button>
+            {storedQa.length > 0 && <div className="mt-3 space-y-2">{storedQa.map((report) => <div key={report.packageId} className="rounded-lg border border-white/10 bg-black/20 p-3 text-xs"><div className="font-mono text-[10px] text-slate-500">{report.packageId}</div><div className="mt-1 text-white">{report.valid}/{report.total} valid · {report.invalid} invalid</div>{report.errors.map((message) => <div key={message} className="mt-1 break-words text-rose-200">{message}</div>)}</div>)}</div>}
+          </div>
           <div className="flex items-center justify-between gap-3"><h3 className="text-sm font-semibold">Pipeline evidence</h3><span className={`rounded-full border px-2.5 py-1 text-[10px] ${completed ? "border-emerald-300/30 text-emerald-200" : failed ? "border-rose-300/30 text-rose-200" : "border-white/10 text-slate-400"}`}>{item?.status ?? pkg?.status ?? "Waiting"}</span></div>
           {typeof item?.progress === "number" && <div className="mt-3"><div className="flex justify-between text-[10px] text-slate-500"><span>Tripo progress</span><span>{item.progress}%</span></div><div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-cyan-300" style={{ width: `${Math.max(0, Math.min(100, item.progress))}%` }} /></div></div>}
           <div className="mt-4 flex min-h-[210px] items-center justify-center rounded-2xl border border-white/10 bg-black/25 p-3">{preview ? <img src={preview} alt="Preview hasil generasi Tripo" className="max-h-[300px] w-full rounded-xl object-contain" /> : <div className="text-center"><div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-200/20 bg-cyan-300/5 text-3xl text-cyan-200">✧</div><p className="mt-4 text-xs text-slate-400">Preview asli muncul setelah Tripo selesai.</p><p className="mt-1 text-[10px] text-slate-600">Tidak ada placeholder yang dipromosikan.</p></div>}</div>
