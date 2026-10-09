@@ -22,7 +22,8 @@ type GenerationItem = {
   metadata?: Record<string, unknown>;
 };
 type GenerationPackage = { id: string; status?: string; theme_name?: string; theme_id?: string; theme_version_id?: string };
-type PackageResponse = { data?: { package?: GenerationPackage; items?: GenerationItem[] } };
+type PackagePayload = { package?: GenerationPackage; items?: GenerationItem[] };
+type PackageResponse = PackagePayload & { data?: PackagePayload };
 type PricingResponse = { data?: { enabled?: boolean; credits_per_asset?: number; max_assets_per_package?: number } };
 
 const categories = ["Universe", "Galaxy", "World", "District", "Booth", "Content Capsule", "Live Stage", "AI Character", "Uniform"];
@@ -83,8 +84,9 @@ export default function TripoGenerationPanel() {
           assets: [{ key: category.toLowerCase().replace(/[^a-z0-9]+/g, "-"), label: category, prompt: prompt.trim() }],
         }),
       });
-      const nextPackage = result.data?.package ?? null;
-      const nextItem = result.data?.items?.[0] ?? null;
+      const payload = result.data ?? result;
+      const nextPackage = payload.package ?? null;
+      const nextItem = payload.items?.[0] ?? null;
       if (!nextPackage?.id) throw new Error("THEME_PACKAGE_ID_MISSING");
       setPackageId(nextPackage.id); setPkg(nextPackage); setItem(nextItem);
       setNotice("Task dikirim melalui Theme Generation Orchestrator. Pipeline akan polling dan melakukan ingestion GLB ke Supabase Storage.");
