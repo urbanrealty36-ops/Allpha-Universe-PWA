@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
 type TripoTask = {
@@ -64,6 +64,21 @@ export default function TripoGenerationPanel() {
     }
   }
 
+  useEffect(() => {
+    if (!taskId || busy || task?.status === "success" || task?.status === "failed" || task?.status === "cancelled") return;
+    const timer = setTimeout(async () => {
+      try {
+        const response = await apiFetch<ApiResponse>(`/api/v1/3d-generation/tasks/${encodeURIComponent(taskId)}`);
+        setTask(response.data ?? null);
+        if (response.data?.status === "success") setNotice("Tripo selesai. Model GLB tersedia dari output provider.");
+        else if (response.data?.status === "failed" || response.data?.status === "cancelled") setError("Tripo generation task did not complete.");
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "TRIPO_TASK_QUERY_FAILED");
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [taskId, task?.status, busy]);
+
   async function refreshTask() {
     if (!taskId) return;
     setBusy(true);
@@ -92,7 +107,7 @@ export default function TripoGenerationPanel() {
         <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Generate 3D draft</h2>
-            <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400">Hasil disimpan sebagai hasil draft provider; belum masuk Storage, Theme Asset Manifest, atau produksi.</p>
+            <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400">API Tripo berjalan otomatis di Railway. Task akan dipantau sampai selesai; output provider belum dianggap aktif di Storage/manifest produksi.</p>
           </div>
           <span className="w-fit rounded-full border border-emerald-300/20 bg-emerald-300/5 px-3 py-1.5 text-[10px] text-emerald-200">API key server-side</span>
         </div>
@@ -130,7 +145,7 @@ export default function TripoGenerationPanel() {
           {error && <p role="alert" className="rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-cyan-300/20 bg-cyan-300/5 p-3 text-xs text-cyan-100">{notice}</p>}
           <button disabled={busy} className="w-full rounded-xl bg-cyan-300 px-4 py-3.5 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? "Processing…" : "Generate 3D draft ↗"}</button>
-          <p className="text-[10px] leading-4 text-slate-600">Panggilan ini dapat memakai kredit provider Tripo. Jangan dibuka untuk pengguna umum sebelum debit AI Credits Allpha terhubung secara server-side.</p>
+          <p className="text-[10px] leading-4 text-slate-600">Mode generasi internal tanpa login user untuk tahap REBUILD-03. Setiap request menggunakan kredit Tripo dari API key server-side di Railway; jangan pasang panel ini pada route publik umum.</p>
         </form>
         <div className="border-t border-white/10 p-5 sm:p-6 lg:border-l lg:border-t-0">
           <div className="flex items-center justify-between gap-3">
@@ -144,11 +159,11 @@ export default function TripoGenerationPanel() {
               <img src={preview} alt="Tripo generated asset preview" className="max-h-[300px] w-full rounded-xl object-contain" />
             ) : <div className="text-center"><div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-200/20 bg-cyan-300/5 text-3xl text-cyan-200">✧</div><p className="mt-4 text-xs text-slate-400">Preview muncul saat task sukses.</p><p className="mt-1 text-[10px] text-slate-600">Tidak ada aset placeholder yang dipromosikan.</p></div>}
           </div>
-          {taskId && <div className="mt-3 rounded-xl border border-white/10 p-3"><p className="break-all font-mono text-[10px] text-slate-500">Task ID: {taskId}</p><button type="button" onClick={() => void refreshTask()} disabled={busy} className="mt-3 w-full rounded-lg border border-cyan-300/30 px-3 py-2.5 text-xs text-cyan-100 disabled:opacity-50">{busy ? "Checking…" : "Refresh task status"}</button></div>}
+          {taskId && <div className="mt-3 rounded-xl border border-white/10 p-3"><p className="break-all font-mono text-[10px] text-slate-500">Task ID: {taskId}</p><button type="button" onClick={() => void refreshTask()} disabled={busy} className="mt-3 w-full rounded-lg border border-cyan-300/30 px-3 py-2.5 text-xs text-cyan-100 disabled:opacity-50">{busy ? "Checking…" : "Check status now"}</button></div>}
           {model && <a href={model} target="_blank" rel="noreferrer" className="mt-3 block break-all rounded-xl border border-emerald-300/20 p-3 text-xs text-emerald-200">Open generated model ↗</a>}
           {typeof task?.credits_consumed === "number" && <p className="mt-3 text-[10px] text-slate-500">Tripo credits consumed: {task.credits_consumed.toFixed(2)}</p>}
           {task && <details className="mt-3 rounded-xl border border-white/10 p-3"><summary className="cursor-pointer text-xs text-slate-400">Raw task response</summary><pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap break-all text-[10px] text-slate-500">{JSON.stringify(task, null, 2)}</pre></details>}
-          <div className="mt-5 space-y-2">{["Tripo generation", "Blender geometry/material QA", "Draft Storage + manifest validation", "Human visual approval", "Guarded production promotion"].map((step, index) => <div key={step} className="flex items-center gap-3 text-xs"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 text-[9px] text-cyan-200">{String(index + 1).padStart(2, "0")}</span><span className="text-slate-400">{step}</span></div>)}</div>
+          <div className="mt-5 space-y-2">{["Tripo generation + auto polling", "Blender geometry/material QA", "Storage + theme_assets registration", "Manifest + signed URL verification", "Visual QA before production activation"].map((step, index) => <div key={step} className="flex items-center gap-3 text-xs"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 text-[9px] text-cyan-200">{String(index + 1).padStart(2, "0")}</span><span className="text-slate-400">{step}</span></div>)}</div>
         </div>
       </div>
     </section>
