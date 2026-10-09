@@ -64,8 +64,8 @@ const visualSystemContract = {
   missingAccessibilityContracts: [
     ["visible focus", /focus-visible/.test(visualSystem.styles)],
     ["disabled controls", /:disabled/.test(visualSystem.styles)],
-    ["reduced motion", /prefers-reduced-motion:\\s*reduce/.test(visualSystem.styles)],
-    ["responsive breakpoint", /max-width:\\s*520px/.test(visualSystem.styles)],
+    ["reduced motion", /prefers-reduced-motion:\s*reduce/.test(visualSystem.styles)],
+    ["responsive breakpoint", /max-width:\s*520px/.test(visualSystem.styles)],
     ["touch target token", /--allpha-touch-min:44px/.test(visualSystem.tokens)],
   ].filter(([, passed]) => !passed).map(([name]) => name),
 };
