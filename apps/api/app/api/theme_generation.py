@@ -12,6 +12,7 @@ from app.api.dependencies import require_permission
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
 from app.core.supabase_rest import SupabaseRestError, service_insert, service_rpc, service_select, service_update
 from app.core.theme_asset_ingestion import ThemeAssetIngestionError, create_signed_asset_url, ensure_theme_records, persist_generated_asset
+from app.core.theme_workflow import create_theme_workflow_run, sync_theme_workflow_run
 
 router = APIRouter(prefix="/api/v1/theme-generation", tags=["Theme Package Orchestration"])
 TRIPO_BASE_URL = "https://openapi.tripo3d.ai/v3"
@@ -175,7 +176,9 @@ async def _refresh_package(package: dict[str, Any]) -> dict[str, Any]:
             except SupabaseRestError:
                 pass
     updated = await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {k:v for k,v in patch.items() if v is not None})
-    return {"package": updated[0] if updated else {**package,"status":status}, "items":refreshed}
+    current_package = updated[0] if updated else {**package,"status":status}
+    await sync_theme_workflow_run(current_package, refreshed, status)
+    return {"package": current_package, "items":refreshed}
 
 @router.get("/pricing")
 async def get_pricing(context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
@@ -251,6 +254,15 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
         await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"status":"failed","completed_at":datetime.now(timezone.utc).isoformat()})
         raise HTTPException(status_code=503, detail={"code":"THEME_RECORD_CREATE_FAILED","message":"Theme draft/version creation failed; reserved credits were released."}) from exc
     items = await service_select("theme_generation_items", {"select":"*","package_id":f"eq.{package['id']}","order":"created_at.asc"})
+    try:
+        workflow = await create_theme_workflow_run(package, items)
+        package = workflow["package"]
+        items = await service_select("theme_generation_items", {"select":"*","package_id":f"eq.{package['id']}","order":"created_at.asc"})
+    except (RuntimeError, SupabaseRestError) as exc:
+        await service_rpc("settle_theme_generation_credits", {"p_user_id":str(user.user_id),"p_package_id":str(package["id"]),"p_successful_assets":0,"p_credits_per_asset":credits_per_asset})
+        from datetime import datetime, timezone
+        await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"status":"failed","completed_at":datetime.now(timezone.utc).isoformat()})
+        raise HTTPException(status_code=503, detail={"code":"THEME_WORKFLOW_START_FAILED","message":"Theme Workflow Engine run could not be started; reserved credits were released."}) from exc
     for item in items:
         try:
             await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"status":"submitting"})
