@@ -28,3 +28,20 @@ The previous loader hardcoded `theme-v2-real-3d/v2.13/{themeKey}/{category}.glb`
 5. Run typecheck/build and focused renderer/runtime tests, then update this log with exact results.
 
 **Gate:** REBUILD-01 is not GREEN. The initial retirement slice is committed; the full retirement is intentionally not claimed complete.
+
+## Additional retirement slice (committed after initial log)
+- Commit `23adaeac73928932ba7598a5d957aa5e13f16bf7`: removed **41 legacy artifacts** from `main`: 15 V2.12/V2.13/V2.13D workflow files, all files under `scripts/3d/`, four V2-specific visual/runtime tests, and `tools/theme_assets/generate_allpha_25_theme_3d_pack.py`.
+- Commit `71d9ab46d7b61442ef8da1966f42b64a908a6c64`: removed 13 obsolete root package commands that pointed at the retired generation/activation/QA scripts.
+- Commit `dcf373f3cad47e1f9109ec5dc040fc66c95d1fa2`: added `scripts/theme-rebuild/audit.mjs` as a small, dependency-free repository audit. The audit checks required canonical runtime files, legacy V2 workflows/generators, and hardcoded V2.13 Storage-prefix references.
+- Commit `fcf0f2d5ff09c90bb2a50545b310907c9e7af2e1`: added the audit to the canonical CI PWA build gate.
+- Commit `54d509f6afee45cf548f04f4420f944e5ad2dcf0`: reduced `cinematic-production-hero.tsx` from 6,162 to 777 bytes by removing its primitive human, ring/platform and sparkles-as-theme substitute. It now renders only an authorized published Universe GLB; missing/unpublished assets have no fabricated substitute.
+- Commit `c229f051d04ba63f908085542d28a56114a77046`: reduced `public-universe-3d.tsx` from 3,744 to 1,587 bytes by removing the primitive `HumanSilhouette` and hardcoded `crystal-ai-city` selection. It no longer represents a legacy theme/primitive human as a published asset.
+- Commit `efb79383d367c45c0a5f54b7c4bd9fb3ed630765`: removed the V2.13 Storage path and asset identity from the spatial scene’s runtime metadata. The authorized public manifest is now the source of truth for the Storage prefix.
+
+## New audit and build gate
+The repository audit is now run in CI before the User PWA build. The most recent status snapshot for commit `fcf0f2d5ff09c90bb2a50545b310907c9e7af2e1` showed Railway’s Web check **pending** while Admin and API checks were **success**; this is not sufficient to mark the rebuild GREEN. Re-check the latest run after it completes.
+
+## Current limitations
+- No Tripo-generated assets are included yet. With the old Storage objects removed, affected scenes intentionally do not synthesize a fake 3D replacement; new assets must be generated and published in REBUILD-03/04.
+- The old V2-specific scripts/workflows/tests are retired, but further dependency audit is still required for V2-named source modules, old Theme Studio UI, and procedural spatial markers. Keep canonical renderer, manifest API, authorization and business interactions.
+- Build status is pending and mobile/browser visual QA has not run in this execution.
