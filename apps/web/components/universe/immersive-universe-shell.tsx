@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { apiFetch } from "../../lib/api";
 import type { SceneNode } from "../../lib/world-engine/scene-schema";
-import { ThemeV2ProductionAssetScene } from "../world/theme-v2-production-asset-scene";
+import { ThemeManifestAssetScene } from "../world/theme-manifest-asset-scene";
 
 const AllphaWorldRenderer = dynamic(
   () => import("../world/allpha-world-renderer"),
@@ -703,7 +703,7 @@ function ImmersiveStage({
           <PerspectiveCamera makeDefault position={[0, 3.8, 13]} fov={54} />
           <ambientLight intensity={0.55} />
           <pointLight position={[0, 4, 0]} intensity={24} color="#7c3aed" />
-          <ThemeV2ProductionAssetScene themeKey="crystal-ai-city" category="universe" lowPower={lowPower} reducedMotion={lowPower} />
+          <ThemeManifestAssetScene themeKey={activeTheme?.catalog_key ?? activeTheme?.slug ?? null} category="universe" lowPower={lowPower} reducedMotion={lowPower} fallback={null} />
           <GalaxyScene galaxies={galaxies} themes={themes} selectedThemeId={selectedThemeId} onTheme={onTheme} />
           <OrbitControls enablePan={false} minDistance={7} maxDistance={20} autoRotate={!lowPower} autoRotateSpeed={0.16} enableDamping dampingFactor={0.08} />
         </Canvas>
