@@ -43,7 +43,7 @@ const retiredModulePatterns = [
   /theme-v2-visual-matrix/,
   /3d-golden-theme-factory/,
 ];
-for (const path of files.filter((item) => /\.(?:ts|tsx|js|jsx|mjs|cjs)$/.test(item))) {
+for (const path of files.filter((item) => item !== "scripts/theme-rebuild/audit.mjs" && /\.(?:ts|tsx|js|jsx|mjs|cjs)$/.test(item))) {
   const body = await readFile(join(root, path), "utf8").catch(() => "");
   if (retiredModulePatterns.some((pattern) => pattern.test(body))) retiredModuleReferences.push(path);
 }
