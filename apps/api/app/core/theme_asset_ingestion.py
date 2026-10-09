@@ -168,6 +168,7 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
         raise ThemeAssetIngestionError("THEME_ASSET_SIZE_INVALID", "Generated GLB is empty or exceeds the 100 MB ingestion limit.")
     if content[:4] != b"glTF":
         raise ThemeAssetIngestionError("THEME_ASSET_NOT_GLB", "Provider output did not contain a binary GLB asset.")
+    _validate_glb(content)
     digest = hashlib.sha256(content).hexdigest()
     storage_path = f"generated/{package['owner_user_id']}/{package['id']}/{item['asset_key']}-{digest[:16]}.glb"
     upload_url = f"{settings.supabase_url.rstrip('/')}/storage/v1/object/allpha-world-assets/{quote(storage_path, safe='/')}"
