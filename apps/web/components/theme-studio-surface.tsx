@@ -236,7 +236,7 @@ export default function ThemeStudioSurface() {
                 <h2 className="font-semibold">Theme Catalog</h2>
                 <p className="mt-1 text-[11px] text-slate-500">{loading ? "Loading…" : `${themes.length} platform themes`}</p>
               </div>
-              <a href="/universe" className="rounded-full border border-white/10 px-3 py-1.5 text-[10px] text-slate-300">Universe</a>
+              <div className="flex flex-wrap gap-2"><a href="/theme-studio/generate" className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-[10px] text-cyan-100">Generate Theme Package ↗</a><a href="/universe" className="rounded-full border border-white/10 px-3 py-1.5 text-[10px] text-slate-300">Universe</a></div>
             </div>
             <div className="mt-4 space-y-2">
               {themes.map((theme) => (
