@@ -122,3 +122,53 @@ async def get_task(task_id: str, context: dict = Depends(require_permission("adm
     if not isinstance(data, dict):
         raise HTTPException(status_code=502, detail={"code": "TRIPO_INVALID_RESPONSE", "message": "Tripo returned an unexpected response shape."})
     return {"data": data, "provider": "tripo"}
+
+
+class RigCheckRequest(BaseModel):
+    input: str = Field(min_length=6, max_length=2048)
+
+
+class RigRequest(BaseModel):
+    input: str = Field(min_length=6, max_length=2048)
+    model: str = "v1.0-20240301"
+    rig_type: Literal["biped", "quadruped", "hexapod", "octopod", "avian", "serpentine", "aquatic"] = "biped"
+    spec: Literal["tripo", "mixamo"] = "mixamo"
+    out_format: Literal["glb", "fbx"] = "glb"
+
+
+class RetargetRequest(BaseModel):
+    input: str = Field(min_length=6, max_length=2048)
+    animations: list[str] = Field(min_length=1, max_length=20)
+
+
+@router.post("/animations/rig-check", status_code=202)
+async def rig_check(payload: RigCheckRequest, context: dict = Depends(require_permission("admin.manage"))):
+    _ = context
+    result = await _tripo_post("/animations/rig-check", {"input": payload.input})
+    if not result.get("task_id"):
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a rig-check task ID."})
+    return {"data": result, "provider": "tripo", "status": "queued"}
+
+
+@router.post("/animations/rig", status_code=202)
+async def rig_character(payload: RigRequest, context: dict = Depends(require_permission("admin.manage"))):
+    _ = context
+    result = await _tripo_post("/animations/rig", {
+        "input": payload.input,
+        "model": payload.model,
+        "rig_type": payload.rig_type,
+        "spec": payload.spec,
+        "out_format": payload.out_format,
+    })
+    if not result.get("task_id"):
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a rigging task ID."})
+    return {"data": result, "provider": "tripo", "status": "queued"}
+
+
+@router.post("/animations/retarget", status_code=202)
+async def retarget_character(payload: RetargetRequest, context: dict = Depends(require_permission("admin.manage"))):
+    _ = context
+    result = await _tripo_post("/animations/retarget", {"input": payload.input, "animations": payload.animations})
+    if not result.get("task_id"):
+        raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a retarget task ID."})
+    return {"data": result, "provider": "tripo", "status": "queued"}
