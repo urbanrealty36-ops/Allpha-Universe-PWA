@@ -128,7 +128,7 @@ async def sync_theme_workflow_run(package: dict[str, Any], items: list[dict[str,
     from datetime import datetime, timezone
     current_rows = await service_select("workflow_runs", {"select":"id,status","id":f"eq.{run_id}","limit":"1"})
     previous_status = current_rows[0].get("status") if current_rows else None
-    patch: dict[str, Any] = {"status": run_status, "output": {"package_id": package["id"], "package_status": package_status, "successful_assets": sum(1 for item in items if item.get("status") == "success"), "failed_assets": sum(1 for item in items if item.get("status") == "failed")}}
+    patch: dict[str, Any] = {"status": run_status, "output": {"execution_mode": "theme_package_orchestrator", "package_id": package["id"], "package_status": package_status, "successful_assets": sum(1 for item in items if item.get("status") == "success"), "failed_assets": sum(1 for item in items if item.get("status") == "failed")}}
     if terminal:
         patch["completed_at"] = datetime.now(timezone.utc).isoformat()
     await service_update("workflow_runs", {"id": f"eq.{run_id}"}, patch)
