@@ -76,7 +76,22 @@ async def _tripo_create(prompt: str, face_limit: int) -> dict[str, Any]:
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail={"code":"TRIPO_UPSTREAM_UNAVAILABLE","message":"Tripo is temporarily unavailable."}) from exc
     if response.status_code >= 400:
-        raise HTTPException(status_code=502, detail={"code":"TRIPO_UPSTREAM_ERROR","provider_status":response.status_code,"message":"Tripo rejected an asset task."})
+        # Preserve provider diagnostics without exposing credentials or full request payloads.
+        try:
+            provider_body = response.json()
+        except ValueError:
+            provider_body = {"message": response.text[:240]}
+        provider_data = provider_body.get("data", provider_body) if isinstance(provider_body, dict) else {}
+        provider_message = provider_data.get("message") or provider_data.get("error") or provider_body.get("message") if isinstance(provider_body, dict) else None
+        provider_code = provider_data.get("code") if isinstance(provider_data, dict) else None
+        raise HTTPException(status_code=502, detail={
+            "code":"TRIPO_UPSTREAM_ERROR",
+            "provider_status":response.status_code,
+            "provider_code":str(provider_code)[:80] if provider_code is not None else None,
+            "provider_message":str(provider_message or "No provider detail returned.")[:240],
+            "retryable": response.status_code in {408, 425, 429, 500, 502, 503, 504},
+            "message":"Tripo rejected an asset task."
+        })
     try:
         body = response.json()
     except ValueError as exc:
