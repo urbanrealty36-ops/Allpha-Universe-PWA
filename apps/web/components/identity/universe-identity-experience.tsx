@@ -1,6 +1,5 @@
 "use client";
 import { FormEvent, useMemo, useState } from "react";
-import { ArrowRight, Globe, Layers } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
@@ -79,14 +78,14 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
                 onClick={() => setSubMode('explore')}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/50 transition-colors"
               >
-                <Globe className="w-3.5 h-3.5" />
+                <span aria-hidden="true">◈</span>
                 <span>Explore the Universe</span>
               </button>
               <button
                 onClick={() => { window.location.href = '/theme-studio'; }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 hover:bg-purple-900/50 transition-colors"
               >
-                <Layers className="w-3.5 h-3.5" />
+                <span aria-hidden="true">▧</span>
                 <span>3D Theme Pipeline</span>
               </button>
             </div>
@@ -159,7 +158,7 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
           className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 hover:from-cyan-300 hover:to-purple-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(56,189,248,0.4)] flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.98] transition-all"
         >
           <span>Enter the Universe</span>
-          <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+          <span aria-hidden="true" className="text-base">→</span>
         </button>
 
         <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/80 text-center">
