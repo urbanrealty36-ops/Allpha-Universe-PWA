@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { apiFetch } from "../../lib/api";
+import { apiFetch } from "../lib/api";
 
 type AssetTask = { key: string; label: string; prompt: string; taskId?: string; status: string; progress?: number; modelUrl?: string; previewUrl?: string; error?: string };
 type ApiResponse = { data?: { task_id?: string; status?: string; progress?: number; output?: { model_url?: string; rendered_image_url?: string; [key: string]: unknown }; credits_consumed?: number } };
