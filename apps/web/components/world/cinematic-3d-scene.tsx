@@ -5,7 +5,6 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { ALLPHA_3D_THEME_PROFILES } from "../../../../packages/design-tokens/3d-visual-language";
-import { AdvancedEnvironmentDetail } from "./advanced-environment-detail";
 
 export type CinematicLayer = "universe" | "galaxy" | "orbit" | "world" | "district" | "booth" | "content" | "live";
 
