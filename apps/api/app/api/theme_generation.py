@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import hashlib
 from typing import Any, Literal
 from uuid import UUID
 
@@ -11,7 +12,7 @@ from pydantic import BaseModel, Field
 from app.api.dependencies import require_permission
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
 from app.core.supabase_rest import SupabaseRestError, rpc, service_insert, service_rpc, service_select, service_update
-from app.core.theme_asset_ingestion import ThemeAssetIngestionError, create_signed_asset_url, ensure_theme_records, persist_generated_asset
+from app.core.theme_asset_ingestion import ThemeAssetIngestionError, _validate_glb, create_signed_asset_url, ensure_theme_records, persist_generated_asset
 from app.core.theme_workflow import create_theme_workflow_run, sync_theme_workflow_run
 
 router = APIRouter(prefix="/api/v1/theme-generation", tags=["Theme Package Orchestration"])
@@ -443,6 +444,110 @@ async def validate_package(package_id: UUID, context: dict = Depends(require_per
     metadata = package.get("metadata") if isinstance(package.get("metadata"), dict) else {}
     updated = await service_update("theme_generation_packages", {"id":f"eq.{package_id}"}, {"metadata":{**metadata,"validation_result":result}})
     return {"data":{"package":updated[0] if updated else package,"validation":result}}
+
+@router.post("/packages/{package_id}/validate-stored-assets")
+async def validate_stored_package_assets(
+    package_id: UUID,
+    context: dict = Depends(require_permission("admin.manage")),
+) -> dict[str, Any]:
+    """Read and validate already-uploaded GLBs; never uploads, approves, or publishes assets."""
+    user = context["user"]
+    packages = await service_select(
+        "theme_generation_packages",
+        {"select":"id,owner_user_id,theme_id,theme_version_id,status,metadata",
+         "id":f"eq.{package_id}","owner_user_id":f"eq.{user.user_id}","limit":"1"},
+    )
+    if not packages:
+        raise HTTPException(status_code=404, detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Theme package not found."})
+    package = packages[0]
+    if not package.get("theme_version_id") or not package.get("theme_id"):
+        raise HTTPException(status_code=409, detail={"code":"THEME_VERSION_NOT_READY","message":"Theme draft is not linked to a version."})
+
+    assets = await service_select(
+        "theme_assets",
+        {"select":"id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,status,moderation_status,safety_status,performance_status,checksum_sha256,content_size_bytes,metadata",
+         "theme_version_id":f"eq.{package['theme_version_id']}",
+         "theme_id":f"eq.{package['theme_id']}",
+         "storage_path":"like.theme-v3-tripo/*",
+         "order":"created_at.asc"},
+    )
+    if not assets:
+        raise HTTPException(status_code=409, detail={"code":"THEME_STORED_ASSETS_NOT_FOUND","message":"No existing theme-v3-tripo assets are registered to this package version."})
+
+    results: list[dict[str, Any]] = []
+    async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=15.0), follow_redirects=True) as client:
+        for asset in assets:
+            result: dict[str, Any] = {
+                "asset_id": asset["id"],
+                "asset_key": (asset.get("metadata") or {}).get("asset_key"),
+                "storage_path": asset["storage_path"],
+                "validated": False,
+            }
+            try:
+                if asset.get("storage_bucket") != "allpha-world-assets":
+                    raise ThemeAssetIngestionError("THEME_ASSET_BUCKET_INVALID", "Asset is not in the canonical Allpha world asset bucket.")
+                if asset.get("asset_type") != "model" or asset.get("mime_type") != "model/gltf-binary":
+                    raise ThemeAssetIngestionError("THEME_ASSET_TYPE_INVALID", "Stored asset is not registered as a GLB model.")
+                signed_url = await create_signed_asset_url(asset["storage_path"])
+                if not signed_url:
+                    raise ThemeAssetIngestionError("THEME_SIGNED_URL_VERIFICATION_FAILED", "Storage could not issue a signed read URL.")
+                response = await client.get(signed_url)
+                response.raise_for_status()
+                content = response.content
+                _validate_glb(content)
+                digest = hashlib.sha256(content).hexdigest()
+                expected = asset.get("checksum_sha256")
+                if expected and digest.lower() != str(expected).lower():
+                    raise ThemeAssetIngestionError("THEME_ASSET_CHECKSUM_MISMATCH", "Downloaded GLB checksum differs from the registered checksum.")
+                result.update({
+                    "validated": True,
+                    "glb_version": 2,
+                    "content_size_bytes": len(content),
+                    "checksum_sha256": digest,
+                    "signed_url_verified": True,
+                })
+            except ThemeAssetIngestionError as exc:
+                result.update({"error_code": exc.code, "error": str(exc)})
+            except httpx.HTTPError:
+                result.update({"error_code":"THEME_ASSET_DOWNLOAD_FAILED","error":"Stored GLB could not be downloaded using its signed URL."})
+            except Exception:
+                result.update({"error_code":"THEME_ASSET_VALIDATION_FAILED","error":"Stored GLB validation failed unexpectedly."})
+
+            old_metadata = asset.get("metadata") if isinstance(asset.get("metadata"), dict) else {}
+            qa = {
+                "validated": result["validated"],
+                "validator": "allpha_stored_glb_v1",
+                "checked_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+                "error_code": result.get("error_code"),
+                "content_size_bytes": result.get("content_size_bytes"),
+                "checksum_sha256": result.get("checksum_sha256"),
+                "signed_url_verified": result.get("signed_url_verified", False),
+            }
+            try:
+                await service_update("theme_assets", {"id":f"eq.{asset['id']}"}, {
+                    "metadata": {**old_metadata, "stored_asset_qa": qa}
+                })
+            except SupabaseRestError:
+                result["metadata_persisted"] = False
+            else:
+                result["metadata_persisted"] = True
+            results.append(result)
+
+    return {
+        "data": {
+            "package_id": str(package_id),
+            "theme_id": package["theme_id"],
+            "theme_version_id": package["theme_version_id"],
+            "asset_count": len(results),
+            "valid_count": sum(1 for item in results if item["validated"]),
+            "invalid_count": sum(1 for item in results if not item["validated"]),
+            "assets": results,
+            "publication_changed": False,
+            "moderation_changed": False,
+            "note": "This diagnostic only records storage/GLB QA metadata. It never changes asset lifecycle or moderation states.",
+        }
+    }
+
 
 @router.post("/packages/{package_id}/submit-review")
 async def submit_package_for_review(package_id: UUID, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
