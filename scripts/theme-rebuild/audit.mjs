@@ -32,6 +32,22 @@ const required = [
   "docs/implementation/REBUILD_FULL_THEME_3D_UIUX_PHASES.md",
 ];
 const missing = required.filter((path) => !files.includes(path));
+
+const retiredModuleReferences = [];
+const retiredModulePatterns = [
+  /theme-v2-production-asset-scene/,
+  /theme-v2-spatial-scene/,
+  /production-3d-runtime-resolver/,
+  /production-3d-activation/,
+  /production-realistic-art-v2-13/,
+  /theme-v2-visual-matrix/,
+  /3d-golden-theme-factory/,
+];
+for (const path of files.filter((item) => /\.(?:ts|tsx|js|jsx|mjs|cjs)$/.test(item))) {
+  const body = await readFile(join(root, path), "utf8").catch(() => "");
+  if (retiredModulePatterns.some((pattern) => pattern.test(body))) retiredModuleReferences.push(path);
+}
+
 const publicManifestPath = "apps/api/app/api/world_runtime.py";
 const publicManifest = await readFile(join(root, publicManifestPath), "utf8").catch(() => "");
 const legacyPublicManifestPrefix = publicManifest.includes('"storage_path": "like.theme-v2-real-3d/*"');
@@ -51,9 +67,10 @@ console.log(JSON.stringify({
   missingCoreFiles: missing,
   legacyV2AutomationFiles: legacyAutomation,
   legacyV2GeneratorFiles: legacyGenerators,
+  referencesToRetiredModules: retiredModuleReferences,
   runtimeFilesWithHardcodedV213Prefix: fixedLegacyPrefix,
   legacyPublicManifestPrefix,
   missingTripoManifestPrefix,
-  status: missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix ? "FAIL" : "PASS",
+  status: missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix ? "FAIL" : "PASS",
 }, null, 2));
 if (missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix) process.exitCode = 1;
