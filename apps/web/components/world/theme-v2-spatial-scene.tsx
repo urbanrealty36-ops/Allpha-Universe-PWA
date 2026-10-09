@@ -37,13 +37,13 @@ export function ThemeV2SpatialScene(props: {
       userData={{
         allpha3d: {
           activationSchema: "allpha-3d-production-activation/1.0",
-          assetKey: props.themeKey ? `v2.13/${props.themeKey}/${category}` : null,
+          assetKey: props.themeKey ? `${props.themeKey}/${category}` : null,
           storageBucket: "allpha-world-assets",
-          storagePath: props.themeKey ? `theme-v2-real-3d/v2.13/${props.themeKey}/${category}.glb` : null,
+          storagePath: null,
           rendererSource: "AllphaWorldRenderer",
           presentationOnly: true,
           legacy: false,
-          cutover: "canonical-v2.13-signed-manifest-only",
+          cutover: "authorized-public-manifest-only",
         },
       }}
     >
@@ -65,9 +65,9 @@ export const THEME_V2_MATRIX_SUMMARY = {
   themes: 25,
   categories: 14,
   templates: 350,
-  schema: "theme-v2-real-3d/1.0",
+  schema: "allpha-theme-manifest-runtime/1.0",
   activationSchema: "allpha-3d-production-activation/1.0",
   canonicalRenderer: "AllphaWorldRenderer",
-  cutover: "production-manifest-first",
+  cutover: "authorized-manifest-only",
   legacyPlaceholderPack: "retired-from-renderer",
 } as const;
