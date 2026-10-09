@@ -53,7 +53,7 @@ async def _route_prompt(user, package_id: str, asset_key: str, prompt: str) -> t
                 GatewayMessage(role="system", content="You are Allpha Theme Studio's 3D art director. Preserve the user's intent and asset type. Return only one concise, production-oriented text-to-3D prompt, with no commentary, no markdown, and no new brand names."),
                 GatewayMessage(role="user", content=prompt),
             ],
-            capabilities=["text"],
+            capabilities=["ai.generate"],
             idempotency_key=f"theme-prompt-{package_id}-{asset_key}-v1",
             metadata={"feature": "theme_package_generation", "package_id": package_id, "asset_key": asset_key},
         )
