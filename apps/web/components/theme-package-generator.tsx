@@ -1,0 +1,145 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { apiFetch } from "../../lib/api";
+
+type AssetTask = { key: string; label: string; prompt: string; taskId?: string; status: string; progress?: number; modelUrl?: string; previewUrl?: string; error?: string };
+type ApiResponse = { data?: { task_id?: string; status?: string; progress?: number; output?: { model_url?: string; rendered_image_url?: string; [key: string]: unknown }; credits_consumed?: number } };
+
+const packageParts = [
+  { key: "universe", label: "Universe / Galaxy", prompt: "Cinematic premium 3D universe environment, monumental luminous galaxy architecture, layered nebula, physically based materials, refined sci-fi worldbuilding, strong composition, optimized clean topology." },
+  { key: "world", label: "World / District", prompt: "Premium architectural 3D world district environment, coherent streetscape, landmark buildings, detailed facades, landscape elements, realistic scale, cinematic natural lighting, physically based materials." },
+  { key: "booth", label: "Booth / Portal", prompt: "High-end futuristic modular 3D booth and portal, premium brushed metal, glass, subtle emissive accents, realistic construction details, clean topology, PBR materials, suitable for a social virtual world." },
+  { key: "content", label: "Content Capsule", prompt: "Distinctive premium 3D content capsule object, sculptural compact silhouette, glass and brushed metal, subtle cyan-violet luminous details, high quality PBR, clear readable shape." },
+  { key: "stage", label: "Live Experience Stage", prompt: "Photorealistic premium live broadcast stage, cinematic key and rim lighting, acoustic panels, stage floor, professional cameras, seating, large abstract display, physically based materials, realistic proportions, no text." },
+  { key: "character", label: "AI Character", prompt: "Stylized-realistic premium humanoid AI character, neutral A-pose, full body visible, symmetrical anatomy, clean silhouette, detailed modern futuristic outfit, realistic hands and feet, studio lighting, rig-friendly pose, no weapon, no text." },
+  { key: "uniform", label: "Human Character / Uniform", prompt: "Premium full-body futuristic human avatar uniform on a neutral mannequin in A-pose, tailored technical fabric, detailed seams and trims, realistic cloth material, front-facing, isolated studio presentation, no logo, no text." },
+  { key: "spatial", label: "Spatial FX / Navigation", prompt: "Premium 3D spatial navigation artifact for a futuristic social universe, elegant floating wayfinding ring, portal markers, luminous but restrained cyan and violet energy, clean mesh and PBR materials." },
+  { key: "social", label: "Social 3D / Sticker", prompt: "Premium expressive 3D social reaction emblem, sculpted translucent glass and soft metallic finish, distinctive friendly silhouette, clean topology, studio render, no lettering." },
+];
+
+export default function ThemePackageGenerator() {
+  const [themeName, setThemeName] = useState("Crystal AI City");
+  const [themeDirection, setThemeDirection] = useState("Photorealistic cinematic sci-fi, premium architectural visualization, physically based materials, refined cyan and violet accents, consistent material language, no text or watermark.");
+  const [selected, setSelected] = useState<string[]>(packageParts.map((part) => part.key));
+  const [faceLimit, setFaceLimit] = useState(50000);
+  const [tasks, setTasks] = useState<AssetTask[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [current, setCurrent] = useState("");
+  const [error, setError] = useState("");
+
+  const finished = useMemo(() => tasks.filter((task) => task.status === "success").length, [tasks]);
+  const toggle = (key: string) => setSelected((items) => items.includes(key) ? items.filter((item) => item !== key) : [...items, key]);
+
+  async function generatePackage() {
+    if (!selected.length || busy) return;
+    setBusy(true);
+    setError("");
+    const chosen = packageParts.filter((part) => selected.includes(part.key));
+    const initial = chosen.map((part) => ({ ...part, status: "queued" }));
+    setTasks(initial);
+    for (const part of chosen) {
+      setCurrent(part.label);
+      setTasks((items) => items.map((item) => item.key === part.key ? { ...item, status: "submitting" } : item));
+      try {
+        const response = await apiFetch<ApiResponse>("/api/v1/3d-generation/text-to-model", {
+          method: "POST",
+          body: JSON.stringify({
+            prompt: `${themeName}: ${part.label}. ${themeDirection} Asset-specific brief: ${part.prompt}`,
+            negative_prompt: "low quality, blurry, primitive placeholder geometry, broken topology, text, watermark, inconsistent style",
+            face_limit: faceLimit,
+            texture: true,
+            pbr: true,
+            texture_quality: "detailed",
+          }),
+        });
+        const id = response.data?.task_id;
+        setTasks((items) => items.map((item) => item.key === part.key ? { ...item, taskId: id, status: id ? "queued" : "error", error: id ? undefined : "Tripo tidak mengembalikan task_id." } : item));
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : "TRIPO_GENERATION_FAILED";
+        setTasks((items) => items.map((item) => item.key === part.key ? { ...item, status: "error", error: message } : item));
+        setError((value) => value || `Sebagian task gagal dikirim. Periksa ${part.label} dan coba ulang hanya aset yang gagal.`);
+      }
+    }
+    setCurrent("");
+    setBusy(false);
+  }
+
+  async function refreshOne(key: string) {
+    const task = tasks.find((item) => item.key === key);
+    if (!task?.taskId) return;
+    setTasks((items) => items.map((item) => item.key === key ? { ...item, status: "checking" } : item));
+    try {
+      const response = await apiFetch<ApiResponse>(`/api/v1/3d-generation/tasks/${encodeURIComponent(task.taskId)}`);
+      const data = response.data;
+      setTasks((items) => items.map((item) => item.key === key ? {
+        ...item,
+        status: data?.status ?? "unknown",
+        progress: data?.progress,
+        modelUrl: data?.output?.model_url,
+        previewUrl: data?.output?.rendered_image_url,
+      } : item));
+    } catch (cause) {
+      setTasks((items) => items.map((item) => item.key === key ? { ...item, status: "error", error: cause instanceof Error ? cause.message : "TASK_QUERY_FAILED" } : item));
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-[#05070d] px-4 py-6 text-white sm:px-7 sm:py-9">
+      <div className="mx-auto max-w-7xl">
+        <a href="/theme-studio" className="text-xs text-cyan-200 hover:text-cyan-100">← Back to Theme Studio</a>
+        <header className="mt-5 rounded-[2rem] border border-cyan-200/15 bg-gradient-to-br from-[#142536] via-[#0b111e] to-[#080a11] p-6 sm:p-9">
+          <p className="text-[10px] uppercase tracking-[.32em] text-cyan-200">Allpha Universe · Theme Package Lab</p>
+          <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">Generate one complete Theme package</h1>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Satu arah visual untuk Universe, World, Booth, Content, Live Stage, AI Character dan aset pendukung. Setiap komponen menjadi task 3D draft yang dapat ditinjau sebelum masuk ke pipeline Blender, animasi, Storage, dan manifest.</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Selected assets</p><p className="mt-2 text-2xl font-semibold">{selected.length}<span className="text-sm text-slate-500"> / {packageParts.length}</span></p></div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Successful tasks</p><p className="mt-2 text-2xl font-semibold">{finished}</p></div>
+            <div className="rounded-2xl border border-amber-200/20 bg-amber-300/5 p-4"><p className="text-[10px] uppercase tracking-widest text-amber-200">Lifecycle</p><p className="mt-2 text-sm font-medium">Draft only · no production promotion</p></div>
+          </div>
+        </header>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5 sm:p-6">
+            <h2 className="text-lg font-semibold">1. Theme direction</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="text-xs text-slate-400">Theme template name<input value={themeName} onChange={(event) => setThemeName(event.target.value)} maxLength={100} required className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-cyan-300/50" /></label>
+              <label className="text-xs text-slate-400">Geometry budget · faces<span className="mt-2 block text-sm text-cyan-200">{faceLimit.toLocaleString("en-US")}</span><input type="range" min={10000} max={100000} step={10000} value={faceLimit} onChange={(event) => setFaceLimit(Number(event.target.value))} className="mt-3 w-full accent-cyan-300" /></label>
+            </div>
+            <label className="mt-4 block text-xs text-slate-400">Shared art direction<textarea value={themeDirection} onChange={(event) => setThemeDirection(event.target.value)} maxLength={600} rows={3} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 text-white outline-none focus:border-cyan-300/50" /></label>
+            <h2 className="mt-7 text-lg font-semibold">2. Package components</h2>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Pilih komponen untuk satu paket tema. Setiap komponen akan membuat task Tripo tersendiri dengan nama tema dan art direction yang sama.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {packageParts.map((part, index) => {
+                const chosen = selected.includes(part.key);
+                return <button key={part.key} type="button" onClick={() => toggle(part.key)} className={`rounded-2xl border p-4 text-left transition ${chosen ? "border-cyan-300/50 bg-cyan-300/[.06]" : "border-white/10 bg-black/20 hover:border-white/20"}`}><div className="flex items-start justify-between gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-xs text-cyan-200">{String(index + 1).padStart(2, "0")}</span><span className={`rounded-full px-2 py-1 text-[9px] ${chosen ? "bg-cyan-300 text-slate-950" : "bg-white/5 text-slate-500"}`}>{chosen ? "IN PACKAGE" : "OPTIONAL"}</span></div><p className="mt-4 text-sm font-medium">{part.label}</p><p className="mt-2 text-[11px] leading-5 text-slate-500">{part.prompt}</p></button>;
+              })}
+            </div>
+            {error && <p role="alert" className="mt-4 rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
+            <button type="button" onClick={() => void generatePackage()} disabled={busy || !selected.length || !themeName.trim()} className="mt-6 w-full rounded-xl bg-cyan-300 px-4 py-4 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? `Submitting ${current}…` : `Generate ${selected.length} draft assets ↗`}</button>
+            <p className="mt-3 text-[10px] leading-5 text-amber-100/70">Admin-only during integration verification. Each task may consume provider credits. Allpha AI Credits debit is not enabled yet, so this page must not be exposed to end users until the Super Admin pricing policy and server-side debit/refund flow are connected.</p>
+          </section>
+
+          <aside className="space-y-4">
+            <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
+              <h2 className="font-semibold">3. Task monitor</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-500">Submit status and result links from the real Tripo v3 API.</p>
+              <div className="mt-4 space-y-3">
+                {tasks.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-slate-600">Belum ada task package.</p> : tasks.map((task) => <div key={task.key} className="rounded-2xl border border-white/10 bg-black/20 p-3"><div className="flex items-start justify-between gap-2"><p className="text-xs font-medium">{task.label}</p><span className="rounded-full border border-white/10 px-2 py-1 text-[9px] text-slate-400">{task.status}</span></div>{typeof task.progress === "number" && <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-cyan-300" style={{ width: `${Math.max(0, Math.min(100, task.progress))}%` }} /></div>}{task.taskId && <p className="mt-2 break-all font-mono text-[9px] text-slate-600">{task.taskId}</p>}{task.error && <p className="mt-2 text-[10px] text-rose-200">{task.error}</p>}{task.taskId && <button type="button" onClick={() => void refreshOne(task.key)} disabled={busy} className="mt-3 w-full rounded-lg border border-cyan-300/20 px-3 py-2 text-[10px] text-cyan-100 disabled:opacity-50">Refresh status</button>}{task.previewUrl && <a href={task.previewUrl} target="_blank" rel="noreferrer" className="mt-2 block text-[10px] text-cyan-200">Open preview ↗</a>}{task.modelUrl && <a href={task.modelUrl} target="_blank" rel="noreferrer" className="mt-2 block break-all text-[10px] text-emerald-200">Open GLB model ↗</a>}</div>)}
+              </div>
+            </section>
+            <section className="rounded-3xl border border-violet-200/15 bg-violet-300/[.04] p-5">
+              <h2 className="font-semibold">4. Character animation</h2>
+              <p className="mt-2 text-xs leading-5 text-slate-400">Character asset is generated in this package. Rig-check → rig → retarget animation presets is the next provider pipeline step; it must run only after the character generation task reports success.</p>
+              <div className="mt-4 space-y-2 text-[10px] text-slate-500"><p>01 · Character mesh generated</p><p>02 · Rig compatibility checked</p><p>03 · Humanoid rig generated</p><p>04 · Idle / walk / run animation set</p><p>05 · Blender + Allpha renderer QA</p></div>
+            </section>
+            <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
+              <h2 className="font-semibold">5. Promotion gate</h2>
+              <p className="mt-2 text-xs leading-5 text-slate-500">Tidak ada task yang otomatis mendaftarkan file ke theme_assets atau mengaktifkan production manifest. Perlu Storage upload, checksum, metadata, Blender QA, visual approval, dan promosi terkontrol.</p>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}
