@@ -55,7 +55,7 @@ export function ThemeV2SpatialScene(props: {
         reducedMotion={props.reducedMotion}
         onRuntimeState={props.onRuntimeState}
         onRuntimeMetrics={props.onRuntimeMetrics}
-        fallback={props.allowProceduralFallback === false ? null : <div aria-hidden="true" />}
+        fallback={null}
       />
     </group>
   );
