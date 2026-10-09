@@ -71,3 +71,12 @@ Do not delete all files with `theme`, `3d` or `v2` in the name. The current runt
 
 ## 7. Gate decision
 REBUILD-00 is **partially evidenced, not GREEN**: source-of-truth contracts and a live inventory are captured, but the Storage path inventory needs re-checking after manual deletion and the full call-site map is still pending. REBUILD-01 may proceed only with narrowly proven dead code while the full reference map is built; broad deletion is blocked until the relevant dependency evidence exists.
+
+## Post-manual-deletion reconciliation — 2026-10-09
+A fresh live query after the user's manual Storage deletion confirms:
+- `allpha-world-assets` has **0 actual objects**; the only remaining row in `storage.objects` is Supabase's `.emptyFolderPlaceholder` (0 bytes).
+- All **475** `public.theme_assets` rows are now `status=archived`, `moderation_status=removed`.
+- All **25** `public.themes` and all **25** `public.theme_versions` that were published are now `status=archived`, `moderation_status=removed`.
+- No Storage object or business row was physically deleted by this assistant. Asset and theme metadata was archived to preserve history and foreign-key integrity while preventing stale themes from being treated as published.
+
+The Storage cleanup/reconciliation sub-gate is complete. REBUILD-00 as a whole remains IN PROGRESS until the current CI/audit build completes and baseline/performance evidence is captured.
