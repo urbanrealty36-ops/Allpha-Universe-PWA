@@ -549,6 +549,23 @@ async def validate_stored_package_assets(
     }
 
 
+@router.post("/owner/packages/{package_id}/validate-stored-assets")
+async def validate_owner_stored_package_assets(
+    package_id: UUID,
+    x_allpha_owner_studio_key: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Owner-only bridge to the same read-only stored-GLB validator; never approves or publishes."""
+    _require_owner_studio_key(x_allpha_owner_studio_key)
+    owner_id = os.getenv("ALLPHA_THEME_STUDIO_OWNER_USER_ID", "").strip()
+    try:
+        UUID(owner_id)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=503, detail={"code": "OWNER_THEME_STUDIO_IDENTITY_NOT_CONFIGURED", "message": "Configure the owner identity UUID on the API service."})
+    # Reuse the canonical validator and its ownership filter without duplicating QA logic.
+    owner_user = type("OwnerThemeStudioUser", (), {"user_id": owner_id})()
+    return await validate_stored_package_assets(package_id, {"user": owner_user})
+
+
 @router.post("/packages/{package_id}/submit-review")
 async def submit_package_for_review(package_id: UUID, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
     user = context["user"]
