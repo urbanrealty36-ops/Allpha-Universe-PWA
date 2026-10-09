@@ -11,3 +11,9 @@ This plan supersedes prior visual implementation plans for Theme 3D and PWA UI/U
 - Repository governance: [`AGENTS.md`](../../AGENTS.md)
 - Full platform implementation sequence: [`docs/IMPLEMENTATION_PHASES.md`](../IMPLEMENTATION_PHASES.md)
 - Architecture baseline: [`docs/architecture/ALLPHA_CANONICAL_ARCHITECTURE_BASELINE_LOCK_v1.0.0.md`](../architecture/ALLPHA_CANONICAL_ARCHITECTURE_BASELINE_LOCK_v1.0.0.md)
+
+
+## Active execution evidence
+
+- [REBUILD-00 live inventory and evidence lock](../audits/REBUILD_00_EVIDENCE_LOCK_INVENTORY_20261009.md)
+- [REBUILD-01 legacy retirement log](../audits/REBUILD_01_LEGACY_RETIREMENT_LOG_20261009.md)
