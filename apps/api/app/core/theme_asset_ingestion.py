@@ -8,7 +8,7 @@ from urllib.parse import quote
 import httpx
 
 from app.core.config import get_settings
-from app.core.supabase_rest import service_insert, service_update
+from app.core.supabase_rest import service_insert, service_select, service_update
 
 
 class ThemeAssetIngestionError(RuntimeError):
@@ -33,6 +33,15 @@ def _headers(content_type: str = "application/json") -> dict[str, str]:
 async def ensure_theme_records(package: dict[str, Any]) -> dict[str, Any]:
     if package.get("theme_id") and package.get("theme_version_id"):
         return package
+    current = await service_select("theme_generation_packages", {
+        "select":"id,owner_user_id,theme_name,theme_direction,metadata,theme_id,theme_version_id",
+        "id":f"eq.{package['id']}",
+        "limit":"1",
+    })
+    if current:
+        package = {**package, **current[0]}
+        if package.get("theme_id") and package.get("theme_version_id"):
+            return package
     theme_name = str(package["theme_name"])
     slug_base = re.sub(r"[^a-z0-9-]+", "-", theme_name.lower()).strip("-")[:48] or "generated-theme"
     slug = f"{slug_base}-{str(package['id']).split('-')[0]}"
@@ -139,7 +148,6 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
         "storage_bucket": "allpha-world-assets",
         "content_size_bytes": len(content),
         "checksum_sha256": digest,
-        "uploaded_at": "now()",
     })
     if not asset_rows:
         raise ThemeAssetIngestionError("THEME_ASSET_REGISTRATION_FAILED", "Uploaded GLB could not be registered in theme_assets.")
