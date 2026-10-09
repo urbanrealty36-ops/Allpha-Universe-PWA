@@ -26,6 +26,12 @@ export default function ThemePackageGenerator() {
   const [tasks, setTasks] = useState<AssetTask[]>([]);
   const [busy, setBusy] = useState(false);
   const [current, setCurrent] = useState("");
+  const [rigCheckId, setRigCheckId] = useState("");
+  const [rigCheckResult, setRigCheckResult] = useState<{ status?: string; riggable?: boolean; rig_type?: string } | null>(null);
+  const [rigTaskId, setRigTaskId] = useState("");
+  const [rigTaskStatus, setRigTaskStatus] = useState("");
+  const [animationTaskId, setAnimationTaskId] = useState("");
+  const [animationTaskStatus, setAnimationTaskStatus] = useState("");
   const [error, setError] = useState("");
 
   const finished = useMemo(() => tasks.filter((task) => task.status === "success").length, [tasks]);
@@ -63,6 +69,89 @@ export default function ThemePackageGenerator() {
     }
     setCurrent("");
     setBusy(false);
+  }
+
+  async function providerTask(taskId: string) {
+    const response = await apiFetch<ApiResponse>(`/api/v1/3d-generation/tasks/${encodeURIComponent(taskId)}`);
+    return response.data;
+  }
+
+  async function runRigCheck() {
+    const character = tasks.find((task) => task.key === "character");
+    if (!character?.taskId || character.status !== "success") {
+      setError("Generate AI Character and refresh its task until status success before rig-check.");
+      return;
+    }
+    setError("");
+    try {
+      const response = await apiFetch<ApiResponse>("/api/v1/3d-generation/animations/rig-check", {
+        method: "POST",
+        body: JSON.stringify({ input: character.taskId }),
+      });
+      setRigCheckId(response.data?.task_id ?? "");
+      setRigCheckResult({ status: "queued" });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "TRIPO_RIG_CHECK_FAILED");
+    }
+  }
+
+  async function refreshRigCheck() {
+    if (!rigCheckId) return;
+    try {
+      const data = await providerTask(rigCheckId);
+      setRigCheckResult({ status: data?.status, riggable: data?.output?.riggable === true, rig_type: typeof data?.output?.rig_type === "string" ? data.output.rig_type : undefined });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "TRIPO_RIG_CHECK_QUERY_FAILED");
+    }
+  }
+
+  async function runRig() {
+    const character = tasks.find((task) => task.key === "character");
+    if (!character?.taskId || rigCheckResult?.status !== "success" || rigCheckResult.riggable !== true) return;
+    try {
+      const response = await apiFetch<ApiResponse>("/api/v1/3d-generation/animations/rig", {
+        method: "POST",
+        body: JSON.stringify({ input: character.taskId, rig_type: rigCheckResult.rig_type ?? "biped", spec: "mixamo", out_format: "glb" }),
+      });
+      setRigTaskId(response.data?.task_id ?? "");
+      setRigTaskStatus(response.data?.task_id ? "queued" : "error");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "TRIPO_RIG_FAILED");
+    }
+  }
+
+  async function refreshRigTask() {
+    if (!rigTaskId) return;
+    try {
+      const data = await providerTask(rigTaskId);
+      setRigTaskStatus(data?.status ?? "unknown");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "TRIPO_RIG_QUERY_FAILED");
+    }
+  }
+
+  async function runRetarget() {
+    if (!rigTaskId || rigTaskStatus !== "success") return;
+    try {
+      const response = await apiFetch<ApiResponse>("/api/v1/3d-generation/animations/retarget", {
+        method: "POST",
+        body: JSON.stringify({ input: rigTaskId, animations: ["preset:idle", "preset:walk", "preset:run"] }),
+      });
+      setAnimationTaskId(response.data?.task_id ?? "");
+      setAnimationTaskStatus(response.data?.task_id ? "queued" : "error");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "TRIPO_RETARGET_FAILED");
+    }
+  }
+
+  async function refreshAnimationTask() {
+    if (!animationTaskId) return;
+    try {
+      const data = await providerTask(animationTaskId);
+      setAnimationTaskStatus(data?.status ?? "unknown");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "TRIPO_ANIMATION_QUERY_FAILED");
+    }
   }
 
   async function refreshOne(key: string) {
@@ -131,7 +220,16 @@ export default function ThemePackageGenerator() {
             <section className="rounded-3xl border border-violet-200/15 bg-violet-300/[.04] p-5">
               <h2 className="font-semibold">4. Character animation</h2>
               <p className="mt-2 text-xs leading-5 text-slate-400">Character asset is generated in this package. Rig-check → rig → retarget animation presets is the next provider pipeline step; it must run only after the character generation task reports success.</p>
-              <div className="mt-4 space-y-2 text-[10px] text-slate-500"><p>01 · Character mesh generated</p><p>02 · Rig compatibility checked</p><p>03 · Humanoid rig generated</p><p>04 · Idle / walk / run animation set</p><p>05 · Blender + Allpha renderer QA</p></div>
+              <div className="mt-4 space-y-3 text-[10px] text-slate-500">
+                <p>01 · Character mesh: refresh AI Character task until status is success.</p>
+                <button type="button" onClick={() => void runRigCheck()} disabled={busy} className="w-full rounded-lg border border-violet-200/20 px-3 py-2 text-left text-[10px] text-violet-100 disabled:opacity-50">02 · Run rig compatibility check</button>
+                {rigCheckId && <div className="rounded-xl border border-white/10 p-3"><p className="break-all font-mono">Rig-check task: {rigCheckId}</p><p className="mt-1">Status: {rigCheckResult?.status ?? "queued"} {rigCheckResult?.rig_type ? `· type: ${rigCheckResult.rig_type}` : ""}</p><button type="button" onClick={() => void refreshRigCheck()} className="mt-2 rounded-lg border border-white/10 px-3 py-2">Refresh rig-check</button></div>}
+                {rigCheckResult?.status === "success" && rigCheckResult.riggable === true && <button type="button" onClick={() => void runRig()} className="w-full rounded-lg border border-violet-200/20 px-3 py-2 text-left text-[10px] text-violet-100">03 · Create humanoid rig (Mixamo GLB)</button>}
+                {rigTaskId && <div className="rounded-xl border border-white/10 p-3"><p className="break-all font-mono">Rig task: {rigTaskId}</p><p className="mt-1">Status: {rigTaskStatus}</p><button type="button" onClick={() => void refreshRigTask()} className="mt-2 rounded-lg border border-white/10 px-3 py-2">Refresh rig task</button></div>}
+                {rigTaskStatus === "success" && <button type="button" onClick={() => void runRetarget()} className="w-full rounded-lg border border-violet-200/20 px-3 py-2 text-left text-[10px] text-violet-100">04 · Generate idle / walk / run</button>}
+                {animationTaskId && <div className="rounded-xl border border-white/10 p-3"><p className="break-all font-mono">Animation task: {animationTaskId}</p><p className="mt-1">Status: {animationTaskStatus}</p><button type="button" onClick={() => void refreshAnimationTask()} className="mt-2 rounded-lg border border-white/10 px-3 py-2">Refresh animation task</button></div>}
+                <p>05 · Blender + AllphaWorldRenderer QA and manual asset registration.</p>
+              </div>
             </section>
             <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
               <h2 className="font-semibold">5. Promotion gate</h2>
