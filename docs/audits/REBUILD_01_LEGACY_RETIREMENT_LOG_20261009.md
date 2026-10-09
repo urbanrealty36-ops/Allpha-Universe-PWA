@@ -72,3 +72,10 @@ This preserves historical records and foreign-key integrity while closing the st
 - Commit `f52be1619da1ef149737a8ab2923397b40cf82c6`: strengthened the CI audit to fail if the old public manifest prefix returns or the new Tripo prefix is missing.
 - Commit `769a55b343cec38b2b34054331d2af66d336d04d`: documented the canonical `theme-v3-tripo/{themeKey}/{category}.glb` path contract.
 - Latest Railway status checks for the web, API and admin services report **success** on commit `769a55b343cec38b2b34054331d2af66d336d04d`. GitHub Actions CI remains queued, so its audit/test logs are still pending.
+
+## CI failure remediation — latest evidence
+- GitHub Actions run `37960390187` exposed a real broken import in `apps/web/components/universe/immersive-universe-shell.tsx`: it still imported the retired `theme-v2-production-asset-scene`.
+- Commit `433f3ba8d25d336281a1500704305dc256ace560` updates the import and component usage to `ThemeManifestAssetScene`, removes the hardcoded `crystal-ai-city` runtime asset selection, and uses the currently selected theme key with `fallback={null}`.
+- The run for `433f3ba8d25d336281a1500704305dc256ace560` was still in progress at the last check; the previous failing build cannot be marked fixed until a completed run proves the PWA build passes.
+- Commit `489b1a072a777645ea4ac267626d3ae490788b5d` adds a CI audit for imports/references to retired module names. Its own workflow run was queued at the last check.
+- In the run for `433f3ba8d25d336281a1500704305dc256ace560`, the Theme rebuild audit and API syntax/tests passed; the Web build was still running, while the Admin build was still running. Final conclusions remain pending.
