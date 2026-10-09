@@ -32,6 +32,10 @@ const required = [
   "docs/implementation/REBUILD_FULL_THEME_3D_UIUX_PHASES.md",
 ];
 const missing = required.filter((path) => !files.includes(path));
+const publicManifestPath = "apps/api/app/api/world_runtime.py";
+const publicManifest = await readFile(join(root, publicManifestPath), "utf8").catch(() => "");
+const legacyPublicManifestPrefix = publicManifest.includes('"storage_path": "like.theme-v2-real-3d/*"');
+const missingTripoManifestPrefix = !publicManifest.includes('"storage_path": "like.theme-v3-tripo/*"');
 const sourceFiles = files.filter((path) =>
   /^(?:apps\/web\/(?:components\/world|lib\/world-engine)|apps\/api\/app\/api)\/.*\.(?:ts|tsx|py)$/.test(path)
 );
@@ -48,6 +52,8 @@ console.log(JSON.stringify({
   legacyV2AutomationFiles: legacyAutomation,
   legacyV2GeneratorFiles: legacyGenerators,
   runtimeFilesWithHardcodedV213Prefix: fixedLegacyPrefix,
-  status: missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length ? "FAIL" : "PASS",
+  legacyPublicManifestPrefix,
+  missingTripoManifestPrefix,
+  status: missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix ? "FAIL" : "PASS",
 }, null, 2));
-if (missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length) process.exitCode = 1;
+if (missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix) process.exitCode = 1;
