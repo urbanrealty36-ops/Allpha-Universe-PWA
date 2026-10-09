@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from app.api.dependencies import require_permission
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
-from app.core.supabase_rest import SupabaseRestError, service_insert, service_rpc, service_select, service_update
+from app.core.supabase_rest import SupabaseRestError, rpc, service_insert, service_rpc, service_select, service_update
 from app.core.theme_asset_ingestion import ThemeAssetIngestionError, create_signed_asset_url, ensure_theme_records, persist_generated_asset
 from app.core.theme_workflow import create_theme_workflow_run, sync_theme_workflow_run
 
@@ -290,6 +290,37 @@ async def get_package(package_id: UUID, context: dict = Depends(require_permissi
     if not packages:
         raise HTTPException(status_code=404,detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Theme package not found."})
     return {"data":await _refresh_package(packages[0])}
+
+@router.post("/packages/{package_id}/validate")
+async def validate_package(package_id: UUID, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
+    user = context["user"]
+    packages = await service_select("theme_generation_packages", {"select":"*","id":f"eq.{package_id}","owner_user_id":f"eq.{user.user_id}","limit":"1"})
+    if not packages:
+        raise HTTPException(status_code=404, detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Theme package not found."})
+    package = packages[0]
+    if not package.get("theme_version_id"):
+        raise HTTPException(status_code=409, detail={"code":"THEME_VERSION_NOT_READY","message":"Theme version has not been created."})
+    result = await rpc(user, "validate_theme_version", {"p_theme_version_id":str(package["theme_version_id"])})
+    metadata = package.get("metadata") if isinstance(package.get("metadata"), dict) else {}
+    updated = await service_update("theme_generation_packages", {"id":f"eq.{package_id}"}, {"metadata":{**metadata,"validation_result":result}})
+    return {"data":{"package":updated[0] if updated else package,"validation":result}}
+
+@router.post("/packages/{package_id}/submit-review")
+async def submit_package_for_review(package_id: UUID, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
+    user = context["user"]
+    packages = await service_select("theme_generation_packages", {"select":"*","id":f"eq.{package_id}","owner_user_id":f"eq.{user.user_id}","limit":"1"})
+    if not packages:
+        raise HTTPException(status_code=404, detail={"code":"THEME_PACKAGE_NOT_FOUND","message":"Theme package not found."})
+    package = packages[0]
+    if not package.get("theme_id") or not package.get("theme_version_id"):
+        raise HTTPException(status_code=409, detail={"code":"THEME_VERSION_NOT_READY","message":"Theme draft has not been created."})
+    try:
+        result = await rpc(user, "submit_theme", {"p_theme_id":str(package["theme_id"])})
+    except SupabaseRestError as exc:
+        raise _http_error(exc,"THEME_REVIEW_SUBMISSION_FAILED") from exc
+    metadata = package.get("metadata") if isinstance(package.get("metadata"), dict) else {}
+    updated = await service_update("theme_generation_packages", {"id":f"eq.{package_id}"}, {"metadata":{**metadata,"review_submission":result}})
+    return {"data":{"package":updated[0] if updated else package,"submission":result}}
 
 @router.post("/packages/{package_id}/retry")
 async def retry_failed(package_id: UUID, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
