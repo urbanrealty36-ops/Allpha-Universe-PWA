@@ -5,10 +5,8 @@ import re
 from typing import Any, Literal
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, HttpUrl
-
-from app.api.dependencies import require_permission
 
 router = APIRouter(prefix="/api/v1/3d-generation", tags=["AI 3D Theme Generation"])
 TRIPO_BASE_URL = "https://openapi.tripo3d.ai/v3"
@@ -67,8 +65,7 @@ async def _tripo_post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.post("/text-to-model", status_code=202)
-async def text_to_model(payload: TextToModelRequest, context: dict = Depends(require_permission("admin.manage"))):
-    _ = context
+async def text_to_model(payload: TextToModelRequest):
     result = await _tripo_post("/generation/text-to-model", {
         "prompt": payload.prompt,
         "negative_prompt": payload.negative_prompt,
@@ -84,8 +81,7 @@ async def text_to_model(payload: TextToModelRequest, context: dict = Depends(req
 
 
 @router.post("/image-to-model", status_code=202)
-async def image_to_model(payload: ImageToModelRequest, context: dict = Depends(require_permission("admin.manage"))):
-    _ = context
+async def image_to_model(payload: ImageToModelRequest):
     result = await _tripo_post("/generation/image-to-model", {
         "input": str(payload.image_url),
         "model": payload.model,
@@ -100,8 +96,7 @@ async def image_to_model(payload: ImageToModelRequest, context: dict = Depends(r
 
 
 @router.get("/tasks/{task_id}")
-async def get_task(task_id: str, context: dict = Depends(require_permission("admin.manage"))):
-    _ = context
+async def get_task(task_id: str):
     if not TASK_ID_PATTERN.fullmatch(task_id):
         raise HTTPException(status_code=422, detail={"code": "TRIPO_TASK_ID_INVALID", "message": "Invalid Tripo task ID."})
     headers = {"Authorization": f"Bearer {_api_key()}"}
@@ -142,8 +137,7 @@ class RetargetRequest(BaseModel):
 
 
 @router.post("/animations/rig-check", status_code=202)
-async def rig_check(payload: RigCheckRequest, context: dict = Depends(require_permission("admin.manage"))):
-    _ = context
+async def rig_check(payload: RigCheckRequest):
     result = await _tripo_post("/animations/rig-check", {"input": payload.input})
     if not result.get("task_id"):
         raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a rig-check task ID."})
@@ -151,8 +145,7 @@ async def rig_check(payload: RigCheckRequest, context: dict = Depends(require_pe
 
 
 @router.post("/animations/rig", status_code=202)
-async def rig_character(payload: RigRequest, context: dict = Depends(require_permission("admin.manage"))):
-    _ = context
+async def rig_character(payload: RigRequest):
     result = await _tripo_post("/animations/rig", {
         "input": payload.input,
         "model": payload.model,
@@ -166,8 +159,7 @@ async def rig_character(payload: RigRequest, context: dict = Depends(require_per
 
 
 @router.post("/animations/retarget", status_code=202)
-async def retarget_character(payload: RetargetRequest, context: dict = Depends(require_permission("admin.manage"))):
-    _ = context
+async def retarget_character(payload: RetargetRequest):
     result = await _tripo_post("/animations/retarget", {"input": payload.input, "animations": payload.animations})
     if not result.get("task_id"):
         raise HTTPException(status_code=502, detail={"code": "TRIPO_TASK_ID_MISSING", "message": "Tripo did not return a retarget task ID."})
