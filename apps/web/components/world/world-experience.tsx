@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiFetch, publicApiFetch } from "../../lib/api";
 import { normalizeWorldScene, type WorldScene, type SceneNode } from "../../lib/world-engine/scene-schema";
+import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 
 const AllphaWorldRenderer = dynamic(() => import("./allpha-world-renderer"), {
   ssr: false,
@@ -51,6 +52,7 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
   const [presence, setPresence] = useState<Presence[]>([]);
   const [themes, setThemes] = useState<CatalogItem[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
+  const [productionAssetUrl, setProductionAssetUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("districts");
   const [entered, setEntered] = useState(false);
   const [lowPower, setLowPower] = useState(false);
@@ -108,10 +110,41 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
     if (match) setSelectedTheme(match);
   }, [world, themes]);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCrystalAssetManifest() {
+      setProductionAssetUrl(null);
+      const key = [world?.slug, world?.theme_key, selectedTheme?.slug, selectedTheme?.name]
+        .filter(Boolean).join(" ").toLowerCase().replaceAll("_", "-");
+      if (!key.includes("crystal-ai-city") && !key.includes("crystal ai city")) return;
+      try {
+        const response = await publicApiFetch<{ data?: { assets?: Array<{ signed_url?: string | null; asset_type?: string; status?: string }>; binary_3d_assets?: Array<{ signed_url?: string | null; id?: string }>; has_binary_3d_pack?: boolean } }>(
+          "/api/v1/themes/world-runtime/public/themes/crystal-ai-city/asset-manifest",
+        );
+        const candidates = [
+          ...(response.data?.binary_3d_assets ?? []),
+          ...(response.data?.assets ?? []),
+        ];
+        const asset = candidates.find((item) => typeof item.signed_url === "string" && item.signed_url.length > 0);
+        if (!cancelled) setProductionAssetUrl(asset?.signed_url ?? null);
+      } catch {
+        if (!cancelled) setProductionAssetUrl(null);
+      }
+    }
+    void loadCrystalAssetManifest();
+    return () => { cancelled = true; };
+  }, [world?.slug, world?.theme_key, selectedTheme?.slug, selectedTheme?.name]);
+
   const scene = useMemo<WorldScene | null>(() => {
     const raw = selectedTheme?.world_schema;
-    return raw ? normalizeWorldScene(raw) : null;
-  }, [selectedTheme]);
+    if (raw) return normalizeWorldScene(raw);
+    const key = [world?.slug, world?.theme_key, selectedTheme?.slug, selectedTheme?.name]
+      .filter(Boolean).join(" ").toLowerCase().replaceAll("_", "-");
+    if (productionAssetUrl && (key.includes("crystal-ai-city") || key.includes("crystal ai city"))) {
+      return createGoldenScene("universe");
+    }
+    return null;
+  }, [selectedTheme, world?.slug, world?.theme_key, productionAssetUrl]);
 
   const activePresence = useMemo(() => {
     const ids = new Set(presence.map((item) => item.agent_id));
@@ -221,6 +254,7 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
               {scene ? (
                 <AllphaWorldRenderer
                   productionSpatialLayer="world"
+                  productionAssetUrl={productionAssetUrl}
                   scene={scene}
                   themeKey={world.theme_key}
                   tokens={selectedTheme?.tokens}
