@@ -104,7 +104,7 @@ const assetPipelineContract = {
     ["canonical asset registry", /service_insert\("theme_assets"/.test(assetPipeline.ingestion)],
     ["server-side Storage auth", /supabase_service_role_key/.test(assetPipeline.ingestion)],
     ["headless Blender invoked before upload", /await asyncio\.to_thread\(_process_with_blender, content\)/.test(assetPipeline.ingestion)],
-    ["canonical production manifest prefix", /theme-v3-tripo\/\$\{package\[\x27id\x27\]\}/.test(assetPipeline.ingestion)],
+    ["canonical production manifest prefix", /storage_path = f"theme-v3-tripo\//.test(assetPipeline.ingestion)],
     ["signed URL fetch verification", /_verify_signed_url\(signed_url\)/.test(assetPipeline.ingestion)],
     ["Blender report persisted", /"blender_report": blender_report/.test(assetPipeline.ingestion)],
   ].filter(([, passed]) => !passed).map(([name]) => name),
