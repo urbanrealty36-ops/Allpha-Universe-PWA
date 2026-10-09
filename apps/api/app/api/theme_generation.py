@@ -218,7 +218,7 @@ async def create_owner_package(payload: PackageCreate, x_allpha_owner_studio_key
     except HTTPException:
         raise
     except (SupabaseRestError, ThemeAssetIngestionError, RuntimeError) as exc:
-        raise HTTPException(status_code=503, detail={"code":"OWNER_THEME_PACKAGE_SETUP_FAILED","message":"Canonical package, Theme draft, or workflow setup failed before provider submission."}) from exc
+        raise HTTPException(status_code=503, detail={"code":"OWNER_THEME_PACKAGE_SETUP_FAILED","message":"Canonical package, Theme draft, or workflow setup failed before provider submission.","diagnostic":type(exc).__name__ + ": " + str(exc)[:240]}) from exc
     for item in items:
         try:
             await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"status":"submitting"})
