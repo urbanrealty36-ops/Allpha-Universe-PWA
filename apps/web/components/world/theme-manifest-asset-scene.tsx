@@ -299,7 +299,7 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
         const candidate = assets.find((asset) => {
           if (!asset.signed_url) return false;
           const metadata = asset.metadata ?? {};
-          const path = String(asset.storage_path ?? "").replace(/^\\/+/, "");
+          const path = String(asset.storage_path ?? "").replace(/^\/+/, "");
           const basename = path.split("/").pop() ?? "";
           const declaredCategory = normalize(metadata.category ?? metadata.asset_category ?? metadata.assetCategory);
           const declaredKey = normalize(metadata.asset_key ?? metadata.assetKey ?? metadata.name ?? basename);
