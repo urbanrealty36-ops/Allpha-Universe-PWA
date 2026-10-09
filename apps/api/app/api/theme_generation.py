@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from app.api.dependencies import require_permission
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
 from app.core.supabase_rest import SupabaseRestError, service_insert, service_rpc, service_select, service_update
+from app.core.theme_asset_ingestion import ThemeAssetIngestionError, create_signed_asset_url, ensure_theme_records, persist_generated_asset
 
 router = APIRouter(prefix="/api/v1/theme-generation", tags=["Theme Package Orchestration"])
 TRIPO_BASE_URL = "https://openapi.tripo3d.ai/v3"
@@ -102,8 +103,12 @@ async def _tripo_task(task_id: str) -> dict[str, Any]:
         raise HTTPException(status_code=502, detail={"code":"TRIPO_INVALID_RESPONSE","message":"Tripo returned an unexpected response."})
     return data
 
-async def _refresh_item(item: dict[str, Any]) -> dict[str, Any]:
-    if not item.get("provider_task_id") or item.get("status") in {"success","failed","cancelled"}:
+async def _refresh_item(item: dict[str, Any], package: dict[str, Any]) -> dict[str, Any]:
+    if item.get("status") in {"success","failed","cancelled"}:
+        if item.get("storage_path"):
+            item = {**item, "model_url": await create_signed_asset_url(str(item["storage_path"]))}
+        return item
+    if not item.get("provider_task_id"):
         return item
     try:
         data = await _tripo_task(str(item["provider_task_id"]))
@@ -124,6 +129,14 @@ async def _refresh_item(item: dict[str, Any]) -> dict[str, Any]:
             "error_message": None if status != "failed" else "Provider task failed. Review provider task details before retrying.",
             "updated_at": "now()",
         }
+        if status == "success":
+            try:
+                package = await ensure_theme_records(package)
+                item = await persist_generated_asset(package, item, output)
+                signed_url = await create_signed_asset_url(str(item["storage_path"])) if item.get("storage_path") else None
+                return {**item, "model_url": signed_url}
+            except ThemeAssetIngestionError as exc:
+                patch.update({"status":"failed","error_code":exc.code,"error_message":str(exc),"model_url":None})
         updated = await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {k:v for k,v in patch.items() if v != "now()"})
         return updated[0] if updated else {**item, **patch}
     except HTTPException:
@@ -133,7 +146,7 @@ async def _refresh_package(package: dict[str, Any]) -> dict[str, Any]:
     items = await service_select("theme_generation_items", {"select":"*","package_id":f"eq.{package['id']}","order":"created_at.asc"})
     refreshed = []
     for item in items:
-        refreshed.append(await _refresh_item(item))
+        refreshed.append(await _refresh_item(item, package))
     statuses = [item.get("status") for item in refreshed]
     if statuses and all(s == "success" for s in statuses):
         status = "succeeded"
@@ -230,6 +243,13 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
         if "INSUFFICIENT_AI_CREDITS" in exc.message:
             raise HTTPException(status_code=402, detail={"code":"INSUFFICIENT_AI_CREDITS","message":"Not enough Allpha AI Credits to reserve this package."}) from exc
         raise HTTPException(status_code=503, detail={"code":"THEME_CREDIT_RESERVATION_FAILED","message":"AI Credits could not be reserved. No provider tasks were submitted."}) from exc
+    try:
+        package = await ensure_theme_records(package)
+    except (ThemeAssetIngestionError, SupabaseRestError) as exc:
+        await service_rpc("settle_theme_generation_credits", {"p_user_id":str(user.user_id),"p_package_id":str(package["id"]),"p_successful_assets":0,"p_credits_per_asset":credits_per_asset})
+        from datetime import datetime, timezone
+        await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"status":"failed","completed_at":datetime.now(timezone.utc).isoformat()})
+        raise HTTPException(status_code=503, detail={"code":"THEME_RECORD_CREATE_FAILED","message":"Theme draft/version creation failed; reserved credits were released."}) from exc
     items = await service_select("theme_generation_items", {"select":"*","package_id":f"eq.{package['id']}","order":"created_at.asc"})
     for item in items:
         try:
