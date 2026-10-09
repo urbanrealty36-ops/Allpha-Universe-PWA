@@ -30,6 +30,7 @@ export default function ThemePackageGenerator() {
   const [pricing, setPricing] = useState<PricingResponse["data"] | null>(null);
   const [pricingError, setPricingError] = useState("");
   const [pricingSaving, setPricingSaving] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [creditsPerAsset, setCreditsPerAsset] = useState(1);
   const [generationEnabled, setGenerationEnabled] = useState(true);
   const [maxAssets, setMaxAssets] = useState(25);
@@ -192,6 +193,24 @@ export default function ThemePackageGenerator() {
     }
   }
 
+  async function retryFailedAssets() {
+    if (!packageId || retrying) return;
+    setRetrying(true);
+    setError("");
+    try {
+      const response = await apiFetch<{ data?: PackageResponse }>("/api/v1/theme-generation/packages/" + packageId + "/retry", { method: "POST" });
+      const items = response.data?.items ?? [];
+      setTasks((currentItems) => currentItems.map((part) => {
+        const item = items.find((candidate) => candidate.asset_key === part.key);
+        return item ? { ...part, taskId: item.provider_task_id, status: item.status, progress: item.progress, modelUrl: item.model_url, previewUrl: item.preview_url, error: item.error_message } : part;
+      }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "THEME_PACKAGE_RETRY_FAILED");
+    } finally {
+      setRetrying(false);
+    }
+  }
+
   async function refreshOne(key: string) {
     if (!packageId) return;
     const task = tasks.find((item) => item.key === key);
@@ -250,7 +269,7 @@ export default function ThemePackageGenerator() {
           <aside className="space-y-4">
             <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
               <h2 className="font-semibold">3. Task monitor</h2>{packageId && <p className="mt-2 break-all font-mono text-[10px] text-cyan-200">Package ID: {packageId}</p>}
-              <p className="mt-1 text-xs leading-5 text-slate-500">Persisted task and workflow status from the backend Theme Package Orchestrator.</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">Persisted task and workflow status from the backend Theme Package Orchestrator.</p>{tasks.some((task) => task.status === "failed" || task.status === "error") && packageId && <button type="button" onClick={() => void retryFailedAssets()} disabled={retrying} className="mt-3 w-full rounded-lg border border-amber-200/20 px-3 py-2 text-xs text-amber-100 disabled:opacity-50">{retrying ? "Retrying failed assets…" : "Retry failed assets"}</button>}
               <div className="mt-4 space-y-3">
                 {tasks.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-slate-600">Belum ada task package.</p> : tasks.map((task) => <div key={task.key} className="rounded-2xl border border-white/10 bg-black/20 p-3"><div className="flex items-start justify-between gap-2"><p className="text-xs font-medium">{task.label}</p><span className="rounded-full border border-white/10 px-2 py-1 text-[9px] text-slate-400">{task.status}</span></div>{typeof task.progress === "number" && <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-cyan-300" style={{ width: `${Math.max(0, Math.min(100, task.progress))}%` }} /></div>}{task.taskId && <p className="mt-2 break-all font-mono text-[9px] text-slate-600">{task.taskId}</p>}{task.error && <p className="mt-2 text-[10px] text-rose-200">{task.error}</p>}{task.taskId && <button type="button" onClick={() => void refreshOne(task.key)} disabled={busy} className="mt-3 w-full rounded-lg border border-cyan-300/20 px-3 py-2 text-[10px] text-cyan-100 disabled:opacity-50">Refresh status</button>}{task.previewUrl && <a href={task.previewUrl} target="_blank" rel="noreferrer" className="mt-2 block text-[10px] text-cyan-200">Open preview ↗</a>}{task.modelUrl && <a href={task.modelUrl} target="_blank" rel="noreferrer" className="mt-2 block break-all text-[10px] text-emerald-200">Open GLB model ↗</a>}</div>)}
               </div>
