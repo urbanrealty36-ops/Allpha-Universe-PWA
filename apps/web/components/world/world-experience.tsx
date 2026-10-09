@@ -234,7 +234,7 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
                 <AllphaWorldRenderer
                   productionSpatialLayer="world"
                   scene={scene}
-                  themeKey={world.theme_key}
+                  themeKey={world.theme_key ?? selectedTheme?.slug ?? world.slug}
                   tokens={selectedTheme?.tokens}
                   lowPower={lowPower}
                   presence={activePresence}
