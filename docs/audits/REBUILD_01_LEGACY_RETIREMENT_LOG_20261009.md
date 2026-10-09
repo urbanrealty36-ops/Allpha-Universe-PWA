@@ -65,3 +65,10 @@ After the user manually deleted the GLB objects, a fresh query confirmed zero re
 - `public.themes`: 25 published rows → `archived / removed`.
 - `public.theme_versions`: 25 published rows → `archived / removed`.
 This preserves historical records and foreign-key integrity while closing the stale-publication path. The new Tripo pipeline must create new theme versions/assets through the existing lifecycle and activate them only after validation and approval.
+
+## Final retirement changes in this execution window
+- Commit `5d86dcb29c773a575f5097c3d0aedcf000b07da3`: removed `advanced-environment-detail.tsx`, which was only imported and never rendered, and removed that dead import.
+- Commit `5bd9bdbf8dacc0ced3ef37a851c0cbb100f9c6e1`: changed the public runtime manifest filter in `apps/api/app/api/world_runtime.py` from the old `theme-v2-real-3d/*` root to the canonical new root `theme-v3-tripo/*`.
+- Commit `f52be1619da1ef149737a8ab2923397b40cf82c6`: strengthened the CI audit to fail if the old public manifest prefix returns or the new Tripo prefix is missing.
+- Commit `769a55b343cec38b2b34054331d2af66d336d04d`: documented the canonical `theme-v3-tripo/{themeKey}/{category}.glb` path contract.
+- Latest Railway status checks for the web, API and admin services report **success** on commit `769a55b343cec38b2b34054331d2af66d336d04d`. GitHub Actions CI remains queued, so its audit/test logs are still pending.
