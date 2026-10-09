@@ -7,6 +7,7 @@ import { normalizeWorldScene, type WorldScene } from "../lib/world-engine/scene-
 import ThemeSpatialSlice from "./theme-spatial-slice";
 import LiveExperienceVerticalSlice from "./live-experience-vertical-slice";
 import AvatarStudioSurface from "./avatar-studio-surface";
+import TripoGenerationPanel from "./tripo-generation-panel";
 
 const AllphaWorldRenderer = dynamic(() => import("./world/allpha-world-renderer"), {
   ssr: false,
@@ -283,6 +284,8 @@ export default function ThemeStudioSurface() {
                 <span className="rounded-full border border-white/10 px-2.5 py-1">Server-authoritative</span>
               </div>
             </div>
+
+            <TripoGenerationPanel />
 
             <ThemeSpatialSlice theme={selected} />
 
