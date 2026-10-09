@@ -184,7 +184,7 @@ export default function DiscoverySurface() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
+    <main className="allpha-product-surface allpha-discovery-shell min-h-screen text-white">
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-8 sm:py-8">
         <header className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-8 sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
