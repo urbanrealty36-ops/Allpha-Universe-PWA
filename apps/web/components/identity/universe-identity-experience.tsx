@@ -162,9 +162,9 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
         </button>
 
         <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/80 text-center">
-          <div className="flex flex-col items-center"><Globe className="w-4 h-4 text-cyan-400 mb-1"/><span className="text-[10px] text-slate-300">Spatial Worlds</span></div>
-          <div className="flex flex-col items-center"><Layers className="w-4 h-4 text-purple-400 mb-1"/><span className="text-[10px] text-slate-300">Immersive Places</span></div>
-          <div className="flex flex-col items-center"><ArrowRight className="w-4 h-4 text-blue-400 mb-1"/><span className="text-[10px] text-slate-300">Shared Experiences</span></div>
+          <div className="flex flex-col items-center"><span className="mb-1 text-cyan-400">◈</span><span className="text-[10px] text-slate-300">Spatial Worlds</span></div>
+          <div className="flex flex-col items-center"><span className="mb-1 text-purple-400">▧</span><span className="text-[10px] text-slate-300">Immersive Places</span></div>
+          <div className="flex flex-col items-center"><span className="mb-1 text-blue-400">→</span><span className="text-[10px] text-slate-300">Shared Experiences</span></div>
         </div>
       </div>
     </div>
