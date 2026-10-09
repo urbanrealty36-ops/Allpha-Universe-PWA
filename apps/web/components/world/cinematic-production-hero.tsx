@@ -1,6 +1,6 @@
 "use client";
 
-import { ThemeV2ProductionAssetScene } from "./theme-v2-production-asset-scene";
+import { ThemeManifestAssetScene } from "./theme-manifest-asset-scene";
 
 type Props = {
   themeKey?: string | null;
@@ -20,7 +20,7 @@ export function CinematicProductionHero({
 }: Props) {
   return (
     <group>
-      <ThemeV2ProductionAssetScene
+      <ThemeManifestAssetScene
         themeKey={themeKey}
         category="universe"
         lowPower={lowPower}
