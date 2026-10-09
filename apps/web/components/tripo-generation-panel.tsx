@@ -6,7 +6,9 @@ import { apiFetch } from "../lib/api";
 type TripoTask = {
   task_id?: string;
   status?: string;
-  output?: { rendered_image?: string; pbr_model?: string; model?: string; [key: string]: unknown };
+  progress?: number;
+  output?: { rendered_image_url?: string; model_url?: string; rendered_image?: string; pbr_model?: string; model?: string; [key: string]: unknown };
+  credits_consumed?: number;
   [key: string]: unknown;
 };
 type ApiResponse = { data?: TripoTask; provider?: string; status?: string };
@@ -50,10 +52,10 @@ export default function TripoGenerationPanel() {
       if (id) {
         setTaskId(id);
         setTask(response.data ?? null);
-        setNotice("Task sudah dikirim ke Tripo. Refresh status untuk mengambil hasil terbaru.");
+        setNotice("Task berhasil dikirim ke Tripo. Periksa status untuk mengambil hasil terbaru.");
       } else {
         setTask(response.data ?? null);
-        setNotice("Respons diterima tetapi task_id tidak ditemukan. Periksa detail respons.");
+        setNotice("Tripo menerima respons tetapi tidak mengembalikan task_id.");
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "TRIPO_GENERATION_FAILED");
@@ -78,22 +80,23 @@ export default function TripoGenerationPanel() {
   }
 
   const output = task?.output;
-  const preview = typeof output?.rendered_image === "string" ? output.rendered_image : null;
-  const model = typeof output?.pbr_model === "string" ? output.pbr_model : typeof output?.model === "string" ? output.model : null;
+  const preview = [output?.rendered_image_url, output?.rendered_image].find((value): value is string => typeof value === "string") ?? null;
+  const model = [output?.model_url, output?.pbr_model, output?.model].find((value): value is string => typeof value === "string") ?? null;
+  const isComplete = task?.status === "success";
+  const isFailed = task?.status === "failed" || task?.status === "cancelled";
 
   return (
     <section className="overflow-hidden rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-[#0d1825] via-[#0a0d17] to-[#090b12]">
       <div className="border-b border-white/10 p-5 sm:p-6">
-        <p className="text-[10px] uppercase tracking-[.28em] text-cyan-300">Tripo AI · Production generation workflow</p>
+        <p className="text-[10px] uppercase tracking-[.28em] text-cyan-300">Tripo AI · Draft asset workflow</p>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Generate real 3D assets</h2>
-            <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400">Mulai dari prompt atau gambar referensi. Hasil tetap draft dan tidak langsung masuk ke manifest production.</p>
+            <h2 className="text-2xl font-semibold">Generate 3D draft</h2>
+            <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400">Hasil disimpan sebagai hasil draft provider; belum masuk Storage, Theme Asset Manifest, atau produksi.</p>
           </div>
           <span className="w-fit rounded-full border border-emerald-300/20 bg-emerald-300/5 px-3 py-1.5 text-[10px] text-emerald-200">API key server-side</span>
         </div>
       </div>
-
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,.8fr)]">
         <form onSubmit={generate} className="space-y-4 p-5 sm:p-6">
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-black/30 p-1">
@@ -117,7 +120,7 @@ export default function TripoGenerationPanel() {
           ) : (
             <label className="block text-xs text-slate-400">Reference image URL (public HTTPS)
               <input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} required placeholder="https://..." className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-cyan-300/50" />
-              <span className="mt-1 block text-[10px] text-slate-600">Direct file upload is not yet included; the image must be reachable by Tripo.</span>
+              <span className="mt-1 block text-[10px] text-slate-600">Direct upload belum tersedia; Tripo harus dapat mengakses URL ini.</span>
             </label>
           )}
           <div>
@@ -127,35 +130,25 @@ export default function TripoGenerationPanel() {
           {error && <p role="alert" className="rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-cyan-300/20 bg-cyan-300/5 p-3 text-xs text-cyan-100">{notice}</p>}
           <button disabled={busy} className="w-full rounded-xl bg-cyan-300 px-4 py-3.5 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? "Processing…" : "Generate 3D draft ↗"}</button>
-          <p className="text-[10px] leading-4 text-slate-600">Generation may consume Tripo credits. Review generated content before using it in a public experience.</p>
+          <p className="text-[10px] leading-4 text-slate-600">Panggilan ini dapat memakai kredit provider Tripo. Jangan dibuka untuk pengguna umum sebelum debit AI Credits Allpha terhubung secara server-side.</p>
         </form>
-
         <div className="border-t border-white/10 p-5 sm:p-6 lg:border-l lg:border-t-0">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold">Task preview</h3>
-            <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-slate-400">{String(task?.status ?? "Waiting")}</span>
+            <span className={`rounded-full border px-2.5 py-1 text-[10px] ${isComplete ? "border-emerald-300/30 text-emerald-200" : isFailed ? "border-rose-300/30 text-rose-200" : "border-white/10 text-slate-400"}`}>{String(task?.status ?? "Waiting")}</span>
           </div>
+          {typeof task?.progress === "number" && <div className="mt-3"><div className="flex justify-between text-[10px] text-slate-500"><span>Provider progress</span><span>{task.progress}%</span></div><div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-cyan-300" style={{ width: `${Math.max(0, Math.min(100, task.progress))}%` }} /></div></div>}
           <div className="mt-4 flex min-h-[210px] items-center justify-center rounded-2xl border border-white/10 bg-black/25 p-3">
             {preview ? (
-              // Provider-generated preview only; the canonical AllphaWorldRenderer remains the runtime renderer.
               // eslint-disable-next-line @next/next/no-img-element
               <img src={preview} alt="Tripo generated asset preview" className="max-h-[300px] w-full rounded-xl object-contain" />
-            ) : (
-              <div className="text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-200/20 bg-cyan-300/5 text-3xl text-cyan-200">✧</div>
-                <p className="mt-4 text-xs text-slate-400">Preview appears when Tripo returns a render.</p>
-                <p className="mt-1 text-[10px] text-slate-600">No placeholder asset is saved as production data.</p>
-              </div>
-            )}
+            ) : <div className="text-center"><div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-200/20 bg-cyan-300/5 text-3xl text-cyan-200">✧</div><p className="mt-4 text-xs text-slate-400">Preview muncul saat task sukses.</p><p className="mt-1 text-[10px] text-slate-600">Tidak ada aset placeholder yang dipromosikan.</p></div>}
           </div>
           {taskId && <div className="mt-3 rounded-xl border border-white/10 p-3"><p className="break-all font-mono text-[10px] text-slate-500">Task ID: {taskId}</p><button type="button" onClick={() => void refreshTask()} disabled={busy} className="mt-3 w-full rounded-lg border border-cyan-300/30 px-3 py-2.5 text-xs text-cyan-100 disabled:opacity-50">{busy ? "Checking…" : "Refresh task status"}</button></div>}
           {model && <a href={model} target="_blank" rel="noreferrer" className="mt-3 block break-all rounded-xl border border-emerald-300/20 p-3 text-xs text-emerald-200">Open generated model ↗</a>}
+          {typeof task?.credits_consumed === "number" && <p className="mt-3 text-[10px] text-slate-500">Tripo credits consumed: {task.credits_consumed.toFixed(2)}</p>}
           {task && <details className="mt-3 rounded-xl border border-white/10 p-3"><summary className="cursor-pointer text-xs text-slate-400">Raw task response</summary><pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap break-all text-[10px] text-slate-500">{JSON.stringify(task, null, 2)}</pre></details>}
-          <div className="mt-5 space-y-2">
-            {["Tripo generation", "Blender geometry/material QA", "Draft storage + manifest validation", "Human visual approval", "Guarded production promotion"].map((step, index) => (
-              <div key={step} className="flex items-center gap-3 text-xs"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 text-[9px] text-cyan-200">{String(index + 1).padStart(2, "0")}</span><span className="text-slate-400">{step}</span></div>
-            ))}
-          </div>
+          <div className="mt-5 space-y-2">{["Tripo generation", "Blender geometry/material QA", "Draft Storage + manifest validation", "Human visual approval", "Guarded production promotion"].map((step, index) => <div key={step} className="flex items-center gap-3 text-xs"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 text-[9px] text-cyan-200">{String(index + 1).padStart(2, "0")}</span><span className="text-slate-400">{step}</span></div>)}</div>
         </div>
       </div>
     </section>
