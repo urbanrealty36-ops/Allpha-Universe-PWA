@@ -51,7 +51,7 @@ export default function ThemePackageGenerator() {
         const response = await apiFetch<ApiResponse>("/api/v1/3d-generation/text-to-model", {
           method: "POST",
           body: JSON.stringify({
-            prompt: `${themeName}: ${part.label}. ${themeDirection} Asset-specific brief: ${part.prompt}`,
+            prompt: `${themeName}: ${part.label}. ${themeDirection} Asset-specific brief: ${part.prompt}`.slice(0, 1024),
             negative_prompt: "low quality, blurry, primitive placeholder geometry, broken topology, text, watermark, inconsistent style",
             face_limit: faceLimit,
             texture: true,
