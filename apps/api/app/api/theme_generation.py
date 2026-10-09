@@ -468,7 +468,7 @@ async def validate_stored_package_assets(
         {"select":"id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,status,moderation_status,safety_status,performance_status,checksum_sha256,content_size_bytes,metadata",
          "theme_version_id":f"eq.{package['theme_version_id']}",
          "theme_id":f"eq.{package['theme_id']}",
-         "storage_path":"like.theme-v3-tripo/*",
+         "storage_path":"like.theme-v3-tripo/%",
          "order":"created_at.asc"},
     )
     if not assets:
