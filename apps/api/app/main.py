@@ -65,7 +65,7 @@ app.add_middleware(
     allow_origins=_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Request-ID", "X-CSRF-Token"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Request-ID", "X-CSRF-Token", "X-Allpha-Owner-Studio-Key"],
 )
 app.add_middleware(SecurityHeadersMiddleware)
 
@@ -154,7 +154,21 @@ async def _start_owner_theme_batch_once() -> None:
     try:
         result = await create_owner_package(payload, token)
         package = result.get("data", {}).get("package", result.get("package", {}))
-        print("ALLPHA_OWNER_THEME_AUTO_BATCH", {"package_id": package.get("id"), "status": package.get("status"), "asset_count": len(specs)})
+        package_id = package.get("id")
+        print("ALLPHA_OWNER_THEME_AUTO_BATCH", {"package_id": package_id, "status": package.get("status"), "asset_count": len(specs)})
+        if package_id:
+            from app.core.supabase_rest import service_select
+            from app.api.theme_generation import _refresh_package
+            for _ in range(720):
+                await asyncio.sleep(30)
+                rows = await service_select("theme_generation_packages", {"select":"*", "id":"eq." + str(package_id), "limit":"1"})
+                if not rows:
+                    break
+                refreshed = await _refresh_package(rows[0])
+                current = refreshed.get("package", {})
+                if current.get("status") in {"succeeded", "partial", "failed", "cancelled"}:
+                    print("ALLPHA_OWNER_THEME_AUTO_BATCH_TERMINAL", {"package_id": package_id, "status": current.get("status")})
+                    break
     except Exception as exc:
         print("ALLPHA_OWNER_THEME_AUTO_BATCH_FAILED", type(exc).__name__, str(exc)[:300])
 
