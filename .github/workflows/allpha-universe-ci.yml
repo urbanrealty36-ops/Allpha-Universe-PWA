@@ -50,6 +50,8 @@ jobs:
         run: |
           test -n "$NEXT_PUBLIC_SUPABASE_URL"
           test -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      - name: Audit Theme rebuild cutover
+        run: pnpm audit:theme-rebuild
       - name: Build User PWA
         run: pnpm build:web
 
