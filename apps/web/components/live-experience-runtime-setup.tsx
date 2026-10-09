@@ -1,5 +1,7 @@
 "use client";
 
+import UniversePrimaryNavigation from "../universe/universe-primary-navigation";
+
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
@@ -540,7 +542,9 @@ export default function LiveExperienceRuntimeSetup() {
   const renderScene = useMemo<WorldScene | null>(() => selectedRuntimeTheme?.world_schema ? normalizeWorldScene(selectedRuntimeTheme.world_schema) : null, [selectedRuntimeTheme]);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 pb-10 pt-4">
+    <>
+      <UniversePrimaryNavigation />
+      <section className="mx-auto w-full max-w-6xl px-4 pb-10 pt-4">
       <div className={card + " p-5"}>
         <div className="mb-5">
           <div className="text-[10px] uppercase tracking-[.22em] text-[var(--allpha-cyan)]">3D-V2.08 · LIVE / HUMAN LIVE / STAGE V2</div>
@@ -707,6 +711,7 @@ export default function LiveExperienceRuntimeSetup() {
           <b className="text-white/70">Runtime boundary:</b> the browser camera is a media source only. Face/body presence does not grant Agent authority, ownership, capability, permission, billing entitlement or execution rights. Raw camera frames and biometric embeddings are not persisted by this workflow.
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
