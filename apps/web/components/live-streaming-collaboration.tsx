@@ -1,5 +1,7 @@
 "use client";
 
+import UniversePrimaryNavigation from "../universe/universe-primary-navigation";
+
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
@@ -415,6 +417,7 @@ export default function LiveStreamingCollaboration() {
 
   return (
     <main className="min-h-screen bg-[var(--allpha-space)] px-5 py-7 text-[var(--allpha-text)] sm:px-9">
+      <UniversePrimaryNavigation />
       <div className="mx-auto max-w-7xl">
         <header>
           <p className="text-xs font-medium uppercase tracking-[.25em] text-[var(--allpha-cyan)]">Phase 22 · Live Stories / Streaming / Experiences</p>
