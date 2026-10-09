@@ -92,7 +92,7 @@ const assetPipelineContract = {
   missingIngestionGuards: [
     ["HTTPS provider URL", /model_url\.startswith\("https:\/\/"/.test(assetPipeline.ingestion)],
     ["100 MiB ceiling", /100 \* 1024 \* 1024/.test(assetPipeline.ingestion)],
-    ["GLB binary signature", /content\[:4\] != b"glTF"/.test(assetPipeline.ingestion)],
+    ["GLB structural validation before upload", /_validate_glb\(content\)/.test(assetPipeline.ingestion)],
     ["SHA-256 asset checksum", /hashlib\.sha256\(content\)/.test(assetPipeline.ingestion)],
     ["canonical asset registry", /service_insert\("theme_assets"/.test(assetPipeline.ingestion)],
     ["server-side Storage auth", /supabase_service_role_key/.test(assetPipeline.ingestion)],
