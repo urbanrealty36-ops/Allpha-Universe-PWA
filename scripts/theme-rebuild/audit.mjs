@@ -48,6 +48,28 @@ for (const path of files.filter((item) => item !== "scripts/theme-rebuild/audit.
   if (retiredModulePatterns.some((pattern) => pattern.test(body))) retiredModuleReferences.push(path);
 }
 
+const visualSystemFiles = {
+  tokens: "packages/design-tokens/tokens.css",
+  primitives: "apps/web/components/ui/allpha-primitives.tsx",
+  styles: "apps/web/styles/ui-visual-foundation.css",
+};
+const visualSystem = {};
+for (const [key, path] of Object.entries(visualSystemFiles)) {
+  visualSystem[key] = await readFile(join(root, path), "utf8").catch(() => "");
+}
+const visualSystemContract = {
+  missingFiles: Object.entries(visualSystemFiles).filter(([key]) => !visualSystem[key]).map(([, path]) => path),
+  missingPrimitives: ["GlassSurface", "UniverseButton", "SpatialNode", "ContentCapsule", "ContextSheet", "StatusOrb", "GlassChip", "SectionHeading", "IconButton", "StatusBadge"]
+    .filter((name) => !visualSystem.primitives.includes(`export function ${name}`)),
+  missingAccessibilityContracts: [
+    ["visible focus", /focus-visible/.test(visualSystem.styles)],
+    ["disabled controls", /:disabled/.test(visualSystem.styles)],
+    ["reduced motion", /prefers-reduced-motion:\\s*reduce/.test(visualSystem.styles)],
+    ["responsive breakpoint", /max-width:\\s*520px/.test(visualSystem.styles)],
+    ["touch target token", /--allpha-touch-min:44px/.test(visualSystem.tokens)],
+  ].filter(([, passed]) => !passed).map(([name]) => name),
+};
+
 const publicManifestPath = "apps/api/app/api/world_runtime.py";
 const publicManifest = await readFile(join(root, publicManifestPath), "utf8").catch(() => "");
 const legacyPublicManifestPrefix = publicManifest.includes('"storage_path": "like.theme-v2-real-3d/*"');
@@ -71,6 +93,7 @@ console.log(JSON.stringify({
   runtimeFilesWithHardcodedV213Prefix: fixedLegacyPrefix,
   legacyPublicManifestPrefix,
   missingTripoManifestPrefix,
-  status: missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix ? "FAIL" : "PASS",
+  visualSystemContract,
+  status: missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length ? "FAIL" : "PASS",
 }, null, 2));
-if (missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix) process.exitCode = 1;
+if (missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length) process.exitCode = 1;
