@@ -104,15 +104,15 @@ function CinematicLighting({
   lowPower,
   reducedMotion,
 }: {
-  profile: (typeof ALLPHA_3D_THEME_PROFILES)[number];
+  profile: (typeof ALLPHA_3D_THEME_PROFILES)[number] | null;
   layer: CinematicLayer;
   lowPower: boolean;
   reducedMotion: boolean;
 }) {
   const keyRef = useRef<THREE.DirectionalLight>(null);
   const rimRef = useRef<THREE.PointLight>(null);
-  const preset = presetForFamily(profile.family);
-  const [accentA, accentB, accentC] = profile.accent;
+  const preset = profile ? presetForFamily(profile.family) : PRESETS.cosmic;
+  const [accentA, accentB, accentC] = profile?.accent ?? ["#050816", "#42DCFF", "#A77CFF"];
   const intensityScale = lowPower ? 0.72 : 1;
   const fogColor = useMemo(() => darken(accentB, 0.035), [accentB]);
   const particleCount = lowPower ? 28 : layer === "universe" ? 115 : layer === "galaxy" ? 90 : 58;
@@ -182,7 +182,7 @@ export function Cinematic3DScene({
   reducedMotion = false,
   children,
 }: Props) {
-  const profile = ALLPHA_3D_THEME_PROFILES.find((item) => item.key === themeKey) ?? ALLPHA_3D_THEME_PROFILES.find((item) => item.key === "crystal-ai-city")!;
+  const profile = ALLPHA_3D_THEME_PROFILES.find((item) => item.key === themeKey) ?? null;
   return (
     <group>
       <CinematicLighting profile={profile} layer={layer} lowPower={lowPower} reducedMotion={reducedMotion} />
@@ -190,7 +190,7 @@ export function Cinematic3DScene({
       <Float speed={reducedMotion ? 0 : 0.28} rotationIntensity={reducedMotion ? 0 : 0.035} floatIntensity={reducedMotion ? 0 : 0.04}>
         <group>{children}</group>
       </Float>
-      {!lowPower && <FilmGrain accent={profile.accent[1]} reducedMotion={reducedMotion} lowPower={lowPower} />}
+      {!lowPower && <FilmGrain accent={profile?.accent[1] ?? "#42DCFF"} reducedMotion={reducedMotion} lowPower={lowPower} />}
     </group>
   );
 }
