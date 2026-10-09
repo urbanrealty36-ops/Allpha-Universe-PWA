@@ -48,6 +48,6 @@ console.log(JSON.stringify({
   legacyV2AutomationFiles: legacyAutomation,
   legacyV2GeneratorFiles: legacyGenerators,
   runtimeFilesWithHardcodedV213Prefix: fixedLegacyPrefix,
-  status: missing.length ? "FAIL" : (legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length ? "WARN" : "PASS"),
+  status: missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length ? "FAIL" : "PASS",
 }, null, 2));
-if (missing.length) process.exitCode = 1;
+if (missing.length || legacyAutomation.length || legacyGenerators.length || fixedLegacyPrefix.length) process.exitCode = 1;
