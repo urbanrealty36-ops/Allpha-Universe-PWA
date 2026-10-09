@@ -275,11 +275,11 @@ export function ThemeV2ProductionAssetScene({ themeKey, category, directAssetUrl
         if (cancelled) return;
         const assets: ManifestAsset[] = payload?.data?.binary_3d_assets ?? [];
         const candidate = assets.find((asset) => {
-          const path = String(asset.storage_path ?? "").toLowerCase();
-          const expectedPath = ("theme-v2-real-3d/v2.13/" + themeKey + "/" + category + ".glb").toLowerCase();
-          // The canonical V2.13 storage path is the runtime identity for this asset.
-          // Lifecycle/approval is already enforced by the public manifest API.
-          return Boolean(asset.signed_url) && path === expectedPath;
+          const path = String(asset.storage_path ?? "").replace(/^\/+/, "").toLowerCase();
+          const expectedSuffix = ("/" + themeKey + "/" + category + ".glb").toLowerCase();
+          // The authorized server manifest is the source of truth for the Storage prefix.
+          // Match the requested theme/category without binding the renderer to a retired V2.13 folder.
+          return Boolean(asset.signed_url) && path.endsWith(expectedSuffix);
         });
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
