@@ -45,3 +45,16 @@ The repository audit is now run in CI before the User PWA build. The most recent
 - No Tripo-generated assets are included yet. With the old Storage objects removed, affected scenes intentionally do not synthesize a fake 3D replacement; new assets must be generated and published in REBUILD-03/04.
 - The old V2-specific scripts/workflows/tests are retired, but further dependency audit is still required for V2-named source modules, old Theme Studio UI, and procedural spatial markers. Keep canonical renderer, manifest API, authorization and business interactions.
 - Build status is pending and mobile/browser visual QA has not run in this execution.
+
+## Canonical runtime cutover and second cleanup wave
+- Commit `74e1b76f4be300fa0f901c3a777334b5256189e7`: deleted eight obsolete V2 modules from the active tree: the old GLB placeholder factory component, static V2 activation matrix/resolver, V2.13 art contract, V2 visual matrix, and old golden theme factory. The canonical `AllphaWorldRenderer` and authorized manifest API remain.
+- Commit `f120dd35278e46eed7cc2cbadd9149826a2a3197`: created `theme-manifest-asset-scene.tsx`, replacing the old V2-named GLB scene component and preserving the authorized public manifest, signed URL, GLTF loading and runtime metrics contract.
+- Commit `f06f51bb2effddd2f321e3bc6e3d2f4b91bcbe5a`: created `theme-spatial-scene.tsx`, removed the obsolete V2-specific summary/helper, and removed fixed Storage-path metadata.
+- Commits `e84f32ca4073a5962985026635436e4d20fa100b`, `421cd2c7b3766378f7b3fea744295fee08d954ed`, and `4e7ed2eacdfac3c77059f71b98b81f69477e2af7`: moved the canonical renderer, public entry and production hero to the new manifest-driven component names.
+- Commit `c6d2e62132d7614bc1507093a0f7e0f41f43ccb5`: removed 4.6 KB of procedural Universe/Galaxy/Orbit placeholder geometry and placeholder character spheres/booth boxes from the main renderer path. Those positions now require an approved real asset; no fake character or box is substituted.
+- Commit `18d5eff7c1741b8cbc9bb863ca13db655c53485b`: removed the hardcoded Crystal AI City default from cinematic lighting. A scene without a selected published theme uses a neutral cosmic lighting profile.
+- Commit `5aedf59b2b05902d458c844226c65b9aa79b6a77`: retired the stale D6.2 browser runtime workflow and its V2-coupled test.
+- Commits `65cc6fecff9bcda7a017c412e8db8a48d4ae89af` and `ef609be0fa51eac2bfbbc6bb86f4ff8efed42030`: the repository audit now detects the retired D6 workflow and fails the CI gate if V2 automation/generator artifacts or a hardcoded `theme-v2-real-3d/v2.13/` runtime path reappears.
+
+## Current gate
+REBUILD-01 is still **IN PROGRESS**, not GREEN. GitHub Actions runs for the recent commits were queued when last checked, so the new TypeScript/Next.js build and audit result are not yet verified. The Railway status checks for an earlier commit were green, but they are not a substitute for the current commit’s GitHub Actions run. Browser/mobile visual QA is pending.
