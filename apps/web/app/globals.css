@@ -946,3 +946,69 @@ a { color: inherit; }
   .allpha-theme-lab header.rounded-\[2rem\] { border-radius:26px; padding:22px; }
   .allpha-theme-lab section.rounded-3xl { border-radius:22px; padding:16px; }
 }
+
+
+/* ALLPHA MOBILE-FIRST SPATIAL EXPERIENCE — reference-aligned responsive pass */
+.allpha-spatial-mobile-nav {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+.allpha-spatial-mobile-nav a,
+.allpha-spatial-mobile-nav button {
+  touch-action: manipulation;
+  min-width: 0;
+  min-height: 48px;
+}
+.allpha-spatial-mobile-nav a[aria-current="page"] {
+  color: #9deaff;
+  text-shadow: 0 0 18px rgba(103,232,249,.35);
+}
+.allpha-spatial-chrome-nav a[aria-current="page"] {
+  color: #b8f4ff;
+}
+.allpha-spatial-chrome-actions a[aria-current="page"] {
+  border-color: rgba(103,232,249,.45);
+  color: #b8f4ff;
+  background: rgba(103,232,249,.1);
+}
+.allpha-spatial-create-sheet {
+  padding-bottom: max(22px, env(safe-area-inset-bottom));
+}
+@media (max-width: 640px) {
+  .allpha-spatial-chrome-top {
+    padding-top: max(10px, env(safe-area-inset-top));
+  }
+  .allpha-spatial-layer-legend {
+    max-width: calc(100vw - 28px);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .allpha-spatial-layer-legend::-webkit-scrollbar { display: none; }
+  .allpha-spatial-account {
+    max-width: calc(100vw - 24px);
+  }
+  .allpha-spatial-create-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .allpha-spatial-create-sheet {
+    width: 100%;
+    max-width: none;
+    max-height: min(82svh, 760px);
+    overflow-y: auto;
+    border-radius: 28px 28px 0 0;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .allpha-spatial-create-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .allpha-spatial-mobile-nav *,
+  .allpha-spatial-create-sheet * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
