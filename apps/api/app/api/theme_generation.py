@@ -27,6 +27,11 @@ class PackageCreate(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=255)
     face_limit: int = Field(default=50000, ge=1000, le=150000)
 
+class PricingUpdate(BaseModel):
+    enabled: bool = True
+    credits_per_asset: int = Field(ge=1, le=100000)
+    max_assets_per_package: int = Field(default=25, ge=1, le=25)
+
 def _require_tripo() -> str:
     key = os.getenv("TRIPO_API_KEY", "").strip()
     if not key:
@@ -158,6 +163,27 @@ async def _refresh_package(package: dict[str, Any]) -> dict[str, Any]:
                 pass
     updated = await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {k:v for k,v in patch.items() if v is not None})
     return {"package": updated[0] if updated else {**package,"status":status}, "items":refreshed}
+
+@router.get("/pricing")
+async def get_pricing(context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
+    rows = await service_select("theme_generation_pricing", {"select":"*","id":"eq.1","limit":"1"})
+    if not rows:
+        raise HTTPException(status_code=503, detail={"code":"THEME_PRICING_NOT_CONFIGURED","message":"Theme generation pricing has not been configured."})
+    return {"data": rows[0]}
+
+@router.put("/pricing")
+async def update_pricing(payload: PricingUpdate, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
+    user = context["user"]
+    rows = await service_update("theme_generation_pricing", {"id":"eq.1"}, {
+        "enabled":payload.enabled,
+        "credits_per_asset":payload.credits_per_asset,
+        "max_assets_per_package":payload.max_assets_per_package,
+        "updated_by_user_id":str(user.user_id),
+        "updated_at":"now()",
+    })
+    if not rows:
+        raise HTTPException(status_code=503, detail={"code":"THEME_PRICING_UPDATE_FAILED","message":"Theme generation pricing could not be updated."})
+    return {"data":rows[0]}
 
 @router.post("/packages", status_code=201)
 async def create_package(payload: PackageCreate, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
