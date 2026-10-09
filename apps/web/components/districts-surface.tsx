@@ -1,4 +1,6 @@
 "use client";
+
+import UniversePrimaryNavigation from "./universe/universe-primary-navigation";
 import {FormEvent,useEffect,useState} from "react";
 import {apiFetch} from "../lib/api";
 import AgentAccountCard, { AgentAccount } from "./agent-account-card";
@@ -32,7 +34,7 @@ export default function DistrictsSurface(){
  async function activateObject(id:string){setBusy(true);try{await apiFetch("/api/v1/districts/spatial-objects/"+id+"/activate",{method:"POST"});if(selected)await loadDistrict(selected.id)}catch(e){setError(e instanceof Error?e.message:"SPATIAL_OBJECT_ACTIVATE_FAILED")}finally{setBusy(false)}}
  async function publish(id:string){setBusy(true);try{await apiFetch("/api/v1/districts/"+id+"/publish",{method:"POST"});await load();const next=d.find(x=>x.id===id);if(next)setSelected({...next,status:"active"})}catch(e){setError(e instanceof Error?e.message:"DISTRICT_PUBLISH_FAILED")}finally{setBusy(false)}}
 
- return <main className="min-h-screen p-5 sm:p-9"><div className="mx-auto max-w-7xl">
+ return <main className="allpha-product-surface min-h-screen p-5 sm:p-9"><UniversePrimaryNavigation /><div className="mx-auto max-w-7xl">
  <header className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[.25em] text-cyan-300">Phase 19</p><h1 className="mt-2 text-4xl font-semibold">Districts</h1><p className="mt-3 max-w-3xl text-slate-400">Living World → District → Zone → spatial object layer. Authority remains server-side; presentation uses the canonical World Renderer.</p></div><button onClick={()=>void load()} className="rounded-xl border border-white/10 px-4 py-2 text-sm">Refresh</button></header>
  {error&&<div className="mt-5 rounded-xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
  <div className="mt-7 grid gap-6 lg:grid-cols-2">
