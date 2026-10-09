@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 type Props = {
   email?: string | null;
@@ -9,6 +10,8 @@ type Props = {
 
 export default function SpatialUniverseChrome({ email, onSignOut }: Props) {
   const [createOpen, setCreateOpen] = useState(false);
+  const pathname = usePathname();
+  const isActive = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
   return (
     <>
@@ -22,17 +25,17 @@ export default function SpatialUniverseChrome({ email, onSignOut }: Props) {
         </div>
 
         <nav className="allpha-spatial-chrome-nav" aria-label="Spatial Universe navigation">
-          <a className="is-active" href="/">Universe</a>
-          <a href="/social">Live</a>
-          <a href="/universe">Galaxy</a>
-          <a href="/communities">Communities</a>
+          <a className={isActive("/") ? "is-active" : undefined} aria-current={isActive("/") ? "page" : undefined} href="/">Universe</a>
+          <a className={isActive("/social") ? "is-active" : undefined} aria-current={isActive("/social") ? "page" : undefined} href="/social">Live</a>
+          <a className={isActive("/universe") ? "is-active" : undefined} aria-current={isActive("/universe") ? "page" : undefined} href="/universe">Galaxy</a>
+          <a className={isActive("/communities") ? "is-active" : undefined} aria-current={isActive("/communities") ? "page" : undefined} href="/communities">Communities</a>
           <button type="button" onClick={() => setCreateOpen(true)}>Create</button>
         </nav>
 
         <div className="allpha-spatial-chrome-actions">
-          <a href="/messages" aria-label="Messages">⌁</a>
-          <a href="/notifications" aria-label="Notifications">◌</a>
-          <a href="/profile" aria-label={email ?? "Profile"}>◉</a>
+          <a href="/messages" aria-label="Messages" aria-current={isActive("/messages") ? "page" : undefined}>⌁</a>
+          <a href="/notifications" aria-label="Notifications" aria-current={isActive("/notifications") ? "page" : undefined}>◌</a>
+          <a href="/profile" aria-label={email ?? "Profile"} aria-current={isActive("/profile") ? "page" : undefined}>◉</a>
         </div>
       </header>
 
@@ -41,11 +44,11 @@ export default function SpatialUniverseChrome({ email, onSignOut }: Props) {
       </div>
 
       <nav className="allpha-spatial-mobile-nav" aria-label="Mobile Universe navigation">
-        <a className="is-active" href="/"><span>◉</span><small>Universe</small></a>
-        <a href="/universe"><span>✦</span><small>Explore</small></a>
+        <a className={isActive("/") ? "is-active" : undefined} aria-current={isActive("/") ? "page" : undefined} href="/"><span>◉</span><small>Universe</small></a>
+        <a className={isActive("/universe") ? "is-active" : undefined} aria-current={isActive("/universe") ? "page" : undefined} href="/universe"><span>✦</span><small>Explore</small></a>
         <button type="button" className="create" onClick={() => setCreateOpen(true)} aria-label="Create"><span>+</span><small>Create</small></button>
-        <a href="/messages"><span>⌁</span><small>Messages</small></a>
-        <a href="/agents"><span>◎</span><small>My Agent</small></a>
+        <a className={isActive("/messages") ? "is-active" : undefined} aria-current={isActive("/messages") ? "page" : undefined} href="/messages"><span>⌁</span><small>Messages</small></a>
+        <a className={isActive("/agents") ? "is-active" : undefined} aria-current={isActive("/agents") ? "page" : undefined} href="/agents"><span>◎</span><small>My Agent</small></a>
       </nav>
 
       <div className="allpha-spatial-layer-legend" aria-label="Spatial hierarchy">
