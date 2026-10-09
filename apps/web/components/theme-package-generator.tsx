@@ -33,6 +33,7 @@ export default function ThemePackageGenerator() {
   const [pricingSaving, setPricingSaving] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [validationStatus, setValidationStatus] = useState("");
+  const [validationPassed, setValidationPassed] = useState(false);
   const [reviewStatus, setReviewStatus] = useState("");
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
   const [creditsPerAsset, setCreditsPerAsset] = useState(1);
@@ -204,7 +205,10 @@ export default function ThemePackageGenerator() {
     setError("");
     try {
       const response = await apiFetch<{ data?: { validation?: unknown } }>("/api/v1/theme-generation/packages/" + packageId + "/validate", { method: "POST" });
-      setValidationStatus(JSON.stringify(response.data?.validation ?? { status: "submitted" }));
+      const result = response.data?.validation ?? { status: "submitted" };
+      const serialized = JSON.stringify(result);
+      setValidationStatus(serialized);
+      setValidationPassed(/"validation_status"\s*:\s*"passed"/i.test(serialized) || /"status"\s*:\s*"passed"/i.test(serialized));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "THEME_VALIDATION_FAILED");
       setValidationStatus("failed");
@@ -214,7 +218,7 @@ export default function ThemePackageGenerator() {
   }
 
   async function submitForReview() {
-    if (!packageId || lifecycleBusy || !validationStatus || validationStatus === "failed") return;
+    if (!packageId || lifecycleBusy || !validationPassed) return;
     setLifecycleBusy(true);
     setError("");
     try {
@@ -328,7 +332,7 @@ export default function ThemePackageGenerator() {
               <p className="mt-2 text-xs leading-5 text-slate-500">GLB tersimpan di allpha-world-assets dan terdaftar sebagai draft theme_assets. Jalankan validator canonical Theme Version sebelum mengajukan review. Publish tetap membutuhkan moderation/visual approval; tidak ada auto-promotion.</p>
               {packageId && <button type="button" onClick={() => void validatePackage()} disabled={lifecycleBusy || !["succeeded", "partial"].includes(packageStatus)} className="mt-4 w-full rounded-lg border border-cyan-200/20 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50">{lifecycleBusy ? "Processing…" : "Run Theme Version validation"}</button>}
               {validationStatus && <p className="mt-2 break-words text-[10px] text-slate-400">Validation: {validationStatus}</p>}
-              {packageId && validationStatus && validationStatus !== "failed" && <button type="button" onClick={() => void submitForReview()} disabled={lifecycleBusy} className="mt-3 w-full rounded-lg border border-violet-200/20 px-3 py-2 text-xs text-violet-100 disabled:opacity-50">Submit draft for review</button>}
+              {packageId && validationPassed && <button type="button" onClick={() => void submitForReview()} disabled={lifecycleBusy} className="mt-3 w-full rounded-lg border border-violet-200/20 px-3 py-2 text-xs text-violet-100 disabled:opacity-50">Submit draft for review</button>}
               {reviewStatus && <p className="mt-2 break-words text-[10px] text-slate-400">Review submission: {reviewStatus}</p>}
             </section>
           </aside>
