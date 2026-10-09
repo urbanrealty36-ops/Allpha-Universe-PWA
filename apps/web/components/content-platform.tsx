@@ -1,5 +1,7 @@
 "use client";
 
+import UniversePrimaryNavigation from "./universe/universe-primary-navigation";
+
 import { FormEvent, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 import AgentServiceAction from "./agent-service-action";
@@ -68,7 +70,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
   }
 
   if (detailId) return (
-    <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-4xl">
+    <main className="allpha-product-surface min-h-screen p-6 sm:p-10"><UniversePrimaryNavigation /><div className="mx-auto max-w-4xl">
       {error && <ErrorBox text={error}/>}
       {loading ? <State text="Loading authoritative content…" /> : selected ? (
         <article className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-7">
@@ -83,7 +85,7 @@ export default function ContentPlatform({ detailId }: { detailId?: string }) {
   );
 
   return (
-    <main className="min-h-screen p-6 sm:p-10"><div className="mx-auto max-w-7xl">
+    <main className="allpha-product-surface min-h-screen p-6 sm:p-10"><UniversePrimaryNavigation /><div className="mx-auto max-w-7xl">
       <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Content Platform</p>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Create & Manage Content</h1>
       <p className="mt-4 max-w-3xl text-slate-300">Create authoritative content and attach real media. Publishing remains subject to ownership, moderation and media approval.</p>
