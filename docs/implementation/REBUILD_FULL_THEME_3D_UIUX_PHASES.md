@@ -147,3 +147,6 @@ This section is the current status record and supersedes any implication that th
 The user's manual Storage deletion has now been verified: `allpha-world-assets` contains no real objects (only Supabase's 0-byte `.emptyFolderPlaceholder`). The 475 `theme_assets` records, 25 `themes` records and 25 `theme_versions` records were moved from published/active to archived/removed states. History and foreign-key integrity are preserved; no database rows were physically deleted. New Tripo outputs must be registered as new theme versions/assets and must pass validation before publication.
 
 **Current phase gates remain open** until the latest GitHub Actions run confirms the repository audit and PWA build. No Tripo-generated GLB has been produced yet.
+
+### Canonical Tripo storage contract
+The new public Theme manifest now filters only `theme-v3-tripo/*` paths in `apps/api/app/api/world_runtime.py`; the old `theme-v2-real-3d/*` public-manifest filter was removed. New assets should use `theme-v3-tripo/{themeKey}/{category}.glb` (or a documented versioned subpath that retains the same theme/category suffix), be registered through the existing `theme_assets` lifecycle, and remain unpublished until validation/moderation/performance gates pass. The CI audit now checks that the API manifest does not regress to the old prefix.
