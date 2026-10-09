@@ -18,6 +18,8 @@ export default function PublicWorldsGallery() {
   const [themes, setThemes] = useState<PublicTheme[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   async function load() {
     setLoading(true);
@@ -37,6 +39,14 @@ export default function PublicWorldsGallery() {
   useEffect(() => {
     void load();
   }, []);
+
+  const categories = Array.from(new Set(themes.map((theme) => theme.category?.trim()).filter((value): value is string => Boolean(value)))).sort((a, b) => a.localeCompare(b));
+  const filteredThemes = themes.filter((theme) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesQuery = !query || [theme.name, theme.description, theme.category, theme.catalog_key, theme.slug].some((value) => value?.toLowerCase().includes(query));
+    const matchesCategory = selectedCategory === "all" || theme.category === selectedCategory;
+    return matchesQuery && matchesCategory;
+  });
 
   return (
     <main className="relative min-h-[100svh] overflow-hidden bg-[#02040d] text-white">
@@ -92,6 +102,17 @@ export default function PublicWorldsGallery() {
             </div>
             <span className="text-[9px] text-white/30">{loading ? "Loading…" : themes.length + " published themes"}</span>
           </div>
+          <div className="mt-5 space-y-3">
+            <label className="glass-panel flex min-h-12 items-center gap-3 rounded-2xl px-4">
+              <span aria-hidden="true" className="text-base text-cyan-200/65">⌕</span>
+              <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search themes, worlds, categories…" aria-label="Search published themes" className="min-w-0 flex-1 bg-transparent py-3 text-xs text-white outline-none placeholder:text-white/30" />
+              {searchQuery ? <button type="button" onClick={() => setSearchQuery("")} className="text-[10px] text-cyan-100/70">Clear</button> : null}
+            </label>
+            <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1" aria-label="Filter by theme category">
+              <button type="button" onClick={() => setSelectedCategory("all")} aria-pressed={selectedCategory === "all"} className={selectedCategory === "all" ? "rounded-xl bg-cyan-300 px-3 py-2 text-[10px] font-bold text-slate-950" : "rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-[10px] text-white/55"}>All themes</button>
+              {categories.map((category) => <button key={category} type="button" onClick={() => setSelectedCategory(category)} aria-pressed={selectedCategory === category} className={selectedCategory === category ? "whitespace-nowrap rounded-xl bg-cyan-300 px-3 py-2 text-[10px] font-bold text-slate-950" : "whitespace-nowrap rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-[10px] text-white/55"}>{category}</button>)}
+            </div>
+          </div>
 
           {loading ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -101,8 +122,8 @@ export default function PublicWorldsGallery() {
             </div>
           ) : themes.length ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {themes.map((theme) => (
-                <article key={theme.id} className="group rounded-[26px] border border-white/10 bg-[#030712]/62 p-5 shadow-2xl backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-200/25">
+              {filteredThemes.map((theme) => (
+                <article key={theme.id} className="glass-panel-glow group rounded-[26px] p-5 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40">
                   <div className="flex items-center justify-between gap-3">
                     <span className="rounded-full border border-cyan-200/10 bg-cyan-300/[0.05] px-2.5 py-1 text-[7px] uppercase tracking-[0.16em] text-cyan-100/65">
                       {theme.category ?? "World"}
@@ -126,7 +147,7 @@ export default function PublicWorldsGallery() {
             </div>
           ) : (
             <div className="mt-5 rounded-[26px] border border-dashed border-white/10 bg-black/20 p-8 text-sm text-white/35">
-              No published Theme V2 environments are currently available. The public surface does not create synthetic records.
+              {themes.length ? "No published themes match this search or category." : "No published Theme V2 environments are currently available. The public surface does not create synthetic records."}
             </div>
           )}
         </section>
