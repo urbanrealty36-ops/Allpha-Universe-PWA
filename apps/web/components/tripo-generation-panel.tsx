@@ -46,7 +46,7 @@ export default function TripoGenerationPanel() {
   async function ownerFetch<T>(path: string, init?: RequestInit): Promise<T> {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!baseUrl) throw new Error("NEXT_PUBLIC_API_URL is not configured.");
-    const response = await fetch(baseUrl.replace(/\\/$/, "") + path, { ...init, headers: { Accept: "application/json", ...(init?.body ? { "Content-Type": "application/json" } : {}), "X-Allpha-Owner-Studio-Key": ownerKey, ...(init?.headers ?? {}) }, cache: "no-store" });
+    const response = await fetch(baseUrl.replace(/\/$/, "") + path, { ...init, headers: { Accept: "application/json", ...(init?.body ? { "Content-Type": "application/json" } : {}), "X-Allpha-Owner-Studio-Key": ownerKey, ...(init?.headers ?? {}) }, cache: "no-store" });
     if (!response.ok) { const body = await response.json().catch(() => null); throw new Error(body?.detail?.code ?? "API_" + response.status); }
     return response.json() as Promise<T>;
   }
