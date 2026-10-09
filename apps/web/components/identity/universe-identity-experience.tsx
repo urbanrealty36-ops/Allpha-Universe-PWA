@@ -1,15 +1,12 @@
 "use client";
 import { FormEvent, useMemo, useState } from "react";
+import { ArrowRight, Globe, Layers } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 import PublicUniverse3D from "../public-universe-3d";
 export type UniverseIdentityMode = "signin" | "signup";
 function safeNext(value:string|null){return value&&value.startsWith("/")&&!value.startsWith("//")?value:"/";}
-"use client";
-import { useState } from "react";
-import { ArrowRight, Globe, Layers } from "lucide-react";
-import PublicUniverse3D from "../public-universe-3d";
 
 export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
   const [subMode, setSubMode] = useState<'splash' | 'explore'>('splash');
@@ -83,7 +80,7 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/50 transition-colors"
               >
                 <Globe className="w-3.5 h-3.5" />
-                <span>Explore 6 Galaxy Sectors</span>
+                <span>Explore the Universe</span>
               </button>
               <button
                 onClick={() => { window.location.href = '/theme-studio'; }}
@@ -113,16 +110,16 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
             {/* 6 Category World Nodes Indicator */}
             <div className="grid grid-cols-3 gap-2 py-2">
               {[
-                { name: 'Technology', count: '12 Worlds', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-950/30' },
-                { name: 'Creativity', count: '8 Worlds', color: 'text-purple-400 border-purple-500/30 bg-purple-950/30' },
-                { name: 'Business', count: '9 Worlds', color: 'text-blue-400 border-blue-500/30 bg-blue-950/30' },
-                { name: 'Science', count: '11 Worlds', color: 'text-emerald-400 border-emerald-500/30 bg-emerald-950/30' },
-                { name: 'Gaming', count: '7 Worlds', color: 'text-indigo-400 border-indigo-500/30 bg-indigo-950/30' },
-                { name: 'Community', count: '10 Worlds', color: 'text-pink-400 border-pink-500/30 bg-pink-950/30' },
+                { name: 'Technology', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-950/30' },
+                { name: 'Creativity', color: 'text-purple-400 border-purple-500/30 bg-purple-950/30' },
+                { name: 'Business', color: 'text-blue-400 border-blue-500/30 bg-blue-950/30' },
+                { name: 'Science', color: 'text-emerald-400 border-emerald-500/30 bg-emerald-950/30' },
+                { name: 'Gaming', color: 'text-indigo-400 border-indigo-500/30 bg-indigo-950/30' },
+                { name: 'Community', color: 'text-pink-400 border-pink-500/30 bg-pink-950/30' },
               ].map((c) => (
                 <div key={c.name} className={`p-2 rounded-xl border ${c.color} backdrop-blur-md text-center`}>
                   <div className="text-[11px] font-bold text-white">{c.name}</div>
-                  <div className="text-[9px] text-slate-400">{c.count}</div>
+                  
                 </div>
               ))}
             </div>
