@@ -32,6 +32,9 @@ export default function ThemePackageGenerator() {
   const [pricingError, setPricingError] = useState("");
   const [pricingSaving, setPricingSaving] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [validationStatus, setValidationStatus] = useState("");
+  const [reviewStatus, setReviewStatus] = useState("");
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
   const [creditsPerAsset, setCreditsPerAsset] = useState(1);
   const [generationEnabled, setGenerationEnabled] = useState(true);
   const [maxAssets, setMaxAssets] = useState(25);
@@ -195,6 +198,35 @@ export default function ThemePackageGenerator() {
     }
   }
 
+  async function validatePackage() {
+    if (!packageId || lifecycleBusy) return;
+    setLifecycleBusy(true);
+    setError("");
+    try {
+      const response = await apiFetch<{ data?: { validation?: unknown } }>("/api/v1/theme-generation/packages/" + packageId + "/validate", { method: "POST" });
+      setValidationStatus(JSON.stringify(response.data?.validation ?? { status: "submitted" }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "THEME_VALIDATION_FAILED");
+      setValidationStatus("failed");
+    } finally {
+      setLifecycleBusy(false);
+    }
+  }
+
+  async function submitForReview() {
+    if (!packageId || lifecycleBusy || !validationStatus || validationStatus === "failed") return;
+    setLifecycleBusy(true);
+    setError("");
+    try {
+      const response = await apiFetch<{ data?: { submission?: unknown } }>("/api/v1/theme-generation/packages/" + packageId + "/submit-review", { method: "POST" });
+      setReviewStatus(JSON.stringify(response.data?.submission ?? { status: "submitted" }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "THEME_REVIEW_SUBMISSION_FAILED");
+    } finally {
+      setLifecycleBusy(false);
+    }
+  }
+
   async function retryFailedAssets() {
     if (!packageId || retrying) return;
     setRetrying(true);
@@ -292,8 +324,12 @@ export default function ThemePackageGenerator() {
               </div>
             </section>
             <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5">
-              <h2 className="font-semibold">5. Promotion gate</h2>
-              <p className="mt-2 text-xs leading-5 text-slate-500">GLB yang berhasil dibuat diunggah ke allpha-world-assets dan diregistrasikan sebagai draft di theme_assets. Status tetap pending sampai Blender QA, safety/performance validation, visual approval, dan promosi terkontrol selesai.</p>
+              <h2 className="font-semibold">5. Validation & review gate</h2>
+              <p className="mt-2 text-xs leading-5 text-slate-500">GLB tersimpan di allpha-world-assets dan terdaftar sebagai draft theme_assets. Jalankan validator canonical Theme Version sebelum mengajukan review. Publish tetap membutuhkan moderation/visual approval; tidak ada auto-promotion.</p>
+              {packageId && <button type="button" onClick={() => void validatePackage()} disabled={lifecycleBusy || !["succeeded", "partial"].includes(packageStatus)} className="mt-4 w-full rounded-lg border border-cyan-200/20 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50">{lifecycleBusy ? "Processing…" : "Run Theme Version validation"}</button>}
+              {validationStatus && <p className="mt-2 break-words text-[10px] text-slate-400">Validation: {validationStatus}</p>}
+              {packageId && validationStatus && validationStatus !== "failed" && <button type="button" onClick={() => void submitForReview()} disabled={lifecycleBusy} className="mt-3 w-full rounded-lg border border-violet-200/20 px-3 py-2 text-xs text-violet-100 disabled:opacity-50">Submit draft for review</button>}
+              {reviewStatus && <p className="mt-2 break-words text-[10px] text-slate-400">Review submission: {reviewStatus}</p>}
             </section>
           </aside>
         </div>
