@@ -1263,3 +1263,29 @@ a { color: inherit; }
 }
 @media(max-width:380px){.allpha-splash-v2-copy h1{font-size:46px}.allpha-splash-v2-description{font-size:11px}.allpha-splash-v2-actions button,.allpha-splash-v2-actions>a{padding:0 12px;font-size:9px}}
 @media(prefers-reduced-motion:reduce){.allpha-splash-v2-stars,.allpha-splash-v2-orbit{animation:none}}
+
+/* Reference frontend repository: shared typography and interaction utilities */
+@layer base {
+  body { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+}
+.font-display { font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.font-orbitron { font-family: "Orbitron", ui-monospace, monospace; }
+.no-scrollbar::-webkit-scrollbar { display:none; }
+.no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+.glass-panel {
+  background:rgba(10,16,32,.75);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(56,189,248,.15);
+}
+.glass-panel-glow {
+  background:rgba(13,23,48,.82);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(56,189,248,.3);
+  box-shadow:0 8px 32px rgba(0,195,255,.12),inset 0 0 16px rgba(129,140,248,.1);
+}
+.neon-border-cyan { border:1px solid rgba(56,189,248,.4);box-shadow:0 0 15px rgba(56,189,248,.25); }
+.neon-border-purple { border:1px solid rgba(192,132,252,.4);box-shadow:0 0 15px rgba(192,132,252,.25); }
+.allpha-reference-splash { min-height:100svh!important;height:auto!important; }
+@media(max-width:640px) {
+  .allpha-reference-splash { min-height:100svh!important;padding-bottom:max(16px,env(safe-area-inset-bottom)); }
+}
