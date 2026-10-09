@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
+import os
 import re
+import shutil
 import struct
+import subprocess
+import tempfile
+from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
@@ -148,6 +154,51 @@ async def ensure_theme_records(package: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def _process_with_blender(content: bytes) -> tuple[bytes, dict[str, Any]]:
+    """Run the canonical headless Blender import/export gate when configured."""
+    configured = os.getenv("ALLPHA_BLENDER_BINARY", "").strip()
+    binary = configured or shutil.which("blender")
+    script = Path(__file__).resolve().parents[4] / "scripts" / "theme-rebuild" / "blender_process_glb.py"
+    if not binary:
+        raise ThemeAssetIngestionError("BLENDER_NOT_CONFIGURED", "Blender is required for Theme 3D production ingestion. Configure ALLPHA_BLENDER_BINARY on the API service.")
+    if not script.is_file():
+        raise ThemeAssetIngestionError("BLENDER_PIPELINE_SCRIPT_MISSING", "Canonical Blender processing script is missing from the API deployment.")
+    with tempfile.TemporaryDirectory(prefix="allpha-theme-glb-") as temp_dir:
+        source = Path(temp_dir) / "provider.glb"
+        output = Path(temp_dir) / "processed.glb"
+        report_path = Path(temp_dir) / "blender-report.json"
+        source.write_bytes(content)
+        try:
+            result = subprocess.run(
+                [binary, "--background", "--python", str(script), "--", str(source), str(output), str(report_path)],
+                capture_output=True, text=True,
+                timeout=int(os.getenv("ALLPHA_BLENDER_TIMEOUT_SECONDS", "180")), check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise ThemeAssetIngestionError("BLENDER_PROCESS_FAILED", "Blender could not process the generated GLB within the configured runtime.") from exc
+        if result.returncode != 0 or not output.is_file() or not report_path.is_file():
+            raise ThemeAssetIngestionError("BLENDER_PROCESS_FAILED", "Blender import/export QA failed; the unprocessed source was not promoted.")
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            processed = output.read_bytes()
+        except (OSError, ValueError) as exc:
+            raise ThemeAssetIngestionError("BLENDER_REPORT_INVALID", "Blender output report or processed GLB is invalid.") from exc
+        _validate_glb(processed)
+        if report.get("output_sha256") != hashlib.sha256(processed).hexdigest():
+            raise ThemeAssetIngestionError("BLENDER_CHECKSUM_MISMATCH", "Blender output checksum does not match its report.")
+        return processed, report
+
+
+async def _verify_signed_url(signed_url: str) -> bool:
+    try:
+        async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
+            response = await client.get(signed_url, headers={"Range": "bytes=0-31"})
+        return response.status_code in {200, 206} and bool(response.content)
+    except httpx.HTTPError:
+        return False
+
+
 async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any], provider_output: dict[str, Any]) -> dict[str, Any]:
     if item.get("storage_path") and item.get("theme_asset_id"):
         return item
@@ -169,8 +220,10 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
     if content[:4] != b"glTF":
         raise ThemeAssetIngestionError("THEME_ASSET_NOT_GLB", "Provider output did not contain a binary GLB asset.")
     _validate_glb(content)
+    content, blender_report = await asyncio.to_thread(_process_with_blender, content)
+    _validate_glb(content)
     digest = hashlib.sha256(content).hexdigest()
-    storage_path = f"generated/{package['owner_user_id']}/{package['id']}/{item['asset_key']}-{digest[:16]}.glb"
+    storage_path = f"theme-v3-tripo/{package['id']}/{item['asset_key']}-{digest[:16]}.glb"
     upload_url = f"{settings.supabase_url.rstrip('/')}/storage/v1/object/allpha-world-assets/{quote(storage_path, safe='/')}"
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=15.0)) as client:
@@ -191,6 +244,8 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
         "mime_type": "model/gltf-binary",
         "metadata": {
             "source": "theme_studio_tripo_v3",
+            "pipeline": "REBUILD-03",
+            "blender_report": blender_report,
             "package_id": package["id"],
             "generation_item_id": item["id"],
             "asset_key": item["asset_key"],
@@ -208,6 +263,9 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
     })
     if not asset_rows:
         raise ThemeAssetIngestionError("THEME_ASSET_REGISTRATION_FAILED", "Uploaded GLB could not be registered in theme_assets.")
+    signed_url = await create_signed_asset_url(storage_path)
+    if not signed_url or not await _verify_signed_url(signed_url):
+        raise ThemeAssetIngestionError("THEME_SIGNED_URL_VERIFICATION_FAILED", "Uploaded GLB was registered, but its signed download URL could not be verified.")
     updated = await service_update("theme_generation_items", {"id": f"eq.{item['id']}"}, {
         "storage_path": storage_path,
         "theme_asset_id": asset_rows[0]["id"],
@@ -220,6 +278,8 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
             "storage_bucket": "allpha-world-assets",
             "checksum_sha256": digest,
             "content_size_bytes": len(content),
+            "blender_report": blender_report,
+            "signed_url_verified": True,
         },
     })
     return updated[0] if updated else {
