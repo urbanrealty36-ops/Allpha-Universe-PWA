@@ -158,7 +158,7 @@ async def _start_owner_theme_batch_once() -> None:
       "marketplace_portal", "community_hub",
     }
     retry_specs = [spec for spec in specs if spec[0] in retry_keys]
-    payload = PackageCreate(theme_name="Allpha Universe — Failed Asset Retry 01", theme_direction=direction, assets=[PackageAssetInput(key=k,label=label,prompt=prompt + " " + direction) for k,label,prompt in retry_specs], idempotency_key="allpha-owner-auto-failed-retry-01-v1", face_limit=50000)
+    payload = PackageCreate(theme_name="Allpha Universe — Failed Asset Retry 02", theme_direction=direction, assets=[PackageAssetInput(key=k,label=label,prompt=prompt + " " + direction) for k,label,prompt in retry_specs], idempotency_key="allpha-owner-auto-failed-retry-02-v1", face_limit=50000)
     try:
         result = await create_owner_package(payload, token)
         package = result.get("data", {}).get("package", result.get("package", {}))
