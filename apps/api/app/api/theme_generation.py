@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from app.api.dependencies import require_permission
 from app.core.ai_gateway import AIGatewayError, GatewayMessage, generate
-from app.core.supabase_rest import SupabaseRestError, service_insert, service_select, service_update
+from app.core.supabase_rest import SupabaseRestError, service_insert, service_rpc, service_select, service_update
 
 router = APIRouter(prefix="/api/v1/theme-generation", tags=["Theme Package Orchestration"])
 TRIPO_BASE_URL = "https://openapi.tripo3d.ai/v3"
@@ -142,6 +142,20 @@ async def _refresh_package(package: dict[str, Any]) -> dict[str, Any]:
     if status in {"succeeded","partial","failed","cancelled"}:
         from datetime import datetime, timezone
         patch["completed_at"] = datetime.now(timezone.utc).isoformat()
+    if status in {"succeeded","partial","failed","cancelled"}:
+        metadata = package.get("metadata") if isinstance(package.get("metadata"), dict) else {}
+        if not metadata.get("credits_settlement"):
+            try:
+                settlement = await service_rpc("settle_theme_generation_credits", {
+                    "p_user_id": str(package["owner_user_id"]),
+                    "p_package_id": str(package["id"]),
+                    "p_successful_assets": sum(1 for item in refreshed if item.get("status") == "success"),
+                    "p_credits_per_asset": int(metadata.get("credits_per_asset") or 1),
+                })
+                metadata = {**metadata, "credits_settlement": settlement}
+                patch["metadata"] = metadata
+            except SupabaseRestError:
+                pass
     updated = await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {k:v for k,v in patch.items() if v is not None})
     return {"package": updated[0] if updated else {**package,"status":status}, "items":refreshed}
 
@@ -152,11 +166,19 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
     if existing:
         return await _refresh_package(existing[0])
     _require_tripo()
+    pricing_rows = await service_select("theme_generation_pricing", {"select":"*","id":"eq.1","limit":"1"})
+    if not pricing_rows or not pricing_rows[0].get("enabled"):
+        raise HTTPException(status_code=503, detail={"code":"THEME_GENERATION_DISABLED","message":"Theme generation is disabled by the current billing policy."})
+    pricing = pricing_rows[0]
+    if len(payload.assets) > int(pricing.get("max_assets_per_package") or 25):
+        raise HTTPException(status_code=422, detail={"code":"THEME_PACKAGE_ASSET_LIMIT","message":"The package exceeds the configured asset limit."})
+    credits_per_asset = int(pricing.get("credits_per_asset") or 1)
+    reserved_credits = credits_per_asset * len(payload.assets)
     try:
         rows = await service_insert("theme_generation_packages", {
             "owner_user_id":str(user.user_id), "theme_name":payload.theme_name,
             "theme_direction":payload.theme_direction, "idempotency_key":payload.idempotency_key,
-            "status":"queued", "metadata":{"asset_count":len(payload.assets),"face_limit":payload.face_limit}
+            "status":"queued", "metadata":{"asset_count":len(payload.assets),"face_limit":payload.face_limit,"credits_per_asset":credits_per_asset,"credits_reserved":reserved_credits}
         })
         if not rows:
             raise HTTPException(status_code=500, detail={"code":"THEME_PACKAGE_PERSIST_FAILED","message":"Package could not be persisted."})
@@ -168,6 +190,20 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
         } for a in payload.assets], returning=False)
     except SupabaseRestError as exc:
         raise _http_error(exc,"THEME_PACKAGE_CREATE_FAILED")
+    try:
+        reservation = await service_rpc("reserve_theme_generation_credits", {
+            "p_user_id": str(user.user_id),
+            "p_package_id": str(package["id"]),
+            "p_amount": reserved_credits,
+        })
+        metadata = {**(package.get("metadata") or {}), "credit_reservation": reservation}
+        await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"metadata":metadata})
+        package["metadata"] = metadata
+    except SupabaseRestError as exc:
+        await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"status":"failed","completed_at":"2026-10-09T00:00:00+00:00","metadata":{**(package.get("metadata") or {}),"billing_error":"reservation_failed"}})
+        if "INSUFFICIENT_AI_CREDITS" in exc.message:
+            raise HTTPException(status_code=402, detail={"code":"INSUFFICIENT_AI_CREDITS","message":"Not enough Allpha AI Credits to reserve this package."}) from exc
+        raise HTTPException(status_code=503, detail={"code":"THEME_CREDIT_RESERVATION_FAILED","message":"AI Credits could not be reserved. No provider tasks were submitted."}) from exc
     items = await service_select("theme_generation_items", {"select":"*","package_id":f"eq.{package['id']}","order":"created_at.asc"})
     for item in items:
         try:
