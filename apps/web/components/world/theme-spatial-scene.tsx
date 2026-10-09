@@ -32,7 +32,7 @@ export function ThemeSpatialScene(props: {
     <group
       userData={{
         allpha3d: {
-          activationSchema: "allpha-3d-production-activation/1.0",
+          activationSchema: "allpha-theme-manifest-runtime/1.0",
           assetKey: props.themeKey ? `${props.themeKey}/${category}` : null,
           storageBucket: "allpha-world-assets",
           storagePath: null,
