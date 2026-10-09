@@ -150,12 +150,20 @@ async def _start_owner_theme_batch_once() -> None:
       ("marketplace_portal","Marketplace Portal","A premium marketplace entrance with product plinths, modular display alcoves, navigation framing and realistic architectural detail."),
       ("community_hub","Community Hub","A welcoming 3D community gathering hub with circular seating, shared focal point, layered planting and ambient architectural lighting."),
     ]
-    payload = PackageCreate(theme_name="Allpha Universe — Reference Batch 01", theme_direction=direction, assets=[PackageAssetInput(key=k,label=label,prompt=prompt + " " + direction) for k,label,prompt in specs], idempotency_key="allpha-owner-auto-reference-batch-04-v1", face_limit=50000)
+    retry_keys = {
+      "universe_core", "world_planet", "live_stage", "news_stage",
+      "presentation_stage", "human_uniform_formal", "human_uniform_nusantara",
+      "human_uniform_hero", "ai_character_companion", "ai_character_guide",
+      "ai_character_mentor", "ai_sticker_social", "ai_cosmetics",
+      "marketplace_portal", "community_hub",
+    }
+    retry_specs = [spec for spec in specs if spec[0] in retry_keys]
+    payload = PackageCreate(theme_name="Allpha Universe — Failed Asset Retry 01", theme_direction=direction, assets=[PackageAssetInput(key=k,label=label,prompt=prompt + " " + direction) for k,label,prompt in retry_specs], idempotency_key="allpha-owner-auto-failed-retry-01-v1", face_limit=50000)
     try:
         result = await create_owner_package(payload, token)
         package = result.get("data", {}).get("package", result.get("package", {}))
         package_id = package.get("id")
-        print("ALLPHA_OWNER_THEME_AUTO_BATCH", {"package_id": package_id, "status": package.get("status"), "asset_count": len(specs)})
+        print("ALLPHA_OWNER_THEME_AUTO_BATCH", {"package_id": package_id, "status": package.get("status"), "asset_count": len(retry_specs)})
         if package_id:
             from app.core.supabase_rest import service_select
             from app.api.theme_generation import _refresh_package
