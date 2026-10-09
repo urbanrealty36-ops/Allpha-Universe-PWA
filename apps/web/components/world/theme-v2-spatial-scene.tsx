@@ -2,7 +2,6 @@
 
 import { ThemeV2ProductionAssetScene, type ProductionAssetRuntimeMetrics, type ProductionAssetRuntimeState } from "./theme-v2-production-asset-scene";
 import type { AssetCategory } from "../../lib/world-engine/asset-factory";
-import { resolveProduction3DAsset } from "../../lib/world-engine/production-3d-runtime-resolver";
 
 export type ThemeV2SpatialLayer = "universe" | "galaxy" | "orbit" | "world" | "district" | "booth" | "content" | "live";
 export type ThemeV2Category = AssetCategory;
@@ -32,20 +31,19 @@ export function ThemeV2SpatialScene(props: {
   allowProceduralFallback?: boolean;
 }) {
   const category = resolveThemeV2Category(props.layer ?? "world", props.category);
-  const production = resolveProduction3DAsset(props.themeKey, category);
 
   return (
     <group
       userData={{
         allpha3d: {
           activationSchema: "allpha-3d-production-activation/1.0",
-          assetKey: production?.descriptor.assetKey ?? null,
-          storageBucket: production?.descriptor.storageBucket ?? null,
-          storagePath: production?.descriptor.storagePath ?? null,
+          assetKey: props.themeKey ? `v2.13/${props.themeKey}/${category}` : null,
+          storageBucket: "allpha-world-assets",
+          storagePath: props.themeKey ? `theme-v2-real-3d/v2.13/${props.themeKey}/${category}.glb` : null,
           rendererSource: "AllphaWorldRenderer",
           presentationOnly: true,
           legacy: false,
-          cutover: "production-manifest-first-with-procedural-fallback",
+          cutover: "canonical-v2.13-signed-manifest-only",
         },
       }}
     >
