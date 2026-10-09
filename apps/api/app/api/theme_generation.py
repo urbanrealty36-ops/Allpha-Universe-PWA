@@ -241,7 +241,15 @@ async def create_owner_package(payload: PackageCreate, x_allpha_owner_studio_key
             await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"provider_task_id":task["task_id"], "status":"running", "metadata":{**(item.get("metadata") if isinstance(item.get("metadata"),dict) else {}), "owner_operated_bypass":True, "provider_created_at":task.get("created_at"), "provider_status":task.get("status")}})
         except (HTTPException, SupabaseRestError) as exc:
             detail = exc.detail if isinstance(exc, HTTPException) and isinstance(exc.detail,dict) else {}
-            await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"status":"failed", "error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"), "error_message":detail.get("message","Could not submit owner-operated Tripo task.")})
+            provider_message = str(detail.get("provider_message") or "").strip()[:240]
+            provider_status = detail.get("provider_status")
+            provider_code = str(detail.get("provider_code") or "")[:80] or None
+            safe_message = (f"Tripo HTTP {provider_status}" + (f" [{provider_code}]" if provider_code else "") + f": {provider_message}")[:500] if provider_message else detail.get("message", "Could not submit owner-operated Tripo task.")
+            previous_metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+            failure_metadata = {**previous_metadata, "owner_operated_bypass": True}
+            if detail.get("code") == "TRIPO_UPSTREAM_ERROR":
+                failure_metadata["provider_rejection"] = {"http_status": provider_status, "code": provider_code, "message": provider_message or None, "retryable": bool(detail.get("retryable"))}
+            await service_update("theme_generation_items", {"id":"eq." + str(item["id"])}, {"status":"failed", "error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"), "error_message":safe_message, "metadata":failure_metadata})
     current = await service_select("theme_generation_packages", {"select":"*", "id":"eq." + str(package["id"]), "limit":"1"})
     return await _refresh_package(current[0] if current else package)
 
@@ -344,7 +352,15 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
             await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"provider_task_id":task["task_id"],"status":"running","metadata":{**(item.get("metadata") if isinstance(item.get("metadata"), dict) else {}),"provider_created_at":task.get("created_at"),"provider_status":task.get("status"),"routed_prompt":routed_prompt,**router_meta}})
         except (HTTPException, SupabaseRestError) as exc:
             detail = exc.detail if isinstance(exc, HTTPException) and isinstance(exc.detail, dict) else {}
-            await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"status":"failed","error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"),"error_message":detail.get("message","Could not submit asset task.")})
+            provider_message = str(detail.get("provider_message") or "").strip()[:240]
+            provider_status = detail.get("provider_status")
+            provider_code = str(detail.get("provider_code") or "")[:80] or None
+            safe_message = (f"Tripo HTTP {provider_status}" + (f" [{provider_code}]" if provider_code else "") + f": {provider_message}")[:500] if provider_message else detail.get("message", "Could not submit asset task.")
+            previous_metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+            failure_metadata = {**previous_metadata}
+            if detail.get("code") == "TRIPO_UPSTREAM_ERROR":
+                failure_metadata["provider_rejection"] = {"http_status": provider_status, "code": provider_code, "message": provider_message or None, "retryable": bool(detail.get("retryable"))}
+            await service_update("theme_generation_items", {"id":f"eq.{item['id']}"}, {"status":"failed","error_code":detail.get("code","THEME_ASSET_SUBMIT_FAILED"),"error_message":safe_message,"metadata":failure_metadata})
     package = (await service_select("theme_generation_packages", {"select":"*","id":f"eq.{package['id']}","limit":"1"}))[0]
     return await _refresh_package(package)
 
