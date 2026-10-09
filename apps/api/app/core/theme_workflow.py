@@ -27,7 +27,6 @@ async def create_theme_workflow_run(package: dict[str, Any], items: list[dict[st
         "status": "published",
         "input_schema": {"type": "object", "required": ["package_id"]},
         "metadata": {"package_id": package_id, "execution_mode": "theme_package_orchestrator"},
-        "published_at": "now()",
     })
     if not version_rows:
         raise RuntimeError("THEME_WORKFLOW_VERSION_CREATE_FAILED")
@@ -60,7 +59,6 @@ async def create_theme_workflow_run(package: dict[str, Any], items: list[dict[st
         "status": "running",
         "input": {"package_id": package_id, "theme_name": package["theme_name"], "asset_count": len(items)},
         "output": {"execution_mode": "theme_package_orchestrator"},
-        "started_at": "now()",
     })
     if not run_rows:
         raise RuntimeError("THEME_WORKFLOW_RUN_CREATE_FAILED")
