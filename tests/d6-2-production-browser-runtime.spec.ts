@@ -10,19 +10,52 @@ function worldUrl() {
 }
 
 async function waitForVisibleWebGL(page: any) {
-  await expect.poll(
-    async () => page.evaluate(() => {
+  try {
+    await expect.poll(
+      async () => page.evaluate(() => {
+        const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
+        for (const canvas of canvases) {
+          const rect = canvas.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+          if (context) return rect.width * rect.height;
+        }
+        return 0;
+      }),
+      { timeout: 120_000, intervals: [500, 1000, 2000, 5000] },
+    ).toBeGreaterThan(0);
+  } catch (cause) {
+    // Preserve the real WebGL gate, but emit enough production evidence to distinguish
+    // an unmounted World, a React/R3F crash, blocked WebGL, and an asset/runtime stall.
+    const diagnostics = await page.evaluate(() => {
       const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
-      for (const canvas of canvases) {
-        const rect = canvas.getBoundingClientRect();
-        if (rect.width <= 0 || rect.height <= 0) continue;
-        const context = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        if (context) return rect.width * rect.height;
-      }
-      return 0;
-    }),
-    { timeout: 120_000, intervals: [500, 1000, 2000, 5000] },
-  ).toBeGreaterThan(0);
+      const marker = document.querySelector<HTMLElement>("[data-allpha-3d-runtime]");
+      const webgl = (() => {
+        try {
+          const canvas = document.createElement("canvas");
+          return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
+        } catch { return false; }
+      })();
+      return {
+        href: location.href,
+        title: document.title,
+        readyState: document.readyState,
+        bodyText: (document.body?.innerText ?? "").slice(0, 1800),
+        canvasCount: canvases.length,
+        canvases: canvases.map((canvas) => {
+          const rect = canvas.getBoundingClientRect();
+          return { width: rect.width, height: rect.height, connected: canvas.isConnected };
+        }),
+        browserWebGLAvailable: webgl,
+        runtimeMarker: marker ? {
+          state: marker.dataset.allpha3dAssetState ?? marker.dataset.allpha3dAssetstate ?? null,
+          meshCount: marker.dataset.allpha3dMeshCount ?? null,
+          bounds: marker.dataset.allpha3dBounds ?? null,
+        } : null,
+      };
+    });
+    throw new Error(`PRODUCTION_WEBGL_DIAGNOSTICS ${JSON.stringify(diagnostics)}; original=${String(cause)}`);
+  }
 
   return page.evaluate(() => {
     const canvases = Array.from(document.querySelectorAll("canvas")) as HTMLCanvasElement[];
