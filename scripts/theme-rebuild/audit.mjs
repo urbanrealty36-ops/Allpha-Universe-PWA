@@ -127,6 +127,7 @@ console.log(JSON.stringify({
   legacyPublicManifestPrefix,
   missingTripoManifestPrefix,
   visualSystemContract,
+  assetPipelineContract,
   status: missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length || assetPipelineContract.missingFiles.length || assetPipelineContract.missingValidatorChecks.length || assetPipelineContract.missingIngestionGuards.length ? "FAIL" : "PASS",
 }, null, 2));
 if (missing.length || legacyAutomation.length || legacyGenerators.length || retiredModuleReferences.length || fixedLegacyPrefix.length || legacyPublicManifestPrefix || missingTripoManifestPrefix || visualSystemContract.missingFiles.length || visualSystemContract.missingPrimitives.length || visualSystemContract.missingAccessibilityContracts.length || assetPipelineContract.missingFiles.length || assetPipelineContract.missingValidatorChecks.length || assetPipelineContract.missingIngestionGuards.length) process.exitCode = 1;
