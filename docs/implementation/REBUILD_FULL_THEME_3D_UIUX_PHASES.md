@@ -126,3 +126,19 @@ Every phase report must include:
 - remaining blockers and exact next phase.
 
 **Completion policy:** a phase is not complete because source code exists. Mark GREEN only when its stated exit gate has actual verification evidence.
+
+## Live execution status — 2026-10-09
+
+This section is the current status record and supersedes any implication that the plan document itself means implementation is complete.
+
+| Phase | Current status | Evidence |
+|---|---|---|
+| REBUILD-00 — Baseline, reference lock, inventory | **IN PROGRESS** | [Live inventory and evidence lock](../audits/REBUILD_00_EVIDENCE_LOCK_INVENTORY_20261009.md). Repository governance, renderer/runtime paths, Storage object counts and `theme_assets` counts were inspected. Fresh path-level inventory after manual Storage deletion is still required. |
+| REBUILD-01 — Legacy Theme/UI retirement | **IN PROGRESS** | [Retirement log](../audits/REBUILD_01_LEGACY_RETIREMENT_LOG_20261009.md). Retired the old V2.12/V2.13/V2.13D generation/QA automation and 3D scripts, removed the old V2 theme factory/resolver modules and procedural Universe/Galaxy/Orbit/character placeholders, and switched runtime loading to an authorized manifest-driven scene. Current GitHub Actions audit/build is not yet verified. |
+| REBUILD-02 through REBUILD-15 | **NOT STARTED** | Follow the phase order above; do not mark green without the defined exit evidence. |
+
+### Execution boundary
+- The canonical renderer is still `AllphaWorldRenderer`; the new `ThemeManifestAssetScene` resolves assets from the authorized public manifest and does not require the retired `theme-v2-real-3d/v2.13/` prefix.
+- No Tripo GLB assets have been generated in REBUILD-00/01. Missing/unpublished assets intentionally do not receive synthetic character, ring, sphere, or booth-box substitutes. Production art creation starts in REBUILD-03/04.
+- The user will delete legacy objects from Supabase Storage manually. Until a fresh inventory confirms that deletion, do not claim Storage cleanup is complete. `theme_assets` metadata also needs reconciliation after the Storage action.
+- Old V2 generation commands, scripts, workflows and V2-coupled tests have been removed from the active repository tree. The new audit script `pnpm audit:theme-rebuild` runs in CI and fails if the retired workflow/generator artifacts or fixed V2.13 runtime path are reintroduced.
