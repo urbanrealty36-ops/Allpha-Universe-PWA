@@ -159,17 +159,6 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
   );
 }
 
-function UniverseReferenceBackdrop() {
-  return (
-    <>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(76,89,255,.18),transparent_22%),radial-gradient(circle_at_18%_35%,rgba(0,208,255,.12),transparent_25%),radial-gradient(circle_at_84%_18%,rgba(137,67,255,.13),transparent_28%),linear-gradient(180deg,#030718_0%,#02030b_72%,#010207_100%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-55 [background-image:radial-gradient(circle_at_20%_30%,rgba(255,255,255,.9)_0_1px,transparent_1.5px),radial-gradient(circle_at_70%_18%,rgba(255,255,255,.8)_0_1px,transparent_1.5px),radial-gradient(circle_at_85%_65%,rgba(255,255,255,.75)_0_1px,transparent_1.5px),radial-gradient(circle_at_35%_78%,rgba(255,255,255,.65)_0_1px,transparent_1.5px)] [background-size:190px_170px,240px_210px,210px_190px,260px_230px]" />
-      <div className="pointer-events-none absolute left-1/2 top-[55%] h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/[0.035] blur-3xl" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
-    </>
-  );
-}
-
 function UniverseAmbientField() {
   return (
     <>
