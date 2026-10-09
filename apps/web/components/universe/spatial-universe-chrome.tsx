@@ -51,6 +51,15 @@ export default function SpatialUniverseChrome({ email, onSignOut }: Props) {
         <a className={isActive("/agents") ? "is-active" : undefined} aria-current={isActive("/agents") ? "page" : undefined} href="/agents"><span>◎</span><small>My Agent</small></a>
       </nav>
 
+      <nav className="allpha-spatial-product-rail" aria-label="Explore Allpha spaces">
+        <a className={isActive("/universe") ? "is-active" : undefined} href="/universe"><span>✦</span> Galaxy</a>
+        <a className={isActive("/worlds") ? "is-active" : undefined} href="/worlds"><span>◈</span> Worlds</a>
+        <a className={isActive("/districts") ? "is-active" : undefined} href="/districts"><span>⌘</span> Districts</a>
+        <a className={isActive("/booths") ? "is-active" : undefined} href="/booths"><span>▣</span> Booths</a>
+        <a className={isActive("/content") ? "is-active" : undefined} href="/content"><span>✧</span> Capsules</a>
+        <a className={isActive("/social") ? "is-active" : undefined} href="/social"><span>◉</span> Live</a>
+      </nav>
+
       <div className="allpha-spatial-layer-legend" aria-label="Spatial hierarchy">
         <span className="is-active">Universe</span><b>→</b><span>Galaxy</span><b>→</b><span>World</span><b>→</b><span>District</span><b>→</b><span>Booth</span>
       </div>
