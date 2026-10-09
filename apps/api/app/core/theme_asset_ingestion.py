@@ -219,9 +219,21 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
         raise ThemeAssetIngestionError("THEME_ASSET_SIZE_INVALID", "Generated GLB is empty or exceeds the 100 MB ingestion limit.")
     if content[:4] != b"glTF":
         raise ThemeAssetIngestionError("THEME_ASSET_NOT_GLB", "Provider output did not contain a binary GLB asset.")
+    # Tripo's GLB is the canonical source by default. Blender is an explicit
+    # opt-in remediation/processing step, never a mandatory ingestion dependency.
+    blender_mode = os.getenv("ALLPHA_THEME_BLENDER_PROCESSING", "disabled").strip().lower()
+    if blender_mode not in {"disabled", "enabled"}:
+        raise ThemeAssetIngestionError(
+            "BLENDER_MODE_INVALID",
+            "ALLPHA_THEME_BLENDER_PROCESSING must be either 'disabled' or 'enabled'.",
+        )
+    blender_report: dict[str, Any] | None = None
+    processing_mode = "direct_glb_validation"
     _validate_glb(content)
-    content, blender_report = await asyncio.to_thread(_process_with_blender, content)
-    _validate_glb(content)
+    if blender_mode == "enabled":
+        content, blender_report = await asyncio.to_thread(_process_with_blender, content)
+        _validate_glb(content)
+        processing_mode = "blender_processed"
     digest = hashlib.sha256(content).hexdigest()
     storage_path = f"theme-v3-tripo/{package['id']}/{item['asset_key']}-{digest[:16]}.glb"
     upload_url = f"{settings.supabase_url.rstrip('/')}/storage/v1/object/allpha-world-assets/{quote(storage_path, safe='/')}"
@@ -245,6 +257,7 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
         "metadata": {
             "source": "theme_studio_tripo_v3",
             "pipeline": "REBUILD-03",
+            "processing_mode": processing_mode,
             "blender_report": blender_report,
             "package_id": package["id"],
             "generation_item_id": item["id"],
@@ -278,6 +291,7 @@ async def persist_generated_asset(package: dict[str, Any], item: dict[str, Any],
             "storage_bucket": "allpha-world-assets",
             "checksum_sha256": digest,
             "content_size_bytes": len(content),
+            "processing_mode": processing_mode,
             "blender_report": blender_report,
             "signed_url_verified": True,
         },
