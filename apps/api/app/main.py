@@ -49,6 +49,7 @@ from app.api.personalization import router as personalization_router
 from app.api.social import router as social_router
 from app.api.avatar import router as avatar_router
 from app.api.live_assets import router as live_assets_router
+from app.api.theme_generation import router as theme_generation_router
 
 
 def _cors_origins() -> list[str]:
@@ -107,6 +108,7 @@ for _router in [
     booths_router,
     themes_router,
     three_d_generation_router,
+    theme_generation_router,
     live_router,
     world_builder_router,
     world_runtime_router,
