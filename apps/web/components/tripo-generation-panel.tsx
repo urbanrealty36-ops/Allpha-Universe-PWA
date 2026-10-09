@@ -103,6 +103,27 @@ export default function TripoGenerationPanel() {
     finally { setBusy(false); }
   }
 
+  async function retryPriorityLowCost() {
+    if (!ownerKey.trim()) { setError("Masukkan Owner Studio access key terlebih dahulu."); return; }
+    const priorityPackageId = "1773c99d-2caf-4416-a111-a8bf2d679e70";
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const result = await ownerFetch<PackageResponse & { retry_results?: Array<{asset_key?: string; status?: string; message?: string}>; generation_profile?: string }>(
+        "/api/v1/theme-generation/owner/packages/" + priorityPackageId + "/retry-priority-low-cost",
+        { method: "POST" }
+      );
+      const payload = result.data ?? result;
+      const nextPackage = payload.package ?? null;
+      setPkg(nextPackage);
+      setPackageId(priorityPackageId);
+      const statuses = (result.retry_results ?? []).map((entry) => entry.asset_key + ": " + entry.status + (entry.message ? " (" + entry.message + ")" : "")).join(" · ");
+      setNotice(statuses || "Retry endpoint merespons. Refresh evidence untuk memeriksa status task.");
+      await refreshPackage(priorityPackageId, true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "PRIORITY_RETRY_FAILED");
+    } finally { setBusy(false); }
+  }
+
   const completed = item?.status === "success";
   const failed = item?.status === "failed" || item?.status === "cancelled";
   const terminal = ["succeeded", "partial", "failed", "cancelled"].includes(pkg?.status ?? "");
@@ -132,6 +153,8 @@ export default function TripoGenerationPanel() {
           {error && <p role="alert" className="rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-xs text-rose-200">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-cyan-300/20 bg-cyan-300/5 p-3 text-xs text-cyan-100">{notice}</p>}
           <button disabled={busy || !ownerKey.trim()} className="w-full rounded-xl bg-cyan-300 px-4 py-3.5 text-sm font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{busy ? "Processing canonical pipeline…" : "Generate 3D Theme ↗"}</button>
+          <button type="button" onClick={() => void retryPriorityLowCost()} disabled={busy || !ownerKey.trim()} className="w-full rounded-xl border border-amber-300/40 bg-amber-300/10 px-4 py-3 text-sm font-semibold text-amber-100 hover:bg-amber-300/15 disabled:opacity-50">{busy ? "Checking provider…" : "Retry Universe Core + AI Companion (no texture)"}</button>
+          <p className="text-[10px] leading-4 text-slate-500">Retry hanya menyasar Universe Core dan AI Character Companion yang gagal pada package Retry 02. Gunakan tombol ini satu kali; no-texture mengurangi biaya, tetapi tarif akhir ditentukan akun/provider Tripo.</p>
           <p className="text-[10px] leading-4 text-slate-500">Owner-only pipeline melewati autentikasi user dan AI Credits; workflow, validasi, moderasi, serta publish gates tetap wajib.</p>
         </form>
         <aside className="border-t border-white/10 p-5 sm:p-6 lg:border-l lg:border-t-0">
