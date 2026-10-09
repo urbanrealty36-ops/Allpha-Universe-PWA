@@ -17,6 +17,7 @@ from app.api.spatial_runtime import router as spatial_runtime_router
 from app.api.districts import router as districts_router
 from app.api.booths import router as booths_router
 from app.api.themes import router as themes_router
+from app.api.3d_generation import router as three_d_generation_router
 from app.api.live import router as live_router
 from app.api.world_builder import router as world_builder_router
 from app.api.world_runtime import router as world_runtime_router
@@ -104,6 +105,7 @@ for _router in [
     districts_router,
     booths_router,
     themes_router,
+    three_d_generation_router,
     live_router,
     world_builder_router,
     world_runtime_router,
