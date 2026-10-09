@@ -4,7 +4,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { useCallback, useMemo, useRef } from "react";
 import { createGoldenScene } from "../../lib/world-engine/golden-scene";
-import { createSpatialCompositionV205 } from "../../lib/world-engine/spatial-composition-v2";
 import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
 import { createContentSpatialCompositionV207, validateContentSpatialComposition, type ContentSpatialRelationship } from "../../lib/world-engine/content-spatial-v2";
 import { createLiveStageV208Composition, validateLiveStageV208Composition, type LiveStageActorState } from "../../lib/world-engine/live-stage-v2";
@@ -305,100 +304,27 @@ function WorldDistrictBoothV2View({ layer, lowPower, onHotspot, scene }: { layer
 
 function GoldenSpatialLayerView({
   layer,
+  themeKey,
+  architecture,
   lowPower,
-  onHotspot,
-  presence,
-  agentCharacterAsset,
-  agentCharacterPerformance,
+  reducedMotion,
 }: {
   layer: "universe" | "galaxy" | "orbit";
+  themeKey?: string;
+  architecture?: string;
   lowPower: boolean;
-  onHotspot?: Props["onHotspot"];
-  presence: SpatialPresence[];
-  agentCharacterAsset?: Props["agentCharacterAsset"];
-  agentCharacterPerformance?: Props["agentCharacterPerformance"];
+  reducedMotion: boolean;
 }) {
-  const root = useRef<Group>(null);
-  const reduceMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const composition = useMemo(() => createSpatialCompositionV205(layer), [layer]);
-  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  useFrame(({ clock }) => {
-    if (!root.current || reduceMotion) return;
-    root.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.1) * 0.035;
-  });
-
-  const colors = {
-    universe: { core: "#42DCFF", node: "#A77CFF", accent: "#EE7CFF" },
-    galaxy: { core: "#67E8F9", node: "#60A5FA", accent: "#A78BFA" },
-    orbit: { core: "#22D3EE", node: "#C084FC", accent: "#F0ABFC" },
-  }[layer];
-
-  const nodes = composition.nodes.slice(0, lowPower ? 6 : composition.nodes.length);
-  const rings = composition.rings.slice(0, lowPower ? 2 : composition.rings.length);
-
+  // Spatial navigation is rendered only from the authorized theme manifest.
+  // No primitive spheres, rings or synthetic character meshes stand in for assets.
   return (
-    <group ref={root}>
-      <ThemeSpatialScene themeKey="crystal-ai-city" architecture="Crystal AI City" layer={layer} lowPower={lowPower} reducedMotion={reducedMotion} />
-      <mesh position={[0, -0.65, 0]}>
-        <sphereGeometry args={[layer === "universe" ? 2.1 : layer === "galaxy" ? 1.55 : 1.15, lowPower ? 16 : 24, lowPower ? 12 : 18]} />
-        <meshStandardMaterial color={colors.core} emissive={colors.core} emissiveIntensity={1.1} transparent opacity={0.2} />
-      </mesh>
-
-      {rings.map((ring) => (
-        <mesh key={ring.id} rotation={[ring.tilt, 0, ring.tilt * 0.45]}>
-          <torusGeometry args={[ring.radius, lowPower ? 0.025 : 0.045, 8, lowPower ? 36 : 64]} />
-          <meshStandardMaterial color={ring.depth === "near" ? colors.node : colors.accent} emissive={ring.depth === "near" ? colors.node : colors.accent} emissiveIntensity={0.9} transparent opacity={ring.opacity} />
-        </mesh>
-      ))}
-
-      {nodes.map((node) => {
-        const scale = node.scale * (node.depth === "foreground" ? 1.12 : node.depth === "background" ? 0.84 : 1);
-        const color = node.role === "core" ? colors.core : node.role === "galaxy" ? colors.node : colors.accent;
-        return (
-          <group
-            key={node.id}
-            position={[node.position.x, node.position.y, node.position.z]}
-            onClick={() => onHotspot?.({
-              id: node.id,
-              kind: node.role === "core" ? "universe" : node.role,
-              position: node.position,
-              presentation_only: true,
-              metadata: { spatial_layer: layer, role: node.role, depth: node.depth, v2_contract: "3d-v2.05" },
-            })}
-          >
-            <mesh>
-              <icosahedronGeometry args={[scale, lowPower ? 1 : 2]} />
-              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.25} metalness={0.42} roughness={0.22} />
-            </mesh>
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[scale * 1.45, 0.022, 8, lowPower ? 24 : 40]} />
-              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.05} transparent opacity={0.68} />
-            </mesh>
-          </group>
-        );
-      })}
-
-      {presence.filter((agent) => agent.position).slice(0, lowPower ? 2 : 4).map((agent) => {
-        const p = agent.position!;
-        return (
-          <group key={"presence-" + agent.id} position={[p.x, p.y + 0.35, p.z]}>
-            {agentCharacterAsset?.source === "platform_catalog" ? (
-              <PlatformAgentCharacter3D
-                characterKey={agentCharacterAsset.characterKey}
-                position={[0, 0, 0]}
-                performance={agentCharacterPerformance}
-              />
-            ) : (
-              <mesh>
-                <sphereGeometry args={[0.26, 12, 12]} />
-                <meshStandardMaterial color={colors.accent} emissive={colors.accent} emissiveIntensity={0.9} />
-              </mesh>
-            )}
-          </group>
-        );
-      })}
-    </group>
+    <ThemeSpatialScene
+      themeKey={themeKey}
+      architecture={architecture}
+      layer={layer}
+      lowPower={lowPower}
+      reducedMotion={reducedMotion}
+    />
   );
 }
 
@@ -649,7 +575,7 @@ function WorldObjects({
     return <CinematicProductionHero themeKey={themeKey} lowPower={lowPower} reducedMotion={reducedMotion} />;
   }
   if (goldenLayer === "galaxy" || goldenLayer === "orbit") {
-    return <GoldenSpatialLayerView layer={goldenLayer} lowPower={lowPower} onHotspot={onHotspot} presence={presence} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance}/>;
+    return <GoldenSpatialLayerView layer={goldenLayer} themeKey={themeKey} architecture={architecture} lowPower={lowPower} reducedMotion={reducedMotion} />;
   }
 
   return <>
@@ -669,7 +595,7 @@ function WorldObjects({
       const p=agent.position!;
       const selected=agent.id===selectedBoothId;
       return <group key={agent.id} position={[p.x,p.y+.55,p.z]} onClick={()=>onHotspot?.({id:agent.id,kind:"character",position:p,metadata:{agent_id:agent.agent_id,movement_state:agent.movement_state,zone_key:agent.zone_key}})}>
-        {agentCharacterAsset?.source==="platform_catalog"?<PlatformAgentCharacter3D characterKey={agentCharacterAsset.characterKey} position={[0,.05,0]} performance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined}/>:agentCharacterUrl&&agent.agent_id?<AgentCharacter3DAsset url={agentCharacterUrl} position={[0,.05,0]} performance={agentCharacterPerformance}/>:<mesh><sphereGeometry args={[selected?.42:.32,14,14]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={selected?1:.55}/></mesh>}
+        {agentCharacterAsset?.source==="platform_catalog"?<PlatformAgentCharacter3D characterKey={agentCharacterAsset.characterKey} position={[0,.05,0]} performance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined}/>:agentCharacterUrl&&agent.agent_id?<AgentCharacter3DAsset url={agentCharacterUrl} position={[0,.05,0]} performance={agentCharacterPerformance}/>:null}
         <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[selected?.72:.55,.035,8,32]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.2} transparent opacity={.8}/></mesh>
       </group>;
     })}
@@ -678,7 +604,7 @@ function WorldObjects({
       const x=booth.position?.x??(i%4)*2.8-4.2,y=booth.position?.y??0,z=booth.position?.z??Math.floor(i/4)*2.8-2.8;
       const modelUrl=typeof booth.metadata?.model_url==="string"?booth.metadata.model_url:null;
       const scale=booth.scale?.x??1,selected=booth.id===selectedBoothId;
-      return modelUrl?<Booth3DAsset key={booth.id} url={modelUrl} position={[x,y,z]} scale={selected?scale*1.08:scale} onClick={()=>onHotspot?.(booth)}/>:themePackUrl?<BoothThemeTemplate key={booth.id} url={themePackUrl} position={[x,y,z]} scale={(selected?scale*1.08:scale)*.9} onClick={()=>onHotspot?.(booth)}/>:<group key={booth.id} position={[x,y,z]} onClick={()=>onHotspot?.(booth)}><mesh position={[0,.8,0]} castShadow><boxGeometry args={[1.6,1.6,1.6]}/><meshStandardMaterial color={selected?"#f0abfc":accent} emissive={selected?"#d946ef":accent} emissiveIntensity={selected?1.3:.35} metalness={.25} roughness={.55}/></mesh><mesh position={[0,1.75,0]} rotation={[0,Math.PI/4,0]}><torusGeometry args={[.58,.06,8,24]}/><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.8}/></mesh></group>;
+      return modelUrl?<Booth3DAsset key={booth.id} url={modelUrl} position={[x,y,z]} scale={selected?scale*1.08:scale} onClick={()=>onHotspot?.(booth)}/>:themePackUrl?<BoothThemeTemplate key={booth.id} url={themePackUrl} position={[x,y,z]} scale={(selected?scale*1.08:scale)*.9} onClick={()=>onHotspot?.(booth)}/>:null;
     })}
 
     {portals.map(portal=>{
