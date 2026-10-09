@@ -58,3 +58,10 @@ The repository audit is now run in CI before the User PWA build. The most recent
 
 ## Current gate
 REBUILD-01 is still **IN PROGRESS**, not GREEN. GitHub Actions runs for the recent commits were queued when last checked, so the new TypeScript/Next.js build and audit result are not yet verified. The Railway status checks for an earlier commit were green, but they are not a substitute for the current commit’s GitHub Actions run. Browser/mobile visual QA is pending.
+
+## Supabase retirement reconciliation — 2026-10-09
+After the user manually deleted the GLB objects, a fresh query confirmed zero real objects remain in `allpha-world-assets` (only the 0-byte `.emptyFolderPlaceholder`). To prevent the now-missing assets from being advertised as active, the existing metadata was archived rather than physically deleted:
+- `public.theme_assets`: 475 rows → `archived / removed`.
+- `public.themes`: 25 published rows → `archived / removed`.
+- `public.theme_versions`: 25 published rows → `archived / removed`.
+This preserves historical records and foreign-key integrity while closing the stale-publication path. The new Tripo pipeline must create new theme versions/assets through the existing lifecycle and activate them only after validation and approval.
