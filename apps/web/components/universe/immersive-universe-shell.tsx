@@ -423,11 +423,11 @@ export default function ImmersiveUniverseShell() {
   });
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#03050b] text-white">
+    <main className="allpha-universe-home-v2 min-h-screen overflow-hidden bg-[#03050b] text-white">
       <div className="relative min-h-screen">
         <UniverseBackdrop level={level} theme={activeTheme} />
 
-        <header className="pointer-events-none absolute inset-x-0 top-0 z-30 p-3 sm:p-6">
+        <header className="allpha-universe-home-topbar-v2 pointer-events-none absolute inset-x-0 top-0 z-30 p-3 sm:p-6">
           <div className="pointer-events-auto mb-3 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[.16em] text-white/50"><span className="rounded-full border border-white/10 bg-black/30 px-2 py-1">Theme: {activeTheme?.catalog_key || activeTheme?.slug || "unbound"}</span><span className="rounded-full border border-white/10 bg-black/30 px-2 py-1">Version: {activeTheme?.theme_version ?? "—"}</span><span className={themePackUrl?"rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-1 text-emerald-200":"rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-1 text-amber-200"}>Theme V2 manifest: {themePackUrl?"resolved":"not resolved"}</span></div><div className="pointer-events-auto flex items-start justify-between gap-3">
             <div className="rounded-2xl border border-white/10 bg-black/35 px-3 py-2.5 shadow-2xl backdrop-blur-2xl sm:rounded-full sm:px-5 sm:py-2.5">
               <p className="text-[9px] uppercase tracking-[0.3em] text-cyan-300">Allpha AI · Living Universe</p>
@@ -453,7 +453,7 @@ export default function ImmersiveUniverseShell() {
           </div>
         </header>
 
-        <section className="relative z-10 min-h-screen">
+        <section className="allpha-universe-home-stage-v2 relative z-10 min-h-screen">
           <div className="absolute inset-0">
             {loading ? (
               <div className="flex h-full items-center justify-center text-sm text-white/40">Loading authoritative Universe…</div>
@@ -501,7 +501,7 @@ export default function ImmersiveUniverseShell() {
             )}
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-6 sm:pb-6">
+          <div className="allpha-universe-home-hud-v2 pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-6 sm:pb-6">
             <div className="pointer-events-auto mx-auto flex max-w-6xl flex-col gap-3">
               {error && <div className="rounded-2xl border border-red-300/20 bg-red-500/10 px-4 py-3 text-xs text-red-100 backdrop-blur-xl">{error}</div>}
 
