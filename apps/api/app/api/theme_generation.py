@@ -8,7 +8,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.api.dependencies import get_auth_context, require_permission
+from app.api.dependencies import require_permission
 from app.core.supabase_rest import SupabaseRestError, service_insert, service_select, service_update
 
 router = APIRouter(prefix="/api/v1/theme-generation", tags=["Theme Package Orchestration"])
@@ -34,7 +34,7 @@ def _require_tripo() -> str:
 
 def _http_error(exc: SupabaseRestError, code: str) -> HTTPException:
     status = exc.status_code if exc.status_code in {400,401,403,404,409,422} else 500
-    return HTTPException(status_code=status, detail={"code":code,"message":exc.message}) from exc
+    return HTTPException(status_code=status, detail={"code":code,"message":exc.message})
 
 async def _tripo_create(prompt: str, face_limit: int) -> dict[str, Any]:
     headers = {"Authorization": f"Bearer {_require_tripo()}", "Content-Type": "application/json"}
