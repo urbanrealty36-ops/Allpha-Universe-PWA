@@ -195,7 +195,6 @@ async def update_pricing(payload: PricingUpdate, context: dict = Depends(require
         "credits_per_asset":payload.credits_per_asset,
         "max_assets_per_package":payload.max_assets_per_package,
         "updated_by_user_id":str(user.user_id),
-        "updated_at":"now()",
     })
     if not rows:
         raise HTTPException(status_code=503, detail={"code":"THEME_PRICING_UPDATE_FAILED","message":"Theme generation pricing could not be updated."})
@@ -242,7 +241,8 @@ async def create_package(payload: PackageCreate, context: dict = Depends(require
         await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"metadata":metadata})
         package["metadata"] = metadata
     except SupabaseRestError as exc:
-        await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"status":"failed","completed_at":"2026-10-09T00:00:00+00:00","metadata":{**(package.get("metadata") or {}),"billing_error":"reservation_failed"}})
+        from datetime import datetime, timezone
+        await service_update("theme_generation_packages", {"id":f"eq.{package['id']}"}, {"status":"failed","completed_at":datetime.now(timezone.utc).isoformat(),"metadata":{**(package.get("metadata") or {}),"billing_error":"reservation_failed"}})
         if "INSUFFICIENT_AI_CREDITS" in exc.message:
             raise HTTPException(status_code=402, detail={"code":"INSUFFICIENT_AI_CREDITS","message":"Not enough Allpha AI Credits to reserve this package."}) from exc
         raise HTTPException(status_code=503, detail={"code":"THEME_CREDIT_RESERVATION_FAILED","message":"AI Credits could not be reserved. No provider tasks were submitted."}) from exc
