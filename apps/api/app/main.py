@@ -150,7 +150,7 @@ async def _start_owner_theme_batch_once() -> None:
       ("marketplace_portal","Marketplace Portal","A premium marketplace entrance with product plinths, modular display alcoves, navigation framing and realistic architectural detail."),
       ("community_hub","Community Hub","A welcoming 3D community gathering hub with circular seating, shared focal point, layered planting and ambient architectural lighting."),
     ]
-    payload = PackageCreate(theme_name="Allpha Universe — Reference Batch 01", theme_direction=direction, assets=[PackageAssetInput(key=k,label=label,prompt=prompt + " " + direction) for k,label,prompt in specs], idempotency_key="allpha-owner-auto-reference-batch-03-v1", face_limit=50000)
+    payload = PackageCreate(theme_name="Allpha Universe — Reference Batch 01", theme_direction=direction, assets=[PackageAssetInput(key=k,label=label,prompt=prompt + " " + direction) for k,label,prompt in specs], idempotency_key="allpha-owner-auto-reference-batch-04-v1", face_limit=50000)
     try:
         result = await create_owner_package(payload, token)
         package = result.get("data", {}).get("package", result.get("package", {}))
