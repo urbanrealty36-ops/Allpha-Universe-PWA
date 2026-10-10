@@ -669,6 +669,7 @@ async def reconcile_existing_v3_tripo_assets(
             "moderation_status":"pending",
             "source":"platform",
             "catalog_key":V3_PLATFORM_CATALOG_SLUG,
+            "created_by_user_id":str(user.user_id),
         })
         if not rows:
             raise HTTPException(status_code=503, detail={"code":"V3_PLATFORM_THEME_CREATE_FAILED"})
