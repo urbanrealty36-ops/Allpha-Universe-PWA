@@ -1,25 +1,57 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isPublicWebPath, isStaticWebAssetPath } from "./lib/auth/route-access";
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  if (isStaticWebAssetPath(pathname)) return NextResponse.next({ request });
+
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (!url || !publishableKey) return response;
+  // Public discovery must stay available anonymously. Private routes fail closed if
+  // Supabase server verification cannot be configured.
+  if (isPublicWebPath(pathname)) {
+    if (url && publishableKey) {
+      const supabase = createServerClient(url, publishableKey, {
+        cookies: {
+          getAll: () => request.cookies.getAll(),
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            response = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          },
+        },
+      });
+      await supabase.auth.getClaims();
+    }
+    return response;
+  }
+
+  if (!url || !publishableKey) {
+    return NextResponse.json({ error: "AUTH_NOT_CONFIGURED" }, { status: 503 });
+  }
 
   const supabase = createServerClient(url, publishableKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
     },
   });
 
-  await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims?.sub) {
+    const signIn = new URL("/auth", request.url);
+    signIn.searchParams.set("mode", "signin");
+    signIn.searchParams.set("next", pathname + request.nextUrl.search);
+    return NextResponse.redirect(signIn);
+  }
+
   return response;
 }
 
