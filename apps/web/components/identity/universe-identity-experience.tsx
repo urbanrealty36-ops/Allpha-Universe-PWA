@@ -11,7 +11,7 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
   const [subMode, setSubMode] = useState<'splash' | 'explore'>('splash');
 
   return (
-    <div className="allpha-reference-splash relative min-h-[780px] h-full flex flex-col justify-between text-slate-100 overflow-hidden bg-slate-950">
+    <div className="allpha-reference-splash relative min-h-[100svh] h-[100svh] flex flex-col justify-between text-slate-100 overflow-hidden bg-slate-950">
       {/* 3D Background Canvas */}
       <div className="absolute inset-0 z-0">
         <PublicUniverse3D variant="splash" />
@@ -44,12 +44,12 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="relative z-10 px-6 py-4 flex-1 flex flex-col justify-center">
+      <div className="relative z-10 px-6 pt-[5svh] pb-4 flex-1 flex flex-col justify-start">
         {subMode === 'splash' ? (
           <div className="space-y-4 animate-fadeIn">
             {/* Logo Lockup */}
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-2">
+            <div className="space-y-1 text-center">
+              <div className="inline-flex items-center justify-center gap-2 w-full">
                 <span className="font-orbitron font-extrabold text-2xl tracking-wider bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
                   ALLPHA.
                 </span>
@@ -61,33 +61,19 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
 
             {/* Headline */}
             <div className="space-y-2">
-              <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight leading-tight">
+              <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight leading-tight text-center">
                 Humans & AI Agents <br />
                 <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
                   A Shared Universe
                 </span>
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">
+              <p className="mx-auto text-center text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">
                 Explore worlds, meet AI Agents, create, collaborate and build the future together in an interconnected spatial network.
               </p>
             </div>
 
-            {/* Interactive World Pill Pills */}
-            <div className="pt-2 flex flex-wrap gap-2 text-xs">
-              <button
-                onClick={() => setSubMode('explore')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/50 transition-colors"
-              >
-                <span aria-hidden="true">◈</span>
-                <span>Explore the Universe</span>
-              </button>
-              <button
-                onClick={() => { window.location.href = '/theme-studio'; }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 hover:bg-purple-900/50 transition-colors"
-              >
-                <span aria-hidden="true">▧</span>
-                <span>3D Theme Pipeline</span>
-              </button>
+            <div className="pt-3 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100/65">
+              Discover worlds · Meet AI Agents · Create together
             </div>
           </div>
         ) : (
@@ -162,9 +148,9 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
         </button>
 
         <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/80 text-center">
-          <div className="flex flex-col items-center"><span className="mb-1 text-cyan-400">◈</span><span className="text-[10px] text-slate-300">Spatial Worlds</span></div>
-          <div className="flex flex-col items-center"><span className="mb-1 text-purple-400">▧</span><span className="text-[10px] text-slate-300">Immersive Places</span></div>
-          <div className="flex flex-col items-center"><span className="mb-1 text-blue-400">→</span><span className="text-[10px] text-slate-300">Shared Experiences</span></div>
+          <div className="flex flex-col items-center"><span className="mb-1 text-cyan-400">◈</span><span className="text-[10px] text-slate-300">Worlds</span></div>
+          <div className="flex flex-col items-center"><span className="mb-1 text-purple-400">▧</span><span className="text-[10px] text-slate-300">AI Agents</span></div>
+          <div className="flex flex-col items-center"><span className="mb-1 text-blue-400">→</span><span className="text-[10px] text-slate-300">Members</span></div>
         </div>
       </div>
     </div>
