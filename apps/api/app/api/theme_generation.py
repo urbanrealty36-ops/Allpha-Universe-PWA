@@ -715,6 +715,33 @@ async def reconcile_existing_v3_tripo_assets(
 
     return {"data":{"theme":{"id":theme["id"],"slug":theme["slug"],"source":theme["source"],"status":theme["status"]},"version":{"id":version["id"],"version":version["version"],"status":version["status"]},"asset_count":len(rebound),"validated_count":len(rebound),"bound_count":len(rebound),"assets":rebound,"uploaded_again":False,"duplicate_rows_created":False,"publication_ready":all(a["status"]=="active" and a["moderation_status"]=="approved" and a["safety_status"]=="passed" and a["performance_status"]=="passed" for a in rebound),"next_gate":"Moderation, safety, and performance remain unchanged until their real approval/evidence workflows pass."}}
 
+@router.post("/internal/v3-tripo-assets/reconcile/developer")
+async def reconcile_existing_v3_tripo_assets_developer(
+    x_allpha_owner_studio_key: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Owner-key-only bridge for reconciling the existing V3 asset set; never approves publication."""
+    _require_owner_studio_key(x_allpha_owner_studio_key)
+    operator_id = os.getenv("ALLPHA_THEME_STUDIO_OWNER_USER_ID", "").strip()
+    try:
+        UUID(operator_id)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=503, detail={"code": "OWNER_THEME_STUDIO_IDENTITY_NOT_CONFIGURED", "message": "The existing owner studio identity is not configured."})
+    operator = type("V3ReconcileOperator", (), {"user_id": operator_id})()
+    result = await reconcile_existing_v3_tripo_assets(
+        context={"user": operator}
+    )
+    data = result.get("data")
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=502, detail={"code": "V3_RECONCILE_INVALID_RESULT"})
+    data["execution_source"] = "owner_studio_internal_key"
+    data["audit"] = {
+        "actor_type": "configured_service_operator",
+        "operator_id": operator_id,
+        "execution_source": "owner_studio_internal_key",
+        "lifecycle_approval_performed": False,
+    }
+    return result
+
 @router.post("/packages/{package_id}/submit-review")
 async def submit_package_for_review(package_id: UUID, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
     user = context["user"]
