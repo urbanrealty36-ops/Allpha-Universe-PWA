@@ -62,7 +62,9 @@ jobs:
           ALLPHA_V3_E2E_ROUTES: ${{ vars.ALLPHA_V3_E2E_ROUTES }}
         run: |
           if [[ -z "$ALLPHA_V3_E2E_BASE_URL" || -z "$ALLPHA_V3_E2E_STORAGE_STATE_JSON" || -z "$ALLPHA_V3_E2E_ROUTES" ]]; then
-            echo "SKIP: authenticated V3 E2E requires ALLPHA_V3_E2E_BASE_URL, ALLPHA_V3_E2E_STORAGE_STATE_JSON, and ALLPHA_V3_E2E_ROUTES."
+            message="BLOCKED (not passed): authenticated V3 visual E2E requires ALLPHA_V3_E2E_BASE_URL, ALLPHA_V3_E2E_STORAGE_STATE_JSON, and ALLPHA_V3_E2E_ROUTES."
+            echo "::warning::$message"
+            echo "$message" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           printf '%s' "$ALLPHA_V3_E2E_STORAGE_STATE_JSON" > "$RUNNER_TEMP/allpha-v3-storage-state.json"
