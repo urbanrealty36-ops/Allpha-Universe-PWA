@@ -14,6 +14,7 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API
 function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const layer = variant === "identity" ? "world" : "universe";
+  const assetCategory = variant === "splash" ? "agent-character" : layer;
   const [themeKey, setThemeKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,12 +32,13 @@ function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
       .then((payload) => {
         if (cancelled) return;
         const themes: PublicTheme[] = Array.isArray(payload?.data) ? payload.data : [];
+        const v3 = themes.find((theme) => String(theme.slug ?? theme.catalog_key ?? "").trim() === "allpha-universe-v3");
         const eligible = themes.filter((theme) => {
           const slug = String(theme.slug ?? theme.catalog_key ?? "").trim();
           const status = String(theme.status ?? "").toLowerCase();
           return Boolean(slug) && (!status || ["active", "published", "live"].includes(status));
         });
-        const preferred = eligible.find((theme) =>
+        const preferred = v3 ?? eligible.find((theme) =>
           /crystal|universe|galaxy/i.test(String(theme.slug ?? theme.catalog_key ?? "")),
         ) ?? eligible[0];
         setThemeKey(preferred ? String(preferred.slug ?? preferred.catalog_key) : null);
@@ -56,7 +58,7 @@ function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
       {/* Only server-manifest-authorized signed assets may enter the canonical renderer. */}
       <ThemeManifestAssetScene
         themeKey={themeKey}
-        category={layer === "world" ? "world" : "universe"}
+        category={assetCategory}
         lowPower={false}
         reducedMotion={reducedMotion}
         fallback={null}
