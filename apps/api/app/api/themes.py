@@ -2,7 +2,7 @@ from typing import Any, Literal
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from app.api.dependencies import get_auth_context
+from app.api.dependencies import get_auth_context, require_permission
 from app.core.supabase_rest import SupabaseRestError, rpc, select
 from app.core.storage import SupabaseStorageError, create_signed_download_url, create_signed_upload_url
 
@@ -200,3 +200,38 @@ async def moderate_theme(theme_id:UUID,version_id:UUID,p:ModerationRequest,conte
 async def moderate_template(template_id:UUID,version_id:UUID,p:ModerationRequest,context:dict=Depends(get_auth_context)):
     try: return await rpc(context["user"],"moderate_world_template",{"p_world_template_id":str(template_id),"p_world_template_version_id":str(version_id),"p_decision":p.decision})
     except SupabaseRestError as e: raise err(e,"WORLD_TEMPLATE_MODERATION_FAILED")
+
+
+class ThemeAssetLifecycleGateRequest(BaseModel):
+    gate: Literal["moderation", "safety", "performance"]
+    decision: Literal["approved", "restricted", "passed", "failed", "pending"]
+    evidence: dict[str, Any] = Field(min_length=1)
+    reason: str | None = Field(default=None, max_length=2000)
+
+
+@router.post("/platform-assets/{asset_id}/lifecycle-gate")
+async def record_platform_asset_lifecycle_gate(
+    asset_id: UUID,
+    p: ThemeAssetLifecycleGateRequest,
+    context: dict = Depends(require_permission("admin.manage")),
+):
+    """Record an audited gate decision for an existing platform V3 asset; never uploads or auto-approves assets."""
+    if p.gate == "moderation" and p.decision not in {"approved", "restricted", "pending"}:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_MODERATION_DECISION"})
+    if p.gate in {"safety", "performance"} and p.decision not in {"passed", "failed", "pending"}:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_TECHNICAL_GATE_DECISION"})
+    try:
+        result = await rpc(
+            context["user"],
+            "record_v3_theme_asset_gate",
+            {
+                "p_asset_id": str(asset_id),
+                "p_gate": p.gate,
+                "p_decision": p.decision,
+                "p_evidence": p.evidence,
+                "p_reason": p.reason,
+            },
+        )
+        return {"data": result}
+    except SupabaseRestError as e:
+        raise err(e, "THEME_ASSET_LIFECYCLE_GATE_FAILED")
