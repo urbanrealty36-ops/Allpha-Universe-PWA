@@ -82,8 +82,9 @@ jobs:
     name: Production API and V3 endpoint preflight (read-only)
     needs: guard
     runs-on: ubuntu-latest
+    environment: v3-production
     env:
-      ALLPHA_V3_API_BASE_URL: ${{ vars.ALLPHA_V3_API_BASE_URL }}
+      ALLPHA_V3_API_BASE_URL: ${{ vars.ALLPHA_V3_API_BASE_URL || secrets.ALLPHA_V3_API_BASE_URL }}
     steps:
       - name: Require API base URL
         run: |
