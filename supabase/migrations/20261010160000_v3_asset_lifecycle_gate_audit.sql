@@ -49,6 +49,7 @@ declare
   v_user_id uuid := auth.uid();
   v_evidence jsonb := coalesce(p_evidence, '{}'::jsonb);
   v_decision text := lower(coalesce(p_decision, ''));
+  v_audit_id uuid;
 begin
   if v_user_id is null then
     raise exception using errcode = '42501', message = 'AUTH_REQUIRED';
@@ -104,7 +105,8 @@ begin
     (asset_id, theme_id, theme_version_id, gate, decision, evidence, actor_user_id)
   values
     (v_asset.id, v_asset.theme_id, v_asset.theme_version_id, p_gate, v_decision,
-     v_evidence || jsonb_build_object('reason', p_reason, 'recorded_at', now()), v_user_id);
+     v_evidence || jsonb_build_object('reason', p_reason, 'recorded_at', now()), v_user_id)
+  returning id into v_audit_id;
 
   if p_gate = 'moderation' then
     update public.theme_assets set moderation_status =
@@ -119,8 +121,7 @@ begin
 
   return jsonb_build_object(
     'asset_id', v_asset.id, 'gate', p_gate, 'decision', v_decision,
-    'status', 'recorded', 'audit_id', (select id from public.theme_asset_lifecycle_audit
-      where asset_id = v_asset.id and actor_user_id = v_user_id order by created_at desc limit 1)
+    'status', 'recorded', 'audit_id', v_audit_id
   );
 end;
 $$;
