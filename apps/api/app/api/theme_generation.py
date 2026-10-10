@@ -585,7 +585,7 @@ V3_EXISTING_ASSET_IDS: dict[str, str] = {
     "f03703d9-149c-4b05-8708-9d04d7fa27e1": "galaxy_navigator",
     "8969f921-0179-4765-a976-31b8efac3912": "mentor_room",
     "7a861179-f607-463b-ba0c-ac1adf048f7b": "navigation_orbit",
-    "bfdf5c9a-4890-4472-8a01-6d3460f85d0": "podcast_stage",
+    "bfdf5c9a-4890-4472-8a01-6d3460a0127c": "podcast_stage",
     "f62b71f1-4acb-40f4-8968-342dd30f85d0": "portal_gate",
     "95776ee8-d1ec-4495-b7a9-01ea6cae7eb7": "spatial_fx",
 }
