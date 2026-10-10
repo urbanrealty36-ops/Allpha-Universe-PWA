@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
 // Public discovery and identity routes intentionally remain available without a session.
 // Private product surfaces are guarded centrally so links and direct URL entry behave alike.
-const PUBLIC_EXACT = new Set(["/", "/agents", "/auth", "/auth/callback", "/blocked", "/offline", "/terms", "/privacy"]);
+const PUBLIC_EXACT = new Set(["/", "/auth", "/auth/callback", "/blocked", "/offline", "/terms", "/privacy"]);
 const PUBLIC_PREFIXES = ["/worlds", "/universe", "/world/", "/districts", "/booths", "/agents/discover", "/agent/catalog", "/communities", "/events", "/explore", "/content", "/themes", "/reels", "/moments"];
 
 function isPublicPath(path: string) {
@@ -15,7 +15,6 @@ function isPublicPath(path: string) {
 
 export default function RouteAuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
-  const search = useSearchParams();
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [checkedPath, setCheckedPath] = useState<string | null>(null);
@@ -33,7 +32,8 @@ export default function RouteAuthGuard({ children }: { children: React.ReactNode
         setCheckedPath(pathname);
         return;
       }
-      const next = pathname + (search.size ? "?" + search.toString() : "");
+      const currentSearch = typeof window !== "undefined" ? window.location.search : "";
+      const next = pathname + currentSearch;
       router.replace("/auth?mode=signin&next=" + encodeURIComponent(next));
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -45,7 +45,7 @@ export default function RouteAuthGuard({ children }: { children: React.ReactNode
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, [pathname, search, router, supabase]);
+  }, [pathname, router, supabase]);
 
   if (!isPublicPath(pathname) && checkedPath !== pathname) {
     return (
