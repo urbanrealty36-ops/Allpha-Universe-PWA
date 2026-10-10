@@ -625,3 +625,75 @@ No second renderer, Theme Engine, World Engine, database, authority layer, or fr
 **Known remaining gap:** The deployed Supabase V2.13 storage asset must be replaced/promoted with the improved Blender-authored Crystal AI City production GLB before the Railway visual output can match the supplied cinematic reference. Code-side runtime authority has now been aligned to consume that authored asset without a procedural overlay.
 
 **Next exact action:** observe the latest Railway deployment, run the isolated D6.5 browser gate, then execute the guarded Blender production build/promotion path for the Crystal AI City golden asset if visual evidence still shows the old/raw asset. D6.5 remains RED until browser evidence proves the target runtime and visual fidelity.
+---
+
+## 2026-10-11 — WEB-06 / V3 — Reference Splash and Public AI Character Build Repair
+
+### Objective
+Continue the canonical Allpha web UI track using the supplied mobile references, make the public AI Character stage resilient, and diagnose publication of the 17 existing Tripo V3 assets without generating or uploading assets.
+
+### Initial status
+- WEB-06: IMPLEMENTED / RUNTIME VISUAL QA PENDING; reference fidelity remains partial.
+- V3 asset publication: OPEN / BLOCKED on governance and validation evidence.
+- Auth guard: OPEN / NOT VERIFIED across private route inventory.
+- Canonical binding verified:
+  - GitHub urbanrealty36-ops/Allpha-Universe-PWA, branch main.
+  - Supabase AllphaDb-Universe, ref qltbacemtvnuzqkterly, region ap-south-1.
+  - Railway project serene-youth, production environment ID 7055a4ea-dfa3-47da-8fc1-435e579dbf4d.
+
+### Changes
+- apps/web/components/public-universe-3d.tsx
+  - Corrected Cinematic3DScene layer to use the supported presentation layer while keeping agent-character as the manifest asset category.
+  - Removed an unreachable duplicate Splash selection branch that caused TypeScript TS2367.
+  - Added an explicitly labeled visual fallback when the public AI Character asset fails to load; the fallback is not treated as a real GLB.
+- apps/web/components/identity/universe-identity-experience.tsx
+  - Aligned Splash viewport sizing and copy alignment more closely with the supplied mobile reference.
+  - Removed the unrelated Theme Studio shortcut from the primary Splash area and retained the primary Enter the Universe CTA.
+  - Kept category labels without inventing live business counts.
+- apps/web/app/globals.css
+  - Positioned the real public character Canvas stage below the Splash hero copy and added a short-viewport adjustment.
+- No database migration or privileged data mutation performed.
+- No new assets generated or uploaded.
+
+### Tests and evidence
+- Prior Railway build logs for deployment eb2a6c44-663f-48c8-8523-53bdbafa2744 identified two concrete TypeScript errors in public-universe-3d.tsx:
+  - TS2367: unreachable Splash comparison after an earlier return.
+  - TS2322: agent-character was passed as CinematicLayer.
+- Remediation commits:
+  - 1804dd67debf8d2d6d42bbda62538730b17738c2 — public character layer typing.
+  - 956036447c6cd6908876e14ead5bdde395dd5c4c — Splash layout alignment.
+  - 0fd8c0b1283f3986593d05d20f8ae0bf706655f5 — visible character failure fallback.
+  - eabd869f5e42136f776a6904a25bdc4d785c41e4 — character-stage responsive CSS.
+- Latest observed Web deployment at report time: 51ba5d48-d345-4aa9-8d6c-b29ce5088c76, status BUILDING. TypeScript/build result for this deployment is NOT VERIFIED yet.
+- No browser screenshot, mobile/desktop E2E, signed-URL browser transfer, or actual GLB render evidence captured in this session.
+
+### Supabase V3 asset inventory and governance
+- Theme: allpha-universe-v3, UUID 773a5f1c-f6cf-4b0f-80ab-934f39e31d19, status draft, moderation pending.
+- Theme Version: 70f6573c-82fc-44af-b3ae-63f649216ba0, version 3, status review, moderation pending.
+- Storage prefix theme-v3-tripo/: 17 existing objects, all under bucket allpha-world-assets; no upload or generation was performed.
+- Canonical theme_assets rows for the V3 version: 17 total / 17 pending / 0 active / 0 moderation-approved / 0 safety-passed / 0 performance-passed; 17 distinct metadata.asset_key values.
+- Existing assets are split across two metadata package references: 10 from Reference Batch 01 (300818e1-9432-452f-8548-4ad8c361b000) and 7 from Failed Asset Retry 02 (1773c99d-2caf-4416-a111-a8bf2d679e70).
+- Reconciliation risk found: package records point at different theme/version IDs than the canonical V3 theme/version, while asset rows reference the V3 theme/version and preserve the original package IDs in metadata. Resolve through the official guarded reconciliation/validation workflow, not direct SQL status changes.
+- Workflow specs reviewed:
+  - .github/workflows/3d-v3-assets-production-promotion.yml requires explicit production mutation approval and exact confirmation for reconciliation.
+  - .github/workflows/v3-canonical-theme-version-validation.yml calls the canonical owner-key version validator and does not itself approve publication.
+- These workflows were inspected but not dispatched by the available connector actions in this session.
+
+### Governance and security
+- No status columns were manually changed.
+- No service-role key, owner token, signed URL query string, or other secret was read into this report.
+- V3 moderation, safety, performance, human approval, and official publication remain BLOCKED / NOT VERIFIED.
+- Authenticated vs anonymous route matrix and IDOR/BOLA checks remain OPEN.
+
+### Result
+- Source fixes are committed on canonical main.
+- Production build, browser rendering, visual fidelity, auth guard, and official asset publication are NOT VERIFIED.
+- The 17 existing Tripo V3 assets remain pending; no claim of publication is made.
+
+### Next step
+1. Confirm the latest Railway Web build and inspect its build logs.
+2. Run browser/mobile/desktop visual QA for Splash and the actual agent-character GLB.
+3. Run the read-only V3 preflight, then use the approved owner-key validation/reconciliation workflow according to its required approval gate.
+4. Reconcile package/theme/version binding through the canonical API workflow; then evaluate moderation, safety, performance, and explicit publication approval independently.
+5. Continue the private-route auth guard audit and update its route matrix before closing WEB-31/security gates.
+
