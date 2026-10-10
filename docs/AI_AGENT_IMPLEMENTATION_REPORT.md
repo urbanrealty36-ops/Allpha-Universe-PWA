@@ -769,3 +769,10 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 - No browser screenshot was inspected manually in this session; Playwright QA artifact/result is still needed. Successful build/deployment is not proof that the real GLB rendered.
 - Current UI and route-auth code is deployed, but actual public AI Character GLB is intentionally blocked by the V3 publication gate until theme/version/asset moderation, safety and performance pass.
 
+## 2026-10-11 — Public Splash Non-Blocking Auth + Production QA Race
+
+- The Playwright production QA for commit b61567e2d737dbd6b88d95850e90c7e2b8715365 failed because the root Splash selector was not visible within 60 seconds. The run also overlapped with Railway deployment; the public entry's initial state additionally depended on the client getSession() request.
+- apps/web/components/universe-entry-surface.tsx now renders the public Splash immediately while checking the Supabase session in the background; authenticated sessions still switch to the authenticated Universe. Auth lookup errors no longer leave the public page stuck on an indefinite loading state. Commit c8b2fa67d25e76d25315b206cf42f4ebac782ac1.
+- tests/public-3d-ui-ux.spec.ts now retains the Splash/Canvas assertions, waits up to the normal Railway rollout window, and additionally requires the character scene to reach loaded/visible/error. When the governed manifest is unavailable, the test asserts the explicit fallback rather than pretending a GLB rendered. Commit a4afa7de80d4cf3991a073016dd72bd1f46c1508.
+- The new QA run 38074759815 is queued for the latest test commit. The deployment containing the non-blocking Splash change was b8475a51-08ba-45b1-8315-2d994772d747, INITIALIZING at the last observation. Do not report QA pass until the latest run concludes.
+
