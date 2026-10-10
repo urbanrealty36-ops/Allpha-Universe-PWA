@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PwaRuntime } from "../components/pwa/pwa-runtime";
+import RouteAuthGuard from "../components/route-auth-guard";
 import "./globals.css";
 import "../styles/ui-visual-foundation.css";
 
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="allpha-ui-foundation-v1" data-allpha-ui="UI-UX-01">
         <PwaRuntime />
-        {children}
+        <RouteAuthGuard>{children}</RouteAuthGuard>
       </body>
     </html>
   );
