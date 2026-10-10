@@ -738,7 +738,7 @@ async def validate_owner_theme_version(
     if not themes or themes[0].get("slug") != "allpha-universe-v3" or themes[0].get("source") != "platform":
         raise HTTPException(status_code=403, detail={"code":"OWNER_VALIDATION_SCOPE_DENIED","message":"Owner bridge is restricted to the canonical Allpha Universe V3 platform theme."})
     try:
-        result = await service_rpc("validate_platform_theme_version_v3", {"p_theme_version_id":str(version_id)})
+        result = await service_rpc("repair_validate_platform_theme_version_v3", {"p_theme_version_id":str(version_id)})
     except SupabaseRestError as exc:
         raise HTTPException(status_code=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 502,
                             detail={"code":"THEME_VERSION_VALIDATE_FAILED","message":exc.message}) from exc
