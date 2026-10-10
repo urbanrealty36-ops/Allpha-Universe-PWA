@@ -759,3 +759,13 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 - Keys present: ai_character_companion, booth_tenant, classroom_stage, content_capsule, district_city, galaxy_navigator, human_uniform_formal, human_uniform_hero, live_stage, mentor_room, navigation_orbit, news_stage, podcast_stage, portal_gate, presentation_stage, spatial_fx, world_planet.
 - All 17 remain pending for status/moderation/safety/performance. Storage/registry parity does not mean the assets are valid, safe, visually approved, or published.
 
+## 2026-10-11 — WEB Build and CI Checkpoint
+
+- Fixed the public splash QA selector mismatch by preserving the canonical allpha-public-splash class on the new reference Splash composition. Commit b61567e2d737dbd6b88d95850e90c7e2b8715365.
+- Railway Web deployment 6c8140d2-1d9b-4d87-b3a9-21fe688455ee is SUCCESS for code commit b61567e2d737dbd6b88d95850e90c7e2b8715365. Build log confirms optimized production compilation, TypeScript success, and all 78 static pages generated; the Next.js proxy is present in the route table.
+- Railway API deployment 59806f34-7e6c-4538-abca-e9b4899e487b remains SUCCESS, with /health healthcheck successful. Admin deployment remains SUCCESS on its previously deployed revision.
+- Allpha Universe CI run 38074591320 for the Web code commit completed all four gates successfully: User PWA build, API syntax, Super Admin build, and Security/supply-chain.
+- Public 3D UI/UX Production QA run 38074591336 for commit b61567e2d737dbd6b88d95850e90c7e2b8715365 was still IN_PROGRESS at the last observation. The prior QA run 38074478464 failed because the test expected .allpha-public-splash or .allpha-public-universe and the new Splash lacked that legacy-compatible selector; the selector was restored without weakening the test. Final QA conclusion is pending.
+- No browser screenshot was inspected manually in this session; Playwright QA artifact/result is still needed. Successful build/deployment is not proof that the real GLB rendered.
+- Current UI and route-auth code is deployed, but actual public AI Character GLB is intentionally blocked by the V3 publication gate until theme/version/asset moderation, safety and performance pass.
+
