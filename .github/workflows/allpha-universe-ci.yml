@@ -54,6 +54,20 @@ jobs:
         run: pnpm audit:theme-rebuild
       - name: Build User PWA
         run: pnpm build:web
+      - name: Authenticated V3 visual E2E (opt-in)
+        env:
+          ALLPHA_V3_E2E_BASE_URL: ${{ vars.ALLPHA_V3_E2E_BASE_URL }}
+          ALLPHA_V3_E2E_STORAGE_STATE_JSON: ${{ secrets.ALLPHA_V3_E2E_STORAGE_STATE_JSON }}
+          ALLPHA_V3_E2E_ROUTES: ${{ vars.ALLPHA_V3_E2E_ROUTES }}
+        run: |
+          if [[ -z "$ALLPHA_V3_E2E_BASE_URL" || -z "$ALLPHA_V3_E2E_STORAGE_STATE_JSON" || -z "$ALLPHA_V3_E2E_ROUTES" ]]; then
+            echo "SKIP: authenticated V3 E2E requires ALLPHA_V3_E2E_BASE_URL, ALLPHA_V3_E2E_STORAGE_STATE_JSON, and ALLPHA_V3_E2E_ROUTES."
+            exit 0
+          fi
+          printf '%s' "$ALLPHA_V3_E2E_STORAGE_STATE_JSON" > "$RUNNER_TEMP/allpha-v3-storage-state.json"
+          export ALLPHA_V3_E2E_STORAGE_STATE="$RUNNER_TEMP/allpha-v3-storage-state.json"
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright test tests/e2e/v3-visual-fidelity.spec.ts --workers=1
 
   admin-build:
     name: Super Admin build gate
