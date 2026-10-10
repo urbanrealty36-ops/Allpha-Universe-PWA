@@ -1383,3 +1383,28 @@ a { color: inherit; }
   .allpha-product-surface { padding-bottom:calc(100px + env(safe-area-inset-bottom)); }
   .allpha-product-surface header { gap:12px; }
 }
+
+/* WEB-06 reference fidelity: keep the real AI Character stage below the hero copy. */
+.allpha-reference-splash .allpha-public-3d-splash {
+  position: absolute;
+  inset: 17% 0 11%;
+  z-index: 1;
+  min-height: 0;
+  pointer-events: none;
+}
+.allpha-reference-splash .allpha-public-3d-splash canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+@media (max-height: 740px) {
+  .allpha-reference-splash .allpha-public-3d-splash {
+    inset-block: 14% 13%;
+  }
+}
+@media (min-width: 720px) {
+  .allpha-reference-splash .allpha-public-3d-splash {
+    inset: 12% 8% 10%;
+  }
+}
+
