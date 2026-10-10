@@ -243,10 +243,9 @@ function ProductionAssetModel({
   return <primitive object={prepared.scene} scale={scale * prepared.fitScale} />;
 }
 
-export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = null, lowPower = false, reducedMotion = false, fallback = null, onRuntimeState, onRuntimeMetrics }: {
+export function ThemeManifestAssetScene({ themeKey, category, lowPower = false, reducedMotion = false, fallback = null, onRuntimeState, onRuntimeMetrics }: {
   themeKey?: string | null;
   category: AssetCategory;
-  directAssetUrl?: string | null;
   lowPower?: boolean;
   reducedMotion?: boolean;
   fallback?: ReactNode;
@@ -257,11 +256,6 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
   useEffect(() => {
     let cancelled = false;
     setUrl(null);
-    if (directAssetUrl) {
-      onRuntimeState?.("loading-gltf");
-      setUrl(directAssetUrl);
-      return () => { onRuntimeState?.("idle"); };
-    }
     if (!themeKey) {
       onRuntimeState?.("idle");
       return;
@@ -312,13 +306,6 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
           candidate = assets.find((asset) => metadataMatches(asset, alias));
           if (candidate) break;
         }
-        if (!candidate) {
-          candidate = assets.find((asset) => {
-            if (!asset.signed_url) return false;
-            const path = String(asset.storage_path ?? "").replace(/^\\/+/, "");
-            return path.toLowerCase().endsWith(("/" + themeKey + "/" + category + ".glb").toLowerCase());
-          });
-        }
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
           setUrl(null);
@@ -338,7 +325,7 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
       controller.abort();
       onRuntimeState?.("idle");
     };
-  }, [themeKey, category, directAssetUrl, onRuntimeState]);
+  }, [themeKey, category, onRuntimeState]);
 
   useEffect(() => {
     if (url) {
