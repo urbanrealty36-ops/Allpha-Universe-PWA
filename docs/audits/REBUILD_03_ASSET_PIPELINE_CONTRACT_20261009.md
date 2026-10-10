@@ -32,3 +32,27 @@
 - Do not publish/activate an asset just because structural validation passed.
 - Keep assets versioned and content-addressable; never overwrite a production object with different bytes.
 - The structural validator checks file/container and basic scene content only. It cannot certify realism, correct UVs, texture quality, animation/rigging or runtime performance. Direct GLB validation does not replace browser/device visual QA.
+
+---
+
+## 2026-10-11 — V3 Public Manifest Lifecycle Gate Remediation
+
+**Status:** IMPLEMENTED IN SOURCE / API DEPLOYMENT BUILDING / PUBLIC MANIFEST RUNTIME VERIFICATION PENDING
+
+The live Supabase inspection confirmed that the canonical V3 theme is draft/moderation-pending, its version is review/moderation-pending, and all 17 registered theme_assets rows are pending with no active, moderation-approved, safety-passed, or performance-passed assets. The two associated generation package rows still reference older theme/version IDs.
+
+The public World Runtime V3 manifest previously signed and returned every stored V3 object regardless of the theme/version/asset lifecycle fields. That was inconsistent with this document's guardrail that a structural validation or signed URL must not be treated as publication approval.
+
+Commit cae84dae350769213a7ed8da411507ed74198446 changes apps/api/app/api/world_runtime.py so the public V3 manifest:
+- requires a published + moderation-approved theme;
+- requires a published theme version with passed validation, approved moderation and passed performance status;
+- selects only active assets with approved moderation, passed safety and passed performance;
+- creates expiring signed URLs only for those eligible assets;
+- returns only runtime-required asset metadata instead of exposing internal moderation/lifecycle metadata.
+
+**Expected current behavior:** while V3 remains draft/review/pending, the public manifest should not expose signed URLs. The Splash should show its explicit labeled fallback until the governed publication lifecycle completes. This is intentional fail-closed behavior, not a claim that the character is published.
+
+**Deployment:** Railway API deployment 59806f34-7e6c-4538-abca-e9b4899e487b was BUILDING at the last observation. Web deployment 0cd57998-d0fb-4ffb-9817-964271a77ada was also BUILDING. The endpoint behavior, API tests and browser fallback still require runtime verification.
+
+**Next gate:** use the approved owner-key validation/reconciliation flow to repair package/theme/version binding; do not directly mutate status columns. After moderation, safety, performance and explicit human publication approval pass, verify manifest eligibility, signed URL expiry, actual GLB transfer, canonical renderer visibility and mobile performance.
+
