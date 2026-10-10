@@ -715,30 +715,17 @@ async def reconcile_existing_v3_tripo_assets(
 
 
 
-def _require_v3_reconcile_token(candidate: str | None) -> str:
-    import hmac
-
-    expected = os.getenv("ALLPHA_V3_RECONCILE_TOKEN", "").strip()
-    if not expected:
-        raise HTTPException(status_code=503, detail={"code": "V3_RECONCILE_NOT_CONFIGURED", "message": "Developer reconciliation token is not configured on this API service."})
-    if not candidate or not hmac.compare_digest(candidate, expected):
-        raise HTTPException(status_code=403, detail={"code": "V3_RECONCILE_TOKEN_INVALID", "message": "Developer reconciliation token is invalid."})
-    # Reuse the already-configured owner identity used by the V1/V2 internal
-    # asset workflow; no public-user login or new identity configuration is needed.
+@router.post("/internal/v3-tripo-assets/reconcile/developer")
+async def reconcile_existing_v3_tripo_assets_developer(
+    x_allpha_owner_studio_key: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """V1/V2-style internal bridge: owner key bypasses end-user auth, never lifecycle approval."""
+    _require_owner_studio_key(x_allpha_owner_studio_key)
     operator_id = os.getenv("ALLPHA_THEME_STUDIO_OWNER_USER_ID", "").strip()
     try:
         UUID(operator_id)
     except (ValueError, TypeError):
-        raise HTTPException(status_code=503, detail={"code": "V3_RECONCILE_OPERATOR_NOT_CONFIGURED", "message": "The existing owner studio identity is not configured."})
-    return operator_id
-
-
-@router.post("/internal/v3-tripo-assets/reconcile/developer")
-async def reconcile_existing_v3_tripo_assets_developer(
-    x_allpha_v3_reconcile_token: str | None = Header(default=None),
-) -> dict[str, Any]:
-    """Internal developer bridge; token authorizes technical reconciliation only, never lifecycle approval."""
-    operator_id = _require_v3_reconcile_token(x_allpha_v3_reconcile_token)
+        raise HTTPException(status_code=503, detail={"code": "OWNER_THEME_STUDIO_IDENTITY_NOT_CONFIGURED", "message": "The existing owner studio identity is not configured."})
     operator = type("V3ReconcileOperator", (), {"user_id": operator_id})()
     result = await reconcile_existing_v3_tripo_assets(
         context={"user": operator, "execution_source": "developer_internal_token"}
