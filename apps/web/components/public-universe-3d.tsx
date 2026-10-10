@@ -81,7 +81,7 @@ export default function PublicUniverse3D({ variant }: { variant: PublicUniverse3
       <Canvas
         dpr={[1, 1.5]}
         shadows
-        camera={{ position: characterMode ? [0, 2.6, 8.8] : variant === "identity" ? [0, 5.6, 13.8] : [0, 6.2, 15.2], fov: characterMode ? 35 : variant === "universe" ? 43 : 42 }}
+        camera={{ position: characterMode ? [0, 2.6, 8.8] : [0, 6.2, 15.2], fov: characterMode ? 35 : 43 }}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => configureCinematicRenderer(gl, false)}
       >
