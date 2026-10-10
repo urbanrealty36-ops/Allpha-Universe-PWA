@@ -359,7 +359,6 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
       (booth.scene_config?.position as { x: number; y: number; z: number } | undefined) ??
       (booth.display_config?.position as { x: number; y: number; z: number } | undefined) ??
       { x: 0, y: 0, z: 0 };
-    const modelUrl = assets.find((asset) => asset.asset_type === "3d_scene" && asset.signed_url)?.signed_url ?? null;
     return {
       id: booth.id,
       kind: "booth",
@@ -371,12 +370,11 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
         tier: booth.tier,
         status: booth.status,
         moderation_status: booth.moderation_status,
-        model_url: modelUrl,
         presentation_only: true,
       },
       presentation_only: true,
     };
-  }, [booth, assets]);
+  }, [booth]);
 
   const hostPresence = useMemo(() => presence.map((item) => ({
     id: item.id,
