@@ -896,3 +896,13 @@ Status: **IMPLEMENTED IN SOURCE / RAILWAY BUILDING / VISUAL QA PENDING**
 - Commit 3e725242858570a0dcd51a1758005a0c747a9a5e simplifies the camera contract: Splash/Identity share the character camera; Universe uses the universe camera.
 - Replacement deployment cb3b03be-a0d8-445c-bc85-ccfb54c31431 was INITIALIZING/BUILDING at last check. WEB-06 remains NOT GREEN until the build and visual runtime gates pass.
 
+### WEB-06 deployment checkpoint — 2026-10-11
+
+Status: **BUILD + DEPLOYMENT SUCCESS / PRODUCTION VISUAL QA PENDING**
+
+- Railway Web deployment 6c8140d2-1d9b-4d87-b3a9-21fe688455ee is SUCCESS on commit b61567e2d737dbd6b88d95850e90c7e2b8715365.
+- Build evidence: TypeScript completed, all 78 static pages generated, Next.js proxy included in the production route table.
+- Allpha Universe CI for the code commit passed User PWA build, API syntax, Super Admin build and Security/supply-chain gates.
+- Public 3D UI/UX QA run 38074591336 remains IN_PROGRESS at last check. Prior run found a missing legacy-compatible Splash selector; the canonical class was restored without weakening the test.
+- Do not mark reference fidelity DONE until the latest Playwright run finishes and real GLB visibility, browser network/console, mobile/desktop screenshots and auth route behavior are verified.
+
