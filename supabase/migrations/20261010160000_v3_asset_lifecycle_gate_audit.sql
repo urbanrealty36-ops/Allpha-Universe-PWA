@@ -15,7 +15,22 @@ create index if not exists theme_asset_lifecycle_audit_asset_created_idx
 
 alter table public.theme_asset_lifecycle_audit enable row level security;
 revoke all on public.theme_asset_lifecycle_audit from anon, authenticated;
-grant select, insert, update, delete on public.theme_asset_lifecycle_audit to service_role;
+revoke all on public.theme_asset_lifecycle_audit from public, anon, authenticated, service_role;
+
+create or replace function private.prevent_theme_asset_lifecycle_audit_mutation()
+returns trigger
+language plpgsql
+set search_path = public, private, pg_temp
+as $
+begin
+  raise exception using errcode = '55000', message = 'THEME_ASSET_LIFECYCLE_AUDIT_IS_APPEND_ONLY';
+end;
+$;
+
+drop trigger if exists theme_asset_lifecycle_audit_append_only on public.theme_asset_lifecycle_audit;
+create trigger theme_asset_lifecycle_audit_append_only
+before update or delete on public.theme_asset_lifecycle_audit
+for each row execute function private.prevent_theme_asset_lifecycle_audit_mutation();
 
 create or replace function private.record_v3_theme_asset_gate(
   p_asset_id uuid,
@@ -118,7 +133,7 @@ create or replace function public.record_v3_theme_asset_gate(
   p_asset_id uuid, p_gate text, p_decision text, p_evidence jsonb, p_reason text default null
 ) returns jsonb
 language sql
-security invoker
+security definer
 set search_path = public, private, auth, pg_temp
 as $$
   select private.record_v3_theme_asset_gate(p_asset_id, p_gate, p_decision, p_evidence, p_reason);
