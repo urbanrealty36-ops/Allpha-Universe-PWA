@@ -293,7 +293,7 @@ export function ThemeManifestAssetScene({ themeKey, category, lowPower = false, 
         const metadataMatches = (asset: ManifestAsset, alias: string) => {
           if (!asset.signed_url) return false;
           const metadata = asset.metadata ?? {};
-          const path = String(asset.storage_path ?? "").replace(/^\\/+/, "");
+          const path = String(asset.storage_path ?? "").replace(/^\/+/, "");
           const basename = path.split("/").pop() ?? "";
           const key = normalize(alias);
           const declaredCategory = normalize(metadata.category ?? metadata.asset_category ?? metadata.assetCategory);
