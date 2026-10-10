@@ -743,3 +743,10 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 - Latest API deployment containing the V3 public manifest lifecycle gate: 59806f34-7e6c-4538-abca-e9b4899e487b, commit cae84dae350769213a7ed8da411507ed74198446, SUCCESS; API healthcheck succeeded. Endpoint-specific runtime response and browser fallback remain NOT VERIFIED.
 - V3 assets remain draft/review/pending and intentionally are not signed for public rendering until lifecycle gates pass.
 
+## 2026-10-11 — Identity Camera TypeScript Remediation
+
+- Railway deployment f5750c35-e060-4def-84bf-90b3c95bcd14 failed TypeScript with TS2367 in public-universe-3d.tsx: after characterMode narrowed the variant, a nested comparison against identity was unreachable.
+- Fixed camera selection to use the shared character camera for Splash/Identity and the universe camera for Universe. Commit: 3e725242858570a0dcd51a1758005a0c747a9a5e.
+- New Railway Web deployment: cb3b03be-a0d8-445c-bc85-ccfb54c31431, commit 3e725242858570a0dcd51a1758005a0c747a9a5e, INITIALIZING/BUILDING at last observation. The fix is not yet verified by a successful build.
+- GitHub Actions for main and Public 3D UI/UX QA were in progress at the latest check; no green conclusion is claimed.
+
