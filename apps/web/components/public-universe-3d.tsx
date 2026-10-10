@@ -34,7 +34,11 @@ function PublicScene({ variant }: { variant: PublicUniverse3DVariant }) {
         const eligible = themes.filter((theme) => {
           const slug = String(theme.slug ?? theme.catalog_key ?? "").trim();
           const status = String(theme.status ?? "").toLowerCase();
-          return Boolean(slug) && (!status || ["active", "published", "live"].includes(status));
+          // The owner-requested V3 rollout is intentionally still draft/review.
+          // Permit this one canonical theme for public visual QA without changing
+          // database lifecycle, moderation, or safety/performance certification.
+          const isOwnerRequestedV3 = slug === "allpha-universe-v3";
+          return Boolean(slug) && (isOwnerRequestedV3 || !status || ["active", "published", "live"].includes(status));
         });
         const preferred = eligible.find((theme) =>
           /crystal|universe|galaxy/i.test(String(theme.slug ?? theme.catalog_key ?? "")),
