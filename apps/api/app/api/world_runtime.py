@@ -82,13 +82,7 @@ async def public_world_runtime(world_id: str):
 
 @router.get("/public/themes/{theme_key}/asset-manifest")
 async def public_theme_asset_manifest(theme_key: str):
-    """Public manifest for the explicitly requested Allpha V3 rollout pack.
-
-    The V3 owner-requested rollout exposes stored GLBs to the web renderer while
-    the legacy per-asset lifecycle workflow is being reconciled. This endpoint
-    remains read-only; it does not rewrite lifecycle or audit state. Scope is
-    deliberately limited to the canonical Allpha Universe V3 theme.
-    """
+    """Return only assets whose theme, version, moderation, safety and performance gates passed."""
     if theme_key != "allpha-universe-v3":
         raise HTTPException(404, detail={"code": "PUBLIC_THEME_NOT_FOUND"})
     try:
@@ -98,19 +92,44 @@ async def public_theme_asset_manifest(theme_key: str):
                 "select": "id,name,slug,source,status,moderation_status,catalog_key",
                 "source": "eq.platform",
                 "slug": "eq.allpha-universe-v3",
+                "status": "eq.published",
+                "moderation_status": "eq.approved",
                 "limit": "1",
             },
         )
         if not themes:
-            raise HTTPException(404, detail={"code": "PUBLIC_THEME_NOT_FOUND"})
+            raise HTTPException(404, detail={"code": "PUBLIC_THEME_NOT_PUBLISHED"})
         theme = themes[0]
+
+        versions = await service_select(
+            "theme_versions",
+            {
+                "select": "id,version,status,validation_status,moderation_status,performance_status",
+                "theme_id": f"eq.{theme['id']}",
+                "status": "eq.published",
+                "validation_status": "eq.passed",
+                "moderation_status": "eq.approved",
+                "performance_status": "eq.passed",
+                "order": "version.desc",
+                "limit": "1",
+            },
+        )
+        if not versions:
+            raise HTTPException(404, detail={"code": "PUBLIC_THEME_VERSION_NOT_PUBLISHED"})
+        version = versions[0]
+
         assets = await service_select(
             "theme_assets",
             {
-                "select": "id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,metadata,sort_order,status,moderation_status,safety_status,performance_status,content_size_bytes,checksum_sha256,uploaded_at",
+                "select": "id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,metadata,sort_order,status,moderation_status,safety_status,performance_status,content_size_bytes",
                 "theme_id": f"eq.{theme['id']}",
+                "theme_version_id": f"eq.{version['id']}",
                 "asset_type": "in.(3d_scene,model)",
                 "storage_path": "like.theme-v3-tripo/*",
+                "status": "eq.active",
+                "moderation_status": "eq.approved",
+                "safety_status": "eq.passed",
+                "performance_status": "eq.passed",
                 "order": "sort_order.asc",
             },
         )
@@ -120,30 +139,49 @@ async def public_theme_asset_manifest(theme_key: str):
             if asset.get("storage_bucket") == WORLD_ASSET_BUCKET and asset.get("storage_path")
         ]
         try:
-            signed_by_path = await create_service_signed_download_urls(WORLD_ASSET_BUCKET, paths, 900)
+            signed_by_path = await create_service_signed_download_urls(WORLD_ASSET_BUCKET, paths, 900) if paths else {}
         except SupabaseStorageError:
             signed_by_path = {}
 
-        manifest = [
-            {**asset, "signed_url": signed_by_path.get(asset.get("storage_path"))}
-            for asset in assets
-        ]
-        binary_3d = [item for item in manifest if item.get("signed_url")]
+        binary_3d = []
+        for asset in assets:
+            storage_path = asset.get("storage_path")
+            signed_url = signed_by_path.get(storage_path) if storage_path else None
+            if asset.get("storage_bucket") != WORLD_ASSET_BUCKET or not signed_url:
+                continue
+            raw_metadata = asset.get("metadata")
+            metadata = raw_metadata if isinstance(raw_metadata, dict) else {}
+            safe_metadata = {
+                key: metadata[key]
+                for key in ("asset_key", "category", "asset_category", "assetCategory", "name", "role")
+                if metadata.get(key) is not None
+            }
+            binary_3d.append({
+                "id": asset.get("id"),
+                "theme_version_id": asset.get("theme_version_id"),
+                "asset_type": asset.get("asset_type"),
+                "storage_path": storage_path,
+                "mime_type": asset.get("mime_type"),
+                "content_size_bytes": asset.get("content_size_bytes"),
+                "metadata": safe_metadata,
+                "signed_url": signed_url,
+            })
+
         return {
             "data": {
-                "theme": theme,
-                "storage_bucket": WORLD_ASSET_BUCKET,
-                "assets": manifest,
+                "theme": {"id": theme.get("id"), "name": theme.get("name"), "slug": theme.get("slug")},
+                "version": {"id": version.get("id"), "version": version.get("version")},
+                "assets": binary_3d,
                 "binary_3d_assets": binary_3d,
                 "has_binary_3d_pack": bool(binary_3d),
                 "presentation_only": True,
                 "public": True,
-                "publication_mode": "v3_owner_requested_rollout",
-                "lifecycle_status_is_not_rewritten": True,
+                "publication_mode": "governed_publication",
             }
         }
     except SupabaseRestError as e:
         raise err(e, "WORLD_RUNTIME_PUBLIC_THEME_ASSET_MANIFEST_FAILED")
+
 
 @router.get("/themes/{theme_id}/asset-manifest")
 async def theme_asset_manifest(theme_id:str,context:dict=Depends(get_auth_context)):
