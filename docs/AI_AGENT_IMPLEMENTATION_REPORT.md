@@ -776,3 +776,18 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 - tests/public-3d-ui-ux.spec.ts now retains the Splash/Canvas assertions, waits up to the normal Railway rollout window, and additionally requires the character scene to reach loaded/visible/error. When the governed manifest is unavailable, the test asserts the explicit fallback rather than pretending a GLB rendered. Commit a4afa7de80d4cf3991a073016dd72bd1f46c1508.
 - The new QA run 38074759815 is queued for the latest test commit. The deployment containing the non-blocking Splash change was b8475a51-08ba-45b1-8315-2d994772d747, INITIALIZING at the last observation. Do not report QA pass until the latest run concludes.
 
+## 2026-10-11 — Final WEB-V3 Session Checkpoint
+
+- Latest code commit: 77f8af1de940b58ca3e737ac44d04ce6053f40ce. Latest docs commits follow on main; no branch or PR was created.
+- Railway production:
+  - Web deployment e6731de5-b3c1-4aca-af20-ab12fe322ff6 — SUCCESS.
+  - API deployment 59806f34-7e6c-4538-abca-e9b4899e487b — SUCCESS.
+  - Admin deployment e2139815-28fd-4a06-942a-da5e32e895de — SUCCESS on its prior deployed revision.
+- Allpha Universe CI run 38074801077 — SUCCESS; User PWA build, API syntax, Super Admin build and Security/supply-chain gates all passed.
+- Public 3D UI/UX production QA run 38074801091 — SUCCESS, 2/2 Playwright tests passed in 7.2 seconds:
+  - Splash gateway visible, Canvas visible, character scene reaches a terminal loaded/visible/error state; if error, explicit fallback is required.
+  - Public Worlds page and canonical public Theme catalog headings visible.
+- This QA proves the public surfaces and fallback contract, NOT that the actual V3 GLB is published or visible. The V3 public manifest remains lifecycle-gated; no actual GLB transfer/render evidence is available while the theme/version/assets remain pending.
+- Current unresolved V3 blockers: reconcile the two legacy generation package references through the guarded workflow; run owner validation; perform binary parseability/rig/material/scale/performance validation; pass moderation/safety/performance and explicit publication approval; then verify actual signed URL transfer and canonical renderer visibility.
+- Current unresolved broader gates: authenticated/anonymous direct-route matrix and IDOR/BOLA security E2E remain pending; full 24-surface UI reference fidelity and mobile/desktop visual screenshot review remain pending.
+
