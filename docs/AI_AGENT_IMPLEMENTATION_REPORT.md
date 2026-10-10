@@ -733,3 +733,13 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 - Latest observed Railway deployments: API 59806f34-7e6c-4538-abca-e9b4899e487b BUILDING; Web 0cd57998-d0fb-4ffb-9817-964271a77ada BUILDING. Build/runtime results are NOT VERIFIED.
 - No database mutation, asset regeneration, upload, or direct lifecycle status update was performed.
 
+## 2026-10-11 — WEB-06/Identity — Onboarding Flow and Real Character Scene
+
+- Splash CTA now advances to the Explore/Introduction screen instead of skipping that screen. Explore has a Skip action to the public entry and a Create Your Identity CTA to /auth?mode=signup&next=%2Funiverse.
+- PublicUniverse3D now resolves the canonical agent-character category for both Splash and Human Identity. It uses the same manifest/API contract and canonical scene pipeline; no static image or alternate renderer was added.
+- Replaced the decorative CSS avatar in the identity gateway with PublicUniverse3D variant=identity, retaining the clearly labeled fallback when governed GLB delivery is unavailable.
+- Commits: 453252e5b83c6eead06467c0dcbbf04691ea896e (onboarding screen transitions); 8369e4cc13750ca136c488e01eacb9b6bb9b173b (identity CTA route); 2fedf980c508e5647f222436ed4e791c4f37602f (narrowed static asset bypass); ff815e8dd5332882b6b6cf25a0dd5353bf544b26 (identity uses agent-character); f49e96e37d519134005298a7b06d9d11b995e2b1 (real identity character scene).
+- Latest Railway Web deployment: f5750c35-e060-4def-84bf-90b3c95bcd14, commit f49e96e37d519134005298a7b06d9d11b995e2b1, BUILDING at last check. Earlier Web deployment passed TypeScript and generated all 78 static pages after the route guard's useSearchParams removal, but the latest identity UI commit has not yet been verified.
+- Latest API deployment containing the V3 public manifest lifecycle gate: 59806f34-7e6c-4538-abca-e9b4899e487b, commit cae84dae350769213a7ed8da411507ed74198446, SUCCESS; API healthcheck succeeded. Endpoint-specific runtime response and browser fallback remain NOT VERIFIED.
+- V3 assets remain draft/review/pending and intentionally are not signed for public rendering until lifecycle gates pass.
+
