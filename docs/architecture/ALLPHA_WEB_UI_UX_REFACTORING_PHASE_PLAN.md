@@ -865,3 +865,16 @@ Status: **IMPLEMENTED / LATEST RAILWAY BUILD PENDING / BROWSER VISUAL QA PENDING
 
 Next exact action: verify deployment 51ba5d48-d345-4aa9-8d6c-b29ce5088c76 and correct any new build blocker before browser visual QA.
 
+## 2026-10-11 — WEB Auth Guard and Build Prerender Follow-up
+
+Status: **IMPLEMENTED IN SOURCE / RAILWAY DEPLOYMENT QUEUED / ANONYMOUS-AUTHENTICATED E2E PENDING**
+
+- Added shared public/private path policy in apps/web/lib/auth/route-access.ts.
+- apps/web/proxy.ts now validates Supabase claims on private routes and redirects anonymous requests to /auth with a relative next path. If server-side Supabase configuration is missing, private routes fail closed with 503 instead of silently proceeding.
+- apps/web/components/route-auth-guard.tsx no longer calls useSearchParams at the root; query preservation is read inside the client effect. It shares the same route policy as the proxy.
+- /agents is private because it represents owned Agents. /agents/discover remains public. Public published-content and spatial discovery prefixes remain public according to the shared allowlist.
+- Commits: 697644ed236f23719274975309170444e8e30728; ce9fec88c3b738409e485af9361b8caf46157729; f11100b77367d5a0545625118b7672e2fc213750.
+- Prior build passed TypeScript after Splash fixes but failed on useSearchParams prerendering from the root client guard. The follow-up Web deployment 3e5b2d9e-fb54-4084-b006-a8e2ce92647f was QUEUED at the latest check.
+- Required verification before closure: latest Railway build, direct anonymous requests to private routes, authenticated access, safe next handling, API independent authz, RLS/IDOR/BOLA tests, and no redirect loops.
+- V3 package/theme/version binding mismatch remains a separate governance blocker. Do not bypass the explicit production reconciliation approval gate or change asset lifecycle statuses directly.
+
