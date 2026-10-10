@@ -570,6 +570,48 @@ function WorldObjects({
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const goldenLayer = String(scene.environment?.spatial_layer ?? "");
+
+  // Tripo V3 is the only 3D source for this runtime path. Do not render the
+  // legacy procedural scene, golden geometry, or direct legacy asset URLs.
+  if (scene.environment?.asset_generation === "tripo-v3") {
+    const layer = (["universe", "galaxy", "world", "district", "booth", "content", "live"].includes(spatialLayer)
+      ? spatialLayer
+      : "world") as "universe" | "galaxy" | "world" | "district" | "booth" | "content" | "live";
+
+    if (liveStageMode) {
+      return (
+        <group>
+          <ThemeSpatialScene
+            themeKey={themeKey}
+            layer="live"
+            lowPower={lowPower}
+            reducedMotion={reducedMotion}
+            onRuntimeState={onProductionAssetState}
+            onRuntimeMetrics={onProductionAssetMetrics}
+          />
+          <group position={[1.35, 0, 0]}>
+            <ThemeSpatialScene themeKey={themeKey} category="agent-character" layer="live" lowPower={lowPower} reducedMotion={reducedMotion} />
+          </group>
+          {humanPresentationActive ? (
+            <group position={[-1.35, 0, 0]}>
+              <ThemeSpatialScene themeKey={themeKey} category="human-live" layer="live" lowPower={lowPower} reducedMotion={reducedMotion} />
+            </group>
+          ) : null}
+        </group>
+      );
+    }
+
+    return (
+      <ThemeSpatialScene
+        themeKey={themeKey}
+        layer={layer}
+        lowPower={lowPower}
+        reducedMotion={reducedMotion}
+        onRuntimeState={onProductionAssetState}
+        onRuntimeMetrics={onProductionAssetMetrics}
+      />
+    );
+  }
   if (goldenLayer === "universe") {
     return <CinematicProductionHero themeKey={themeKey} lowPower={lowPower} reducedMotion={reducedMotion} />;
   }
