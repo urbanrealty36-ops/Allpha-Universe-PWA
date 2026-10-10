@@ -913,3 +913,14 @@ Status: **BUILD + DEPLOYMENT SUCCESS / PRODUCTION VISUAL QA PENDING**
 - Commits: c8b2fa67d25e76d25315b206cf42f4ebac782ac1; a4afa7de80d4cf3991a073016dd72bd1f46c1508.
 - Latest deployment b8475a51-08ba-45b1-8315-2d994772d747 and QA run 38074759815 were not yet complete at the last observation. WEB-06 remains build/visual evidence gated.
 
+### Final checkpoint — 2026-10-11
+
+Status: **WEB BUILD + DEPLOYMENT + PUBLIC 3D SMOKE QA GREEN / FULL VISUAL FIDELITY NOT YET VERIFIED**
+
+- Latest code commit 77f8af1de940b58ca3e737ac44d04ce6053f40ce is deployed in Railway Web deployment e6731de5-b3c1-4aca-af20-ab12fe322ff6 (SUCCESS).
+- Railway API deployment 59806f34-7e6c-4538-abca-e9b4899e487b is SUCCESS; Admin remains SUCCESS on its previous revision.
+- CI run 38074801077 is SUCCESS across User PWA, API syntax, Super Admin and Security/supply-chain gates.
+- Production Playwright run 38074801091 is SUCCESS (2/2): public Splash + Canvas + terminal character state/fallback, and public Worlds/catalog headings.
+- The gate does not prove actual V3 GLB visibility. The public manifest intentionally withholds signed URLs while V3 theme/version/asset lifecycle gates remain pending.
+- Full mobile/desktop screenshot comparison to all 24 reference surfaces, actual GLB visual/transfer verification, authenticated-route matrix, and security E2E remain OPEN.
+
