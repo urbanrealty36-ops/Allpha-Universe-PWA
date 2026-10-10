@@ -696,4 +696,29 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 3. Run the read-only V3 preflight, then use the approved owner-key validation/reconciliation workflow according to its required approval gate.
 4. Reconcile package/theme/version binding through the canonical API workflow; then evaluate moderation, safety, performance, and explicit publication approval independently.
 5. Continue the private-route auth guard audit and update its route matrix before closing WEB-31/security gates.
+ 
+## 2026-10-11 — WEB Auth Guard / Build Prerender Follow-up
+
+### Additional changes
+- apps/web/lib/auth/route-access.ts — introduced one shared public/private route policy for the server proxy and client navigation guard.
+- apps/web/proxy.ts — uses verified Supabase claims for server-side protection of private page requests; redirects anonymous requests to /auth with a same-site relative next path. Private routes fail closed with HTTP 503 if Supabase server auth configuration is missing.
+- apps/web/components/route-auth-guard.tsx — removed useSearchParams from the root client guard to eliminate the global static-prerender bailout, and now uses the shared route policy.
+- /agents is no longer treated as public. Public Agent discovery remains available at /agents/discover; owner Agent surfaces require authentication.
+- Commits: 697644ed236f23719274975309170444e8e30728 (shared route policy), ce9fec88c3b738409e485af9361b8caf46157729 (server proxy guard), f11100b77367d5a0545625118b7672e2fc213750 (client guard policy alignment).
+
+### Latest build status
+- The previous Web build passed TypeScript after the Splash TS fixes, but failed during static prerendering because the root RouteAuthGuard used useSearchParams without a Suspense boundary.
+- The latest code includes removal of that root useSearchParams call and server-side claim verification. Railway deployment 3e5b2d9e-fb54-4084-b006-a8e2ce92647f is QUEUED at the last observation; no validation result is yet available.
+- No claim of build success, deployed auth enforcement, or browser E2E success is made.
+
+### V3 asset binding finding
+- Supabase confirms exactly 17 Storage objects under theme-v3-tripo/ in bucket allpha-world-assets (aggregate size 171,659,408 bytes), and 17 theme_assets rows for V3 version 70f6573c-82fc-44af-b3ae-63f649216ba0.
+- The two referenced generation package rows remain partial and point to legacy package theme/version IDs: Reference Batch 01 points to theme 50438daa-45d2-4523-922a-bb89caf82822 / version 82277b6a-fbf0-4a65-8776-1fd706c9cf38; Failed Asset Retry 02 points to theme 760666d9-3858-4097-9a34-da907744b7e0 / version 2d6b7c3e-62fb-424d-83a8-657f092073a4. Asset rows reference the canonical V3 theme/version while metadata retains these original package IDs.
+- All 17 V3 asset rows remain pending; 0 active, 0 moderation-approved, 0 safety-passed, 0 performance-passed. This is a real lifecycle/governance blocker, not a missing generation task.
+- The production promotion workflow requires explicit approval and exact confirmation before reconciliation. The connected GitHub actions surface in this session exposes read operations and workflow-run inspection but no workflow-dispatch action; therefore no reconcile or production mutation was attempted. Do not repair these bindings by direct SQL.
+
+### Remaining status
+- WEB-06 reference layout: code implemented, build/deployment and visual verification pending.
+- Auth guard: server enforcement implemented in source, but deployed anonymous/authenticated route tests are pending.
+- V3 publication: BLOCKED pending guarded package reconciliation, owner validation, moderation, safety, performance, and human publication approval.
 
