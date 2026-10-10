@@ -11,7 +11,7 @@ export function UniverseSplash({ onComplete, onCreateIdentity }: { onComplete: (
   const [subMode, setSubMode] = useState<'splash' | 'explore'>('splash');
 
   return (
-    <div className="allpha-reference-splash relative min-h-[100svh] h-[100svh] flex flex-col justify-between text-slate-100 overflow-hidden bg-slate-950">
+    <div className="allpha-public-splash allpha-reference-splash relative min-h-[100svh] h-[100svh] flex flex-col justify-between text-slate-100 overflow-hidden bg-slate-950">
       {/* 3D Background Canvas */}
       <div className="absolute inset-0 z-0">
         <PublicUniverse3D variant="splash" />
