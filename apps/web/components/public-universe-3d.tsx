@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ThemeManifestAssetScene, type ThemeAssetRuntimeState } from "./world/theme-manifest-asset-scene";
 import { Cinematic3DScene, configureCinematicRenderer } from "./world/cinematic-3d-scene";
@@ -72,6 +72,7 @@ function PublicScene({ variant, onAssetState }: { variant: PublicUniverse3DVaria
 
 export default function PublicUniverse3D({ variant }: { variant: PublicUniverse3DVariant }) {
   const [assetState, setAssetState] = useState<ThemeAssetRuntimeState>("idle");
+  const handleAssetState = useCallback((state: ThemeAssetRuntimeState) => setAssetState(state), []);
   const characterMode = variant === "splash";
   const visibleState = assetState === "loaded" || assetState === "visible";
   return (
@@ -83,7 +84,7 @@ export default function PublicUniverse3D({ variant }: { variant: PublicUniverse3
         gl={{ antialias: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => configureCinematicRenderer(gl, false)}
       >
-        <PublicScene variant={variant} onAssetState={setAssetState} />
+        <PublicScene variant={variant} onAssetState={handleAssetState} />
       </Canvas>
       {characterMode && !visibleState && (
         <div className="pointer-events-none absolute inset-x-0 bottom-[18%] z-[2] flex justify-center px-4">
