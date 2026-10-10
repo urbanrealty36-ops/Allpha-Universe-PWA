@@ -88,7 +88,7 @@ export default function UniverseEntrySurface() {
   }
 
   if (state === "loading") return <UniverseLoadingState />;
-  if (state === "splash") return <UniverseSplash onComplete={() => setState("anonymous")} />;
+  if (state === "splash") return <UniverseSplash onComplete={() => setState("anonymous")} onCreateIdentity={() => router.push("/auth?mode=signup&next=%2Funiverse")} />;
   return <UniversePublicEntry onEnter={enterUniverse} />;
 }
 
