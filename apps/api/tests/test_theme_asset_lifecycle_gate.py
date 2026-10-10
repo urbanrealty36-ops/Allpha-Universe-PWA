@@ -7,6 +7,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.api import themes
+from app.core.supabase_rest import SupabaseRestError
 
 
 def test_lifecycle_gate_request_requires_evidence():
@@ -23,15 +24,23 @@ def test_lifecycle_gate_request_rejects_unknown_gate():
         )
 
 
-def test_lifecycle_endpoint_rejects_incompatible_decision_before_rpc(monkeypatch):
+@pytest.mark.parametrize(
+    ("gate", "decision", "expected_code"),
+    [
+        ("moderation", "passed", "INVALID_MODERATION_DECISION"),
+        ("safety", "approved", "INVALID_TECHNICAL_GATE_DECISION"),
+        ("performance", "approved", "INVALID_TECHNICAL_GATE_DECISION"),
+    ],
+)
+def test_lifecycle_endpoint_rejects_incompatible_decision_before_rpc(
+    monkeypatch, gate, decision, expected_code
+):
     async def fail_if_called(*args, **kwargs):
         raise AssertionError("RPC must not be called for an invalid decision")
 
     monkeypatch.setattr(themes, "rpc", fail_if_called)
     payload = themes.ThemeAssetLifecycleGateRequest(
-        gate="moderation",
-        decision="passed",
-        evidence={"reviewer_note": "reviewed"},
+        gate=gate, decision=decision, evidence={"evidence": "present"}
     )
     with pytest.raises(HTTPException) as exc:
         asyncio.run(
@@ -40,11 +49,16 @@ def test_lifecycle_endpoint_rejects_incompatible_decision_before_rpc(monkeypatch
             )
         )
     assert exc.value.status_code == 422
-    assert exc.value.detail["code"] == "INVALID_MODERATION_DECISION"
+    assert exc.value.detail["code"] == expected_code
 
 
 def test_lifecycle_endpoint_records_valid_gate(monkeypatch):
-    expected = {"asset_id": str(uuid4()), "gate": "safety", "decision": "passed", "status": "recorded"}
+    expected = {
+        "asset_id": str(uuid4()),
+        "gate": "safety",
+        "decision": "passed",
+        "status": "recorded",
+    }
     calls = []
 
     async def fake_rpc(user, function, payload):
@@ -75,12 +89,35 @@ def test_lifecycle_endpoint_records_valid_gate(monkeypatch):
     assert calls[0][2]["p_asset_id"] == str(asset_id)
 
 
-def test_route_requires_admin_manage_permission():
+def test_lifecycle_endpoint_maps_rpc_permission_denial(monkeypatch):
+    async def deny(*args, **kwargs):
+        raise SupabaseRestError(403, "permission denied")
+
+    monkeypatch.setattr(themes, "rpc", deny)
+    payload = themes.ThemeAssetLifecycleGateRequest(
+        gate="moderation",
+        decision="approved",
+        evidence={"reviewer_note": "reviewed by authorized reviewer"},
+    )
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            themes.record_platform_asset_lifecycle_gate(
+                uuid4(), payload, {"user": object(), "permissions": ["admin.manage"]}
+            )
+        )
+    assert exc.value.status_code == 403
+    assert exc.value.detail["code"] == "THEME_ASSET_LIFECYCLE_GATE_FAILED"
+
+
+def test_route_is_protected_by_permission_dependency():
     route = next(
         route for route in themes.router.routes
-        if getattr(route, "path", None) == "/api/v1/themes/platform-assets/{asset_id}/lifecycle-gate"
+        if getattr(route, "path", None)
+        == "/api/v1/themes/platform-assets/{asset_id}/lifecycle-gate"
     )
-    assert any(
-        getattr(dependency.call, "__name__", "") == "dependency"
-        for dependency in route.dependant.dependencies
-    )
+    dependencies = route.dependant.dependencies
+    assert dependencies, "lifecycle gate route must not be publicly callable"
+    assert all(
+        getattr(dependency.call, "__name__", "") != "get_auth_context"
+        for dependency in dependencies
+    ), "lifecycle gate must use an explicit permission dependency"
