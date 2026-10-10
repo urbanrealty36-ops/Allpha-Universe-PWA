@@ -275,20 +275,20 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
         if (cancelled) return;
         const assets: ManifestAsset[] = payload?.data?.binary_3d_assets ?? [];
         const aliases: Record<AssetCategory, string[]> = {
-          universe: ["universe", "galaxy_navigator", "universe_core"],
-          galaxy: ["galaxy", "galaxy_navigator"],
-          world: ["world", "world_planet"],
-          orbit: ["orbit", "navigation_orbit"],
-          capsule: ["capsule", "content_capsule"],
-          district: ["district", "district_city"],
-          booth: ["booth", "booth_tenant"],
-          "content-feed": ["content-feed", "content_feed", "content_capsule"],
-          "agent-character": ["agent-character", "agent_character", "ai_character_companion"],
-          "live-stage": ["live-stage", "live_stage", "podcast_stage", "classroom_stage"],
-          "human-live": ["human-live", "human_live", "human_uniform_formal", "human_uniform_hero"],
-          "sticker-social": ["sticker-social", "sticker_social"],
-          animation: ["animation", "ai_character_animation"],
-          "navigation-fx": ["navigation-fx", "navigation_fx", "spatial_fx"],
+          universe: ["galaxy_navigator", "universe", "universe_core"],
+          galaxy: ["galaxy_navigator", "galaxy"],
+          world: ["world_planet", "world"],
+          orbit: ["navigation_orbit", "orbit"],
+          capsule: ["content_capsule", "capsule"],
+          district: ["district_city", "district"],
+          booth: ["booth_tenant", "booth"],
+          "content-feed": ["content_capsule", "content-feed", "content_feed"],
+          "agent-character": ["ai_character_companion", "agent-character", "agent_character"],
+          "live-stage": ["live_stage", "podcast_stage", "presentation_stage", "news_stage", "classroom_stage", "mentor_room", "live-stage"],
+          "human-live": ["human_uniform_formal", "human_uniform_hero", "human-live", "human_live"],
+          "sticker-social": ["spatial_fx", "sticker-social", "sticker_social"],
+          animation: ["ai_character_companion", "animation", "ai_character_animation"],
+          "navigation-fx": ["portal_gate", "spatial_fx", "navigation_orbit", "navigation-fx", "navigation_fx"],
         };
         const normalize = (value: unknown) => String(value ?? "")
           .toLowerCase()
