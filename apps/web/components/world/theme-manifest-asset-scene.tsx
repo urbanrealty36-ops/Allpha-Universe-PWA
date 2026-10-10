@@ -243,10 +243,9 @@ function ProductionAssetModel({
   return <primitive object={prepared.scene} scale={scale * prepared.fitScale} />;
 }
 
-export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = null, lowPower = false, reducedMotion = false, fallback = null, onRuntimeState, onRuntimeMetrics }: {
+export function ThemeManifestAssetScene({ themeKey, category, lowPower = false, reducedMotion = false, fallback = null, onRuntimeState, onRuntimeMetrics }: {
   themeKey?: string | null;
   category: AssetCategory;
-  directAssetUrl?: string | null;
   lowPower?: boolean;
   reducedMotion?: boolean;
   fallback?: ReactNode;
@@ -257,11 +256,6 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
   useEffect(() => {
     let cancelled = false;
     setUrl(null);
-    if (directAssetUrl) {
-      onRuntimeState?.("loading-gltf");
-      setUrl(directAssetUrl);
-      return () => { onRuntimeState?.("idle"); };
-    }
     if (!themeKey) {
       onRuntimeState?.("idle");
       return;
@@ -275,20 +269,20 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
         if (cancelled) return;
         const assets: ManifestAsset[] = payload?.data?.binary_3d_assets ?? [];
         const aliases: Record<AssetCategory, string[]> = {
-          universe: ["universe", "galaxy_navigator", "universe_core"],
-          galaxy: ["galaxy", "galaxy_navigator"],
-          world: ["world", "world_planet"],
-          orbit: ["orbit", "navigation_orbit"],
-          capsule: ["capsule", "content_capsule"],
-          district: ["district", "district_city"],
-          booth: ["booth", "booth_tenant"],
-          "content-feed": ["content-feed", "content_feed", "content_capsule"],
-          "agent-character": ["agent-character", "agent_character", "ai_character_companion"],
-          "live-stage": ["live-stage", "live_stage", "podcast_stage", "classroom_stage"],
-          "human-live": ["human-live", "human_live", "human_uniform_formal", "human_uniform_hero"],
-          "sticker-social": ["sticker-social", "sticker_social"],
-          animation: ["animation", "ai_character_animation"],
-          "navigation-fx": ["navigation-fx", "navigation_fx", "spatial_fx"],
+          universe: ["galaxy_navigator", "universe", "universe_core"],
+          galaxy: ["galaxy_navigator", "galaxy"],
+          world: ["world_planet", "world"],
+          orbit: ["navigation_orbit", "orbit"],
+          capsule: ["content_capsule", "capsule"],
+          district: ["district_city", "district"],
+          booth: ["booth_tenant", "booth"],
+          "content-feed": ["content_capsule", "content-feed", "content_feed"],
+          "agent-character": ["ai_character_companion", "agent-character", "agent_character"],
+          "live-stage": ["live_stage", "podcast_stage", "presentation_stage", "news_stage", "classroom_stage", "mentor_room", "live-stage"],
+          "human-live": ["human_uniform_formal", "human_uniform_hero", "human-live", "human_live"],
+          "sticker-social": ["spatial_fx", "sticker-social", "sticker_social"],
+          animation: ["ai_character_companion", "animation", "ai_character_animation"],
+          "navigation-fx": ["portal_gate", "spatial_fx", "navigation_orbit", "navigation-fx", "navigation_fx"],
         };
         const normalize = (value: unknown) => String(value ?? "")
           .toLowerCase()
@@ -296,22 +290,22 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
           .replace(/[^a-z0-9]+/g, "_")
           .replace(/^_+|_+$/g, "");
         const accepted = aliases[category] ?? [category];
-        const candidate = assets.find((asset) => {
+        const metadataMatches = (asset: ManifestAsset, alias: string) => {
           if (!asset.signed_url) return false;
           const metadata = asset.metadata ?? {};
           const path = String(asset.storage_path ?? "").replace(/^\/+/, "");
           const basename = path.split("/").pop() ?? "";
+          const key = normalize(alias);
           const declaredCategory = normalize(metadata.category ?? metadata.asset_category ?? metadata.assetCategory);
           const declaredKey = normalize(metadata.asset_key ?? metadata.assetKey ?? metadata.name ?? basename);
-          const categoryMatches = accepted.some((alias) => {
-            const key = normalize(alias);
-            return declaredCategory === key || declaredKey === key;
-          });
-          const legacySuffix = path.toLowerCase().endsWith(("/" + themeKey + "/" + category + ".glb").toLowerCase());
-          // Only assets already authorized by the canonical signed manifest are eligible.
-          // Prefer explicit category/key metadata; retain the legacy path contract for older manifests.
-          return categoryMatches || legacySuffix;
-        });
+          return declaredCategory === key || declaredKey === key;
+        };
+        // Preserve explicit alias priority; prefer the primary Tripo asset for a layer.
+        let candidate: ManifestAsset | undefined;
+        for (const alias of accepted) {
+          candidate = assets.find((asset) => metadataMatches(asset, alias));
+          if (candidate) break;
+        }
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
           setUrl(null);
@@ -331,7 +325,7 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
       controller.abort();
       onRuntimeState?.("idle");
     };
-  }, [themeKey, category, directAssetUrl, onRuntimeState]);
+  }, [themeKey, category, onRuntimeState]);
 
   useEffect(() => {
     if (url) {

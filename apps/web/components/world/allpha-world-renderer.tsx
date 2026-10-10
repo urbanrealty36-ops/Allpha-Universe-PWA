@@ -3,7 +3,6 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { useCallback, useMemo, useRef } from "react";
-import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
 import { createContentSpatialCompositionV207, validateContentSpatialComposition, type ContentSpatialRelationship } from "../../lib/world-engine/content-spatial-v2";
 import { createLiveStageV208Composition, validateLiveStageV208Composition, type LiveStageActorState } from "../../lib/world-engine/live-stage-v2";
@@ -81,7 +80,6 @@ type Props = {
   humanPresentationState?: LiveStageActorState;
   liveAgentStageState?: LiveStageActorState;
   productionSpatialLayer?: "world" | "district" | "booth";
-  productionAssetUrl?: string | null;
 };
 
 function Structure({ kind, color, accent, position, scale = 1 }: {
@@ -550,13 +548,12 @@ function LiveCollaborationStageView({
 }
 
 function WorldObjects({
-  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,productionSpatialLayer,productionAssetUrl,selectedBoothId,selectedDistrictId,themePackUrl,themeKey:themeKeyOverride,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance,liveStageMode,humanPresentationActive,humanPresentationStatus,liveCollaborationActive,liveCollaborationConsentApproved,liveCollaborationRiskAllowed,liveAgentId,humanPresentationState,liveAgentStageState,onProductionAssetState,onProductionAssetMetrics
+  scene,tokens,onHotspot,lowPower,booths,presence,portals,content,spatialObjects,productionSpatialLayer,selectedBoothId,selectedDistrictId,themePackUrl,themeKey:themeKeyOverride,liveStageUrl,agentCharacterUrl,agentCharacterAsset,agentCharacterPerformance,liveStageMode,humanPresentationActive,humanPresentationStatus,liveCollaborationActive,liveCollaborationConsentApproved,liveCollaborationRiskAllowed,liveAgentId,humanPresentationState,liveAgentStageState,onProductionAssetState,onProductionAssetMetrics
 }: {
   scene:WorldScene; tokens?:Record<string,unknown>; onHotspot?:Props["onHotspot"]; lowPower:boolean;
   booths:SceneNode[]; presence:SpatialPresence[]; portals:SpatialPortal[]; content:SpatialContent[];
   spatialObjects:DistrictSpatialObject[];
   productionSpatialLayer?: "world" | "district" | "booth";
-  productionAssetUrl?: string | null;
   selectedBoothId?:string; selectedDistrictId?:string; themePackUrl?:string|null; themeKey?:string|null; liveStageUrl?:string|null; agentCharacterUrl?:string|null; agentCharacterAsset?:{source?:string|null;characterKey?:string|null;contract?:Record<string,unknown>|null}; agentCharacterPerformance?: Props["agentCharacterPerformance"]; liveStageMode?: boolean; humanPresentationActive?: boolean; humanPresentationStatus?: string|null; liveCollaborationActive?: boolean; liveCollaborationConsentApproved?: boolean; liveCollaborationRiskAllowed?: boolean; liveAgentId?: string|null; humanPresentationState?: LiveStageActorState; liveAgentStageState?: LiveStageActorState; onProductionAssetState?: (state: ThemeAssetRuntimeState) => void; onProductionAssetMetrics?: (metrics: ThemeAssetRuntimeMetrics) => void;
 }) {
   const style=useMemo(()=>proceduralThemeStyle(scene),[scene]);
@@ -571,6 +568,48 @@ function WorldObjects({
   const architecture = typeof scene.environment?.architecture === "string" ? String(scene.environment.architecture) : undefined;
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const goldenLayer = String(scene.environment?.spatial_layer ?? "");
+
+  // Tripo V3 is the only 3D source for this runtime path. Do not render the
+  // legacy procedural scene, golden geometry, or direct legacy asset URLs.
+  if (scene.environment?.asset_generation === "tripo-v3") {
+    const layer = (["universe", "galaxy", "world", "district", "booth", "content", "live"].includes(spatialLayer)
+      ? spatialLayer
+      : "world") as "universe" | "galaxy" | "world" | "district" | "booth" | "content" | "live";
+
+    if (liveStageMode) {
+      return (
+        <group>
+          <ThemeSpatialScene
+            themeKey={themeKey}
+            layer="live"
+            lowPower={lowPower}
+            reducedMotion={reducedMotion}
+            onRuntimeState={onProductionAssetState}
+            onRuntimeMetrics={onProductionAssetMetrics}
+          />
+          <group position={[1.35, 0, 0]}>
+            <ThemeSpatialScene themeKey={themeKey} category="agent-character" layer="live" lowPower={lowPower} reducedMotion={reducedMotion} />
+          </group>
+          {humanPresentationActive ? (
+            <group position={[-1.35, 0, 0]}>
+              <ThemeSpatialScene themeKey={themeKey} category="human-live" layer="live" lowPower={lowPower} reducedMotion={reducedMotion} />
+            </group>
+          ) : null}
+        </group>
+      );
+    }
+
+    return (
+      <ThemeSpatialScene
+        themeKey={themeKey}
+        layer={layer}
+        lowPower={lowPower}
+        reducedMotion={reducedMotion}
+        onRuntimeState={onProductionAssetState}
+        onRuntimeMetrics={onProductionAssetMetrics}
+      />
+    );
+  }
   if (goldenLayer === "universe") {
     return <CinematicProductionHero themeKey={themeKey} lowPower={lowPower} reducedMotion={reducedMotion} />;
   }
@@ -581,7 +620,7 @@ function WorldObjects({
   return <>
     {themePackUrl?<ThemePackEnvironment url={themePackUrl}/>:null}
     {liveStageMode ? <LiveCollaborationStageView stageUrl={liveStageUrl} lowPower={lowPower} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} collaborationActive={liveCollaborationActive} consentApproved={liveCollaborationConsentApproved} riskAllowed={liveCollaborationRiskAllowed} agentId={liveAgentId} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} themeKey={typeof scene.environment?.golden_theme==="string"?String(scene.environment.golden_theme):undefined} architecture={typeof scene.environment?.architecture==="string"?String(scene.environment.architecture):undefined} humanState={humanPresentationState} agentState={liveAgentStageState}/> : (liveStageUrl ? <LiveStage3DAsset url={liveStageUrl}/> : null)}
-    <ThemeSpatialScene themeKey={themeKey} architecture={architecture} layer={(["universe","galaxy","world","district","booth","content","live"].includes(spatialLayer) ? spatialLayer : "world") as "universe"|"galaxy"|"world"|"district"|"booth"|"content"|"live"} directAssetUrl={productionAssetUrl} lowPower={lowPower} reducedMotion={reducedMotion} onRuntimeState={onProductionAssetState} onRuntimeMetrics={onProductionAssetMetrics} />
+    <ThemeSpatialScene themeKey={themeKey} architecture={architecture} layer={(["universe","galaxy","world","district","booth","content","live"].includes(spatialLayer) ? spatialLayer : "world") as "universe"|"galaxy"|"world"|"district"|"booth"|"content"|"live"} lowPower={lowPower} reducedMotion={reducedMotion} onRuntimeState={onProductionAssetState} onRuntimeMetrics={onProductionAssetMetrics} />
 
     {zones.map((zone,i)=>{
       const angle=(i/Math.max(1,zones.length))*Math.PI*2;
@@ -658,7 +697,6 @@ export default function AllphaWorldRenderer({
   humanPresentationState,
   liveAgentStageState,
   productionSpatialLayer,
-  productionAssetUrl,
 }: Props) {
   const productionRuntimeMarkerRef = useRef<HTMLDivElement | null>(null);
   const resolveProductionRuntimeMarker = useCallback(() => {
@@ -718,7 +756,7 @@ export default function AllphaWorldRenderer({
       <PerspectiveCamera makeDefault position={goldenLayer ? (goldenLayer === "universe" ? [0, 6.2, 15.5] : goldenLayer === "galaxy" ? [0, 5.4, 13.2] : [0, 4.8, 11.2]) : [14,11,14]} fov={goldenLayer ? (goldenLayer === "universe" ? 48 : 50) : 58} onUpdate={(camera) => camera.lookAt(0, 1.2, 0)}/>
       <ambientLight intensity={.22}/>
       <directionalLight position={[8,14,6]} intensity={.8} castShadow={shadows}/>
-      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} productionSpatialLayer={productionSpatialLayer} productionAssetUrl={productionAssetUrl} onProductionAssetState={handleProductionAssetState} onProductionAssetMetrics={handleProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
+      <WorldObjects scene={scene} tokens={tokens} themeKey={themeKey} productionSpatialLayer={productionSpatialLayer} onProductionAssetState={handleProductionAssetState} onProductionAssetMetrics={handleProductionAssetMetrics} onHotspot={onHotspot} lowPower={lowPower} booths={booths} presence={presence} portals={portals} content={content} spatialObjects={spatialObjects} selectedBoothId={selectedBoothId} selectedDistrictId={selectedDistrictId} themePackUrl={themePackUrl} liveStageUrl={liveStageUrl} agentCharacterUrl={agentCharacterUrl} agentCharacterAsset={agentCharacterAsset} agentCharacterPerformance={agentCharacterPerformance} liveStageMode={liveStageMode} humanPresentationActive={humanPresentationActive} humanPresentationStatus={humanPresentationStatus} liveCollaborationActive={liveCollaborationActive} liveCollaborationConsentApproved={liveCollaborationConsentApproved} liveCollaborationRiskAllowed={liveCollaborationRiskAllowed} liveAgentId={liveAgentId} humanPresentationState={humanPresentationState} liveAgentStageState={liveAgentStageState}/>
       {/* World camera framing supports large production environments. */}\n      <OrbitControls enablePan={!lowPower} minDistance={5} maxDistance={spatialLayer === "world" ? 128 : 32} maxPolarAngle={Math.PI*.48} enableDamping dampingFactor={.08}/>
           </Cinematic3DScene>
     </Canvas>

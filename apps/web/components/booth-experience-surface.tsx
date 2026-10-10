@@ -172,7 +172,6 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
   const [hostAgent, setHostAgent] = useState<AgentAccount | null>(null);
   const [presence, setPresence] = useState<Presence[]>([]);
   const [scene, setScene] = useState<WorldScene | null>(null);
-  const [themeAssetUrl, setThemeAssetUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [lowPower, setLowPower] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -263,18 +262,33 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
           themes[0] ??
           null;
         setTheme(resolvedTheme);
-        setScene(resolvedTheme?.world_schema ? normalizeWorldScene(resolvedTheme.world_schema) : null);
-
-        if (resolvedTheme?.id) {
-          try {
-            const manifest = await apiFetch<{ data?: { binary_3d_assets?: Array<{ signed_url?: string | null }> } }>(
-              `/api/v1/themes/world-runtime/themes/${encodeURIComponent(resolvedTheme.id)}/asset-manifest`,
-            );
-            setThemeAssetUrl(manifest.data?.binary_3d_assets?.find((asset) => asset.signed_url)?.signed_url ?? null);
-          } catch {
-            setThemeAssetUrl(null);
-          }
-        }
+        const normalizedScene = resolvedTheme?.world_schema ? normalizeWorldScene(resolvedTheme.world_schema) : null;
+        const runtimeThemeKey = themeKey ?? resolvedTheme?.slug ?? null;
+        setScene(runtimeThemeKey ? {
+          ...(normalizedScene ?? {
+            schema_version: "1.0",
+            renderer: "AllphaWorldRenderer",
+            zones: [],
+            lighting: { profile: "asset-owned", presentation_only: true },
+            atmosphere: { profile: "asset-owned", presentation_only: true },
+            spawn_points: [{ id: "booth-spawn", zone: "booth", position: { x: 0, y: 0, z: 0 } }],
+            camera: { mobile: { position: [0, 3.5, 8], fov: 50 }, desktop: { position: [0, 5, 11], fov: 52 }, min_distance: 3, max_distance: 24 },
+            authority_boundary: { presentation_only: true as const },
+          }),
+          environment: {
+            ...(normalizedScene?.environment ?? {}),
+            architecture: resolvedTheme?.name ?? boothValue.name,
+            spatial_layer: "booth",
+            theme_key: runtimeThemeKey,
+            asset_generation: "tripo-v3",
+            presentation_only: true,
+          },
+          zones: normalizedScene?.zones ?? [],
+          structures: normalizedScene?.structures ?? [],
+          booths: normalizedScene?.booths ?? [],
+          portals: normalizedScene?.portals ?? [],
+          spawn_points: normalizedScene?.spawn_points ?? [{ id: "booth-spawn", zone: "booth", position: { x: 0, y: 0, z: 0 } }],
+        } : normalizedScene);
       }
       if (!matchedBooth) failures.push("BOOTH_SPATIAL_PROJECTION_UNAVAILABLE");
     } else {
@@ -345,7 +359,6 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
       (booth.scene_config?.position as { x: number; y: number; z: number } | undefined) ??
       (booth.display_config?.position as { x: number; y: number; z: number } | undefined) ??
       { x: 0, y: 0, z: 0 };
-    const modelUrl = assets.find((asset) => asset.asset_type === "3d_scene" && asset.signed_url)?.signed_url ?? null;
     return {
       id: booth.id,
       kind: "booth",
@@ -357,12 +370,11 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
         tier: booth.tier,
         status: booth.status,
         moderation_status: booth.moderation_status,
-        model_url: modelUrl,
         presentation_only: true,
       },
       presentation_only: true,
     };
-  }, [booth, assets]);
+  }, [booth]);
 
   const hostPresence = useMemo(() => presence.map((item) => ({
     id: item.id,
@@ -460,11 +472,9 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
             {scene && boothNode ? (
               <AllphaWorldRenderer
                 productionSpatialLayer="booth"
-                productionAssetUrl={typeof boothNode.metadata?.model_url === "string" ? boothNode.metadata.model_url : null}
                 scene={scene}
                 tokens={theme?.tokens}
                 lowPower={lowPower}
-                themePackUrl={themeAssetUrl}
                 booths={[boothNode]}
                 presence={hostPresence}
                 selectedBoothId={booth.id}

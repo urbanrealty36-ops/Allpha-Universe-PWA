@@ -19,7 +19,6 @@ export function ThemeSpatialScene(props: {
   architecture?: string | null;
   layer?: ThemeSpatialLayer;
   category?: AssetCategory;
-  directAssetUrl?: string | null;
   lowPower?: boolean;
   reducedMotion?: boolean;
   onRuntimeState?: (state: ThemeAssetRuntimeState) => void;
@@ -46,7 +45,6 @@ export function ThemeSpatialScene(props: {
       <ThemeManifestAssetScene
         themeKey={props.themeKey}
         category={category}
-        directAssetUrl={props.directAssetUrl}
         lowPower={props.lowPower}
         reducedMotion={props.reducedMotion}
         onRuntimeState={props.onRuntimeState}
