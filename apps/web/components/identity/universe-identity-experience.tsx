@@ -175,28 +175,13 @@ export function UniverseIdentityGateway({initialMode="signin"}:{initialMode?:Uni
     <a href="/" className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:text-white">← Universe</a>
    </header>
    <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 sm:px-8 sm:py-12 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:gap-16">
-    <section className="flex flex-col items-center text-center lg:items-start lg:text-left">
-     <div className="relative mb-6 grid h-36 w-36 place-items-center rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 p-1 shadow-[0_0_45px_rgba(129,140,248,.3)] sm:h-44 sm:w-44">
-      <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-gradient-to-b from-indigo-950 via-slate-950 to-purple-950">
-       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(56,189,248,.5),transparent_70%)]"/>
-       <div className="absolute bottom-0 h-20 w-full bg-gradient-to-t from-purple-950 to-transparent"/>
-       <div className="relative z-10 flex flex-col items-center">
-        <div className="relative h-20 w-16 rounded-full bg-gradient-to-b from-indigo-200 via-purple-300 to-cyan-200 shadow-inner">
-         <div className="absolute -left-2 -top-1 h-10 w-8 rounded-full bg-indigo-300/80 blur-[.5px]"/>
-         <div className="absolute -right-2 -top-1 h-10 w-8 rounded-full bg-purple-300/80 blur-[.5px]"/>
-         <div className="absolute left-3 top-8 flex h-2 w-3 items-center justify-center rounded-full bg-cyan-900"><i className="h-1 w-1 rounded-full bg-cyan-300"/></div>
-         <div className="absolute right-3 top-8 flex h-2 w-3 items-center justify-center rounded-full bg-cyan-900"><i className="h-1 w-1 rounded-full bg-cyan-300"/></div>
-         <div className="absolute left-1/2 top-2 h-3 w-2 -translate-x-1/2 rotate-45 bg-cyan-400"/>
-        </div>
-        <div className="-mt-2 h-10 w-28 rounded-t-3xl border-t border-cyan-400/40 bg-slate-800"/>
-       </div>
-       <span className="absolute right-4 top-3 animate-pulse text-cyan-300">✧</span><span className="absolute bottom-4 left-3 animate-pulse text-purple-300">✦</span>
-      </div>
-     </div>
+    <section className="allpha-auth-visual flex min-h-[42svh] flex-col items-center justify-end rounded-3xl px-5 pb-7 text-center lg:min-h-[720px] lg:items-start lg:px-7 lg:pb-8 lg:text-left">
+     <PublicUniverse3D variant="identity" />
+     <div aria-hidden="true" className="allpha-auth-visual-backdrop" />
      <p className="text-[10px] font-bold uppercase tracking-[.25em] text-cyan-300">{signin ? "WELCOME BACK" : "CREATE YOUR"}</p>
      <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{signin ? "Enter your Universe" : "Human Identity"}</h1>
-     <p className="mt-3 max-w-md text-sm leading-6 text-slate-400">{signin ? "Sign in to continue where your Universe left off." : "Your human identity anchors your presence and the AI Agent you own across Allpha."}</p>
-     <div className="mt-7 hidden flex-wrap items-center gap-3 text-[9px] font-bold tracking-[.18em] text-slate-500 lg:flex"><span>IDENTITY</span><i className="text-cyan-300/60">→</i><span>AGENT</span><i className="text-cyan-300/60">→</i><span>MEMORY</span><i className="text-cyan-300/60">→</i><span>UNIVERSE</span></div>
+     <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">{signin ? "Sign in to continue where your Universe left off." : "Your human identity anchors your presence and the AI Agent you own across Allpha."}</p>
+     <div className="mt-5 hidden flex-wrap items-center gap-3 text-[9px] font-bold tracking-[.18em] text-slate-300/70 lg:flex"><span>IDENTITY</span><i className="text-cyan-300/60">→</i><span>AGENT</span><i className="text-cyan-300/60">→</i><span>MEMORY</span><i className="text-cyan-300/60">→</i><span>UNIVERSE</span></div>
     </section>
     <section className="glass-panel-glow mx-auto w-full max-w-xl rounded-3xl p-5 shadow-2xl sm:p-8">
      <div className="mb-6 flex items-center justify-between gap-3"><span className="text-[9px] font-bold uppercase tracking-[.2em] text-cyan-100/65">Secure Identity Gateway</span><span className="rounded-full border border-emerald-300/20 bg-emerald-300/[.06] px-2.5 py-1 text-[8px] text-emerald-200">SUPABASE AUTH</span></div>
