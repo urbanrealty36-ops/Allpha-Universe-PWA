@@ -3,15 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
+import { isPublicWebPath } from "../lib/auth/route-access";
 
-// Public discovery and identity routes intentionally remain available without a session.
-// Private product surfaces are guarded centrally so links and direct URL entry behave alike.
-const PUBLIC_EXACT = new Set(["/", "/auth", "/auth/callback", "/blocked", "/offline", "/terms", "/privacy"]);
-const PUBLIC_PREFIXES = ["/worlds", "/universe", "/world/", "/districts", "/booths", "/agents/discover", "/agent/catalog", "/communities", "/events", "/explore", "/content", "/themes", "/reels", "/moments"];
-
-function isPublicPath(path: string) {
-  return PUBLIC_EXACT.has(path) || PUBLIC_PREFIXES.some((prefix) => path === prefix || path.startsWith(prefix));
-}
+// Client guard mirrors the server-side proxy as a responsive navigation fallback.
 
 export default function RouteAuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
@@ -21,7 +15,7 @@ export default function RouteAuthGuard({ children }: { children: React.ReactNode
 
   useEffect(() => {
     let active = true;
-    if (isPublicPath(pathname)) {
+    if (isPublicWebPath(pathname)) {
       setCheckedPath(pathname);
       return () => { active = false; };
     }
@@ -39,7 +33,7 @@ export default function RouteAuthGuard({ children }: { children: React.ReactNode
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
       if (session) setCheckedPath(pathname);
-      else if (!isPublicPath(pathname)) router.replace("/auth?mode=signin&next=" + encodeURIComponent(pathname));
+      else if (!isPublicWebPath(pathname)) router.replace("/auth?mode=signin&next=" + encodeURIComponent(pathname));
     });
     return () => {
       active = false;
@@ -47,7 +41,7 @@ export default function RouteAuthGuard({ children }: { children: React.ReactNode
     };
   }, [pathname, router, supabase]);
 
-  if (!isPublicPath(pathname) && checkedPath !== pathname) {
+  if (!isPublicWebPath(pathname) && checkedPath !== pathname) {
     return (
       <main className="flex min-h-[100svh] items-center justify-center bg-[#03050b] px-6 text-center text-white">
         <div>
