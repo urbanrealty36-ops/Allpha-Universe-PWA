@@ -878,3 +878,15 @@ Status: **IMPLEMENTED IN SOURCE / RAILWAY DEPLOYMENT QUEUED / ANONYMOUS-AUTHENTI
 - Required verification before closure: latest Railway build, direct anonymous requests to private routes, authenticated access, safe next handling, API independent authz, RLS/IDOR/BOLA tests, and no redirect loops.
 - V3 package/theme/version binding mismatch remains a separate governance blocker. Do not bypass the explicit production reconciliation approval gate or change asset lifecycle statuses directly.
 
+## 2026-10-11 — WEB-06 Identity Scene and Onboarding Transition
+
+Status: **IMPLEMENTED IN SOURCE / RAILWAY BUILDING / VISUAL QA PENDING**
+
+- Splash primary CTA now opens the Explore/Introduction screen. Explore's Skip action goes to public entry; Create Your Identity routes to the Supabase Identity Gateway in signup mode.
+- The Human Identity visual now uses PublicUniverse3D with the canonical agent-character category instead of a decorative CSS avatar.
+- Both Splash and Identity consume the same V3 manifest/category contract and the canonical scene pipeline. If the governed manifest is unavailable, the labeled fallback remains visible; it is not evidence of a successful GLB render.
+- The public manifest lifecycle gate is now strict: theme published+approved, version published+validation passed+moderation approved+performance passed, and asset active+moderation approved+safety passed+performance passed.
+- Current V3 data does not meet these gates, so the real character is expected to remain unavailable until official validation/reconciliation and approval are complete.
+- Latest Web deployment f5750c35-e060-4def-84bf-90b3c95bcd14 is BUILDING; latest API deployment 59806f34-7e6c-4538-abca-e9b4899e487b is SUCCESS. The API health check passed, but the manifest response and browser rendering have not yet been independently tested.
+- Auth proxy uses a shared allowlist and verified Supabase claims for private routes. Authenticated/anonymous route matrix and security E2E are still pending.
+
