@@ -890,3 +890,9 @@ Status: **IMPLEMENTED IN SOURCE / RAILWAY BUILDING / VISUAL QA PENDING**
 - Latest Web deployment f5750c35-e060-4def-84bf-90b3c95bcd14 is BUILDING; latest API deployment 59806f34-7e6c-4538-abca-e9b4899e487b is SUCCESS. The API health check passed, but the manifest response and browser rendering have not yet been independently tested.
 - Auth proxy uses a shared allowlist and verified Supabase claims for private routes. Authenticated/anonymous route matrix and security E2E are still pending.
 
+### Identity camera build remediation — 2026-10-11
+
+- Failed deployment f5750c35-e060-4def-84bf-90b3c95bcd14 reported TS2367 in public-universe-3d.tsx because the characterMode branch made a later variant === identity check unreachable.
+- Commit 3e725242858570a0dcd51a1758005a0c747a9a5e simplifies the camera contract: Splash/Identity share the character camera; Universe uses the universe camera.
+- Replacement deployment cb3b03be-a0d8-445c-bc85-ccfb54c31431 was INITIALIZING/BUILDING at last check. WEB-06 remains NOT GREEN until the build and visual runtime gates pass.
+
