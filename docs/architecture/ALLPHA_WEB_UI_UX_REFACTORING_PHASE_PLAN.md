@@ -906,3 +906,10 @@ Status: **BUILD + DEPLOYMENT SUCCESS / PRODUCTION VISUAL QA PENDING**
 - Public 3D UI/UX QA run 38074591336 remains IN_PROGRESS at last check. Prior run found a missing legacy-compatible Splash selector; the canonical class was restored without weakening the test.
 - Do not mark reference fidelity DONE until the latest Playwright run finishes and real GLB visibility, browser network/console, mobile/desktop screenshots and auth route behavior are verified.
 
+### Public entry loading and QA stabilization — 2026-10-11
+
+- Root entry now renders Splash immediately while Supabase session lookup runs in the background. Authenticated users still transition to the authenticated Universe; anonymous users no longer depend on a successful client auth request to see the public entry.
+- The production Playwright gate now waits for the normal asynchronous Railway rollout window without weakening product assertions; it also checks that the character scene reaches loaded/visible/error and verifies the explicit fallback on a governed manifest error.
+- Commits: c8b2fa67d25e76d25315b206cf42f4ebac782ac1; a4afa7de80d4cf3991a073016dd72bd1f46c1508.
+- Latest deployment b8475a51-08ba-45b1-8315-2d994772d747 and QA run 38074759815 were not yet complete at the last observation. WEB-06 remains build/visual evidence gated.
+
