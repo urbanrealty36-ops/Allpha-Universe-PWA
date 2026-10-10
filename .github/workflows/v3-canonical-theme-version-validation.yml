@@ -1,0 +1,91 @@
+name: V3 Canonical Theme Version Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_id:
+        description: "Canonical Allpha Universe V3 Theme Version UUID"
+        required: true
+        type: string
+        default: "70f6573c-82fc-44af-b3ae-63f649216ba0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: allpha-v3-theme-version-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Owner-key canonical Theme Version validation
+    runs-on: ubuntu-latest
+    environment: v3-production
+    timeout-minutes: 5
+    env:
+      ALLPHA_V3_API_BASE_URL: ${{ vars.ALLPHA_V3_API_BASE_URL || secrets.ALLPHA_V3_API_BASE_URL }}
+      ALLPHA_THEME_STUDIO_OWNER_TOKEN: ${{ secrets.ALLPHA_THEME_STUDIO_OWNER_TOKEN }}
+      THEME_VERSION_ID: ${{ inputs.version_id }}
+    steps:
+      - name: Validate inputs and required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$THEME_VERSION_ID" =~ ^[0-9a-fA-F-]{36}$ ]] || { echo "::error::Invalid version UUID."; exit 1; }
+          [[ -n "${ALLPHA_V3_API_BASE_URL:-}" ]] || { echo "::error::ALLPHA_V3_API_BASE_URL is missing."; exit 1; }
+          [[ "$ALLPHA_V3_API_BASE_URL" == https://* ]] || { echo "::error::API base URL must use HTTPS."; exit 1; }
+          [[ -n "${ALLPHA_THEME_STUDIO_OWNER_TOKEN:-}" ]] || { echo "::error::ALLPHA_THEME_STUDIO_OWNER_TOKEN is missing."; exit 1; }
+
+      - name: Call canonical V3 Theme Version validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"; unset ALLPHA_THEME_STUDIO_OWNER_TOKEN' EXIT
+          status="$(curl --silent --show-error --max-time 120 \
+            --output "$response_file" --write-out '%{http_code}' \
+            --request POST \
+            --header "X-Allpha-Owner-Studio-Key: ${ALLPHA_THEME_STUDIO_OWNER_TOKEN}" \
+            --header "Accept: application/json" \
+            "${ALLPHA_V3_API_BASE_URL%/}/api/v1/theme-generation/owner/theme-versions/${THEME_VERSION_ID}/validate")"
+          unset ALLPHA_THEME_STUDIO_OWNER_TOKEN
+          echo "HTTP status: $status"
+          python - "$status" "$response_file" "$THEME_VERSION_ID" <<'PY'
+          import json, sys
+          status, filename, version_id = sys.argv[1:]
+          try:
+              payload = json.load(open(filename, encoding="utf-8"))
+          except Exception:
+              print("BLOCKED: API response was not valid JSON; body suppressed.")
+              raise SystemExit(1)
+          if not status.startswith("2"):
+              detail = payload.get("detail", {})
+              code = detail.get("code", "THEME_VERSION_VALIDATE_FAILED") if isinstance(detail, dict) else "THEME_VERSION_VALIDATE_FAILED"
+              print(f"BLOCKED: HTTP {status}; code={code}")
+              if isinstance(detail, dict) and detail.get("message"):
+                  print("Message:", str(detail["message"])[:240])
+              raise SystemExit(1)
+          data = payload.get("data")
+          if not isinstance(data, dict) or data.get("version_id") != version_id or "validation" not in data:
+              print("BLOCKED: response did not contain the expected canonical validation result.")
+              raise SystemExit(1)
+          print(json.dumps({
+              "version_id": data.get("version_id"),
+              "execution_source": data.get("execution_source"),
+              "validation": data.get("validation"),
+              "lifecycle_approval_performed": data.get("lifecycle_approval_performed"),
+              "publication_performed": data.get("publication_performed"),
+          }, indent=2, ensure_ascii=False))
+          print("Note: validation does not approve moderation, safety, performance, or publication.")
+          PY
+
+      - name: Record lifecycle boundary
+        if: always()
+        run: |
+          {
+            echo "## V3 canonical Theme Version validation"
+            echo "- Owner key is read only from GitHub Secrets and never printed."
+            echo "- This workflow invokes the canonical validate_theme_version RPC through a scoped internal API bridge."
+            echo "- It does not directly update lifecycle status fields."
+            echo "- Moderation, safety/performance evidence, and publication remain separate gates."
+          } >> "$GITHUB_STEP_SUMMARY"
