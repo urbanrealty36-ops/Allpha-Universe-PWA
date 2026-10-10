@@ -728,12 +728,12 @@ async def reconcile_existing_v3_tripo_assets_developer(
         raise HTTPException(status_code=503, detail={"code": "OWNER_THEME_STUDIO_IDENTITY_NOT_CONFIGURED", "message": "The existing owner studio identity is not configured."})
     operator = type("V3ReconcileOperator", (), {"user_id": operator_id})()
     result = await reconcile_existing_v3_tripo_assets(
-        context={"user": operator, "execution_source": "developer_internal_token"}
+        context={"user": operator, "execution_source": "owner_studio_internal_key"}
     )
     result["data"]["audit"] = {
         "actor_type": "configured_service_operator",
         "operator_id": operator_id,
-        "execution_source": "developer_internal_token",
+        "execution_source": "owner_studio_internal_key",
         "lifecycle_approval_performed": False,
     }
     return result
