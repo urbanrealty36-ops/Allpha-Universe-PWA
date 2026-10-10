@@ -1,0 +1,210 @@
+name: 3D V3 Assets Production Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Target asset generation (must remain V3)"
+        required: true
+        type: choice
+        options:
+          - V3
+      operation:
+        description: "Preflight is read-only; reconcile invokes the V3 API and mutates database bindings"
+        required: true
+        type: choice
+        options:
+          - preflight
+          - reconcile
+        default: preflight
+      approve_production_mutation:
+        description: "Explicitly approve V3 reconciliation against the configured production API"
+        required: true
+        type: boolean
+        default: false
+      confirmation:
+        description: 'For reconcile only, enter exactly: RECONCILE-V3-ASSETS-PRODUCTION'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: allpha-v3-assets-production-promotion
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: V3 target and operation guard
+    runs-on: ubuntu-latest
+    outputs:
+      operation: ${{ inputs.operation }}
+      approved: ${{ steps.validate.outputs.approved }}
+    steps:
+      - name: Reject any non-V3 target
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          if [[ "$TARGET" != "V3" ]]; then
+            echo "::error::Target mismatch. This workflow is exclusively for V3 assets."
+            exit 1
+          fi
+          echo "Confirmed target: V3"
+
+      - name: Require explicit approval for production mutation
+        id: validate
+        env:
+          OPERATION: ${{ inputs.operation }}
+          APPROVAL: ${{ inputs.approve_production_mutation }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          if [[ "$OPERATION" == "reconcile" ]]; then
+            if [[ "$APPROVAL" != "true" || "$CONFIRMATION" != "RECONCILE-V3-ASSETS-PRODUCTION" ]]; then
+              echo "::error::Production reconciliation blocked. Explicit boolean approval and exact confirmation are both required."
+              exit 1
+            fi
+            echo "approved=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$OPERATION" == "preflight" ]]; then
+            if [[ "$APPROVAL" == "true" || -n "$CONFIRMATION" ]]; then
+              echo "::error::Do not attach production mutation approval to a preflight run. Dispatch preflight with approval=false and empty confirmation."
+              exit 1
+            fi
+            echo "approved=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unsupported operation."
+            exit 1
+          fi
+
+  preflight:
+    name: Production API and V3 endpoint preflight (read-only)
+    needs: guard
+    runs-on: ubuntu-latest
+    env:
+      ALLPHA_V3_API_BASE_URL: ${{ vars.ALLPHA_V3_API_BASE_URL }}
+    steps:
+      - name: Require API base URL
+        run: |
+          set -euo pipefail
+          if [[ -z "${ALLPHA_V3_API_BASE_URL:-}" ]]; then
+            echo "::error::Repository variable ALLPHA_V3_API_BASE_URL is not configured. No mutation was attempted."
+            exit 1
+          fi
+          case "$ALLPHA_V3_API_BASE_URL" in
+            https://*) ;;
+            *) echo "::error::API base URL must use HTTPS."; exit 1 ;;
+          esac
+
+      - name: Verify API health without mutation
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 20 \
+            "${ALLPHA_V3_API_BASE_URL%/}/health" -o /tmp/health.json
+          cat /tmp/health.json
+
+      - name: Verify V3 developer reconcile route is advertised by OpenAPI
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 20 \
+            "${ALLPHA_V3_API_BASE_URL%/}/openapi.json" -o /tmp/openapi.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          spec = json.loads(Path("/tmp/openapi.json").read_text())
+          expected = "/api/v1/theme-generation/internal/v3-tripo-assets/reconcile/developer"
+          if expected not in spec.get("paths", {}):
+              raise SystemExit(
+                  "BLOCKED: configured API does not advertise the V3 developer reconcile route. "
+                  "This is likely the main/old API deployment. No mutation was attempted."
+              )
+          methods = spec["paths"][expected]
+          if "post" not in methods:
+              raise SystemExit("BLOCKED: V3 reconcile route is not a POST endpoint.")
+          print(f"PASS: V3 route advertised: POST {expected}")
+          PY
+
+      - name: Record safety boundary
+        run: |
+          {
+            echo "## V3 production promotion preflight"
+            echo "- Target: V3 only"
+            echo "- Health and OpenAPI checks are read-only."
+            echo "- No Supabase data was mutated by this job."
+            echo "- A passing preflight does not prove the reconcile operation or lifecycle promotion."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  reconcile:
+    name: Reconcile existing V3 assets (explicitly gated)
+    needs: [guard, preflight]
+    if: ${{ needs.guard.outputs.operation == 'reconcile' && needs.guard.outputs.approved == 'true' }}
+    runs-on: ubuntu-latest
+    environment: v3-production
+    timeout-minutes: 10
+    env:
+      ALLPHA_V3_API_BASE_URL: ${{ vars.ALLPHA_V3_API_BASE_URL }}
+      ALLPHA_THEME_STUDIO_OWNER_TOKEN: ${{ secrets.ALLPHA_THEME_STUDIO_OWNER_TOKEN }}
+    steps:
+      - name: Require owner token without exposing it
+        run: |
+          set -euo pipefail
+          if [[ -z "${ALLPHA_THEME_STUDIO_OWNER_TOKEN:-}" ]]; then
+            echo "::error::Environment/repository secret ALLPHA_THEME_STUDIO_OWNER_TOKEN is missing. No mutation attempted."
+            exit 1
+          fi
+
+      - name: Call V3-only reconciliation endpoint
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --max-time 120 \
+            --output "$response_file" --write-out '%{http_code}' \
+            --request POST \
+            --header "X-Allpha-Owner-Studio-Key: ${ALLPHA_THEME_STUDIO_OWNER_TOKEN}" \
+            --header "Accept: application/json" \
+            "${ALLPHA_V3_API_BASE_URL%/}/api/v1/theme-generation/internal/v3-tripo-assets/reconcile/developer")"
+          unset ALLPHA_THEME_STUDIO_OWNER_TOKEN
+          echo "HTTP status: $status"
+          python - "$status" "$response_file" <<'PY'
+          import json, sys
+          status, filename = sys.argv[1], sys.argv[2]
+          try:
+              payload = json.load(open(filename, encoding="utf-8"))
+          except Exception:
+              print("Response body is not valid JSON; body omitted for safety.")
+              raise SystemExit(1)
+          if not status.startswith("2"):
+              detail = payload.get("detail", {})
+              code = detail.get("code", "V3_RECONCILE_FAILED") if isinstance(detail, dict) else "V3_RECONCILE_FAILED"
+              print(f"BLOCKED: endpoint returned HTTP {status}; code={code}")
+              raise SystemExit(1)
+          data = payload.get("data", {})
+          audit = data.get("audit", {}) if isinstance(data, dict) else {}
+          if audit.get("execution_source") != "owner_studio_internal_key":
+              print("BLOCKED: response audit did not identify the expected V3 owner-studio execution source.")
+              raise SystemExit(1)
+          if audit.get("lifecycle_approval_performed") is not False:
+              print("BLOCKED: unexpected lifecycle approval state; refusing to report this as a reconciliation-only run.")
+              raise SystemExit(1)
+          if data.get("publication_ready") is True:
+              print("BLOCKED: reconcile unexpectedly reported publication_ready=true; inspect API behavior before proceeding.")
+              raise SystemExit(1)
+          print("V3 reconciliation endpoint returned success.")
+          print("Lifecycle approval: not performed.")
+          print("Publication promotion: not performed.")
+          print("Detailed asset response omitted; inspect API result securely if needed.")
+          PY
+          rm -f "$response_file"
+
+      - name: Summarize reconciliation boundary
+        if: always()
+        run: |
+          {
+            echo "## V3 asset reconciliation"
+            echo "- Workflow target: V3 only"
+            echo "- This job does not invoke the legacy 3D-V2.13D.4 workflow."
+            echo "- Reconciliation is not lifecycle approval or asset activation."
+            echo "- Assets must remain pending until moderation, safety, performance, and publication gates are separately evidenced."
+          } >> "$GITHUB_STEP_SUMMARY"
