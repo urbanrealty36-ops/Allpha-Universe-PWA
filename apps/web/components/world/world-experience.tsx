@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiFetch, publicApiFetch } from "../../lib/api";
 import { normalizeWorldScene, type WorldScene, type SceneNode } from "../../lib/world-engine/scene-schema";
-import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 
 const AllphaWorldRenderer = dynamic(() => import("./allpha-world-renderer"), {
   ssr: false,
@@ -112,19 +111,50 @@ export default function WorldExperience({ initialWorldId = null }: { initialWorl
 
   const scene = useMemo<WorldScene | null>(() => {
     const raw = selectedTheme?.world_schema;
-    if (raw) return normalizeWorldScene(raw);
-    const key = [world?.slug, world?.theme_key, selectedTheme?.slug, selectedTheme?.name]
-      .filter(Boolean).join(" ").toLowerCase().replaceAll("_", "-");
-    // Mount the canonical renderer for Crystal AI City even when its signed
-    // asset manifest is temporarily unavailable. The renderer owns the sole
-    // Theme V2 manifest -> signed GLB loading path; gating the scene on that
-    // same manifest created a deadlock where no renderer meant no canvas.
-    if (key.includes("crystal-ai-city") || key.includes("crystal ai city")) {
-      return createGoldenScene("universe");
-    }
-    return null;
-  }, [selectedTheme, world?.slug, world?.theme_key]);
+    const normalized = raw ? normalizeWorldScene(raw) : null;
+    const themeKey = world?.theme_key ?? selectedTheme?.slug;
+    if (!world || !themeKey) return normalized;
 
+    // The renderer must mount even before a public manifest is available.
+    // This schema is only a runtime shell: all visible 3D geometry comes from
+    // the approved Tripo V3 signed manifest, never from legacy/golden geometry.
+    const assetOnlyEnvironment = {
+      ...(normalized?.environment ?? {}),
+      architecture: selectedTheme?.name ?? world.name,
+      spatial_layer: "world",
+      theme_key: themeKey,
+      asset_generation: "tripo-v3",
+      presentation_only: true,
+    };
+
+    return {
+      ...(normalized ?? {
+        schema_version: "1.0",
+        renderer: "AllphaWorldRenderer",
+        zones: [],
+        lighting: { profile: "asset-owned", presentation_only: true },
+        atmosphere: { profile: "asset-owned", presentation_only: true },
+        spawn_points: [{ id: "world-spawn", zone: "world", position: { x: 0, y: 0, z: 0 } }],
+        camera: { mobile: { position: [0, 4.5, 10], fov: 50 }, desktop: { position: [0, 6, 14], fov: 52 }, min_distance: 4, max_distance: 36 },
+        authority_boundary: { presentation_only: true as const },
+      }),
+      environment: assetOnlyEnvironment,
+      structures: normalized?.structures ?? [],
+      roads: normalized?.roads ?? [],
+      pathways: normalized?.pathways ?? [],
+      zones: normalized?.zones ?? [],
+      booths: normalized?.booths ?? [],
+      portals: normalized?.portals ?? [],
+      signage: normalized?.signage ?? [],
+      screens: normalized?.screens ?? [],
+      interactive_hotspots: normalized?.interactive_hotspots ?? [],
+      spawn_points: normalized?.spawn_points ?? [{ id: "world-spawn", zone: "world", position: { x: 0, y: 0, z: 0 } }],
+      navigation_graph: normalized?.navigation_graph ?? { nodes: [], edges: [] },
+      characters: normalized?.characters ?? [],
+      interaction_points: normalized?.interaction_points ?? [],
+    };
+  }, [selectedTheme, world]);
+  
   const activePresence = useMemo(() => {
     const ids = new Set(presence.map((item) => item.agent_id));
     return agents
