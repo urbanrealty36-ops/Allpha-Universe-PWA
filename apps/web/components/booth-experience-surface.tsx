@@ -289,6 +289,7 @@ export default function BoothExperienceSurface({ boothId }: { boothId: string })
           portals: normalizedScene?.portals ?? [],
           spawn_points: normalizedScene?.spawn_points ?? [{ id: "booth-spawn", zone: "booth", position: { x: 0, y: 0, z: 0 } }],
         } : normalizedScene);
+      }
       if (!matchedBooth) failures.push("BOOTH_SPATIAL_PROJECTION_UNAVAILABLE");
     } else {
       failures.push("BOOTH_DISTRICT_CONTEXT_UNAVAILABLE");
