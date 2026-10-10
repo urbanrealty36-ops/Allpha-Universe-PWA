@@ -13,7 +13,7 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API
 
 function PublicScene({ variant, onAssetState }: { variant: PublicUniverse3DVariant; onAssetState: (state: ThemeAssetRuntimeState) => void }) {
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const layer = variant === "identity" ? "world" : "universe";
+  const layer = variant === "universe" ? "universe" : "world";
   const [themeKey, setThemeKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,9 +29,9 @@ function PublicScene({ variant, onAssetState }: { variant: PublicUniverse3DVaria
       .then((payload) => {
         if (cancelled) return;
         const themes: PublicTheme[] = Array.isArray(payload?.data) ? payload.data : [];
-        // Public splash is explicitly bound to the new V3 asset pack. Its draft/review
-        // lifecycle is not treated as safety approval; publication governance stays separate.
-        if (variant === "splash") {
+        // Splash and Human Identity resolve the canonical AI Character category.
+        // The API publication gate, not this client, decides whether signed GLBs are eligible.
+        if (variant === "splash" || variant === "identity") {
           const v3 = themes.find((theme) => String(theme.slug ?? theme.catalog_key ?? "").trim() === "allpha-universe-v3");
           setThemeKey(v3 ? "allpha-universe-v3" : null);
           return;
@@ -61,7 +61,7 @@ function PublicScene({ variant, onAssetState }: { variant: PublicUniverse3DVaria
     <Cinematic3DScene layer={layer} lowPower={false} reducedMotion={reducedMotion}>
       <ThemeManifestAssetScene
         themeKey={themeKey}
-        category={variant === "splash" ? "agent-character" : layer === "world" ? "world" : "universe"}
+        category={variant === "splash" || variant === "identity" ? "agent-character" : "universe"}
         lowPower={false}
         reducedMotion={reducedMotion}
         onRuntimeState={onAssetState}
@@ -74,7 +74,7 @@ function PublicScene({ variant, onAssetState }: { variant: PublicUniverse3DVaria
 export default function PublicUniverse3D({ variant }: { variant: PublicUniverse3DVariant }) {
   const [assetState, setAssetState] = useState<ThemeAssetRuntimeState>("idle");
   const handleAssetState = useCallback((state: ThemeAssetRuntimeState) => setAssetState(state), []);
-  const characterMode = variant === "splash";
+  const characterMode = variant === "splash" || variant === "identity";
   const visibleState = assetState === "loaded" || assetState === "visible";
   return (
     <div className={`allpha-public-3d allpha-public-3d-${variant}`} aria-label={characterMode ? "Allpha AI character scene" : "Allpha 3D universe scene"} data-public-3d-state={assetState}>
