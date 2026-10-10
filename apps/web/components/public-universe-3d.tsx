@@ -7,13 +7,13 @@ import { Cinematic3DScene, configureCinematicRenderer } from "./world/cinematic-
 
 export type PublicUniverse3DVariant = "splash" | "universe" | "identity";
 
-type PublicTheme = { slug?: string | null; catalog_key?: string | null; is_public?: boolean; status?: string | null };
+type PublicTheme = { slug?: string | null; catalog_key?: string | null; is_public?: boolean; status?: string | null; categories?: string[]; assets?: Array<{ category?: string }>; };
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://allpha-api-production.up.railway.app").replace(/\/$/, "");
 
 function PublicScene({ variant, onAssetState }: { variant: PublicUniverse3DVariant; onAssetState: (state: ThemeAssetRuntimeState) => void }) {
   const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const layer = variant === "identity" ? "world" : "universe";
+  const layer = variant === "identity" ? "world" : variant === "splash" ? "agent-character" : "universe";
   const [themeKey, setThemeKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,8 +39,18 @@ function PublicScene({ variant, onAssetState }: { variant: PublicUniverse3DVaria
         const eligible = themes.filter((theme) => {
           const slug = String(theme.slug ?? theme.catalog_key ?? "").trim();
           const status = String(theme.status ?? "").toLowerCase();
-          return Boolean(slug) && (!status || ["active", "published", "live"].includes(status));
+          // V3 remains draft/review; catalog exposure is not a safety certification.
+          return Boolean(slug) && (!status || ["active", "published", "live", "draft", "review"].includes(status));
         });
+        if (variant === "splash") {
+          // Splash must request the canonical V3 theme so its agent-character manifest
+          // category can be resolved; do not silently substitute a galaxy scene.
+          const v3 = eligible.find((theme) =>
+            String(theme.slug ?? theme.catalog_key ?? "").toLowerCase() === "allpha-universe-v3",
+          );
+          setThemeKey(v3 ? String(v3.slug ?? v3.catalog_key) : null);
+          return;
+        }
         const preferred = eligible.find((theme) =>
           /crystal|universe|galaxy/i.test(String(theme.slug ?? theme.catalog_key ?? "")),
         ) ?? eligible[0];
