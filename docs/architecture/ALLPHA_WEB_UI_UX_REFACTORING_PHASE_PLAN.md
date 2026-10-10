@@ -138,7 +138,7 @@ Branch: main
 | WEB-03 | PWA Foundation | CLOSED |
 | WEB-04 | Mobile Navigation | CLOSED |
 | WEB-05 | Universe Shell | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
-| WEB-06 | IMPLEMENTED / BUILD + DEPLOYMENT VERIFIED / BROWSER QA PENDING |
+| WEB-06 | Splash + Identity | IMPLEMENTED / LATEST FIX DEPLOYMENT BUILD PENDING / BROWSER QA PENDING |
 | WEB-07 | Universe Home | IMPLEMENTED / BUILD + DEPLOYMENT VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-08 | Galaxy Navigator | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
 | WEB-09 | World Experience | IMPLEMENTED / BUILD VERIFICATION PENDING / BROWSER QA PENDING |
@@ -848,3 +848,20 @@ Audit:
 `docs/audits/3D_V2_09_C_ADVANCED_ENVIRONMENT_DETAIL_SHADERS_ATMOSPHERE_THEME_POLISH_20261005.md`
 
 Acceptance remains open until Railway production verification and runtime browser/device visual QA are complete.
+
+## 2026-10-11 — WEB-06 Reference Fidelity Follow-up
+
+Status: **IMPLEMENTED / LATEST RAILWAY BUILD PENDING / BROWSER VISUAL QA PENDING**
+
+- Fixed the public AI Character scene's TypeScript layer mismatch: the Cinematic3DScene uses a supported environment layer, while ThemeManifestAssetScene retains the canonical agent-character asset category.
+- Removed the unreachable duplicate Splash branch that failed TypeScript validation.
+- Rebalanced the mobile Splash composition: viewport-bound height, centered logo/headline/copy, reduced competing shortcuts, and a dedicated lower Canvas stage for the real character.
+- Added a clearly labeled visual fallback for asset-load failure. It is not counted as a real 3D asset or successful render.
+- Changed files: apps/web/components/public-universe-3d.tsx; apps/web/components/identity/universe-identity-experience.tsx; apps/web/app/globals.css.
+- Commits: 1804dd67debf8d2d6d42bbda62538730b17738c2; 956036447c6cd6908876e14ead5bdde395dd5c4c; 0fd8c0b1283f3986593d05d20f8ae0bf706655f5; eabd869f5e42136f776a6904a25bdc4d785c41e4.
+- Railway deployment 51ba5d48-d345-4aa9-8d6c-b29ce5088c76 was still BUILDING at the last observation. Do not mark WEB-06 GREEN until the build, mobile/desktop browser render, real GLB visibility, and console/network checks are evidenced.
+- V3 publication remains separate from this UI work. All 17 stored V3 assets are pending; moderation, safety, performance and publication approval have not passed. No Tripo generation, upload, or manual lifecycle mutation was performed.
+- Auth guard and private-route authorization matrix remain OPEN.
+
+Next exact action: verify deployment 51ba5d48-d345-4aa9-8d6c-b29ce5088c76 and correct any new build blocker before browser visual QA.
+
