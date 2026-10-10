@@ -632,7 +632,7 @@ async def reconcile_existing_v3_tripo_assets(
                 response.raise_for_status()
                 content = response.content
                 _validate_glb(content)
-            except (httpx.HTTPError, ThemeAssetIngestionError) as exc:
+            except (httpx.HTTPError, ThemeAssetIngestionError, ValueError, TypeError, KeyError, AttributeError) as exc:
                 raise HTTPException(status_code=422, detail={"code":"V3_GLB_VALIDATION_FAILED","asset_id":asset_id,"message":str(exc)[:240]}) from exc
             digest = hashlib.sha256(content).hexdigest()
             registered_size = asset.get("content_size_bytes")
