@@ -296,22 +296,29 @@ export function ThemeManifestAssetScene({ themeKey, category, directAssetUrl = n
           .replace(/[^a-z0-9]+/g, "_")
           .replace(/^_+|_+$/g, "");
         const accepted = aliases[category] ?? [category];
-        const candidate = assets.find((asset) => {
+        const metadataMatches = (asset: ManifestAsset, alias: string) => {
           if (!asset.signed_url) return false;
           const metadata = asset.metadata ?? {};
-          const path = String(asset.storage_path ?? "").replace(/^\/+/, "");
+          const path = String(asset.storage_path ?? "").replace(/^\\/+/, "");
           const basename = path.split("/").pop() ?? "";
+          const key = normalize(alias);
           const declaredCategory = normalize(metadata.category ?? metadata.asset_category ?? metadata.assetCategory);
           const declaredKey = normalize(metadata.asset_key ?? metadata.assetKey ?? metadata.name ?? basename);
-          const categoryMatches = accepted.some((alias) => {
-            const key = normalize(alias);
-            return declaredCategory === key || declaredKey === key;
+          return declaredCategory === key || declaredKey === key;
+        };
+        // Preserve explicit alias priority; prefer the primary Tripo asset for a layer.
+        let candidate: ManifestAsset | undefined;
+        for (const alias of accepted) {
+          candidate = assets.find((asset) => metadataMatches(asset, alias));
+          if (candidate) break;
+        }
+        if (!candidate) {
+          candidate = assets.find((asset) => {
+            if (!asset.signed_url) return false;
+            const path = String(asset.storage_path ?? "").replace(/^\\/+/, "");
+            return path.toLowerCase().endsWith(("/" + themeKey + "/" + category + ".glb").toLowerCase());
           });
-          const legacySuffix = path.toLowerCase().endsWith(("/" + themeKey + "/" + category + ".glb").toLowerCase());
-          // Only assets already authorized by the canonical signed manifest are eligible.
-          // Prefer explicit category/key metadata; retain the legacy path contract for older manifests.
-          return categoryMatches || legacySuffix;
-        });
+        }
         if (!candidate?.signed_url) {
           onRuntimeState?.("error");
           setUrl(null);
