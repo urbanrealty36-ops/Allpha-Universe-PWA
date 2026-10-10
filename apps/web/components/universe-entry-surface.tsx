@@ -8,7 +8,7 @@ import { UniverseSplash } from "./identity/universe-identity-experience";
 import { createSupabaseBrowserClient } from "../lib/supabase/client";
 import PublicUniverse3D from "./public-universe-3d";
 
-type EntryState = "loading" | "splash" | "anonymous" | "authenticated";
+type EntryState = "splash" | "anonymous" | "authenticated";
 
 function safeReturnPath(pathname: string) {
   return pathname.startsWith("/") && !pathname.startsWith("//") ? pathname : "/";
@@ -18,24 +18,27 @@ export default function UniverseEntrySurface() {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
-  const [state, setState] = useState<EntryState>("loading");
+  const [state, setState] = useState<EntryState>("splash");
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
 
     async function loadSession() {
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
-
-      setEmail(data.session?.user.email ?? null);
-
-      if (data.session) {
-        setState("authenticated");
-        return;
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!active) return;
+        if (data.session) {
+          setEmail(data.session.user.email ?? null);
+          setState("authenticated");
+        }
+        // Keep the public Splash visible for anonymous users; identity lookup must not
+        // block the public entry if the browser's auth request is slow or unavailable.
+      } catch {
+        if (!active) return;
+        setEmail(null);
+        setState("splash");
       }
-
-      setState("splash");
     }
 
     void loadSession();
@@ -87,21 +90,8 @@ export default function UniverseEntrySurface() {
     );
   }
 
-  if (state === "loading") return <UniverseLoadingState />;
   if (state === "splash") return <UniverseSplash onComplete={() => setState("anonymous")} onCreateIdentity={() => router.push("/auth?mode=signup&next=%2Funiverse")} />;
   return <UniversePublicEntry onEnter={enterUniverse} />;
-}
-
-function UniverseLoadingState() {
-  return (
-    <main className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-[#03050b] text-white">
-      <UniverseAmbientField />
-      <div className="relative z-10 text-center">
-        <div className="mx-auto h-3 w-3 animate-pulse rounded-full bg-cyan-300 shadow-[0_0_35px_rgba(103,232,249,.9)]" aria-hidden="true" />
-        <p className="mt-5 text-[10px] uppercase tracking-[0.42em] text-cyan-200/60">Checking your Allpha identity</p>
-      </div>
-    </main>
-  );
 }
 
 function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
@@ -169,15 +159,5 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
       </section>
       <footer className="allpha-public-footer allpha-public-footer-v2"><span>HUMANS + AI</span><i /><span>ONE SHARED UNIVERSE</span><i /><span>BUILT TO EXPLORE</span></footer>
     </main>
-  );
-}
-
-function UniverseAmbientField() {
-  return (
-    <>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,rgba(124,58,237,.16),transparent_26%),radial-gradient(circle_at_75%_22%,rgba(34,211,238,.10),transparent_28%),radial-gradient(circle_at_18%_80%,rgba(59,130,246,.08),transparent_30%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(circle_at_center,black,transparent_76%)]" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[55vw] w-[55vw] max-h-[720px] max-w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.035] shadow-[0_0_180px_rgba(124,58,237,.08)]" />
-    </>
   );
 }
