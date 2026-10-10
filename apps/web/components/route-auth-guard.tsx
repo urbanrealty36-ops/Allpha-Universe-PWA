@@ -6,7 +6,7 @@ import { createSupabaseBrowserClient } from "../lib/supabase/client";
 
 // Public discovery and identity routes intentionally remain available without a session.
 // Private product surfaces are guarded centrally so links and direct URL entry behave alike.
-const PUBLIC_EXACT = new Set(["/", "/auth", "/auth/callback", "/blocked", "/offline", "/terms", "/privacy"]);
+const PUBLIC_EXACT = new Set(["/", "/agents", "/auth", "/auth/callback", "/blocked", "/offline", "/terms", "/privacy"]);
 const PUBLIC_PREFIXES = ["/worlds", "/universe", "/world/", "/districts", "/booths", "/agents/discover", "/agent/catalog", "/communities", "/events", "/explore", "/content", "/themes", "/reels", "/moments"];
 
 function isPublicPath(path: string) {
