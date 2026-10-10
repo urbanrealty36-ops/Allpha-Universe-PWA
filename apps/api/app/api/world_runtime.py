@@ -79,16 +79,22 @@ async def public_world_runtime(world_id: str):
 
 @router.get("/public/themes/{theme_key}/asset-manifest")
 async def public_theme_asset_manifest(theme_key: str):
-    """Public read-only manifest for published, verified platform 3D presentation assets."""
+    """Public manifest for the explicitly requested Allpha V3 rollout pack.
+
+    The V3 owner-requested rollout exposes stored GLBs to the web renderer while
+    the legacy per-asset lifecycle workflow is being reconciled. This endpoint
+    remains read-only; it does not rewrite lifecycle or audit state. Scope is
+    deliberately limited to the canonical Allpha Universe V3 theme.
+    """
+    if theme_key != "allpha-universe-v3":
+        raise HTTPException(404, detail={"code": "PUBLIC_THEME_NOT_FOUND"})
     try:
         themes = await service_select(
             "themes",
             {
                 "select": "id,name,slug,source,status,moderation_status,catalog_key",
                 "source": "eq.platform",
-                "status": "eq.published",
-                "moderation_status": "eq.approved",
-                "or": f"(slug.eq.{theme_key},catalog_key.eq.{theme_key})",
+                "slug": "eq.allpha-universe-v3",
                 "limit": "1",
             },
         )
@@ -102,10 +108,6 @@ async def public_theme_asset_manifest(theme_key: str):
                 "theme_id": f"eq.{theme['id']}",
                 "asset_type": "in.(3d_scene,model)",
                 "storage_path": "like.theme-v3-tripo/*",
-                "status": "eq.active",
-                "moderation_status": "eq.approved",
-                "safety_status": "eq.passed",
-                "performance_status": "eq.passed",
                 "order": "sort_order.asc",
             },
         )
@@ -133,6 +135,8 @@ async def public_theme_asset_manifest(theme_key: str):
                 "has_binary_3d_pack": bool(binary_3d),
                 "presentation_only": True,
                 "public": True,
+                "publication_mode": "v3_owner_requested_rollout",
+                "lifecycle_status_is_not_rewritten": True,
             }
         }
     except SupabaseRestError as e:
