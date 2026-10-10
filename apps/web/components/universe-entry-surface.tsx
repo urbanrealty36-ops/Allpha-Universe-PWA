@@ -113,7 +113,7 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
         <a href="/" className="allpha-public-brand" aria-label="Allpha Universe home">ALLPHA<span>.</span><small>UNIVERSE / 01</small></a>
         <nav className="allpha-public-nav" aria-label="Explore Allpha">
           <a href="/worlds">Worlds</a>
-          <a href="/agents">AI Agents</a>
+          <a href="/agents/discover">AI Agents</a>
           <a href="/communities">Communities</a>
           <a href="/social">Live</a>
         </nav>
@@ -152,7 +152,7 @@ function UniversePublicEntry({ onEnter }: { onEnter: () => void }) {
 
         <div className="allpha-public-bottom allpha-public-bottom-v2">
           <a href="/universe"><span>01</span><div><strong>GALAXY EXPLORER</strong><small>Find your next world</small></div><b>↗</b></a>
-          <a href="/agents"><span>02</span><div><strong>AI WORKFORCE</strong><small>Meet your AI companion</small></div><b>↗</b></a>
+          <a href="/agents/discover"><span>02</span><div><strong>AI WORKFORCE</strong><small>Meet your AI companion</small></div><b>↗</b></a>
           <a href="/social"><span>03</span><div><strong>LIVE EXPERIENCES</strong><small>Join conversations in space</small></div><b>↗</b></a>
           <a href="/communities"><span>04</span><div><strong>COMMUNITIES</strong><small>Build something together</small></div><b>↗</b></a>
         </div>
