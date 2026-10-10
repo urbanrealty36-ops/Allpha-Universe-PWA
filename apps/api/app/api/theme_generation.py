@@ -635,6 +635,9 @@ async def reconcile_existing_v3_tripo_assets(
             except (httpx.HTTPError, ThemeAssetIngestionError) as exc:
                 raise HTTPException(status_code=422, detail={"code":"V3_GLB_VALIDATION_FAILED","asset_id":asset_id,"message":str(exc)[:240]}) from exc
             digest = hashlib.sha256(content).hexdigest()
+            registered_size = asset.get("content_size_bytes")
+            if registered_size is not None and int(registered_size) != len(content):
+                raise HTTPException(status_code=409, detail={"code":"V3_ASSET_SIZE_MISMATCH","asset_id":asset_id,"registered_size_bytes":int(registered_size),"actual_size_bytes":len(content)})
             registered_digest = asset.get("checksum_sha256")
             if registered_digest and digest.lower() != str(registered_digest).lower():
                 raise HTTPException(status_code=409, detail={"code":"V3_ASSET_CHECKSUM_MISMATCH","asset_id":asset_id})
