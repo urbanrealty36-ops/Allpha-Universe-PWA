@@ -18,6 +18,6 @@ export function isStaticWebAssetPath(pathname: string) {
     pathname === "/manifest.webmanifest" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
-    /^\/(?:icons|images|fonts)\//i.test(pathname) ||
-    /\.(?:avif|css|gif|ico|jpeg|jpg|js|json|map|png|svg|txt|webp|webmanifest|woff2?)$/i.test(pathname);
+    pathname === "/favicon.ico" ||
+    /^\/(?:icons|images|fonts)\//i.test(pathname);
 }
