@@ -715,6 +715,38 @@ async def reconcile_existing_v3_tripo_assets(
 
     return {"data":{"theme":{"id":theme["id"],"slug":theme["slug"],"source":theme["source"],"status":theme["status"]},"version":{"id":version["id"],"version":version["version"],"status":version["status"]},"asset_count":len(rebound),"validated_count":len(rebound),"bound_count":len(rebound),"assets":rebound,"uploaded_again":False,"duplicate_rows_created":False,"publication_ready":all(a["status"]=="active" and a["moderation_status"]=="approved" and a["safety_status"]=="passed" and a["performance_status"]=="passed" for a in rebound),"next_gate":"Moderation, safety, and performance remain unchanged until their real approval/evidence workflows pass."}}
 
+@router.post("/owner/theme-versions/{version_id}/validate")
+async def validate_owner_theme_version(
+    version_id: UUID,
+    x_allpha_owner_studio_key: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Owner-key-only bridge to the canonical Theme Version validator; no direct status mutation."""
+    _require_owner_studio_key(x_allpha_owner_studio_key)
+    versions = await service_select(
+        "theme_versions",
+        {"select":"id,theme_id,version,status,validation_status,moderation_status",
+         "id":"eq." + str(version_id), "limit":"1"},
+    )
+    if not versions:
+        raise HTTPException(status_code=404, detail={"code":"THEME_VERSION_NOT_FOUND"})
+    version = versions[0]
+    themes = await service_select(
+        "themes",
+        {"select":"id,slug,source,status,moderation_status",
+         "id":"eq." + str(version["theme_id"]), "limit":"1"},
+    )
+    if not themes or themes[0].get("slug") != "allpha-universe-v3" or themes[0].get("source") != "platform":
+        raise HTTPException(status_code=403, detail={"code":"OWNER_VALIDATION_SCOPE_DENIED","message":"Owner bridge is restricted to the canonical Allpha Universe V3 platform theme."})
+    try:
+        result = await service_rpc("validate_theme_version", {"p_theme_version_id":str(version_id)})
+    except SupabaseRestError as exc:
+        raise HTTPException(status_code=exc.status_code if exc.status_code in {400,401,403,404,409,422} else 502,
+                            detail={"code":"THEME_VERSION_VALIDATE_FAILED","message":exc.message}) from exc
+    return {"data":{"theme":themes[0],"version_id":str(version_id),"validation":result,
+                    "execution_source":"owner_studio_internal_key",
+                    "lifecycle_approval_performed":False,
+                    "publication_performed":False}}
+
 @router.post("/internal/v3-tripo-assets/reconcile/developer")
 async def reconcile_existing_v3_tripo_assets_developer(
     x_allpha_owner_studio_key: str | None = Header(default=None),
