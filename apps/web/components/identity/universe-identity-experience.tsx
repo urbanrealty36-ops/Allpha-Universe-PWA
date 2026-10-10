@@ -7,7 +7,7 @@ import PublicUniverse3D from "../public-universe-3d";
 export type UniverseIdentityMode = "signin" | "signup";
 function safeNext(value:string|null){return value&&value.startsWith("/")&&!value.startsWith("//")?value:"/";}
 
-export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
+export function UniverseSplash({ onComplete, onCreateIdentity }: { onComplete: () => void; onCreateIdentity: () => void }) {
   const [subMode, setSubMode] = useState<'splash' | 'explore'>('splash');
 
   return (
@@ -35,10 +35,10 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
           </button>
         ) : (
           <button
-            onClick={() => setSubMode('splash')}
+            onClick={onComplete}
             className="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 text-xs font-semibold text-slate-300 backdrop-blur-md transition-colors"
           >
-            Back
+            Skip
           </button>
         )}
       </div>
@@ -140,10 +140,10 @@ export function UniverseSplash({ onComplete }: { onComplete: () => void }) {
       <div className="relative z-10 px-6 pb-6 pt-2 space-y-4">
         {/* Primary CTA Button */}
         <button
-          onClick={onComplete}
+          onClick={() => { if (subMode === 'splash') setSubMode('explore'); else onCreateIdentity(); }}
           className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 hover:from-cyan-300 hover:to-purple-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(56,189,248,0.4)] flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.98] transition-all"
         >
-          <span>Enter the Universe</span>
+          <span>{subMode === 'splash' ? 'Enter the Universe' : 'Create Your Identity'}</span>
           <span aria-hidden="true" className="text-base">→</span>
         </button>
 
