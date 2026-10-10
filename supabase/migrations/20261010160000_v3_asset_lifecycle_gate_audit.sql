@@ -112,3 +112,16 @@ $$;
 
 revoke all on function private.record_v3_theme_asset_gate(uuid,text,text,jsonb,text) from public, anon;
 grant execute on function private.record_v3_theme_asset_gate(uuid,text,text,jsonb,text) to authenticated, service_role;
+
+
+create or replace function public.record_v3_theme_asset_gate(
+  p_asset_id uuid, p_gate text, p_decision text, p_evidence jsonb, p_reason text default null
+) returns jsonb
+language sql
+security invoker
+set search_path = public, private, auth, pg_temp
+as $$
+  select private.record_v3_theme_asset_gate(p_asset_id, p_gate, p_decision, p_evidence, p_reason);
+$$;
+revoke all on function public.record_v3_theme_asset_gate(uuid,text,text,jsonb,text) from public, anon;
+grant execute on function public.record_v3_theme_asset_gate(uuid,text,text,jsonb,text) to authenticated, service_role;
