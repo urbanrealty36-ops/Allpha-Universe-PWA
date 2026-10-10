@@ -3,7 +3,6 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { useCallback, useMemo, useRef } from "react";
-import { createGoldenScene } from "../../lib/world-engine/golden-scene";
 import { createWorldDistrictBoothV206 } from "../../lib/world-engine/world-district-booth-v2";
 import { createContentSpatialCompositionV207, validateContentSpatialComposition, type ContentSpatialRelationship } from "../../lib/world-engine/content-spatial-v2";
 import { createLiveStageV208Composition, validateLiveStageV208Composition, type LiveStageActorState } from "../../lib/world-engine/live-stage-v2";
