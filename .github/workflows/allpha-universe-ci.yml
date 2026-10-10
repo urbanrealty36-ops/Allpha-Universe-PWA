@@ -112,6 +112,18 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Audit JavaScript dependencies
         run: pnpm audit --audit-level high
-      - name: Dependency review
+      - name: Detect dependency manifest changes
+        id: dependency-files
         if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E '(package.json|pnpm-lock.yaml|pyproject.toml|requirements.*.txt|poetry.lock|uv.lock|Pipfile|Pipfile.lock|Cargo.lock|go.mod|go.sum)$' >/dev/null; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Dependency review
+        if: github.event_name == 'pull_request' && steps.dependency-files.outputs.changed == 'true'
         uses: actions/dependency-review-action@v4
