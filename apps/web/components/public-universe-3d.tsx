@@ -87,6 +87,15 @@ export default function PublicUniverse3D({ variant }: { variant: PublicUniverse3
       >
         <PublicScene variant={variant} onAssetState={handleAssetState} />
       </Canvas>
+      {characterMode && assetState === "error" && (
+        <div className="pointer-events-none absolute inset-x-0 top-[24%] z-[1] flex justify-center" aria-label="AI Character fallback preview">
+          <div className="relative h-56 w-44 opacity-70" aria-hidden="true">
+            <div className="absolute left-1/2 top-2 h-24 w-20 -translate-x-1/2 rounded-[48%_48%_42%_42%] border border-cyan-100/40 bg-gradient-to-br from-cyan-200/25 via-indigo-400/20 to-violet-500/30 shadow-[0_0_70px_rgba(99,102,241,.38)]" />
+            <div className="absolute left-1/2 top-[5.7rem] h-28 w-36 -translate-x-1/2 rounded-t-[55%] rounded-b-3xl border border-violet-200/25 bg-gradient-to-b from-indigo-300/20 via-slate-900/75 to-slate-950/90" />
+            <div className="absolute inset-x-3 top-0 h-40 rounded-full border border-cyan-200/15 blur-sm" />
+          </div>
+        </div>
+      )}
       {characterMode && !visibleState && (
         <div className="pointer-events-none absolute inset-x-0 bottom-[18%] z-[2] flex justify-center px-4">
           <div className="rounded-full border border-cyan-200/20 bg-slate-950/75 px-3 py-1.5 text-[10px] tracking-wide text-cyan-100/80 backdrop-blur-md" role="status" aria-live="polite">
