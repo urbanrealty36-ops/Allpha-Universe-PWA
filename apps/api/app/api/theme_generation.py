@@ -590,7 +590,7 @@ V3_EXISTING_ASSET_IDS: dict[str, str] = {
     "95776ee8-d1ec-4495-b7a9-01ea6cae7eb7": "spatial_fx",
 }
 V3_PLATFORM_THEME_SLUG = "allpha-universe-v3"
-V3_PLATFORM_CATALOG_KEY = "allpha-universe-v3"
+V3_PLATFORM_CATALOG_SLUG = "allpha-universe-v3"
 
 
 @router.post("/internal/v3-tripo-assets/reconcile")
@@ -650,7 +650,7 @@ async def reconcile_existing_v3_tripo_assets(
     theme_rows = await service_select("themes", {"select":"*","slug":"eq." + V3_PLATFORM_THEME_SLUG,"limit":"1"})
     if theme_rows:
         theme = theme_rows[0]
-        if theme.get("source") != "platform" or theme.get("catalog_key") != V3_PLATFORM_CATALOG_KEY:
+        if theme.get("source") != "platform" or theme.get("catalog_key") != V3_PLATFORM_CATALOG_SLUG:
             raise HTTPException(status_code=409, detail={"code":"V3_PLATFORM_THEME_IDENTITY_CONFLICT"})
     else:
         rows = await service_insert("themes", {
@@ -665,7 +665,7 @@ async def reconcile_existing_v3_tripo_assets(
             "status":"draft",
             "moderation_status":"pending",
             "source":"platform",
-            "catalog_key":V3_PLATFORM_CATALOG_KEY,
+            "catalog_key":V3_PLATFORM_CATALOG_SLUG,
         })
         if not rows:
             raise HTTPException(status_code=503, detail={"code":"V3_PLATFORM_THEME_CREATE_FAILED"})
