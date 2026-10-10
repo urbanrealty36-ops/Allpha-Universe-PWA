@@ -566,6 +566,189 @@ async def validate_owner_stored_package_assets(
     return await validate_stored_package_assets(package_id, {"user": owner_user})
 
 
+# Fixed, bounded reconciliation set for the already-uploaded Tripo V3 GLBs.
+# This endpoint never uploads, creates duplicate theme_assets rows, or touches legacy assets.
+V3_EXISTING_ASSET_IDS: dict[str, str] = {
+    "521d2b16-e035-452b-82fe-dd7df00c0611": "ai_character_companion",
+    "3df9dc43-96f8-4a84-99f4-9cae88a0097d": "human_uniform_formal",
+    "3d4b9d4b-3935-4632-9ea8-fc8885efa470": "human_uniform_hero",
+    "1d4548ce-ce99-4d53-a02a-347db31a2f12": "live_stage",
+    "c163e98f-87f5-470a-b4cd-1a7ba5a60ced": "news_stage",
+    "31b0e586-3662-460f-93f1-1f93783161d2": "presentation_stage",
+    "da87dad3-ca89-46cd-9caa-fb3944b4d160": "world_planet",
+    "ce1e6811-36b9-4136-87d8-8482e0023005": "booth_tenant",
+    "2cd73e44-c72a-4c15-a20e-fffa9e6bfdf2": "classroom_stage",
+    "d9003e8f-7e70-45bd-8896-5bf2cd3691d9": "content_capsule",
+    "b5412651-ac0f-4909-b93e-dee6d9a6c942": "district_city",
+    "f03703d9-149c-4b05-8708-9d04d7fa27e1": "galaxy_navigator",
+    "8969f921-0179-4765-a976-31b8efac3912": "mentor_room",
+    "7a861179-f607-463b-ba0c-ac1adf048f7b": "navigation_orbit",
+    "bfdf5c9a-4890-4472-8a01-6d3460a0127c": "podcast_stage",
+    "f62b71f1-4acb-40f4-8968-342dd30f85d0": "portal_gate",
+    "95776ee8-d1ec-4495-b7a9-01ea6cae7eb7": "spatial_fx",
+}
+V3_PLATFORM_THEME_SLUG = "allpha-universe-v3"
+V3_PLATFORM_CATALOG_SLUG = "allpha-universe-v3"
+
+
+@router.post("/internal/v3-tripo-assets/reconcile")
+async def reconcile_existing_v3_tripo_assets(
+    context: dict = Depends(require_permission("admin.manage")),
+) -> dict[str, Any]:
+    """Validate and idempotently bind the 17 existing V3 GLBs to the canonical platform Theme V3.
+
+    No uploads or duplicate asset rows are created. Asset moderation/safety/performance
+    statuses are deliberately not promoted by this technical reconciliation operation.
+    """
+    user = context["user"]
+    assets = await service_select(
+        "theme_assets",
+        {"select":"id,theme_id,theme_version_id,asset_type,storage_bucket,storage_path,mime_type,status,moderation_status,safety_status,performance_status,checksum_sha256,content_size_bytes,metadata",
+         "id":"in.(" + ",".join(V3_EXISTING_ASSET_IDS) + ")",
+         "order":"created_at.asc"},
+    )
+    by_id = {str(asset.get("id")): asset for asset in assets}
+    missing = [asset_id for asset_id in V3_EXISTING_ASSET_IDS if asset_id not in by_id]
+    if missing:
+        raise HTTPException(status_code=409, detail={"code":"V3_ASSET_REGISTRATION_MISSING","missing_asset_ids":missing})
+
+    # Validate every object before changing any binding; failures leave bindings untouched.
+    checked: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=15.0), follow_redirects=True) as client:
+        for asset_id, expected_key in V3_EXISTING_ASSET_IDS.items():
+            asset = by_id[asset_id]
+            path = str(asset.get("storage_path") or "")
+            if asset.get("storage_bucket") != "allpha-world-assets" or not path.startswith("theme-v3-tripo/"):
+                raise HTTPException(status_code=409, detail={"code":"V3_ASSET_STORAGE_SCOPE_INVALID","asset_id":asset_id})
+            if asset.get("asset_type") != "model" or asset.get("mime_type") != "model/gltf-binary":
+                raise HTTPException(status_code=409, detail={"code":"V3_ASSET_TYPE_INVALID","asset_id":asset_id})
+            signed_url = await create_signed_asset_url(path)
+            if not signed_url:
+                raise HTTPException(status_code=502, detail={"code":"V3_SIGNED_URL_FAILED","asset_id":asset_id})
+            try:
+                response = await client.get(signed_url)
+                response.raise_for_status()
+                content = response.content
+                _validate_glb(content)
+            except (httpx.HTTPError, ThemeAssetIngestionError, ValueError, TypeError, KeyError, AttributeError) as exc:
+                raise HTTPException(status_code=422, detail={"code":"V3_GLB_VALIDATION_FAILED","asset_id":asset_id,"message":str(exc)[:240]}) from exc
+            digest = hashlib.sha256(content).hexdigest()
+            registered_size = asset.get("content_size_bytes")
+            if registered_size is not None and int(registered_size) != len(content):
+                raise HTTPException(status_code=409, detail={"code":"V3_ASSET_SIZE_MISMATCH","asset_id":asset_id,"registered_size_bytes":int(registered_size),"actual_size_bytes":len(content)})
+            registered_digest = asset.get("checksum_sha256")
+            if registered_digest and digest.lower() != str(registered_digest).lower():
+                raise HTTPException(status_code=409, detail={"code":"V3_ASSET_CHECKSUM_MISMATCH","asset_id":asset_id})
+            if len(content) > 25 * 1024 * 1024:
+                # Runtime performance budgets are not silently waived for oversized files.
+                raise HTTPException(status_code=422, detail={"code":"V3_ASSET_SIZE_BUDGET_EXCEEDED","asset_id":asset_id,"content_size_bytes":len(content)})
+            meta = asset.get("metadata") if isinstance(asset.get("metadata"), dict) else {}
+            registered_key = str(meta.get("asset_key") or expected_key)
+            if registered_key != expected_key:
+                raise HTTPException(status_code=409, detail={"code":"V3_ASSET_KEY_MISMATCH","asset_id":asset_id,"expected":expected_key,"actual":registered_key})
+            checked.append((asset, {"asset_key":expected_key,"validator":"allpha_v3_existing_glb_v1","validated":True,"signed_url_verified":True,"glb_version":2,"content_size_bytes":len(content),"checksum_sha256":digest,"checked_by_user_id":str(user.user_id),"checked_by_source":str(context.get("execution_source") or "admin.manage")}))
+
+    theme_rows = await service_select("themes", {"select":"*","slug":"eq." + V3_PLATFORM_THEME_SLUG,"limit":"1"})
+    if theme_rows:
+        theme = theme_rows[0]
+        if theme.get("source") != "platform" or theme.get("catalog_key") != V3_PLATFORM_CATALOG_SLUG:
+            raise HTTPException(status_code=409, detail={"code":"V3_PLATFORM_THEME_IDENTITY_CONFLICT"})
+    else:
+        rows = await service_insert("themes", {
+            "name":"Allpha Universe V3",
+            "slug":V3_PLATFORM_THEME_SLUG,
+            "description":"Canonical platform theme for the 17 existing Tripo V3 spatial assets.",
+            "category":"universe",
+            "compatibility":{"renderer":"AllphaWorldRenderer","asset_pipeline":"tripo_v3"},
+            "allowed_components":["universe","galaxy","world","district","booth","content","live-stage","human-live","agent-character","navigation-fx"],
+            "performance_budget":{"max_asset_bytes":26214400,"renderer":"AllphaWorldRenderer"},
+            "accessibility_constraints":{},
+            "status":"draft",
+            "moderation_status":"pending",
+            "source":"platform",
+            "catalog_key":V3_PLATFORM_CATALOG_SLUG,
+            "created_by_user_id":str(user.user_id),
+        })
+        if not rows:
+            raise HTTPException(status_code=503, detail={"code":"V3_PLATFORM_THEME_CREATE_FAILED"})
+        theme = rows[0]
+
+    version_rows = await service_select("theme_versions", {
+        "select":"*","theme_id":"eq." + str(theme["id"]),"version":"eq.3","limit":"1"
+    })
+    if version_rows:
+        version = version_rows[0]
+    else:
+        rows = await service_insert("theme_versions", {
+            "theme_id":theme["id"],
+            "version":3,
+            "status":"draft",
+            "tokens":{"art_direction":"Allpha Universe V3 / Tripo V3"},
+            "component_config":{},
+            "world_schema":{"source":"canonical_v3_asset_reconciliation","renderer":"AllphaWorldRenderer"},
+            "compatibility":{"renderer":"AllphaWorldRenderer","asset_format":"glb2"},
+            "performance_budget":{"max_asset_bytes":26214400,"max_total_asset_bytes":250000000},
+            "accessibility_constraints":{},
+            "validation_status":"pending",
+            "performance_status":"pending",
+            "moderation_status":"pending",
+            "created_by_user_id":str(user.user_id),
+        })
+        if not rows:
+            raise HTTPException(status_code=503, detail={"code":"V3_PLATFORM_VERSION_CREATE_FAILED"})
+        version = rows[0]
+
+    rebound: list[dict[str, Any]] = []
+    for asset, qa in checked:
+        asset_id = str(asset["id"])
+        old_metadata = asset.get("metadata") if isinstance(asset.get("metadata"), dict) else {}
+        update = await service_update("theme_assets", {"id":"eq." + asset_id}, {
+            "theme_id":str(theme["id"]),
+            "theme_version_id":str(version["id"]),
+            "metadata":{**old_metadata,"asset_key":qa["asset_key"],"source":"theme_studio_tripo_v3","canonical_binding":"allpha-universe-v3","stored_asset_qa":qa},
+        })
+        if not update:
+            raise HTTPException(status_code=503, detail={"code":"V3_ASSET_BINDING_FAILED","asset_id":asset_id})
+        rebound.append({"asset_id":asset_id,"asset_key":qa["asset_key"],"storage_path":asset["storage_path"],"theme_id":theme["id"],"theme_version_id":version["id"],"validated":True,"status":update[0].get("status"),"moderation_status":update[0].get("moderation_status"),"safety_status":update[0].get("safety_status"),"performance_status":update[0].get("performance_status")})
+
+    return {"data":{"execution_source":str(context.get("execution_source") or "admin.manage"),"theme":{"id":theme["id"],"slug":theme["slug"],"source":theme["source"],"status":theme["status"]},"version":{"id":version["id"],"version":version["version"],"status":version["status"]},"asset_count":len(rebound),"validated_count":len(rebound),"bound_count":len(rebound),"assets":rebound,"uploaded_again":False,"duplicate_rows_created":False,"publication_ready":all(a["status"]=="active" and a["moderation_status"]=="approved" and a["safety_status"]=="passed" and a["performance_status"]=="passed" for a in rebound),"next_gate":"Moderation, safety, and performance remain unchanged until their real approval/evidence workflows pass."}}
+
+
+
+def _require_v3_reconcile_token(candidate: str | None) -> str:
+    import hmac
+
+    expected = os.getenv("ALLPHA_V3_RECONCILE_TOKEN", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail={"code": "V3_RECONCILE_NOT_CONFIGURED", "message": "Developer reconciliation token is not configured on this API service."})
+    if not candidate or not hmac.compare_digest(candidate, expected):
+        raise HTTPException(status_code=403, detail={"code": "V3_RECONCILE_TOKEN_INVALID", "message": "Developer reconciliation token is invalid."})
+    operator_id = os.getenv("ALLPHA_V3_RECONCILE_OPERATOR_ID", "").strip()
+    try:
+        UUID(operator_id)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=503, detail={"code": "V3_RECONCILE_OPERATOR_NOT_CONFIGURED", "message": "Configure a dedicated operator/service identity UUID before reconciliation."})
+    return operator_id
+
+
+@router.post("/internal/v3-tripo-assets/reconcile/developer")
+async def reconcile_existing_v3_tripo_assets_developer(
+    x_allpha_v3_reconcile_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Internal developer bridge; token authorizes technical reconciliation only, never lifecycle approval."""
+    operator_id = _require_v3_reconcile_token(x_allpha_v3_reconcile_token)
+    operator = type("V3ReconcileOperator", (), {"user_id": operator_id})()
+    result = await reconcile_existing_v3_tripo_assets(
+        context={"user": operator, "execution_source": "developer_internal_token"}
+    )
+    result["data"]["audit"] = {
+        "actor_type": "configured_service_operator",
+        "operator_id": operator_id,
+        "execution_source": "developer_internal_token",
+        "lifecycle_approval_performed": False,
+    }
+    return result
+
 @router.post("/packages/{package_id}/submit-review")
 async def submit_package_for_review(package_id: UUID, context: dict = Depends(require_permission("admin.manage"))) -> dict[str, Any]:
     user = context["user"]
