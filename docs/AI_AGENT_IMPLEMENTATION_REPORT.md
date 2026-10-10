@@ -722,3 +722,14 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 - Auth guard: server enforcement implemented in source, but deployed anonymous/authenticated route tests are pending.
 - V3 publication: BLOCKED pending guarded package reconciliation, owner validation, moderation, safety, performance, and human publication approval.
 
+## 2026-10-11 — V3 Public Manifest Fail-Closed Governance Fix
+
+- Updated apps/api/app/api/world_runtime.py in commit cae84dae350769213a7ed8da411507ed74198446.
+- The public V3 manifest now requires published/approved theme + version gates and returns signed URLs only for active assets with approved moderation, passed safety and passed performance.
+- Internal lifecycle and package metadata are no longer returned wholesale by this public manifest; only renderer-required metadata is exposed.
+- This closes a governance exposure in which draft/review assets could be signed for public rendering despite pending moderation/safety/performance.
+- Because the canonical V3 theme/version and all 17 assets are still pending, the expected public behavior is no signed URLs and a visible labeled Splash fallback until the official publication gates pass.
+- Related phase/audit documentation updated: docs/audits/REBUILD_03_ASSET_PIPELINE_CONTRACT_20261009.md.
+- Latest observed Railway deployments: API 59806f34-7e6c-4538-abca-e9b4899e487b BUILDING; Web 0cd57998-d0fb-4ffb-9817-964271a77ada BUILDING. Build/runtime results are NOT VERIFIED.
+- No database mutation, asset regeneration, upload, or direct lifecycle status update was performed.
+
