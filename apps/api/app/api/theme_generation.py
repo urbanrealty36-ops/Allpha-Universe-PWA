@@ -723,11 +723,13 @@ def _require_v3_reconcile_token(candidate: str | None) -> str:
         raise HTTPException(status_code=503, detail={"code": "V3_RECONCILE_NOT_CONFIGURED", "message": "Developer reconciliation token is not configured on this API service."})
     if not candidate or not hmac.compare_digest(candidate, expected):
         raise HTTPException(status_code=403, detail={"code": "V3_RECONCILE_TOKEN_INVALID", "message": "Developer reconciliation token is invalid."})
-    operator_id = os.getenv("ALLPHA_V3_RECONCILE_OPERATOR_ID", "").strip()
+    # Reuse the already-configured owner identity used by the V1/V2 internal
+    # asset workflow; no public-user login or new identity configuration is needed.
+    operator_id = os.getenv("ALLPHA_THEME_STUDIO_OWNER_USER_ID", "").strip()
     try:
         UUID(operator_id)
     except (ValueError, TypeError):
-        raise HTTPException(status_code=503, detail={"code": "V3_RECONCILE_OPERATOR_NOT_CONFIGURED", "message": "Configure a dedicated operator/service identity UUID before reconciliation."})
+        raise HTTPException(status_code=503, detail={"code": "V3_RECONCILE_OPERATOR_NOT_CONFIGURED", "message": "The existing owner studio identity is not configured."})
     return operator_id
 
 
