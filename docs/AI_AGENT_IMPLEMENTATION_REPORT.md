@@ -750,3 +750,12 @@ Continue the canonical Allpha web UI track using the supplied mobile references,
 - New Railway Web deployment: cb3b03be-a0d8-445c-bc85-ccfb54c31431, commit 3e725242858570a0dcd51a1758005a0c747a9a5e, INITIALIZING/BUILDING at last observation. The fix is not yet verified by a successful build.
 - GitHub Actions for main and Public 3D UI/UX QA were in progress at the latest check; no green conclusion is claimed.
 
+## 2026-10-11 — V3 Storage-to-Registry Read-Only Parity Check
+
+- Read-only Supabase join between storage.objects and theme_assets confirms 17 registered V3 assets and 17 Storage objects in bucket allpha-world-assets under theme-v3-tripo/.
+- Registered rows missing Storage objects: 0. Unregistered Storage objects under the prefix: 0. Stored content_size_bytes matches Storage metadata size for all 17 rows.
+- All 17 theme_assets rows have a non-null checksum_sha256 value, but the actual downloaded bytes were not available through the connected Storage tooling, so this session did NOT recompute/compare file SHA-256 or parse the GLB binary.
+- Combined Storage size: 171,659,408 bytes (~163.7 MiB). Individual assets are roughly 3.6–16.8 MB, so mobile transfer/memory/performance validation remains a material gate.
+- Keys present: ai_character_companion, booth_tenant, classroom_stage, content_capsule, district_city, galaxy_navigator, human_uniform_formal, human_uniform_hero, live_stage, mentor_room, navigation_orbit, news_stage, podcast_stage, portal_gate, presentation_stage, spatial_fx, world_planet.
+- All 17 remain pending for status/moderation/safety/performance. Storage/registry parity does not mean the assets are valid, safe, visually approved, or published.
+
