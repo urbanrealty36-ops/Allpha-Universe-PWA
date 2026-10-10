@@ -15,7 +15,7 @@ def err(e:SupabaseRestError,code:str)->HTTPException:
 async def runtime_catalog():
     """Read-only composition of existing platform Theme, World Template and Live Template records."""
     try:
-        themes=await service_select("themes",{"select":"*,theme_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
+        themes=await service_select("themes",{"select":"*,theme_versions(*)","source":"eq.platform","or":"(status.eq.published,slug.eq.allpha-universe-v3)","order":"catalog_order.asc"})
         templates=await service_select("world_templates",{"select":"*,world_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
         live=await service_select("live_experience_templates",{"select":"*,live_experience_template_versions(*)","source":"eq.platform","status":"eq.published","order":"catalog_order.asc"})
     except SupabaseRestError as e:
@@ -30,7 +30,10 @@ async def runtime_catalog():
     for theme in themes:
         versions=theme.get("theme_versions") or []
         published=sorted([v for v in versions if v.get("status")=="published"],key=lambda v:v.get("version",0),reverse=True)
-        version=published[0] if published else None
+        # The owner-requested V3 rollout is discoverable while its version remains
+        # in review; other draft themes stay excluded from the public catalog.
+        fallback=sorted(versions,key=lambda v:v.get("version",0),reverse=True)
+        version=published[0] if published else (fallback[0] if theme.get("slug")=="allpha-universe-v3" and fallback else None)
         world_template=template_by_theme.get(theme.get("id"))
         result.append({
             "id":theme.get("id"),"name":theme.get("name"),"slug":theme.get("slug"),"description":theme.get("description"),
